@@ -8,7 +8,12 @@
 	- `premake5 vs2017` for *Microsoft Visual Studio* solution (currently untested) ;
 	- `premake5 xcode3` for *Apple* Xcode solution (currenly untested) ;
 	- or check [this Premake5 wiki page](https://github.com/premake/premake-core/wiki/Using-Premake) for other solutions ;
-- your solution files have been generated to `build/gen`.
+- your solution files have been generated to project's root folder.
+
+### Building
+
+In order to select the configuration (debug or release):
+- `make config=release` for gmake.
 
 ## Dependencies
 

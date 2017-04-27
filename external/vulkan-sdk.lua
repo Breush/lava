@@ -37,6 +37,11 @@ function useVulkanSdk()
     includedirs(externalPath .. "/include")
     libdirs(externalPath .. "/lib")
     links "vulkan"
+    
+    filter { "configurations:debug" }
+        linkoptions("-Wl,-rpath," .. externalPath .. "/lib")
+
+    filter {}
 end
 
 print("[Dependencies] Vulkan SDK (" .. VULKAN_SDK_VERSION .. ") is ready.")

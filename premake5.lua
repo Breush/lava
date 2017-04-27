@@ -1,6 +1,6 @@
 workspace "lava-renderer"
 
-    location "build/gen"
+    location "."
     language "C++"
 
     architecture "x86_64"
@@ -9,6 +9,8 @@ workspace "lava-renderer"
 
     configurations { "debug", "release" }
 
+    includedirs "include"
+
     filter { "configurations:debug" }
         flags { "c++14" }
         symbols "on"
@@ -16,6 +18,9 @@ workspace "lava-renderer"
     filter { "configurations:release" }
         flags { "c++14" }
         optimize "on"
+
+        -- For release only, copy all the shared libs
+        postbuildcommands  { "cp -v external/lib/*.so* build/release/" }
 
     filter {}
 

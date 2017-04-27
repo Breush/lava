@@ -73,7 +73,7 @@ const std::string VulkanExampleBase::getAssetPath()
 #if defined(__ANDROID__)
 	return "";
 #else
-	return "./../data/";
+	return "./data/";
 #endif
 }
 

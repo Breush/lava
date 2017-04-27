@@ -2,3 +2,5 @@ build/
 external/.tmp/
 external/include/
 external/lib/
+Makefile
+*.make
