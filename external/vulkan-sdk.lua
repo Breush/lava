@@ -5,12 +5,12 @@ local VULKAN_SDK_VERSION = "1.0.46.0"
 -- Download
 
 if not fileValid("./.tmp/vulkan-sdk.run") then
-    print("[Dependencies] Downloading Vulkan SDK (" .. VULKAN_SDK_VERSION .. ")...")
-
     os.mkdir("./.tmp")
     local filename = "vulkansdk-linux-x86_64-" .. VULKAN_SDK_VERSION .. ".run"
     local url = "https://vulkan.lunarg.com/sdk/download/" .. VULKAN_SDK_VERSION .. "/linux/" .. filename .. "?Human=true"
-    local downloadResult = http.download(url, "./.tmp/vulkan-sdk.run")
+
+    downloadStart("Dependencies", "Vulkan SDK (" .. VULKAN_SDK_VERSION .. ")")
+    local downloadResult = http.download(url, "./.tmp/vulkan-sdk.run", { progress = downloadProgress })
 
     if downloadResult ~= "OK" then
         print("[Dependencies] FAILURE while downloading Vulkan SDK (" .. VULKAN_SDK_VERSION .. ")...")

@@ -5,11 +5,11 @@ local GLM_VERSION = "0.9.8.4"
 -- Download
 
 if not fileValid("./.tmp/glm.zip") then
-    print("[Dependencies] Downloading GLM (" .. GLM_VERSION .. ")...")
-
     os.mkdir("./.tmp")
     local url = "https://github.com/g-truc/glm/releases/download/" .. GLM_VERSION .. "/glm-" .. GLM_VERSION .. ".zip"
-    downloadResult = http.download(url, "./.tmp/glm.zip")
+    
+    downloadStart("Dependencies", "GLM (" .. GLM_VERSION .. ")")
+    local downloadResult = http.download(url, "./.tmp/glm.zip", { progress = downloadProgress })
 
     if downloadResult ~= "OK" then
         print("[Dependencies] FAILURE while downloading GLM (" .. GLM_VERSION .. ")...")
