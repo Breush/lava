@@ -29,7 +29,7 @@
 #include <lava/chamber/Mutex.hpp>
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 Lock::Lock(Mutex& mutex) :
@@ -45,4 +45,4 @@ Lock::~Lock()
     m_mutex.unlock();
 }
 
-} // namespace sf
+} // namespace lava

@@ -29,7 +29,7 @@
 #include "./GlContext.hpp"
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 GlResource::GlResource()
@@ -58,4 +58,4 @@ GlResource::TransientContextLock::~TransientContextLock()
     priv::GlContext::releaseTransientContext();
 }
 
-} // namespace sf
+} // namespace lava

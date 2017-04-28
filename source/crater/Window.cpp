@@ -33,11 +33,11 @@
 
 namespace
 {
-    const sf::Window* fullscreenWindow = NULL;
+    const lava::Window* fullscreenWindow = NULL;
 }
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 Window::Window() :
@@ -56,16 +56,6 @@ m_context       (NULL),
 m_size          (0, 0)
 {
     create(mode, title, style, settings);
-}
-
-
-////////////////////////////////////////////////////////////
-Window::Window(WindowHandle handle, const ContextSettings& settings) :
-m_impl          (NULL),
-m_context       (NULL),
-m_size          (0, 0)
-{
-    create(handle, settings);
 }
 
 
@@ -106,38 +96,15 @@ void Window::create(VideoMode mode, const String& title, uint32_t style, const C
     }
 
     // Check validity of style according to the underlying platform
-    #if defined(SFML_SYSTEM_IOS) || defined(SFML_SYSTEM_ANDROID)
-        if (style & Style::Fullscreen)
-            style &= ~Style::Titlebar;
-        else
-            style |= Style::Titlebar;
-    #else
-        if ((style & Style::Close) || (style & Style::Resize))
-            style |= Style::Titlebar;
-    #endif
+    if ((style & Style::Close) || (style & Style::Resize))
+        style |= Style::Titlebar;
 
     // Recreate the window implementation
     m_impl = priv::WindowImpl::create(mode, title, style, settings);
 
     // Recreate the context
-    m_context = priv::GlContext::create(settings, m_impl, mode.bitsPerPixel);
-
-    // Perform common initializations
-    initialize();
-}
-
-
-////////////////////////////////////////////////////////////
-void Window::create(WindowHandle handle, const ContextSettings& settings)
-{
-    // Destroy the previous window implementation
-    close();
-
-    // Recreate the window implementation
-    m_impl = priv::WindowImpl::create(handle);
-
-    // Recreate the context
-    m_context = priv::GlContext::create(settings, m_impl, VideoMode::getDesktopMode().bitsPerPixel);
+    // TODO
+    // m_context = priv::GlContext::create(settings, m_impl, mode.bitsPerPixel);
 
     // Perform common initializations
     initialize();
@@ -364,7 +331,7 @@ void Window::display()
 ////////////////////////////////////////////////////////////
 WindowHandle Window::getSystemHandle() const
 {
-    return m_impl ? m_impl->getSystemHandle() : 0;
+    return m_impl->getSystemHandle();
 }
 
 
@@ -420,4 +387,4 @@ void Window::initialize()
     onCreate();
 }
 
-} // namespace sf
+} // namespace lava

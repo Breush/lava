@@ -31,7 +31,7 @@
 #include <cassert>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -91,4 +91,4 @@ void* ThreadImpl::entryPoint(void* userData)
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

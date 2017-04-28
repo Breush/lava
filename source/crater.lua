@@ -13,7 +13,7 @@ project "lava-crater"
             error("XCB dev files are required, please install libxcb1-dev")
         end
         libdirs(libXCB)
-        links { "xcb", "Xrandr", "GL", "pthread" }
+        links { "xcb", "GL" }
 
         useChamber()
     end

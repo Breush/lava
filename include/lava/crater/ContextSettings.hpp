@@ -26,7 +26,7 @@
 #define SFML_CONTEXTSETTINGS_HPP
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 /// \brief Structure defining the settings of the OpenGL
@@ -81,14 +81,14 @@ struct ContextSettings
     bool         sRgbCapable;       ///< Whether the context framebuffer is sRGB capable
 };
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_CONTEXTSETTINGS_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::ContextSettings
+/// \class lava::ContextSettings
 /// \ingroup window
 ///
 /// ContextSettings allows to define several advanced settings

@@ -26,7 +26,7 @@
 #define SFML_VECTOR3_HPP
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 /// \brief Utility template class for manipulating
@@ -255,17 +255,17 @@ bool operator !=(const Vector3<T>& left, const Vector3<T>& right);
 typedef Vector3<int>   Vector3i;
 typedef Vector3<float> Vector3f;
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_VECTOR3_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::Vector3
+/// \class lava::Vector3
 /// \ingroup system
 ///
-/// sf::Vector3 is a simple class that defines a mathematical
+/// lava::Vector3 is a simple class that defines a mathematical
 /// vector with three coordinates (x, y and z). It can be used to
 /// represent anything that has three dimensions: a size, a point,
 /// a velocity, etc.
@@ -274,29 +274,29 @@ typedef Vector3<float> Vector3f;
 /// can be any type that supports arithmetic operations (+, -, /, *)
 /// and comparisons (==, !=), for example int or float.
 ///
-/// You generally don't have to care about the templated form (sf::Vector3<T>),
+/// You generally don't have to care about the templated form (lava::Vector3<T>),
 /// the most common specializations have special typedefs:
-/// \li sf::Vector3<float> is sf::Vector3f
-/// \li sf::Vector3<int> is sf::Vector3i
+/// \li lava::Vector3<float> is lava::Vector3f
+/// \li lava::Vector3<int> is lava::Vector3i
 ///
-/// The sf::Vector3 class has a small and simple interface, its x and y members
+/// The lava::Vector3 class has a small and simple interface, its x and y members
 /// can be accessed directly (there are no accessors like setX(), getX()) and it
 /// contains no mathematical function like dot product, cross product, length, etc.
 ///
 /// Usage example:
 /// \code
-/// sf::Vector3f v1(16.5f, 24.f, -8.2f);
+/// lava::Vector3f v1(16.5f, 24.f, -8.2f);
 /// v1.x = 18.2f;
 /// float y = v1.y;
 /// float z = v1.z;
 ///
-/// sf::Vector3f v2 = v1 * 5.f;
-/// sf::Vector3f v3;
+/// lava::Vector3f v2 = v1 * 5.f;
+/// lava::Vector3f v3;
 /// v3 = v1 + v2;
 ///
 /// bool different = (v2 != v3);
 /// \endcode
 ///
-/// Note: for 2-dimensional vectors, see sf::Vector2.
+/// Note: for 2-dimensional vectors, see lava::Vector2.
 ///
 ////////////////////////////////////////////////////////////

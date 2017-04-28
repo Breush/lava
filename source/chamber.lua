@@ -5,12 +5,13 @@ project "lava-chamber"
     files "chamber/**"
 
     function chamberDependencies()
+        links { "pthread" }
     end
 
     chamberDependencies()
 
     function useChamber()
-        links "lava-chamber"
+        links { "lava-chamber" }
 
         chamberDependencies()
     end

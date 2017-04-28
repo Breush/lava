@@ -35,7 +35,7 @@
 
 namespace
 {
-    sf::Mutex glxErrorMutex;
+    lava::Mutex glxErrorMutex;
     bool glxErrorOccurred = false;
 
     int HandleXError(::Display*, XErrorEvent*)
@@ -63,14 +63,14 @@ namespace
         }
 
     private:
-        sf::Lock   m_lock;
+        lava::Lock   m_lock;
         ::Display* m_display;
         int      (*m_previousHandler)(::Display*, XErrorEvent*);
     };
 }
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -132,7 +132,7 @@ m_ownsWindow(false)
     ensureExtensionsInit(m_display, DefaultScreen(m_display));
 
     // Create the rendering surface from the owner window
-    createSurface(static_cast< ::Window>(owner->getSystemHandle()));
+    // createSurface(static_cast< ::Window>(owner->getSystemHandle()));
 
     // Create the context
     createContext(shared);
@@ -769,4 +769,4 @@ void GlxContext::createContext(GlxContext* shared)
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

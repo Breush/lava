@@ -29,7 +29,7 @@
 
 #include "./Unix/MutexImpl.hpp"
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 Mutex::Mutex()
@@ -58,4 +58,4 @@ void Mutex::unlock()
     m_mutexImpl->unlock();
 }
 
-} // namespace sf
+} // namespace lava

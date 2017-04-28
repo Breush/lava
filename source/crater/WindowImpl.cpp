@@ -31,9 +31,9 @@
 #include <cmath>
 
 #include "./Unix/WindowImplX11.hpp"
-typedef sf::priv::WindowImplX11 WindowImplType;
+typedef lava::priv::WindowImplX11 WindowImplType;
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -41,13 +41,6 @@ namespace priv
 WindowImpl* WindowImpl::create(VideoMode mode, const String& title, uint32_t style, const ContextSettings& settings)
 {
     return new WindowImplType(mode, title, style, settings);
-}
-
-
-////////////////////////////////////////////////////////////
-WindowImpl* WindowImpl::create(WindowHandle handle)
-{
-    return new WindowImplType(handle);
 }
 
 
@@ -114,4 +107,4 @@ void WindowImpl::pushEvent(const Event& event)
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

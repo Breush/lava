@@ -32,7 +32,7 @@
 #include <lava/chamber/NonCopyable.hpp>
 
 
-namespace sf
+namespace lava
 {
 class Mutex;
 
@@ -47,7 +47,7 @@ public:
     ////////////////////////////////////////////////////////////
     /// \brief Construct the lock with a target mutex
     ///
-    /// The mutex passed to sf::Lock is automatically locked.
+    /// The mutex passed to lava::Lock is automatically locked.
     ///
     /// \param mutex Mutex to lock
     ///
@@ -57,7 +57,7 @@ public:
     ////////////////////////////////////////////////////////////
     /// \brief Destructor
     ///
-    /// The destructor of sf::Lock automatically unlocks its mutex.
+    /// The destructor of lava::Lock automatically unlocks its mutex.
     ///
     ////////////////////////////////////////////////////////////
     ~Lock();
@@ -70,17 +70,17 @@ private:
     Mutex& m_mutex; ///< Mutex to lock / unlock
 };
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_LOCK_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::Lock
+/// \class lava::Lock
 /// \ingroup system
 ///
-/// sf::Lock is a RAII wrapper for sf::Mutex. By unlocking
+/// lava::Lock is a RAII wrapper for lava::Mutex. By unlocking
 /// it in its destructor, it ensures that the mutex will
 /// always be released when the current scope (most likely
 /// a function) ends.
@@ -88,16 +88,16 @@ private:
 /// return statement can interrupt the execution flow of the
 /// function.
 ///
-/// For maximum robustness, sf::Lock should always be used
+/// For maximum robustness, lava::Lock should always be used
 /// to lock/unlock a mutex.
 ///
 /// Usage example:
 /// \code
-/// sf::Mutex mutex;
+/// lava::Mutex mutex;
 ///
 /// void function()
 /// {
-///     sf::Lock lock(mutex); // mutex is now locked
+///     lava::Lock lock(mutex); // mutex is now locked
 ///
 ///     functionThatMayThrowAnException(); // mutex is unlocked if this function throws
 ///
@@ -115,12 +115,12 @@ private:
 /// part of the code.
 ///
 /// \code
-/// sf::Mutex mutex;
+/// lava::Mutex mutex;
 ///
 /// void function()
 /// {
 ///     {
-///       sf::Lock lock(mutex);
+///       lava::Lock lock(mutex);
 ///       codeThatRequiresProtection();
 ///
 ///     } // mutex is unlocked here
@@ -134,6 +134,6 @@ private:
 /// a mutex is locked, other threads may be waiting doing nothing
 /// until it is released.
 ///
-/// \see sf::Mutex
+/// \see lava::Mutex
 ///
 ////////////////////////////////////////////////////////////

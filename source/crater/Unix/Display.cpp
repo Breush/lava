@@ -40,13 +40,13 @@ namespace
     // The shared display and its reference counter
     Display* sharedDisplay = NULL;
     unsigned int referenceCount = 0;
-    sf::Mutex mutex;
+    lava::Mutex mutex;
 
     typedef std::map<std::string, Atom> AtomMap;
     AtomMap atoms;
 }
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -107,4 +107,4 @@ Atom getAtom(const std::string& name, bool onlyIfExists)
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

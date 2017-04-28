@@ -33,7 +33,7 @@
 #include <X11/Xlib.h>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -187,6 +187,6 @@ private:
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 #endif // SFML_GLXCONTEXT_HPP

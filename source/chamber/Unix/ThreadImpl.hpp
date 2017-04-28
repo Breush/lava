@@ -33,7 +33,7 @@
 #include <pthread.h>
 
 
-namespace sf
+namespace lava
 {
 class Thread;
 
@@ -87,7 +87,7 @@ private:
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_THREADIMPL_HPP

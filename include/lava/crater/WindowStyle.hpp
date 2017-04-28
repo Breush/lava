@@ -26,7 +26,7 @@
 #define SFML_WINDOWSTYLE_HPP
 
 
-namespace sf
+namespace lava
 {
 namespace Style
 {
@@ -47,7 +47,7 @@ namespace Style
     };
 }
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_WINDOWSTYLE_HPP

@@ -31,11 +31,12 @@
 #include <lava/crater/Event.hpp>
 #include "../WindowImpl.hpp"
 #include <lava/chamber/String.hpp>
-#include <X11/Xlib.h>
 #include <deque>
 
+#include <xcb/xcb.h>
 
-namespace sf
+
+namespace lava
 {
 namespace priv
 {
@@ -46,14 +47,6 @@ namespace priv
 class WindowImplX11 : public WindowImpl
 {
 public:
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct the window implementation from an existing control
-    ///
-    /// \param handle Platform-specific handle of the control
-    ///
-    ////////////////////////////////////////////////////////////
-    WindowImplX11(WindowHandle handle);
 
     ////////////////////////////////////////////////////////////
     /// \brief Create the window implementation
@@ -187,6 +180,10 @@ protected:
 
 private:
 
+    void initXcbConnection();
+
+    void setupWindow(VideoMode mode);
+
     ////////////////////////////////////////////////////////////
     /// \brief Request the WM to make the current window active
     ///
@@ -214,20 +211,6 @@ private:
     void switchToFullscreen();
 
     ////////////////////////////////////////////////////////////
-    /// \brief Set the WM protocols we support
-    ///
-    ////////////////////////////////////////////////////////////
-    void setProtocols();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Update the last time we received user input
-    ///
-    /// \param time Last time we received user input
-    ///
-    ////////////////////////////////////////////////////////////
-    void updateLastInputTime(::Time time);
-
-    ////////////////////////////////////////////////////////////
     /// \brief Do some common initializations after the window has been created
     ///
     ////////////////////////////////////////////////////////////
@@ -253,33 +236,20 @@ private:
     /// \return True if the event was processed, false if it was discarded
     ///
     ////////////////////////////////////////////////////////////
-    bool processEvent(XEvent& windowEvent);
+    bool processEvent(xcb_generic_event_t& windowEvent);
 
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    ::Window   m_window;         ///< X identifier defining our window
-    ::Display* m_display;        ///< Pointer to the display
-    int        m_screen;         ///< Screen identifier
-    XIM        m_inputMethod;    ///< Input method linked to the X display
-    XIC        m_inputContext;   ///< Input context used to get unicode input in our window
-    bool       m_isExternal;     ///< Tell whether the window has been created externally or by SFML
-    int        m_oldVideoMode;   ///< Video mode in use before we switch to fullscreen
-    Cursor     m_hiddenCursor;   ///< As X11 doesn't provide cursor hidding, we must create a transparent one
-    bool       m_keyRepeat;      ///< Is the KeyRepeat feature enabled?
-    Vector2i   m_previousSize;   ///< Previous size of the window, to find if a ConfigureNotify event is a resize event (could be a move event only)
-    bool       m_useSizeHints;   ///< Is the size of the window fixed with size hints?
-    bool       m_fullscreen;     ///< Is the window in fullscreen?
-    bool       m_cursorGrabbed;  ///< Is the mouse cursor trapped?
-    bool       m_windowMapped;   ///< Has the window been mapped by the window manager?
-    Pixmap     m_iconPixmap;     ///< The current icon pixmap if in use
-    Pixmap     m_iconMaskPixmap; ///< The current icon mask pixmap if in use
-    ::Time     m_lastInputTime;  ///< Last time we received user input
+    uint32_t m_window = -1u;
+    xcb_connection_t* m_connection = nullptr;
+    xcb_screen_t* m_screen = nullptr;
+    xcb_intern_atom_reply_t* m_atomWmDeleteWindow = nullptr;
 };
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_WINDOWIMPLX11_HPP

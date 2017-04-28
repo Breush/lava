@@ -34,7 +34,7 @@
 #include <lava/chamber/NonCopyable.hpp>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -263,7 +263,7 @@ private:
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_GLCONTEXT_HPP

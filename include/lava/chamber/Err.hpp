@@ -32,7 +32,7 @@
 #include <ostream>
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 /// \brief Standard stream used by SFML to output warnings and errors
@@ -40,17 +40,17 @@ namespace sf
 ////////////////////////////////////////////////////////////
 SFML_SYSTEM_API std::ostream& err();
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_ERR_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \fn sf::err
+/// \fn lava::err
 /// \ingroup system
 ///
-/// By default, sf::err() outputs to the same location as std::cerr,
+/// By default, lava::err() outputs to the same location as std::cerr,
 /// (-> the stderr descriptor) which is the console if there's
 /// one available.
 ///
@@ -58,7 +58,7 @@ SFML_SYSTEM_API std::ostream& err();
 /// insertion operations defined by the STL
 /// (operator <<, manipulators, etc.).
 ///
-/// sf::err() can be redirected to write to another output, independently
+/// lava::err() can be redirected to write to another output, independently
 /// of std::cerr, by using the rdbuf() function provided by the
 /// std::ostream class.
 ///
@@ -66,13 +66,13 @@ SFML_SYSTEM_API std::ostream& err();
 /// \code
 /// // Redirect to a file
 /// std::ofstream file("sfml-log.txt");
-/// std::streambuf* previous = sf::err().rdbuf(file.rdbuf());
+/// std::streambuf* previous = lava::err().rdbuf(file.rdbuf());
 ///
 /// // Redirect to nothing
-/// sf::err().rdbuf(NULL);
+/// lava::err().rdbuf(NULL);
 ///
 /// // Restore the original output
-/// sf::err().rdbuf(previous);
+/// lava::err().rdbuf(previous);
 /// \endcode
 ///
 /// \return Reference to std::ostream representing the SFML error stream

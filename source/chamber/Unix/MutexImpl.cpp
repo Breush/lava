@@ -28,7 +28,7 @@
 
 #include "./MutexImpl.hpp"
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -66,4 +66,4 @@ void MutexImpl::unlock()
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

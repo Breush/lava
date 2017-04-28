@@ -31,7 +31,7 @@
 #include <lava/config.hpp>
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 /// \brief Defines a system event and its parameters
@@ -76,21 +76,21 @@ public:
     };
 };
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_EVENT_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::Event
+/// \class lava::Event
 /// \ingroup window
 ///
-/// sf::Event holds all the informations about a system event
+/// lava::Event holds all the informations about a system event
 /// that just happened. Events are retrieved using the
-/// sf::Window::pollEvent and sf::Window::waitEvent functions.
+/// lava::Window::pollEvent and lava::Window::waitEvent functions.
 ///
-/// A sf::Event instance contains the type of the event
+/// A lava::Event instance contains the type of the event
 /// (mouse moved, key pressed, window closed, ...) as well
 /// as the details about this particular event. Please note that
 /// the event parameters are defined in a union, which means that
@@ -103,19 +103,19 @@ public:
 ///
 /// Usage example:
 /// \code
-/// sf::Event event;
+/// lava::Event event;
 /// while (window.pollEvent(event))
 /// {
 ///     // Request for closing the window
-///     if (event.type == sf::Event::Closed)
+///     if (event.type == lava::Event::Closed)
 ///         window.close();
 ///
 ///     // The escape key was pressed
-///     if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
+///     if ((event.type == lava::Event::KeyPressed) && (event.key.code == lava::Keyboard::Escape))
 ///         window.close();
 ///
 ///     // The window was resized
-///     if (event.type == sf::Event::Resized)
+///     if (event.type == lava::Event::Resized)
 ///         doSomethingWithTheNewSize(event.size.width, event.size.height);
 ///
 ///     // etc ...

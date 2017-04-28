@@ -32,7 +32,7 @@
 
 namespace
 {
-// This class will be used as the default streambuf of sf::Err,
+// This class will be used as the default streambuf of lava::Err,
 // it outputs to stderr by default (to keep the default behavior)
 class DefaultErrStreamBuf : public std::streambuf
 {
@@ -95,7 +95,7 @@ private:
 };
 }
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 std::ostream& err()
@@ -107,4 +107,4 @@ std::ostream& err()
 }
 
 
-} // namespace sf
+} // namespace lava

@@ -29,7 +29,7 @@
 
 #include "./Unix/ThreadImpl.hpp"
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 Thread::~Thread()
@@ -77,4 +77,4 @@ void Thread::run()
     m_entryPoint->run();
 }
 
-} // namespace sf
+} // namespace lava

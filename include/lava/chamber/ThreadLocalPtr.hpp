@@ -31,7 +31,7 @@
 #include <lava/chamber/ThreadLocal.hpp>
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 /// \brief Pointer to a thread-local variable
@@ -102,7 +102,7 @@ public:
     ThreadLocalPtr<T>& operator =(const ThreadLocalPtr<T>& right);
 };
 
-} // namespace sf
+} // namespace lava
 
 #include <lava/chamber/ThreadLocalPtr.inl>
 
@@ -111,10 +111,10 @@ public:
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::ThreadLocalPtr
+/// \class lava::ThreadLocalPtr
 /// \ingroup system
 ///
-/// sf::ThreadLocalPtr is a type-safe wrapper for storing
+/// lava::ThreadLocalPtr is a type-safe wrapper for storing
 /// pointers to thread-local variables. A thread-local
 /// variable holds a different value for each different
 /// thread, unlike normal variables that are shared.
@@ -126,7 +126,7 @@ public:
 /// \code
 /// MyClass object1;
 /// MyClass object2;
-/// sf::ThreadLocalPtr<MyClass> objectPtr;
+/// lava::ThreadLocalPtr<MyClass> objectPtr;
 ///
 /// void thread1()
 /// {
@@ -143,8 +143,8 @@ public:
 /// int main()
 /// {
 ///     // Create and launch the two threads
-///     sf::Thread t1(&thread1);
-///     sf::Thread t2(&thread2);
+///     lava::Thread t1(&thread1);
+///     lava::Thread t2(&thread2);
 ///     t1.launch();
 ///     t2.launch();
 ///

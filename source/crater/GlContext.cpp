@@ -41,7 +41,7 @@
 #include <cassert>
 
 #include "./Unix/GlxContext.hpp"
-typedef sf::priv::GlxContext ContextType;
+typedef lava::priv::GlxContext ContextType;
 
 typedef const GLubyte* (*glGetStringiFuncType)(GLenum, GLuint);
 
@@ -94,20 +94,20 @@ namespace
     // This mutex is also used to protect the shared context
     // from being locked on multiple threads and for managing
     // the resource count
-    sf::Mutex mutex;
+    lava::Mutex mutex;
 
     // OpenGL resources counter
     unsigned int resourceCount = 0;
 
     // This per-thread variable holds the current context for each thread
-    sf::ThreadLocalPtr<sf::priv::GlContext> currentContext(NULL);
+    lava::ThreadLocalPtr<lava::priv::GlContext> currentContext(NULL);
 
     // The hidden, inactive context that will be shared with all other contexts
     ContextType* sharedContext = NULL;
 
     // This structure contains all the state necessary to
     // track TransientContext usage
-    struct TransientContext : private sf::NonCopyable
+    struct TransientContext : private lava::NonCopyable
     {
         ////////////////////////////////////////////////////////////
         /// \brief Constructor
@@ -121,11 +121,11 @@ namespace
         {
             if (resourceCount == 0)
             {
-                context = new sf::Context;
+                context = new lava::Context;
             }
             else if (!currentContext)
             {
-                sharedContextLock = new sf::Lock(mutex);
+                sharedContextLock = new lava::Lock(mutex);
                 useSharedContext = true;
                 sharedContext->setActive(true);
             }
@@ -148,21 +148,21 @@ namespace
         // Member data
         ////////////////////////////////////////////////////////////
         unsigned int referenceCount;
-        sf::Context* context;
-        sf::Lock*    sharedContextLock;
+        lava::Context* context;
+        lava::Lock*    sharedContextLock;
         bool         useSharedContext;
     };
 
     // This per-thread variable tracks if and how a transient
     // context is currently being used on the current thread
-    sf::ThreadLocalPtr<TransientContext> transientContext(NULL);
+    lava::ThreadLocalPtr<TransientContext> transientContext(NULL);
 
     // Supported OpenGL extensions
     std::vector<std::string> extensions;
 }
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -699,4 +699,4 @@ void GlContext::checkSettings(const ContextSettings& requestedSettings)
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

@@ -31,7 +31,7 @@
 #include <cstring>
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 const std::size_t String::InvalidPos = std::basic_string<uint32_t>::npos;
@@ -397,4 +397,4 @@ String operator +(const String& left, const String& right)
     return string;
 }
 
-} // namespace sf
+} // namespace lava

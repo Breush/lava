@@ -28,7 +28,7 @@
 #include "./ThreadLocalImpl.hpp"
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -62,4 +62,4 @@ void* ThreadLocalImpl::getValue() const
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

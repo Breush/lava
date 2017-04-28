@@ -32,7 +32,7 @@
 #include <pthread.h>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -77,7 +77,7 @@ private:
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_MUTEXIMPL_HPP

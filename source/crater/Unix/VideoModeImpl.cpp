@@ -33,7 +33,7 @@
 #include <algorithm>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -42,7 +42,7 @@ std::vector<VideoMode> VideoModeImpl::getFullscreenModes()
 {
     std::vector<VideoMode> modes;
 
-    // Open a connection with the X server
+    /*// Open a connection with the X server
     Display* display = OpenDisplay();
     if (display)
     {
@@ -114,7 +114,7 @@ std::vector<VideoMode> VideoModeImpl::getFullscreenModes()
     {
         // We couldn't connect to the X server
         err() << "Failed to connect to the X server while trying to get the supported video modes" << std::endl;
-    }
+    }*/
 
     return modes;
 }
@@ -126,7 +126,7 @@ VideoMode VideoModeImpl::getDesktopMode()
     VideoMode desktopMode;
 
     // Open a connection with the X server
-    Display* display = OpenDisplay();
+    /*Display* display = OpenDisplay();
     if (display)
     {
         // Retrieve the default screen number
@@ -180,11 +180,11 @@ VideoMode VideoModeImpl::getDesktopMode()
     {
         // We couldn't connect to the X server
         err() << "Failed to connect to the X server while trying to get the desktop video modes" << std::endl;
-    }
+    }*/
 
     return desktopMode;
 }
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava

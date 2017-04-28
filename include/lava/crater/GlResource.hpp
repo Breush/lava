@@ -32,7 +32,7 @@
 #include <lava/chamber/NonCopyable.hpp>
 
 
-namespace sf
+namespace lava
 {
 
 class Context;
@@ -78,13 +78,13 @@ protected:
     };
 };
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_GLRESOURCE_HPP
 
 ////////////////////////////////////////////////////////////
-/// \class sf::GlResource
+/// \class lava::GlResource
 /// \ingroup window
 ///
 /// This class is for internal use only, it must be the base

@@ -33,7 +33,7 @@
 #include <cstdlib>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -129,7 +129,7 @@ public:
     /// \brief Destructor
     ///
     /// This destructor calls wait(), so that the internal thread
-    /// cannot survive after its sf::Thread instance is destroyed.
+    /// cannot survive after its lava::Thread instance is destroyed.
     ///
     ////////////////////////////////////////////////////////////
     ~Thread();
@@ -192,13 +192,13 @@ private:
 
 #include <lava/chamber/Thread.inl>
 
-} // namespace sf
+} // namespace lava
 
 #endif // SFML_THREAD_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::Thread
+/// \class lava::Thread
 /// \ingroup system
 ///
 /// Threads provide a way to run multiple parts of the code
@@ -206,9 +206,9 @@ private:
 /// is split and both the new thread and the caller run
 /// in parallel.
 ///
-/// To use a sf::Thread, you construct it directly with the
+/// To use a lava::Thread, you construct it directly with the
 /// function to execute as the entry point of the thread.
-/// sf::Thread has multiple template constructors, which means
+/// lava::Thread has multiple template constructors, which means
 /// that you can use several types of entry points:
 /// \li non-member functions with no argument
 /// \li non-member functions with one argument of any type
@@ -216,14 +216,14 @@ private:
 /// \li functors with one argument of any type
 /// \li member functions from any class with no argument
 ///
-/// The function argument, if any, is copied in the sf::Thread
+/// The function argument, if any, is copied in the lava::Thread
 /// instance, as well as the functor (if the corresponding
 /// constructor is used). Class instances, however, are passed
 /// by pointer so you must make sure that the object won't be
 /// destroyed while the thread is still using it.
 ///
 /// The thread ends when its function is terminated. If the
-/// owner sf::Thread instance is destroyed before the
+/// owner lava::Thread instance is destroyed before the
 /// thread is finished, the destructor will wait (see wait())
 ///
 /// Usage examples:
@@ -235,7 +235,7 @@ private:
 ///     ...
 /// }
 ///
-/// sf::Thread thread(&threadFunc, 5);
+/// lava::Thread thread(&threadFunc, 5);
 /// thread.launch(); // start the thread (internally calls threadFunc(5))
 /// \endcode
 ///
@@ -252,7 +252,7 @@ private:
 /// };
 ///
 /// Task task;
-/// sf::Thread thread(&Task::run, &task);
+/// lava::Thread thread(&Task::run, &task);
 /// thread.launch(); // start the thread (internally calls task.run())
 /// \endcode
 ///
@@ -267,7 +267,7 @@ private:
 ///     }
 /// };
 ///
-/// sf::Thread thread(Task());
+/// lava::Thread thread(Task());
 /// thread.launch(); // start the thread (internally calls operator() on the Task instance)
 /// \endcode
 ///
@@ -275,8 +275,8 @@ private:
 /// all threads inside the same process share the same memory space,
 /// which means that you may end up accessing the same variable
 /// from multiple threads at the same time. To prevent this
-/// kind of situations, you can use mutexes (see sf::Mutex).
+/// kind of situations, you can use mutexes (see lava::Mutex).
 ///
-/// \see sf::Mutex
+/// \see lava::Mutex
 ///
 ////////////////////////////////////////////////////////////

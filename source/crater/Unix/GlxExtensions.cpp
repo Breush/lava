@@ -32,9 +32,9 @@
 #include <cstddef>
 #include <string>
 
-static sf::GlFunctionPointer IntGetProcAddress(const char* name)
+static lava::GlFunctionPointer IntGetProcAddress(const char* name)
 {
-    return sf::Context::getFunction(name);
+    return lava::Context::getFunction(name);
 }
 
 int sfglx_ext_EXT_swap_control = sfglx_LOAD_FAILED;

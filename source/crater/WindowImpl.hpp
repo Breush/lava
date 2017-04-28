@@ -39,7 +39,7 @@
 #include <queue>
 #include <set>
 
-namespace sf
+namespace lava
 {
 class WindowListener;
 
@@ -65,16 +65,6 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     static WindowImpl* create(VideoMode mode, const String& title, uint32_t style, const ContextSettings& settings);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Create a new window depending on to the current OS
-    ///
-    /// \param handle Platform-specific handle of the control
-    ///
-    /// \return Pointer to the created window (don't forget to delete it)
-    ///
-    ////////////////////////////////////////////////////////////
-    static WindowImpl* create(WindowHandle handle);
 
 public:
 
@@ -250,7 +240,7 @@ private:
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_WINDOWIMPL_HPP

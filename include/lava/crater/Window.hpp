@@ -39,7 +39,7 @@
 #include <lava/chamber/String.hpp>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -81,27 +81,11 @@ public:
     ///
     /// \param mode     Video mode to use (defines the width, height and depth of the rendering area of the window)
     /// \param title    Title of the window
-    /// \param style    %Window style, a bitwise OR combination of sf::Style enumerators
+    /// \param style    %Window style, a bitwise OR combination of lava::Style enumerators
     /// \param settings Additional settings for the underlying OpenGL context
     ///
     ////////////////////////////////////////////////////////////
     Window(VideoMode mode, const String& title, uint32_t style = Style::Default, const ContextSettings& settings = ContextSettings());
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct the window from an existing control
-    ///
-    /// Use this constructor if you want to create an OpenGL
-    /// rendering area into an already existing control.
-    ///
-    /// The second parameter is an optional structure specifying
-    /// advanced OpenGL context settings such as antialiasing,
-    /// depth-buffer bits, etc.
-    ///
-    /// \param handle   Platform-specific handle of the control
-    /// \param settings Additional settings for the underlying OpenGL context
-    ///
-    ////////////////////////////////////////////////////////////
-    explicit Window(WindowHandle handle, const ContextSettings& settings = ContextSettings());
 
     ////////////////////////////////////////////////////////////
     /// \brief Destructor
@@ -124,33 +108,16 @@ public:
     ///
     /// \param mode     Video mode to use (defines the width, height and depth of the rendering area of the window)
     /// \param title    Title of the window
-    /// \param style    %Window style, a bitwise OR combination of sf::Style enumerators
+    /// \param style    %Window style, a bitwise OR combination of lava::Style enumerators
     /// \param settings Additional settings for the underlying OpenGL context
     ///
     ////////////////////////////////////////////////////////////
     void create(VideoMode mode, const String& title, uint32_t style = Style::Default, const ContextSettings& settings = ContextSettings());
 
     ////////////////////////////////////////////////////////////
-    /// \brief Create (or recreate) the window from an existing control
-    ///
-    /// Use this function if you want to create an OpenGL
-    /// rendering area into an already existing control.
-    /// If the window was already created, it closes it first.
-    ///
-    /// The second parameter is an optional structure specifying
-    /// advanced OpenGL context settings such as antialiasing,
-    /// depth-buffer bits, etc.
-    ///
-    /// \param handle   Platform-specific handle of the control
-    /// \param settings Additional settings for the underlying OpenGL context
-    ///
-    ////////////////////////////////////////////////////////////
-    void create(WindowHandle handle, const ContextSettings& settings = ContextSettings());
-
-    ////////////////////////////////////////////////////////////
     /// \brief Close the window and destroy all the attached resources
     ///
-    /// After calling this function, the sf::Window instance remains
+    /// After calling this function, the lava::Window instance remains
     /// valid and you can call create() to recreate the window.
     /// All other functions such as pollEvent() or display() will
     /// still work (i.e. you don't have to test isOpen() every time),
@@ -193,7 +160,7 @@ public:
     /// thus you should always call this function in a loop
     /// to make sure that you process every pending event.
     /// \code
-    /// sf::Event event;
+    /// lava::Event event;
     /// while (window.pollEvent(event))
     /// {
     ///    // process event...
@@ -220,7 +187,7 @@ public:
     /// is dedicated to events handling: you want to make this thread
     /// sleep as long as no new event is received.
     /// \code
-    /// sf::Event event;
+    /// lava::Event event;
     /// if (window.waitEvent(event))
     /// {
     ///    // process event...
@@ -381,7 +348,7 @@ public:
     /// each call to display() to ensure that the current frame
     /// lasted long enough to match the framerate limit.
     /// SFML will try to match the given limit as much as it can,
-    /// but since it internally uses sf::sleep, whose precision
+    /// but since it internally uses lava::sleep, whose precision
     /// depends on the underlying OS, the results may be a little
     /// unprecise as well (for example, you can get 65 FPS when
     /// requesting 60).
@@ -464,7 +431,7 @@ public:
     ////////////////////////////////////////////////////////////
     /// \brief Get the OS-specific handle of the window
     ///
-    /// The type of the returned handle is sf::WindowHandle,
+    /// The type of the returned handle is lava::WindowHandle,
     /// which is a typedef to the handle type defined by the OS.
     /// You shouldn't need to use this function, unless you have
     /// very specific stuff to implement that SFML doesn't support,
@@ -526,20 +493,20 @@ private:
     Vector2u          m_size;           ///< Current size of the window
 };
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_WINDOW_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::Window
+/// \class lava::Window
 /// \ingroup window
 ///
-/// sf::Window is the main class of the Window module. It defines
+/// lava::Window is the main class of the Window module. It defines
 /// an OS window that is able to receive an OpenGL rendering.
 ///
-/// A sf::Window can create its own new window, or be embedded into
+/// A lava::Window can create its own new window, or be embedded into
 /// an already existing control using the create(handle) function.
 /// This can be useful for embedding an OpenGL rendering area into
 /// a view which is part of a bigger GUI with existing windows,
@@ -547,21 +514,21 @@ private:
 /// area into a window created by another (probably richer) GUI library
 /// like Qt or wxWidgets.
 ///
-/// The sf::Window class provides a simple interface for manipulating
+/// The lava::Window class provides a simple interface for manipulating
 /// the window: move, resize, show/hide, control mouse cursor, etc.
 /// It also provides event handling through its pollEvent() and waitEvent()
 /// functions.
 ///
 /// Note that OpenGL experts can pass their own parameters (antialiasing
 /// level, bits for the depth and stencil buffers, etc.) to the
-/// OpenGL context attached to the window, with the sf::ContextSettings
+/// OpenGL context attached to the window, with the lava::ContextSettings
 /// structure which is passed as an optional argument when creating the
 /// window.
 ///
 /// Usage example:
 /// \code
 /// // Declare and create a new window
-/// sf::Window window(sf::VideoMode(800, 600), "SFML window");
+/// lava::Window window(lava::VideoMode(800, 600), "SFML window");
 ///
 /// // Limit the framerate to 60 frames per second (this step is optional)
 /// window.setFramerateLimit(60);
@@ -570,11 +537,11 @@ private:
 /// while (window.isOpen())
 /// {
 ///    // Event processing
-///    sf::Event event;
+///    lava::Event event;
 ///    while (window.pollEvent(event))
 ///    {
 ///        // Request for closing the window
-///        if (event.type == sf::Event::Closed)
+///        if (event.type == lava::Event::Closed)
 ///            window.close();
 ///    }
 ///

@@ -29,7 +29,7 @@
 
 #include "./Unix/ThreadLocalImpl.hpp"
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 ThreadLocal::ThreadLocal(void* value)
@@ -59,4 +59,4 @@ void* ThreadLocal::getValue() const
     return m_impl->getValue();
 }
 
-} // namespace sf
+} // namespace lava

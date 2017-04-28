@@ -31,7 +31,7 @@
 #include <functional>
 
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 VideoMode::VideoMode() :
@@ -143,4 +143,4 @@ bool operator >=(const VideoMode& left, const VideoMode& right)
     return !(left < right);
 }
 
-} // namespace sf
+} // namespace lava

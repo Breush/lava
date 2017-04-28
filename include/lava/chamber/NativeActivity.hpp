@@ -39,7 +39,7 @@
 
 struct ANativeActivity;
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 /// \ingroup system
@@ -56,7 +56,7 @@ namespace sf
 ////////////////////////////////////////////////////////////
 SFML_SYSTEM_API ANativeActivity* getNativeActivity();
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_NATIVEACTIVITY_HPP

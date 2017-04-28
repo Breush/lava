@@ -31,7 +31,7 @@
 #include <lava/crater/VideoMode.hpp>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -62,7 +62,7 @@ public:
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_VIDEOMODEIMPL_HPP

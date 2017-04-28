@@ -33,7 +33,7 @@
 #include <cstdlib>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -86,18 +86,18 @@ private:
     priv::ThreadLocalImpl* m_impl; ///< Pointer to the OS specific implementation
 };
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_THREADLOCAL_HPP
 
 
 ////////////////////////////////////////////////////////////
-/// \class sf::ThreadLocal
+/// \class lava::ThreadLocal
 /// \ingroup system
 ///
 /// This class manipulates void* parameters and thus is not
 /// appropriate for strongly-typed variables. You should rather
-/// use the sf::ThreadLocalPtr template class.
+/// use the lava::ThreadLocalPtr template class.
 ///
 ////////////////////////////////////////////////////////////

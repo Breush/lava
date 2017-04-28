@@ -32,7 +32,7 @@
 #include <string>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -68,7 +68,7 @@ Atom getAtom(const std::string& name, bool onlyIfExists = false);
 
 } // namespace priv
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_SHAREDDISPLAY_HPP

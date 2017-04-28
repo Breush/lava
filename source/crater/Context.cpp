@@ -33,10 +33,10 @@
 namespace
 {
     // This per-thread variable holds the current context for each thread
-    sf::ThreadLocalPtr<sf::Context> currentContext(NULL);
+    lava::ThreadLocalPtr<lava::Context> currentContext(NULL);
 }
 
-namespace sf
+namespace lava
 {
 ////////////////////////////////////////////////////////////
 Context::Context()
@@ -101,4 +101,4 @@ Context::Context(const ContextSettings& settings, unsigned int width, unsigned i
     setActive(true);
 }
 
-} // namespace sf
+} // namespace lava

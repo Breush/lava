@@ -34,7 +34,7 @@
 #include <lava/chamber/NonCopyable.hpp>
 
 
-namespace sf
+namespace lava
 {
 namespace priv
 {
@@ -138,13 +138,13 @@ private:
     priv::GlContext* m_context; ///< Internal OpenGL context
 };
 
-} // namespace sf
+} // namespace lava
 
 
 #endif // SFML_CONTEXT_HPP
 
 ////////////////////////////////////////////////////////////
-/// \class sf::Context
+/// \class lava::Context
 /// \ingroup window
 ///
 /// If you need to make OpenGL calls without having an
@@ -157,7 +157,7 @@ private:
 /// if you create a new thread it will have no valid context
 /// by default.
 ///
-/// To use a sf::Context instance, just construct it and let it
+/// To use a lava::Context instance, just construct it and let it
 /// live as long as you need a valid context. No explicit activation
 /// is needed, all it has to do is to exist. Its destructor
 /// will take care of deactivating and freeing all the attached
@@ -167,14 +167,14 @@ private:
 /// \code
 /// void threadFunction(void*)
 /// {
-///    sf::Context context;
+///    lava::Context context;
 ///    // from now on, you have a valid context
 ///
 ///    // you can make OpenGL calls
 ///    glClear(GL_DEPTH_BUFFER_BIT);
 /// }
 /// // the context is automatically deactivated and destroyed
-/// // by the sf::Context destructor
+/// // by the lava::Context destructor
 /// \endcode
 ///
 ////////////////////////////////////////////////////////////
