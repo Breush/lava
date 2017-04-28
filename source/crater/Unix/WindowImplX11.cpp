@@ -50,63 +50,6 @@ namespace
         xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
         return xcb_intern_atom_reply(conn, cookie, NULL);
     }
-
-    /*
-    lava::priv::WindowImplX11*              fullscreenWindow = nullptr;
-    std::vector<lava::priv::WindowImplX11*> allWindows;
-    lava::Mutex                             allWindowsMutex;
-    lava::String                            windowManagerName;
-
-    static const unsigned long            eventMask = FocusChangeMask      | ButtonPressMask     |
-                                                      ButtonReleaseMask    | ButtonMotionMask    |
-                                                      PointerMotionMask    | KeyPressMask        |
-                                                      KeyReleaseMask       | StructureNotifyMask |
-                                                      EnterWindowMask      | LeaveWindowMask     |
-                                                      VisibilityChangeMask | PropertyChangeMask;
-
-    static const unsigned int             maxTrialsCount = 5;
-
-    // Filter the events received by windows (only allow those matching a specific window)
-    Bool checkEvent(::Display*, XEvent* event, XPointer userData)
-    {
-        // Just check if the event matches the window
-        return event->xany.window == reinterpret_cast< ::Window >(userData);
-    }
-
-    // Find the name of the current executable
-    std::string findExecutableName()
-    {
-        // We use /proc/self/cmdline to get the command line
-        // the user used to invoke this instance of the application
-        int file = ::open("/proc/self/cmdline", O_RDONLY | O_NONBLOCK);
-
-        if (file < 0)
-            return "sfml";
-
-        std::vector<char> buffer(256, 0);
-        std::size_t offset = 0;
-        ssize_t result = 0;
-
-        while ((result = read(file, &buffer[offset], 256)) > 0)
-        {
-            buffer.resize(buffer.size() + result, 0);
-            offset += result;
-        }
-
-        ::close(file);
-
-        if (offset)
-        {
-            buffer[offset] = 0;
-
-            // Remove the path to keep the executable name only
-            return basename(&buffer[0]);
-        }
-
-        // Default fallback name
-        return "sfml";
-    }
-    */
 }
 
 
@@ -345,18 +288,35 @@ void WindowImplX11::cleanup()
 bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
 {
     switch (windowEvent.response_type & 0x7f) {
-    case XCB_DESTROY_NOTIFY:
+    case XCB_DESTROY_NOTIFY: {
         cleanup();
         break;
+    }
 
-    case XCB_CLIENT_MESSAGE:
+    case XCB_CLIENT_MESSAGE: {
         auto messageEvent = reinterpret_cast<xcb_client_message_event_t&>(windowEvent);
-        if (messageEvent.data.data32[0] == m_atomWmDeleteWindow->atom) {
-            Event event;
-            event.type = Event::Closed;
-            pushEvent(event);
-        }
+        if (messageEvent.data.data32[0] != m_atomWmDeleteWindow->atom) break;
+
+        Event event;
+        event.type = Event::Closed;
+        pushEvent(event);
         break;
+    }
+
+    case XCB_CONFIGURE_NOTIFY: {
+        auto configureEvent = reinterpret_cast<xcb_configure_notify_event_t&>(windowEvent);
+        if (m_previousSize.x == configureEvent.width && m_previousSize.y == configureEvent.height) break;
+
+        Event event;
+        event.type = Event::Resized;
+        event.size.width  = configureEvent.width;
+        event.size.height = configureEvent.height;
+        pushEvent(event);
+
+        m_previousSize.x = configureEvent.width;
+        m_previousSize.y = configureEvent.height;
+        break;
+    }
 
         // Gain focus event
         /*case FocusIn:
@@ -418,24 +378,6 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
             Event event;
             event.type = Event::LostFocus;
             pushEvent(event);
-            break;
-        }
-
-        // Resize event
-        case ConfigureNotify:
-        {
-            // ConfigureNotify can be triggered for other reasons, check if the size has actually changed
-            if ((windowEvent.xconfigure.width != m_previousSize.x) || (windowEvent.xconfigure.height != m_previousSize.y))
-            {
-                Event event;
-                event.type        = Event::Resized;
-                event.size.width  = windowEvent.xconfigure.width;
-                event.size.height = windowEvent.xconfigure.height;
-                pushEvent(event);
-
-                m_previousSize.x = windowEvent.xconfigure.width;
-                m_previousSize.y = windowEvent.xconfigure.height;
-            }
             break;
         }
 

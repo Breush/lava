@@ -245,6 +245,8 @@ private:
     xcb_connection_t* m_connection = nullptr;
     xcb_screen_t* m_screen = nullptr;
     xcb_intern_atom_reply_t* m_atomWmDeleteWindow = nullptr;
+
+    lava::Vector2i m_previousSize;
 };
 
 } // namespace priv

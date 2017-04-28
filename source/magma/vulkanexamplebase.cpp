@@ -652,7 +652,6 @@ void VulkanExampleBase::handleEvent(const xcb_generic_event_t *event)
 				destHeight = cfgEvent->height;
 				if ((destWidth > 0) && (destHeight > 0))
 				{
-					windowResize();
 				}
 		}
 	}
@@ -664,10 +663,18 @@ void VulkanExampleBase::handleEvent(const xcb_generic_event_t *event)
 
 void VulkanExampleBase::handleLavaEvent(const lava::Event& event) {
     switch (event.type) {
-    case lava::Event::Closed:
+    case lava::Event::Closed: {
+		// TODO Somehow really hard to close the window without this sandwich hack
 		vkDeviceWaitIdle(device);
         m_window.close();
+		vkDeviceWaitIdle(device);
         break;
+    }
+
+    case lava::Event::Resized: {
+		windowResize();
+		break;
+    }
 
     default:
     	break;
