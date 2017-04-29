@@ -13,7 +13,19 @@
         "command": "make",
         "args": ["-j2"],
         "isShellCommand": true,
-        "showOutput": "always"
+        "showOutput": "always",
+        "problemMatcher": {
+            "owner": "cpp",
+            "fileLocation": ["relative", "${workspaceRoot}"],
+            "pattern": {
+                "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "severity": 4,
+                "message": 5
+            }
+        }
     }, {
         "taskName": "run",
         "command": "./build/debug/app",
