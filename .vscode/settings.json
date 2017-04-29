@@ -9,5 +9,8 @@
     "C_Cpp.clang_format_sortIncludes": true,
     "C_Cpp.clang_format_formatOnSave": true,
     "C_Cpp.formatting": "Default",
-    "C_Cpp.clang_format_style": "{ ColumnLimit: 150, IndentWidth: 4, AccessModifierOffset: -4, NamespaceIndentation: All, AlignAfterOpenBracket: Align, AlwaysBreakTemplateDeclarations: true, AllowShortBlocksOnASingleLine: false, AllowShortCaseLabelsOnASingleLine: false, AllowShortFunctionsOnASingleLine: Inline,AllowShortIfStatementsOnASingleLine: true, AllowShortLoopsOnASingleLine: true, BreakBeforeBraces: Custom, BraceWrapping: { AfterClass: false, AfterControlStatement: false, AfterEnum : true, AfterFunction : true, AfterNamespace : false, AfterStruct : true, AfterUnion : true, BeforeCatch : false, BeforeElse : true, IndentBraces : false }, PointerAlignment: Left, PenaltyReturnTypeOnItsOwnLine: 10000, SortIncludes: true }"
+    "C_Cpp.clang_format_style": "{ ColumnLimit: 150, IndentWidth: 4, AccessModifierOffset: -4, NamespaceIndentation: All, BreakConstructorInitializersBeforeComma: true, AlignAfterOpenBracket: Align, AlwaysBreakTemplateDeclarations: true, AllowShortBlocksOnASingleLine: false, AllowShortCaseLabelsOnASingleLine: false, AllowShortFunctionsOnASingleLine: Inline,AllowShortIfStatementsOnASingleLine: true, AllowShortLoopsOnASingleLine: true, BreakBeforeBraces: Custom, BraceWrapping: { AfterClass: false, AfterControlStatement: false, AfterEnum : true, AfterFunction : true, AfterNamespace : false, AfterStruct : true, AfterUnion : true, BeforeCatch : false, BeforeElse : true, IndentBraces : false }, PointerAlignment: Left, PenaltyReturnTypeOnItsOwnLine: 10000, SortIncludes: true }",
+    "files.associations": {
+        "functional": "cpp"
+    }
 }

@@ -6,3 +6,5 @@
 
 #define SFML_API_IMPORT
 #define SFML_API_EXPORT
+
+#define SFML_SYSTEM_API

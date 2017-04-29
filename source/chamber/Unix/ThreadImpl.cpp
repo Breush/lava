@@ -25,8 +25,7 @@ void ThreadImpl::wait()
 void ThreadImpl::terminate()
 {
     if (m_isActive) {
-        // See http://stackoverflow.com/questions/4610086/pthread-cancel-al
-        pthread_kill(m_thread, SIGUSR1);
+        pthread_cancel(m_thread);
     }
 }
 
