@@ -4,13 +4,13 @@
 
 ### Chamber
 
+- Rename file to lower case
 - Remove comments \brief and such
 - Replace `err()` with `Logger` class (with categories).
 - Remove Export.hpp, lava/config.hpp, lava/OpenGL.hpp
 - Window -> Remove everything not used
 - (?) Remove String class
 - (?) Remove Utf class
-- Replace Vector2 and such by glm ones
 
 ### Crater
 
@@ -19,6 +19,7 @@
 ### Magma
 
 - Everything's left!
+- Wrapper class to simplfy usage - this is basically SFML's Graphics
 
 ### App
 

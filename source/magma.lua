@@ -11,7 +11,6 @@ project "lava-magma"
 
         useVulkanSdk()
         useStbFonts()
-        useGlm()
     end
 
     magmaDependencies()

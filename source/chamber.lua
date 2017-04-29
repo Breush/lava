@@ -6,6 +6,8 @@ project "lava-chamber"
 
     function chamberDependencies()
         links { "pthread" }
+
+        useGlm()
     end
 
     chamberDependencies()

@@ -23,9 +23,9 @@
 #include <stdexcept>
 #include <fstream>
 #if defined(_WIN32)
-#include <windows.h>
 #include <fcntl.h>
 #include <io.h>
+#include <windows.h>
 #elif defined(__ANDROID__)
 #include "VulkanAndroid.h"
 #include <android/asset_manager.h>
