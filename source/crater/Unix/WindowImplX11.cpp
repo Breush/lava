@@ -195,6 +195,8 @@ void WindowImplX11::cleanup()
 
 bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
 {
+    xcb_flush(m_connection);
+
     switch (windowEvent.response_type & 0x7f) {
     case XCB_DESTROY_NOTIFY: {
         cleanup();
@@ -270,6 +272,15 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
 
         Event event;
         event.type = Event::KeyPressed;
+        event.key.which = keyEventToKey(keyEvent);
+        pushEvent(event);
+    } break;
+
+    case XCB_KEY_RELEASE: {
+        auto keyEvent = reinterpret_cast<xcb_key_release_event_t&>(windowEvent);
+
+        Event event;
+        event.type = Event::KeyReleased;
         event.key.which = keyEventToKey(keyEvent);
         pushEvent(event);
     } break;

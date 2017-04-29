@@ -477,26 +477,6 @@ xcb_window_t VulkanExampleBase::setupWindow()
     return (window);
 }
 
-// TODO
-void VulkanExampleBase::handleEvent(const xcb_generic_event_t* event)
-{
-    switch (event->response_type & 0x7f) {
-    case XCB_KEY_RELEASE: {
-        const xcb_key_release_event_t* keyEvent = (const xcb_key_release_event_t*)event;
-        switch (keyEvent->detail) {
-        case KEY_W: camera.keys.up = false; break;
-        case KEY_S: camera.keys.down = false; break;
-        case KEY_A: camera.keys.left = false; break;
-        case KEY_D: camera.keys.right = false; break;
-        case KEY_ESCAPE: quit = true; break;
-        }
-        keyPressed(keyEvent->detail);
-    } break;
-
-    default: break;
-    }
-}
-
 void VulkanExampleBase::close()
 {
     // TODO Somehow really hard to close the window without this sandwich hack
@@ -574,6 +554,16 @@ void VulkanExampleBase::handleLavaEvent(const lava::Event& event)
         case lava::Keyboard::Right: camera.keys.right = true; break;
         case lava::Keyboard::P: paused = !paused; break;
         case lava::Keyboard::F1: textOverlay->visible = !textOverlay->visible; break;
+        }
+        break;
+    }
+
+    case lava::Event::KeyReleased: {
+        switch (event.key.which) {
+        case lava::Keyboard::Up: camera.keys.up = false; break;
+        case lava::Keyboard::Down: camera.keys.down = false; break;
+        case lava::Keyboard::Left: camera.keys.left = false; break;
+        case lava::Keyboard::Right: camera.keys.right = false; break;
         }
         break;
     }

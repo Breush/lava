@@ -8,22 +8,24 @@
 
 - Rename file to lower case
 - Remove comments \brief and such
-- Replace `err()` with `Logger` class (with categories).
+- Replace `err()` with `Logger` class (with categories)
 - Remove Export.hpp, lava/config.hpp
 - Window -> Remove everything not used
-- (?) Remove String class
-- (?) Remove Utf class
-- Replace threading with std::thread/std::mutex
+- (?) Remove lava::String and lava::Utf class
+- Replace lava::Thread with std::thread/std::mutex
 
 ### Crater
 
 - Everything's left!
 - Switch to Wayland!
+- Rename file to lower case
+- Remove comments \brief and such
 - Have a way to access keyboard/mouse state (isKeyPressed)
 
 ### Magma
 
 - Everything's left!
+- Rename file to lower case
 - Wrapper class to simplfy usage - this is basically SFML's Graphics
 
 ## Example app
