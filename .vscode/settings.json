@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        "**/.tmp": true,
+        "**.make": true,
+        "build/": true,
+        "external/include": true,
+        "external/lib": true,
+    }
+}

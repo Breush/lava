@@ -1,0 +1,23 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "0.1.0",
+    "tasks": [{
+        "taskName": "pre-build",
+        "command": "premake5",
+        "args": ["gmake"],
+        "isShellCommand": true,
+        "showOutput": "always"
+    }, {
+        "taskName": "build",
+        "command": "make",
+        "args": ["-j2"],
+        "isShellCommand": true,
+        "showOutput": "always"
+    }, {
+        "taskName": "run",
+        "command": "./build/debug/app",
+        "isShellCommand": true,
+        "showOutput": "always"
+    }]
+}
