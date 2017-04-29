@@ -10,10 +10,10 @@ project "lava-crater"
         defines { "VK_USE_PLATFORM_XCB_KHR" }
         local libXCB = os.findlib "xcb"
         if not libXCB then
-            error("XCB dev files are required, please install libxcb1-dev")
+            error("XCB dev files are required, please install libxcb1-dev libxcb-keysyms1-dev")
         end
         libdirs(libXCB)
-        links { "xcb", "GL" }
+        links { "xcb", "xcb-keysyms", "GL" }
 
         useChamber()
     end

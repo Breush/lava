@@ -1,7 +1,7 @@
 #pragma once
 
 namespace lava::Mouse {
-    enum ButtonType {
+    enum Button {
         Unknown,
         Left,
         Right,

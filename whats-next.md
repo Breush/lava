@@ -1,5 +1,7 @@
 # What's next
 
+- Change setter/getter to unique syntax
+
 ## Remove SFML
 
 ### Chamber
@@ -11,12 +13,13 @@
 - Window -> Remove everything not used
 - (?) Remove String class
 - (?) Remove Utf class
-- Replace threading with std::thread
+- Replace threading with std::thread/std::mutex
 
 ### Crater
 
 - Everything's left!
-- Keyboard events
+- Switch to Wayland!
+- Have a way to access keyboard/mouse state (isKeyPressed)
 
 ### Magma
 

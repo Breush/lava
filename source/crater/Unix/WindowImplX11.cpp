@@ -16,12 +16,69 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <xcb/xcb_keysyms.h>
 
 namespace {
+    xcb_key_symbols_t* g_keySymbols = nullptr;
+
     inline xcb_intern_atom_reply_t* internAtomHelper(xcb_connection_t* conn, bool only_if_exists, const char* str)
     {
         xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
         return xcb_intern_atom_reply(conn, cookie, NULL);
+    }
+
+    // Got list from https://github.com/substack/node-keysym/blob/master/data/keysyms.txt
+    lava::Keyboard::Key keyEventToKey(xcb_key_press_event_t& keyEvent)
+    {
+        xcb_keysym_t keySym = xcb_key_press_lookup_keysym(g_keySymbols, &keyEvent, 0);
+
+        switch (keySym) {
+        case 'a': return lava::Keyboard::A;
+        case 'b': return lava::Keyboard::B;
+        case 'c': return lava::Keyboard::C;
+        case 'd': return lava::Keyboard::D;
+        case 'e': return lava::Keyboard::E;
+        case 'f': return lava::Keyboard::F;
+        case 'g': return lava::Keyboard::G;
+        case 'h': return lava::Keyboard::H;
+        case 'i': return lava::Keyboard::I;
+        case 'j': return lava::Keyboard::J;
+        case 'k': return lava::Keyboard::K;
+        case 'l': return lava::Keyboard::L;
+        case 'm': return lava::Keyboard::M;
+        case 'n': return lava::Keyboard::N;
+        case 'o': return lava::Keyboard::O;
+        case 'p': return lava::Keyboard::P;
+        case 'q': return lava::Keyboard::Q;
+        case 'r': return lava::Keyboard::R;
+        case 's': return lava::Keyboard::S;
+        case 't': return lava::Keyboard::T;
+        case 'u': return lava::Keyboard::U;
+        case 'v': return lava::Keyboard::V;
+        case 'w': return lava::Keyboard::W;
+        case 'x': return lava::Keyboard::X;
+        case 'y': return lava::Keyboard::Y;
+        case 'z': return lava::Keyboard::Z;
+        case 0xff1b: return lava::Keyboard::Escape;
+        case 0xffbe: return lava::Keyboard::F1;
+        case 0xffbf: return lava::Keyboard::F2;
+        case 0xffc0: return lava::Keyboard::F3;
+        case 0xffc1: return lava::Keyboard::F4;
+        case 0xffc2: return lava::Keyboard::F5;
+        case 0xffc3: return lava::Keyboard::F6;
+        case 0xffc4: return lava::Keyboard::F7;
+        case 0xffc5: return lava::Keyboard::F8;
+        case 0xffc6: return lava::Keyboard::F9;
+        case 0xffc7: return lava::Keyboard::F10;
+        case 0xffc8: return lava::Keyboard::F11;
+        case 0xffc9: return lava::Keyboard::F12;
+        case 0xff51: return lava::Keyboard::Left;
+        case 0xff52: return lava::Keyboard::Up;
+        case 0xff53: return lava::Keyboard::Right;
+        case 0xff54: return lava::Keyboard::Down;
+        }
+
+        return lava::Keyboard::Unknown;
     }
 }
 
@@ -32,6 +89,10 @@ WindowImplX11::WindowImplX11(VideoMode mode, const String& title, unsigned long 
 {
     initXcbConnection();
     setupWindow(mode);
+
+    // TODO If not allocated!
+    // Probably more secure to put that as a class member for now.
+    g_keySymbols = xcb_key_symbols_alloc(m_connection);
 }
 
 WindowImplX11::~WindowImplX11()
@@ -166,29 +227,29 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
     }
 
     case XCB_BUTTON_PRESS: {
-        auto buttonPressEvent = reinterpret_cast<xcb_button_press_event_t&>(windowEvent);
+        auto buttonEvent = reinterpret_cast<xcb_button_press_event_t&>(windowEvent);
 
         Event event;
         event.type = Event::MouseButtonPressed;
-        event.mouseButton.x = buttonPressEvent.event_x;
-        event.mouseButton.y = buttonPressEvent.event_y;
-        if (buttonPressEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.type = Mouse::Left;
-        if (buttonPressEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.type = Mouse::Middle;
-        if (buttonPressEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.type = Mouse::Right;
+        event.mouseButton.x = buttonEvent.event_x;
+        event.mouseButton.y = buttonEvent.event_y;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = Mouse::Left;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = Mouse::Middle;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = Mouse::Right;
         pushEvent(event);
         break;
     }
 
     case XCB_BUTTON_RELEASE: {
-        auto buttonReleaseEvent = reinterpret_cast<xcb_button_release_event_t&>(windowEvent);
+        auto buttonEvent = reinterpret_cast<xcb_button_release_event_t&>(windowEvent);
 
         Event event;
         event.type = Event::MouseButtonReleased;
-        event.mouseButton.x = buttonReleaseEvent.event_x;
-        event.mouseButton.y = buttonReleaseEvent.event_y;
-        if (buttonReleaseEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.type = Mouse::Left;
-        if (buttonReleaseEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.type = Mouse::Middle;
-        if (buttonReleaseEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.type = Mouse::Right;
+        event.mouseButton.x = buttonEvent.event_x;
+        event.mouseButton.y = buttonEvent.event_y;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = Mouse::Left;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = Mouse::Middle;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = Mouse::Right;
         pushEvent(event);
         break;
     }
@@ -204,265 +265,121 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
         break;
     }
 
-        // Gain focus event
-        /*case FocusIn:
+    case XCB_KEY_PRESS: {
+        auto keyEvent = reinterpret_cast<xcb_key_press_event_t&>(windowEvent);
+
+        Event event;
+        event.type = Event::KeyPressed;
+        event.key.which = keyEventToKey(keyEvent);
+        pushEvent(event);
+    } break;
+
+    /*
+    // Key down event
+    /*case KeyPress:
+    {
+        Keyboard::Key key = Keyboard::Unknown;
+
+        // Try each KeySym index (modifier group) until we get a match
+        for (int i = 0; i < 4; ++i)
         {
-            // Update the input context
-            if (m_inputContext)
-                XSetICFocus(m_inputContext);
+            // Get the SFML keyboard code from the keysym of the key that has been pressed
+            key = keysymToSF(XLookupKeysym(&windowEvent.xkey, i));
 
-            // Grab cursor
-            if (m_cursorGrabbed)
-            {
-                // Try multiple times to grab the cursor
-                for (unsigned int trial = 0; trial < maxTrialsCount; ++trial)
-                {
-                    int result = XGrabPointer(m_display, m_window, True, None, GrabModeAsync, GrabModeAsync, m_window, None, CurrentTime);
-
-                    if (result == GrabSuccess)
-                    {
-                        m_cursorGrabbed = true;
-                        break;
-                    }
-
-                    // The cursor grab failed, trying again after a small sleep
-                    // lava::sleep(lava::milliseconds(50));
-                }
-
-                if (!m_cursorGrabbed)
-                    err() << "Failed to grab mouse cursor" << std::endl;
-            }
-
-            Event event;
-            event.type = Event::GainedFocus;
-            pushEvent(event);
-
-            // If the window has been previously marked urgent (notification) as a result of a focus request, undo that
-            XWMHints* hints = XGetWMHints(m_display, m_window);
-            if (hints != nullptr)
-            {
-                // Remove urgency (notification) flag from hints
-                hints->flags &= ~XUrgencyHint;
-                XSetWMHints(m_display, m_window, hints);
-                XFree(hints);
-            }
-
-            break;
+            if (key != Keyboard::Unknown)
+                break;
         }
 
-        // Lost focus event
-        case FocusOut:
+        // Fill the event parameters
+        // TODO: if modifiers are wrong, use XGetModifierMapping to retrieve the actual modifiers mapping
+        Event event;
+        event.type        = Event::KeyPressed;
+        event.key.code    = key;
+        event.key.alt     = windowEvent.xkey.state & Mod1Mask;
+        event.key.control = windowEvent.xkey.state & ControlMask;
+        event.key.shift   = windowEvent.xkey.state & ShiftMask;
+        event.key.system  = windowEvent.xkey.state & Mod4Mask;
+        pushEvent(event);
+
+        // Generate a TextEntered event
+        if (!XFilterEvent(&windowEvent, None))
         {
-            // Update the input context
+            #ifdef X_HAVE_UTF8_STRING
             if (m_inputContext)
-                XUnsetICFocus(m_inputContext);
-
-            // Release cursor
-            if (m_cursorGrabbed)
-                XUngrabPointer(m_display, CurrentTime);
-
-            Event event;
-            event.type = Event::LostFocus;
-            pushEvent(event);
-            break;
-        }
-
-        // Close event
-        case ClientMessage:
-        {
-            static Atom wmProtocols = getAtom("WM_PROTOCOLS");
-
-            // Handle window manager protocol messages we support
-            if (windowEvent.xclient.message_type == wmProtocols)
             {
-                static Atom wmDeleteWindow = getAtom("WM_DELETE_WINDOW");
-                static Atom netWmPing = ewmhSupported() ? getAtom("_NET_WM_PING", true) : None;
+                Status status;
+                Uint8  keyBuffer[16];
 
-                if ((windowEvent.xclient.format == 32) && (windowEvent.xclient.data.l[0]) == static_cast<long>(wmDeleteWindow))
+                int length = Xutf8LookupString(
+                    m_inputContext,
+                    &windowEvent.xkey,
+                    reinterpret_cast<char*>(keyBuffer),
+                    sizeof(keyBuffer),
+                    nullptr,
+                    &status
+                );
+
+                if (length > 0)
                 {
-                    // Handle the WM_DELETE_WINDOW message
-                    Event event;
-                    event.type = Event::Closed;
-                    pushEvent(event);
-                }
-                else if (netWmPing && (windowEvent.xclient.format == 32) && (windowEvent.xclient.data.l[0]) == static_cast<long>(netWmPing))
-                {
-                    // Handle the _NET_WM_PING message, send pong back to WM to show that we are responsive
-                    windowEvent.xclient.window = DefaultRootWindow(m_display);
-
-                    XSendEvent(m_display, DefaultRootWindow(m_display), False, SubstructureNotifyMask | SubstructureRedirectMask, &windowEvent);
-                }
-            }
-            break;
-        }*/
-
-        // Key down event
-        /*case KeyPress:
-        {
-            Keyboard::Key key = Keyboard::Unknown;
-
-            // Try each KeySym index (modifier group) until we get a match
-            for (int i = 0; i < 4; ++i)
-            {
-                // Get the SFML keyboard code from the keysym of the key that has been pressed
-                key = keysymToSF(XLookupKeysym(&windowEvent.xkey, i));
-
-                if (key != Keyboard::Unknown)
-                    break;
-            }
-
-            // Fill the event parameters
-            // TODO: if modifiers are wrong, use XGetModifierMapping to retrieve the actual modifiers mapping
-            Event event;
-            event.type        = Event::KeyPressed;
-            event.key.code    = key;
-            event.key.alt     = windowEvent.xkey.state & Mod1Mask;
-            event.key.control = windowEvent.xkey.state & ControlMask;
-            event.key.shift   = windowEvent.xkey.state & ShiftMask;
-            event.key.system  = windowEvent.xkey.state & Mod4Mask;
-            pushEvent(event);
-
-            // Generate a TextEntered event
-            if (!XFilterEvent(&windowEvent, None))
-            {
-                #ifdef X_HAVE_UTF8_STRING
-                if (m_inputContext)
-                {
-                    Status status;
-                    Uint8  keyBuffer[16];
-
-                    int length = Xutf8LookupString(
-                        m_inputContext,
-                        &windowEvent.xkey,
-                        reinterpret_cast<char*>(keyBuffer),
-                        sizeof(keyBuffer),
-                        nullptr,
-                        &status
-                    );
-
-                    if (length > 0)
-                    {
-                        Uint32 unicode = 0;
-                        Utf8::decode(keyBuffer, keyBuffer + length, unicode, 0);
-                        if (unicode != 0)
-                        {
-                            Event textEvent;
-                            textEvent.type         = Event::TextEntered;
-                            textEvent.text.unicode = unicode;
-                            pushEvent(textEvent);
-                        }
-                    }
-                }
-                else
-                #endif
-                {
-                    static XComposeStatus status;
-                    char keyBuffer[16];
-                    if (XLookupString(&windowEvent.xkey, keyBuffer, sizeof(keyBuffer), nullptr, &status))
+                    Uint32 unicode = 0;
+                    Utf8::decode(keyBuffer, keyBuffer + length, unicode, 0);
+                    if (unicode != 0)
                     {
                         Event textEvent;
                         textEvent.type         = Event::TextEntered;
-                        textEvent.text.unicode = static_cast<Uint32>(keyBuffer[0]);
+                        textEvent.text.unicode = unicode;
                         pushEvent(textEvent);
                     }
                 }
             }
-
-            updateLastInputTime(windowEvent.xkey.time);
-
-            break;
-        }
-
-        // Key up event
-        case KeyRelease:
-        {
-            Keyboard::Key key = Keyboard::Unknown;
-
-            // Try each KeySym index (modifier group) until we get a match
-            for (int i = 0; i < 4; ++i)
+            else
+            #endif
             {
-                // Get the SFML keyboard code from the keysym of the key that has been released
-                key = keysymToSF(XLookupKeysym(&windowEvent.xkey, i));
-
-                if (key != Keyboard::Unknown)
-                    break;
+                static XComposeStatus status;
+                char keyBuffer[16];
+                if (XLookupString(&windowEvent.xkey, keyBuffer, sizeof(keyBuffer), nullptr, &status))
+                {
+                    Event textEvent;
+                    textEvent.type         = Event::TextEntered;
+                    textEvent.text.unicode = static_cast<Uint32>(keyBuffer[0]);
+                    pushEvent(textEvent);
+                }
             }
-
-            // Fill the event parameters
-            Event event;
-            event.type        = Event::KeyReleased;
-            event.key.code    = key;
-            event.key.alt     = windowEvent.xkey.state & Mod1Mask;
-            event.key.control = windowEvent.xkey.state & ControlMask;
-            event.key.shift   = windowEvent.xkey.state & ShiftMask;
-            event.key.system  = windowEvent.xkey.state & Mod4Mask;
-            pushEvent(event);
-
-            break;
         }
 
-        // Mouse entered
-        case EnterNotify:
+        updateLastInputTime(windowEvent.xkey.time);
+
+        break;
+    }
+
+    // Key up event
+    case KeyRelease:
+    {
+        Keyboard::Key key = Keyboard::Unknown;
+
+        // Try each KeySym index (modifier group) until we get a match
+        for (int i = 0; i < 4; ++i)
         {
-            if (windowEvent.xcrossing.mode == NotifyNormal)
-            {
-                Event event;
-                event.type = Event::MouseEntered;
-                pushEvent(event);
-            }
-            break;
+            // Get the SFML keyboard code from the keysym of the key that has been released
+            key = keysymToSF(XLookupKeysym(&windowEvent.xkey, i));
+
+            if (key != Keyboard::Unknown)
+                break;
         }
 
-        // Mouse left
-        case LeaveNotify:
-        {
-            if (windowEvent.xcrossing.mode == NotifyNormal)
-            {
-                Event event;
-                event.type = Event::MouseLeft;
-                pushEvent(event);
-            }
-            break;
-        }*/
+        // Fill the event parameters
+        Event event;
+        event.type        = Event::KeyReleased;
+        event.key.code    = key;
+        event.key.alt     = windowEvent.xkey.state & Mod1Mask;
+        event.key.control = windowEvent.xkey.state & ControlMask;
+        event.key.shift   = windowEvent.xkey.state & ShiftMask;
+        event.key.system  = windowEvent.xkey.state & Mod4Mask;
+        pushEvent(event);
 
-        // Window unmapped
-        /*case UnmapNotify:
-        {
-            if (windowEvent.xunmap.window == m_window)
-                m_windowMapped = false;
-
-            break;
-        }
-
-        // Window visibility change
-        case VisibilityNotify:
-        {
-            // We prefer using VisibilityNotify over MapNotify because
-            // some window managers like awesome don't internally flag a
-            // window as viewable even after it is mapped but before it
-            // is visible leading to certain function calls failing with
-            // an unviewable error if called before VisibilityNotify arrives
-
-            // Empirical testing on most widely used window managers shows
-            // that mapping a window will always lead to a VisibilityNotify
-            // event that is not VisibilityFullyObscured
-            if (windowEvent.xvisibility.window == m_window)
-            {
-                if (windowEvent.xvisibility.state != VisibilityFullyObscured)
-                    m_windowMapped = true;
-            }
-
-            break;
-        }
-
-        // Window property change
-        case PropertyNotify:
-        {
-            if (!m_lastInputTime)
-                m_lastInputTime = windowEvent.xproperty.time;
-
-            break;
-        }*/
+        break;
+    }*/
+    default: break;
     }
 
     return true;

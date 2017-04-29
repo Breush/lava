@@ -172,57 +172,42 @@ VkPipelineShaderStageCreateInfo VulkanExampleBase::loadShader(std::string fileNa
 
 void VulkanExampleBase::update()
 {
+    auto tStart = std::chrono::high_resolution_clock::now();
+
     if (viewUpdated) {
         viewUpdated = false;
         viewChanged();
     }
-}
 
-void VulkanExampleBase::renderLoop()
-{
-    destWidth = width;
-    destHeight = height;
+    frameCounter++;
+    auto tEnd = std::chrono::high_resolution_clock::now();
+    auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+    frameTimer = tDiff / 1000.0f;
 
-    xcb_flush(connection);
-    while (!quit) {
-        auto tStart = std::chrono::high_resolution_clock::now();
-        xcb_generic_event_t* event;
-        while ((event = xcb_poll_for_event(connection))) {
-            handleEvent(event);
-            free(event);
-        }
-        render();
-        frameCounter++;
-        auto tEnd = std::chrono::high_resolution_clock::now();
-        auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
-        frameTimer = tDiff / 1000.0f;
-        camera.update(frameTimer);
-        if (camera.moving()) {
-            viewUpdated = true;
-        }
-        // Convert to clamped timer value
-        if (!paused) {
-            timer += timerSpeed * frameTimer;
-            if (timer > 1.0) {
-                timer -= 1.0f;
-            }
-        }
-        fpsTimer += (float)tDiff;
-        if (fpsTimer > 1000.0f) {
-            if (!enableTextOverlay) {
-                std::string windowTitle = getWindowTitle();
-                xcb_change_property(connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, windowTitle.size(),
-                                    windowTitle.c_str());
-            }
-            lastFPS = frameCounter;
-            updateTextOverlay();
-            fpsTimer = 0.0f;
-            frameCounter = 0;
-        }
+    camera.update(frameTimer);
+    if (camera.moving()) {
+        viewUpdated = true;
     }
 
-    // Flush device to make sure all resources can be freed
-    vkDeviceWaitIdle(device);
+    // Convert to clamped timer value
+    if (!paused) {
+        timer += timerSpeed * frameTimer;
+        if (timer > 1.0) {
+            timer -= 1.0f;
+        }
+    }
+    fpsTimer += (float)tDiff;
+    if (fpsTimer > 1000.0f) {
+        if (!enableTextOverlay) {
+            std::string windowTitle = getWindowTitle();
+            xcb_change_property(connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, windowTitle.size(),
+                                windowTitle.c_str());
+        }
+        lastFPS = frameCounter;
+        updateTextOverlay();
+        fpsTimer = 0.0f;
+        frameCounter = 0;
+    }
 }
 
 void VulkanExampleBase::updateTextOverlay()
@@ -496,66 +481,35 @@ xcb_window_t VulkanExampleBase::setupWindow()
 void VulkanExampleBase::handleEvent(const xcb_generic_event_t* event)
 {
     switch (event->response_type & 0x7f) {
-    case XCB_KEY_PRESS: {
-        const xcb_key_release_event_t* keyEvent = (const xcb_key_release_event_t*)event;
-        switch (keyEvent->detail) {
-        case KEY_W:
-            camera.keys.up = true;
-            break;
-        case KEY_S:
-            camera.keys.down = true;
-            break;
-        case KEY_A:
-            camera.keys.left = true;
-            break;
-        case KEY_D:
-            camera.keys.right = true;
-            break;
-        case KEY_P:
-            paused = !paused;
-            break;
-        case KEY_F1:
-            if (enableTextOverlay) {
-                textOverlay->visible = !textOverlay->visible;
-            }
-            break;
-        }
-    } break;
     case XCB_KEY_RELEASE: {
         const xcb_key_release_event_t* keyEvent = (const xcb_key_release_event_t*)event;
         switch (keyEvent->detail) {
-        case KEY_W:
-            camera.keys.up = false;
-            break;
-        case KEY_S:
-            camera.keys.down = false;
-            break;
-        case KEY_A:
-            camera.keys.left = false;
-            break;
-        case KEY_D:
-            camera.keys.right = false;
-            break;
-        case KEY_ESCAPE:
-            quit = true;
-            break;
+        case KEY_W: camera.keys.up = false; break;
+        case KEY_S: camera.keys.down = false; break;
+        case KEY_A: camera.keys.left = false; break;
+        case KEY_D: camera.keys.right = false; break;
+        case KEY_ESCAPE: quit = true; break;
         }
         keyPressed(keyEvent->detail);
     } break;
 
-    default:
-        break;
+    default: break;
     }
+}
+
+void VulkanExampleBase::close()
+{
+    // TODO Somehow really hard to close the window without this sandwich hack
+    vkDeviceWaitIdle(device);
+    m_window.close();
+    vkDeviceWaitIdle(device);
 }
 
 void VulkanExampleBase::handleLavaEvent(const lava::Event& event)
 {
     switch (event.type) {
     case lava::Event::WindowClosed: {
-        // TODO Somehow really hard to close the window without this sandwich hack
-        vkDeviceWaitIdle(device);
-        m_window.close();
-        vkDeviceWaitIdle(device);
+        close();
         break;
     }
 
@@ -565,21 +519,21 @@ void VulkanExampleBase::handleLavaEvent(const lava::Event& event)
     }
 
     case lava::Event::MouseButtonPressed: {
-        if (event.mouseButton.type == lava::Mouse::Left)
+        if (event.mouseButton.which == lava::Mouse::Left)
             mouseButtons.left = true;
-        else if (event.mouseButton.type == lava::Mouse::Middle)
+        else if (event.mouseButton.which == lava::Mouse::Middle)
             mouseButtons.middle = true;
-        else if (event.mouseButton.type == lava::Mouse::Right)
+        else if (event.mouseButton.which == lava::Mouse::Right)
             mouseButtons.right = true;
         break;
     }
 
     case lava::Event::MouseButtonReleased: {
-        if (event.mouseButton.type == lava::Mouse::Left)
+        if (event.mouseButton.which == lava::Mouse::Left)
             mouseButtons.left = false;
-        else if (event.mouseButton.type == lava::Mouse::Middle)
+        else if (event.mouseButton.which == lava::Mouse::Middle)
             mouseButtons.middle = false;
-        else if (event.mouseButton.type == lava::Mouse::Right)
+        else if (event.mouseButton.which == lava::Mouse::Right)
             mouseButtons.right = false;
         break;
     }
@@ -611,8 +565,20 @@ void VulkanExampleBase::handleLavaEvent(const lava::Event& event)
         break;
     }
 
-    default:
+    case lava::Event::KeyPressed: {
+        switch (event.key.which) {
+        case lava::Keyboard::Escape: close(); break;
+        case lava::Keyboard::Up: camera.keys.up = true; break;
+        case lava::Keyboard::Down: camera.keys.down = true; break;
+        case lava::Keyboard::Left: camera.keys.left = true; break;
+        case lava::Keyboard::Right: camera.keys.right = true; break;
+        case lava::Keyboard::P: paused = !paused; break;
+        case lava::Keyboard::F1: textOverlay->visible = !textOverlay->visible; break;
+        }
         break;
+    }
+
+    default: break;
     }
 }
 

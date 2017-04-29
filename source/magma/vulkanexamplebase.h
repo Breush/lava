@@ -8,22 +8,7 @@
 
 #pragma once
 
-#ifdef _WIN32
-#pragma comment(linker, "/subsystem:windows")
-#include <fcntl.h>
-#include <io.h>
-#include <windows.h>
-#elif defined(__ANDROID__)
-#include "VulkanAndroid.h"
-#include <android/asset_manager.h>
-#include <android/native_activity.h>
-#include <android_native_app_glue.h>
-#include <sys/system_properties.h>
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-#include <wayland-client.h>
-#elif defined(__linux__)
 #include <xcb/xcb.h>
-#endif
 
 #include <chrono>
 #include <iostream>
@@ -204,7 +189,6 @@ public:
     xcb_connection_t* connection;
     xcb_screen_t* screen;
     xcb_window_t window;
-    xcb_intern_atom_reply_t* atom_wm_delete_window;
 
     // Default ctor
     VulkanExampleBase(lava::Window& window, bool enableValidation);
@@ -287,10 +271,8 @@ public:
     // Load a SPIR-V shader
     VkPipelineShaderStageCreateInfo loadShader(std::string fileName, VkShaderStageFlagBits stage);
 
+    void close();
     void update();
-
-    // Start the main render loop
-    void renderLoop();
 
     void updateTextOverlay();
 

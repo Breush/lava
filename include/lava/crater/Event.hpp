@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/config.hpp>
+#include <lava/crater/keyboard.hpp>
 #include <lava/crater/mouse.hpp>
 
 namespace lava {
@@ -16,6 +17,8 @@ namespace lava {
             MouseButtonPressed,
             MouseButtonReleased,
             MouseMoved,
+            KeyPressed,
+            KeyReleased,
         };
 
         struct Size {
@@ -24,7 +27,7 @@ namespace lava {
         };
 
         struct MouseButton {
-            Mouse::ButtonType type;
+            Mouse::Button which;
             int16_t x;
             int16_t y;
         };
@@ -34,6 +37,10 @@ namespace lava {
             int16_t y;
         };
 
+        struct Key {
+            Keyboard::Key which;
+        };
+
         // -----
 
         Type type;
@@ -41,6 +48,7 @@ namespace lava {
             Size size;
             MouseButton mouseButton;
             MouseMove mouseMove;
+            Key key;
         };
     };
 }
