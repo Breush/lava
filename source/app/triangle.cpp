@@ -16,6 +16,7 @@ int main(void)
             vulkanExample.handleLavaEvent(event);
         }
 
+        vulkanExample.update();
         vulkanExample.render();
     }
 

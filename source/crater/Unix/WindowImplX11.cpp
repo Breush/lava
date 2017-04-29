@@ -145,7 +145,7 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
         if (messageEvent.data.data32[0] != m_atomWmDeleteWindow->atom) break;
 
         Event event;
-        event.type = Event::Closed;
+        event.type = Event::WindowClosed;
         pushEvent(event);
         break;
     }
@@ -155,13 +155,52 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
         if (m_previousSize.x == configureEvent.width && m_previousSize.y == configureEvent.height) break;
 
         Event event;
-        event.type = Event::Resized;
+        event.type = Event::Type::WindowResized;
         event.size.width = configureEvent.width;
         event.size.height = configureEvent.height;
         pushEvent(event);
 
         m_previousSize.x = configureEvent.width;
         m_previousSize.y = configureEvent.height;
+        break;
+    }
+
+    case XCB_BUTTON_PRESS: {
+        auto buttonPressEvent = reinterpret_cast<xcb_button_press_event_t&>(windowEvent);
+
+        Event event;
+        event.type = Event::MouseButtonPressed;
+        event.mouseButton.x = buttonPressEvent.event_x;
+        event.mouseButton.y = buttonPressEvent.event_y;
+        if (buttonPressEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.type = Mouse::Left;
+        if (buttonPressEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.type = Mouse::Middle;
+        if (buttonPressEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.type = Mouse::Right;
+        pushEvent(event);
+        break;
+    }
+
+    case XCB_BUTTON_RELEASE: {
+        auto buttonReleaseEvent = reinterpret_cast<xcb_button_release_event_t&>(windowEvent);
+
+        Event event;
+        event.type = Event::MouseButtonReleased;
+        event.mouseButton.x = buttonReleaseEvent.event_x;
+        event.mouseButton.y = buttonReleaseEvent.event_y;
+        if (buttonReleaseEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.type = Mouse::Left;
+        if (buttonReleaseEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.type = Mouse::Middle;
+        if (buttonReleaseEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.type = Mouse::Right;
+        pushEvent(event);
+        break;
+    }
+
+    case XCB_MOTION_NOTIFY: {
+        auto motionEvent = reinterpret_cast<xcb_motion_notify_event_t&>(windowEvent);
+
+        Event event;
+        event.type = Event::MouseMoved;
+        event.mouseMove.x = motionEvent.event_x;
+        event.mouseMove.y = motionEvent.event_y;
+        pushEvent(event);
         break;
     }
 
@@ -359,103 +398,6 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
             event.key.system  = windowEvent.xkey.state & Mod4Mask;
             pushEvent(event);
 
-            break;
-        }
-
-        // Mouse button pressed
-        case ButtonPress:
-        {
-            // XXX: Why button 8 and 9?
-            // Because 4 and 5 are the vertical wheel and 6 and 7 are horizontal wheel ;)
-            unsigned int button = windowEvent.xbutton.button;
-            if ((button == Button1) ||
-                (button == Button2) ||
-                (button == Button3) ||
-                (button == 8) ||
-                (button == 9))
-            {
-                Event event;
-                event.type          = Event::MouseButtonPressed;
-                event.mouseButton.x = windowEvent.xbutton.x;
-                event.mouseButton.y = windowEvent.xbutton.y;
-                switch(button)
-                {
-                    case Button1: event.mouseButton.button = Mouse::Left;     break;
-                    case Button2: event.mouseButton.button = Mouse::Middle;   break;
-                    case Button3: event.mouseButton.button = Mouse::Right;    break;
-                    case 8:       event.mouseButton.button = Mouse::XButton1; break;
-                    case 9:       event.mouseButton.button = Mouse::XButton2; break;
-                }
-                pushEvent(event);
-            }
-
-            updateLastInputTime(windowEvent.xbutton.time);
-
-            break;
-        }
-
-        // Mouse button released
-        case ButtonRelease:
-        {
-            unsigned int button = windowEvent.xbutton.button;
-            if ((button == Button1) ||
-                (button == Button2) ||
-                (button == Button3) ||
-                (button == 8) ||
-                (button == 9))
-            {
-                Event event;
-                event.type          = Event::MouseButtonReleased;
-                event.mouseButton.x = windowEvent.xbutton.x;
-                event.mouseButton.y = windowEvent.xbutton.y;
-                switch(button)
-                {
-                    case Button1: event.mouseButton.button = Mouse::Left;     break;
-                    case Button2: event.mouseButton.button = Mouse::Middle;   break;
-                    case Button3: event.mouseButton.button = Mouse::Right;    break;
-                    case 8:       event.mouseButton.button = Mouse::XButton1; break;
-                    case 9:       event.mouseButton.button = Mouse::XButton2; break;
-                }
-                pushEvent(event);
-            }
-            else if ((button == Button4) || (button == Button5))
-            {
-                Event event;
-
-                event.type             = Event::MouseWheelMoved;
-                event.mouseWheel.delta = (button == Button4) ? 1 : -1;
-                event.mouseWheel.x     = windowEvent.xbutton.x;
-                event.mouseWheel.y     = windowEvent.xbutton.y;
-                pushEvent(event);
-
-                event.type                   = Event::MouseWheelScrolled;
-                event.mouseWheelScroll.wheel = Mouse::VerticalWheel;
-                event.mouseWheelScroll.delta = (button == Button4) ? 1 : -1;
-                event.mouseWheelScroll.x     = windowEvent.xbutton.x;
-                event.mouseWheelScroll.y     = windowEvent.xbutton.y;
-                pushEvent(event);
-            }
-            else if ((button == 6) || (button == 7))
-            {
-                Event event;
-                event.type                   = Event::MouseWheelScrolled;
-                event.mouseWheelScroll.wheel = Mouse::HorizontalWheel;
-                event.mouseWheelScroll.delta = (button == 6) ? 1 : -1;
-                event.mouseWheelScroll.x     = windowEvent.xbutton.x;
-                event.mouseWheelScroll.y     = windowEvent.xbutton.y;
-                pushEvent(event);
-            }
-            break;
-        }
-
-        // Mouse moved
-        case MotionNotify:
-        {
-            Event event;
-            event.type        = Event::MouseMoved;
-            event.mouseMove.x = windowEvent.xmotion.x;
-            event.mouseMove.y = windowEvent.xmotion.y;
-            pushEvent(event);
             break;
         }
 

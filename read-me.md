@@ -1,3 +1,13 @@
+## Project's composition
+
+| Layer | Project | Description                                     |
+| :---: | ---     | ---                                             |
+| 0     | chamber | Cross-projects core tools like String.          |
+| 1     | crater  | Cross-platforms windows and event interface.    |
+| 2     | magma   | Vulkan-based rendering engine.                  |
+
+... and there're more to come!
+
 ## Contributing guide
 
 **lava** uses *Premake* as build configuration system.
