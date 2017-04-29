@@ -1,76 +1,46 @@
 
-//
-// SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2017 Laurent Gomila (laurent@sfml-dev.org)
-//
-// This software is provided 'as-is', without any express or implied warranty.
-// In no event will the authors be held liable for any damages arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it freely,
-// subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented;
-//    you must not claim that you wrote the original software.
-//    If you use this software in a product, an acknowledgment
-//    in the product documentation would be appreciated but is not required.
-//
-// 2. Altered source versions must be plainly marked as such,
-//    and must not be misrepresented as being the original software.
-//
-// 3. This notice may not be removed or altered from any source distribution.
-//
+#include <lava/crater/WindowStyle.hpp> // keep first
 
-// Headers
-#include <lava/crater/WindowStyle.hpp> // important to be included first (conflict with None)
 #include "./WindowImplX11.hpp"
-#include "./Display.hpp"
-#include <lava/chamber/Utf.hpp>
-#include <lava/chamber/Err.hpp>
-#include <lava/chamber/Mutex.hpp>
-#include <lava/chamber/Lock.hpp>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <libgen.h>
-#include <fcntl.h>
+
 #include <algorithm>
-#include <vector>
-#include <string>
 #include <cstring>
+#include <fcntl.h>
+#include <lava/chamber/Err.hpp>
+#include <lava/chamber/Lock.hpp>
+#include <lava/chamber/Mutex.hpp>
+#include <lava/chamber/Utf.hpp>
+#include <libgen.h>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <vector>
 
-#include "./GlxContext.hpp"
-typedef lava::priv::GlxContext ContextType;
-
-// Private data
-namespace
-{
-    inline xcb_intern_atom_reply_t* internAtomHelper(xcb_connection_t *conn, bool only_if_exists, const char *str)
+namespace {
+    inline xcb_intern_atom_reply_t* internAtomHelper(xcb_connection_t* conn, bool only_if_exists, const char* str)
     {
         xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
         return xcb_intern_atom_reply(conn, cookie, NULL);
     }
 }
 
-
 using namespace lava;
 using namespace lava::priv;
 
-WindowImplX11::WindowImplX11(VideoMode mode, const String& title, unsigned long style, const ContextSettings& settings)
+WindowImplX11::WindowImplX11(VideoMode mode, const String& title, unsigned long style)
 {
     initXcbConnection();
     setupWindow(mode);
 }
 
-
 WindowImplX11::~WindowImplX11()
 {
 }
 
-
 void WindowImplX11::initXcbConnection()
 {
-    const xcb_setup_t *setup;
+    const xcb_setup_t* setup;
     xcb_screen_iterator_t iter;
 
     int scr;
@@ -82,11 +52,9 @@ void WindowImplX11::initXcbConnection()
 
     setup = xcb_get_setup(m_connection);
     iter = xcb_setup_roots_iterator(setup);
-    while (scr-- > 0)
-        xcb_screen_next(&iter);
+    while (scr-- > 0) xcb_screen_next(&iter);
     m_screen = iter.data;
 }
-
 
 void WindowImplX11::setupWindow(VideoMode mode)
 {
@@ -96,14 +64,8 @@ void WindowImplX11::setupWindow(VideoMode mode)
 
     value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     value_list[0] = m_screen->black_pixel;
-    value_list[1] =
-        XCB_EVENT_MASK_KEY_RELEASE |
-        XCB_EVENT_MASK_KEY_PRESS |
-        XCB_EVENT_MASK_EXPOSURE |
-        XCB_EVENT_MASK_STRUCTURE_NOTIFY |
-        XCB_EVENT_MASK_POINTER_MOTION |
-        XCB_EVENT_MASK_BUTTON_PRESS |
-        XCB_EVENT_MASK_BUTTON_RELEASE;
+    value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY |
+                    XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
     /*if (settings.fullscreen)
     {
@@ -111,26 +73,17 @@ void WindowImplX11::setupWindow(VideoMode mode)
         height = destHeight = m_screen->height_in_pixels;
     }*/
 
-    xcb_create_window(m_connection,
-        XCB_COPY_FROM_PARENT,
-        m_window, m_screen->root,
-        0, 0, mode.width, mode.height, 0,
-        XCB_WINDOW_CLASS_INPUT_OUTPUT,
-        m_screen->root_visual,
-        value_mask, value_list);
+    xcb_create_window(m_connection, XCB_COPY_FROM_PARENT, m_window, m_screen->root, 0, 0, mode.width, mode.height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                      m_screen->root_visual, value_mask, value_list);
 
     // Enable window destroyed notifications
     auto reply = internAtomHelper(m_connection, true, "WM_PROTOCOLS");
     m_atomWmDeleteWindow = internAtomHelper(m_connection, false, "WM_DELETE_WINDOW");
 
-    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE,
-        m_window, reply->atom, 4, 32, 1,
-        &m_atomWmDeleteWindow->atom);
+    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, reply->atom, 4, 32, 1, &m_atomWmDeleteWindow->atom);
 
     std::string windowTitle = "What a nice title!";
-    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE,
-        m_window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
-        windowTitle.size(), windowTitle.c_str());
+    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, windowTitle.size(), windowTitle.c_str());
 
     free(reply);
 
@@ -150,12 +103,10 @@ void WindowImplX11::setupWindow(VideoMode mode)
     xcb_map_window(m_connection, m_window);
 }
 
-
 WindowHandle WindowImplX11::getSystemHandle() const
 {
-    return { m_connection, m_window };
+    return {m_connection, m_window};
 }
-
 
 void WindowImplX11::processEvents()
 {
@@ -166,124 +117,20 @@ void WindowImplX11::processEvents()
     }
 }
 
-
-Vector2i WindowImplX11::getPosition() const
-{
-    // Not implemented yet
-    return Vector2i(0, 0);
-}
-
-
-void WindowImplX11::setPosition(const Vector2i& position)
-{
-    // Not implemented yet
-}
-
-
-Vector2u WindowImplX11::getSize() const
-{
-    // Not implemented yet
-    return Vector2u(0, 0);
-}
-
-
-void WindowImplX11::setSize(const Vector2u& size)
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::setTitle(const String& title)
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::setIcon(unsigned int width, unsigned int height, const uint8_t* pixels)
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::setVisible(bool visible)
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::setMouseCursorVisible(bool visible)
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::setMouseCursorGrabbed(bool grabbed)
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::setKeyRepeatEnabled(bool enabled)
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::requestFocus()
-{
-    // Not implemented yet
-}
-
-
-bool WindowImplX11::hasFocus() const
-{
-    // Not implemented yet
-    return true;
-}
-
-
-void WindowImplX11::grabFocus()
-{
-    // Not implemented yet
-}
-
-
 void WindowImplX11::setVideoMode(const VideoMode& mode)
 {
     // Not implemented yet
 }
-
 
 void WindowImplX11::resetVideoMode()
 {
     // Not implemented yet
 }
 
-
-void WindowImplX11::switchToFullscreen()
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::initialize()
-{
-    // Not implemented yet
-}
-
-
-void WindowImplX11::createHiddenCursor()
-{
-    // Not implemented yet
-}
-
-
 void WindowImplX11::cleanup()
 {
     resetVideoMode();
-    setMouseCursorVisible(true);
 }
-
 
 bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
 {
@@ -309,7 +156,7 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
 
         Event event;
         event.type = Event::Resized;
-        event.size.width  = configureEvent.width;
+        event.size.width = configureEvent.width;
         event.size.height = configureEvent.height;
         pushEvent(event);
 

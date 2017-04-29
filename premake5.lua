@@ -13,7 +13,7 @@ workspace "lava-renderer"
 
     filter { "configurations:debug" }
         flags { "c++14" }
-        buildoptions { "-Wfatal-errors" }
+        buildoptions { "-Wfatal-errors", "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
         symbols "on"
 
     filter { "configurations:release" }

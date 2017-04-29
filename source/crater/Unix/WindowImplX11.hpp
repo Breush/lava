@@ -1,257 +1,66 @@
-////////////////////////////////////////////////////////////
-//
-// SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2017 Laurent Gomila (laurent@sfml-dev.org)
-//
-// This software is provided 'as-is', without any express or implied warranty.
-// In no event will the authors be held liable for any damages arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it freely,
-// subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented;
-//    you must not claim that you wrote the original software.
-//    If you use this software in a product, an acknowledgment
-//    in the product documentation would be appreciated but is not required.
-//
-// 2. Altered source versions must be plainly marked as such,
-//    and must not be misrepresented as being the original software.
-//
-// 3. This notice may not be removed or altered from any source distribution.
-//
-////////////////////////////////////////////////////////////
+#pragma once
 
-#ifndef SFML_WINDOWIMPLX11_HPP
-#define SFML_WINDOWIMPLX11_HPP
-
-////////////////////////////////////////////////////////////
-// Headers
-////////////////////////////////////////////////////////////
-#include <lava/crater/Event.hpp>
 #include "../WindowImpl.hpp"
-#include <lava/chamber/String.hpp>
-#include <deque>
 
+#include <deque>
+#include <lava/chamber/String.hpp>
+#include <lava/crater/Event.hpp>
 #include <xcb/xcb.h>
 
+namespace lava::priv {
 
-namespace lava
-{
-namespace priv
-{
-////////////////////////////////////////////////////////////
-/// \brief Linux (X11) implementation of WindowImpl
-///
-////////////////////////////////////////////////////////////
-class WindowImplX11 : public WindowImpl
-{
-public:
+    /// \brief Linux (X11) implementation of WindowImpl
+    ///
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Create the window implementation
-    ///
-    /// \param mode  Video mode to use
-    /// \param title Title of the window
-    /// \param style Window style (resizable, fixed, or fullscren)
-    /// \param settings Additional settings for the underlying OpenGL context
-    ///
-    ////////////////////////////////////////////////////////////
-    WindowImplX11(VideoMode mode, const String& title, unsigned long style, const ContextSettings& settings);
+    class WindowImplX11 : public WindowImpl {
+    public:
+        /// \brief Create the window implementation
+        ///
+        /// \param mode  Video mode to use
+        /// \param title Title of the window
+        /// \param style Window style (resizable, fixed, or fullscren)
+        /// \param settings Additional settings for the underlying OpenGL context
+        WindowImplX11(VideoMode mode, const String& title, unsigned long style);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Destructor
-    ///
-    ////////////////////////////////////////////////////////////
-    ~WindowImplX11();
+        ~WindowImplX11();
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Get the OS-specific handle of the window
-    ///
-    /// \return Handle of the window
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual WindowHandle getSystemHandle() const;
+        /// \brief Get the OS-specific handle of the window
+        ///
+        /// \return Handle of the window
+        WindowHandle getSystemHandle() const override final;
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Get the position of the window
-    ///
-    /// \return Position of the window, in pixels
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual Vector2i getPosition() const;
+    protected:
+        /// \brief Process incoming events from the operating system
+        virtual void processEvents() override;
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Change the position of the window on screen
-    ///
-    /// \param position New position of the window, in pixels
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setPosition(const Vector2i& position);
+        void initXcbConnection();
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Get the client size of the window
-    ///
-    /// \return Size of the window, in pixels
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual Vector2u getSize() const;
+        void setupWindow(VideoMode mode);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Change the size of the rendering region of the window
-    ///
-    /// \param size New size, in pixels
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setSize(const Vector2u& size);
+        /// \brief Set fullscreen video mode
+        ///
+        /// \param Mode video mode to switch to
+        void setVideoMode(const VideoMode& mode);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Change the title of the window
-    ///
-    /// \param title New title
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setTitle(const String& title);
+        /// \brief Reset to desktop video mode
+        void resetVideoMode();
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Change the window's icon
-    ///
-    /// \param width  Icon's width, in pixels
-    /// \param height Icon's height, in pixels
-    /// \param pixels Pointer to the pixels in memory, format must be RGBA 32 bits
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setIcon(unsigned int width, unsigned int height, const uint8_t* pixels);
+        /// \brief Cleanup graphical resources attached to the window
+        void cleanup();
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Show or hide the window
-    ///
-    /// \param visible True to show, false to hide
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setVisible(bool visible);
+        /// \brief Process an incoming event from the window
+        ///
+        /// \param windowEvent Event which has been received
+        ///
+        /// \return True if the event was processed, false if it was discarded
+        bool processEvent(xcb_generic_event_t& windowEvent);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Show or hide the mouse cursor
-    ///
-    /// \param visible True to show, false to hide
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setMouseCursorVisible(bool visible);
+    private:
+        uint32_t m_window = -1u;
+        xcb_connection_t* m_connection = nullptr;
+        xcb_screen_t* m_screen = nullptr;
+        xcb_intern_atom_reply_t* m_atomWmDeleteWindow = nullptr;
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Grab or release the mouse cursor
-    ///
-    /// \param grabbed True to enable, false to disable
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setMouseCursorGrabbed(bool grabbed);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Enable or disable automatic key-repeat
-    ///
-    /// \param enabled True to enable, false to disable
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void setKeyRepeatEnabled(bool enabled);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Request the current window to be made the active
-    ///        foreground window
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void requestFocus();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Check whether the window has the input focus
-    ///
-    /// \return True if window has focus, false otherwise
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual bool hasFocus() const;
-
-protected:
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Process incoming events from the operating system
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual void processEvents();
-
-private:
-
-    void initXcbConnection();
-
-    void setupWindow(VideoMode mode);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Request the WM to make the current window active
-    ///
-    ////////////////////////////////////////////////////////////
-    void grabFocus();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Set fullscreen video mode
-    ///
-    /// \param Mode video mode to switch to
-    ///
-    ////////////////////////////////////////////////////////////
-    void setVideoMode(const VideoMode& mode);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Reset to desktop video mode
-    ///
-    ////////////////////////////////////////////////////////////
-    void resetVideoMode();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Switch to fullscreen mode
-    ///
-    ////////////////////////////////////////////////////////////
-    void switchToFullscreen();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Do some common initializations after the window has been created
-    ///
-    ////////////////////////////////////////////////////////////
-    void initialize();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Create a transparent mouse cursor
-    ///
-    ////////////////////////////////////////////////////////////
-    void createHiddenCursor();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Cleanup graphical resources attached to the window
-    ///
-    ////////////////////////////////////////////////////////////
-    void cleanup();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Process an incoming event from the window
-    ///
-    /// \param windowEvent Event which has been received
-    ///
-    /// \return True if the event was processed, false if it was discarded
-    ///
-    ////////////////////////////////////////////////////////////
-    bool processEvent(xcb_generic_event_t& windowEvent);
-
-    ////////////////////////////////////////////////////////////
-    // Member data
-    ////////////////////////////////////////////////////////////
-    uint32_t m_window = -1u;
-    xcb_connection_t* m_connection = nullptr;
-    xcb_screen_t* m_screen = nullptr;
-    xcb_intern_atom_reply_t* m_atomWmDeleteWindow = nullptr;
-
-    lava::Vector2i m_previousSize;
-};
-
-} // namespace priv
-
-} // namespace lava
-
-
-#endif // SFML_WINDOWIMPLX11_HPP
+        lava::Vector2i m_previousSize;
+    };
+}

@@ -15,6 +15,8 @@
 ### Crater
 
 - Everything's left!
+- Keyboard/Mouse events
+- Remove GLContext
 
 ### Magma
 
