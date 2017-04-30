@@ -3,5 +3,4 @@ project "app"
 
     files "app/**"
 
-    useCrater()
     useMagma()

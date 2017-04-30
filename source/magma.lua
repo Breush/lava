@@ -9,6 +9,7 @@ project "lava-magma"
         -- And define should probably not be in here
         defines { "VK_USE_PLATFORM_XCB_KHR" }
 
+        useCrater()
         useVulkanSdk()
         useStbFonts()
     end

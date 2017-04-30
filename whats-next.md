@@ -21,8 +21,12 @@
 - Rename file to lower case
 - Remove comments \brief and such
 - Have a way to access keyboard/mouse state (isKeyPressed)
+- Window fullscreen
+- Window title
 
 ### Magma
+
+- Redoing everything from scratch
 
 - Everything's left!
 - Rename file to lower case
