@@ -2,6 +2,8 @@
 
 #include <lava/magma/engine.hpp>
 
+#include "./vulkan/engine-impl.hpp"
+
 using namespace lava;
 
 Scene::Scene(Engine& engine)
@@ -22,6 +24,8 @@ Scene::~Scene()
 void Scene::bind(Window& window)
 {
     m_window = &window;
+
+    m_engine.impl().swapChain().initSurface(window);
 }
 
 void Scene::render()

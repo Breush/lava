@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <lava/crater/Window.hpp>
+
 namespace lava::priv {
     class EngineImpl;
 }
@@ -15,6 +17,8 @@ namespace lava {
     public:
         void bind(priv::EngineImpl& engine);
 
+        void initSurface(Window& window);
+
     private:
         priv::EngineImpl* m_engine = nullptr;
 
@@ -27,5 +31,11 @@ namespace lava {
         PFN_vkGetSwapchainImagesKHR m_fpGetSwapchainImagesKHR;
         PFN_vkAcquireNextImageKHR m_fpAcquireNextImageKHR;
         PFN_vkQueuePresentKHR m_fpQueuePresentKHR;
+
+        // Surface
+        VkSurfaceKHR m_surface;
+        VkFormat m_colorFormat;
+        VkColorSpaceKHR m_colorSpace;
+        uint32_t m_queueNodeIndex = UINT32_MAX;
     };
 }

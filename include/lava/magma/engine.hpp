@@ -13,6 +13,8 @@ namespace lava {
     public:
         Engine();
 
+        inline priv::EngineImpl& impl() { return *m_impl; }
+
     private:
         priv::EngineImpl* m_impl = nullptr;
     };

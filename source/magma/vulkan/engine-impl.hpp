@@ -21,6 +21,7 @@ namespace lava::priv {
 
         inline VkInstance& instance() { return m_instance; }
         inline lava::Device& device() { return m_device; }
+        inline lava::SwapChain& swapChain() { return m_swapChain; }
 
     protected:
         VkResult vulkanCreateInstance();
