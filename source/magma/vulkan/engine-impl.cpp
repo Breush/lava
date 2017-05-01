@@ -135,8 +135,16 @@ void EngineImpl::pickPhysicalDevice()
         exit(1);
     }
 
-    // @todo Have a suitability check
-    m_physicalDevice = devices[0];
+    for (const auto& device : devices) {
+        if (!vulkan::deviceSuitable(device)) continue;
+        m_physicalDevice = device;
+        break;
+    }
+
+    if (m_physicalDevice == VK_NULL_HANDLE) {
+        logger::error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
+        exit(1);
+    }
 }
 
 void EngineImpl::initVulkan()

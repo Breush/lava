@@ -5,7 +5,7 @@
 
 namespace lava::vulkan {
 
-    std::string toString(VkDebugReportObjectTypeEXT objType)
+    inline std::string toString(VkDebugReportObjectTypeEXT objType)
     {
         switch (objType) {
         case VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT: return "instance";
@@ -43,7 +43,7 @@ namespace lava::vulkan {
     /**
      * Convert a VkResult to a string.
      */
-    std::string toString(VkResult errorCode)
+    inline std::string toString(VkResult errorCode)
     {
         switch (errorCode) {
 #define STR(r)                                                                                                                                       \
@@ -103,7 +103,16 @@ namespace lava::vulkan {
         return devices;
     }
 
-    bool validationLayersSupported(const std::vector<const char*>& validationLayers)
+    inline std::vector<VkQueueFamilyProperties> availableQueueFamilies(VkPhysicalDevice device)
+    {
+        uint32_t count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
+        std::vector<VkQueueFamilyProperties> queueFamilies(count);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &count, queueFamilies.data());
+        return queueFamilies;
+    }
+
+    inline bool validationLayersSupported(const std::vector<const char*>& validationLayers)
     {
         auto layers = availableLayers();
 
