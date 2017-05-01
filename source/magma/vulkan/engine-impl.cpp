@@ -154,7 +154,7 @@ void EngineImpl::pickPhysicalDevice()
     }
 
     for (const auto& device : devices) {
-        if (!vulkan::deviceSuitable(device, m_surface)) continue;
+        if (!vulkan::deviceSuitable(device, m_deviceExtensions, m_surface)) continue;
         m_physicalDevice = device;
         break;
     }
@@ -188,6 +188,10 @@ void EngineImpl::createLogicalDevice()
 
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.queueCreateInfoCount = queueCreateInfos.size();
+
+    // Extensions
+    createInfo.enabledExtensionCount = m_deviceExtensions.size();
+    createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
 
     // Features
     VkPhysicalDeviceFeatures deviceFeatures = {};

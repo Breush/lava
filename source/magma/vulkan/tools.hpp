@@ -80,9 +80,18 @@ namespace lava::vulkan {
     {
         uint32_t count = 0;
         vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
-        std::vector<VkExtensionProperties> properties(count);
-        vkEnumerateInstanceExtensionProperties(nullptr, &count, properties.data());
-        return properties;
+        std::vector<VkExtensionProperties> extensions(count);
+        vkEnumerateInstanceExtensionProperties(nullptr, &count, extensions.data());
+        return extensions;
+    }
+
+    inline std::vector<VkExtensionProperties> availableExtensions(VkPhysicalDevice device)
+    {
+        uint32_t count = 0;
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+        std::vector<VkExtensionProperties> extensions(count);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.data());
+        return extensions;
     }
 
     inline std::vector<VkLayerProperties> availableLayers()

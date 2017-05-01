@@ -45,6 +45,7 @@ namespace lava::priv {
         // Devices
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         vulkan::Capsule<VkDevice> m_device{vkDestroyDevice};
+        const std::vector<const char*> m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
         VkQueue m_graphicsQueue;
 
         // Surfaces
