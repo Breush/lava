@@ -11,7 +11,7 @@ namespace lava::vulkan {
         int graphics = -1;
         int present = -1;
 
-        bool isComplete() { return graphics >= 0 && present >= 0; }
+        bool valid() { return graphics >= 0 && present >= 0; }
     };
 
     /**
@@ -38,7 +38,7 @@ namespace lava::vulkan {
                 indices.present = i;
             }
 
-            if (indices.isComplete()) break;
+            if (indices.valid()) break;
         }
 
         return indices;

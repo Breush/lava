@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./queue.hpp"
+#include "./swap-chain.hpp"
 #include "./tools.hpp"
 
 namespace lava::vulkan {
@@ -28,7 +29,14 @@ namespace lava::vulkan {
     inline bool deviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface)
     {
         QueueFamilyIndices indices = findQueueFamilies(device, surface);
+        if (!indices.valid()) return false;
+
         auto extensionsSupported = deviceExtensionsSupported(device, deviceExtensions);
-        return indices.isComplete() && extensionsSupported;
+        if (!extensionsSupported) return false;
+
+        auto swapChainSupport = swapChainSupported(device, surface);
+        if (!swapChainSupport.valid()) false;
+
+        return true;
     }
 }
