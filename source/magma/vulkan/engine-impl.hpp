@@ -27,6 +27,11 @@ namespace lava::priv {
         VkResult vulkanCreateInstance();
         void initVulkan();
 
+        /**
+         * Checks if the validation layer are supported.
+         */
+        bool validationLayerSupported();
+
     private:
         VkInstance m_instance;
         VkQueue m_queue;
@@ -38,5 +43,9 @@ namespace lava::priv {
         VkPipelineStageFlags m_submitPipelineStages;
         VkPhysicalDeviceFeatures m_enabledFeatures;
         std::vector<const char*> m_enabledExtensions;
+
+        // Validation layer
+        bool m_validationLayersEnabled = true;
+        const std::vector<const char*> m_validationLayers = {"VK_LAYER_LUNARG_standard_validation"};
     };
 }

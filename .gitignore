@@ -2,6 +2,7 @@ build/
 external/.tmp/
 external/include/
 external/lib/
+external/etc/
 source/_*
 Makefile
 *.make

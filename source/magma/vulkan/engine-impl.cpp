@@ -1,12 +1,37 @@
 #include "./engine-impl.hpp"
 
+#include <lava/chamber/logger.hpp>
 #include <vulkan/vulkan.hpp>
+
+#include "./tools.hpp"
 
 using namespace lava::priv;
 
 EngineImpl::EngineImpl()
 {
     initVulkan();
+}
+
+bool EngineImpl::validationLayerSupported()
+{
+    auto layers = vulkan::availableLayers();
+
+    for (auto layerName : m_validationLayers) {
+        bool layerFound = false;
+
+        for (const auto& layerProperties : layers) {
+            if (strcmp(layerName, layerProperties.layerName) == 0) {
+                layerFound = true;
+                break;
+            }
+        }
+
+        if (!layerFound) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 VkResult EngineImpl::vulkanCreateInstance()
@@ -29,6 +54,24 @@ VkResult EngineImpl::vulkanCreateInstance()
     instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
     instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
     instanceCreateInfo.enabledLayerCount = 0;
+
+    // Checking validation layers
+    if (m_validationLayersEnabled) {
+        if (validationLayerSupported()) {
+            logger::info("magma.vulkan") << "Validation layers enabled." << std::endl;
+        }
+        else {
+            logger::warning("magma.vulkan") << "Validation layers enabled, but not available..." << std::endl;
+            m_validationLayersEnabled = false;
+        }
+    }
+
+    // Logging all available extensions
+    auto extensions = vulkan::availableExtensions();
+    logger::info("magma.vulkan") << "Available extensions:" << std::endl;
+    for (const auto& extension : extensions) {
+        logger::info("magma.vulkan") << logger::sub(1) << extension.extensionName << std::endl;
+    }
 
     return vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
 }

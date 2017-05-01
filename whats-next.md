@@ -28,6 +28,7 @@
 
 - Redoing everything from scratch
 
+- Auto destroyer like in vulkan tutorial
 - Everything's left!
 - Rename file to lower case
 - Wrapper class to simplfy usage - this is basically SFML's Graphics

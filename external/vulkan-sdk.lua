@@ -27,7 +27,8 @@ if not fileExists("./include/vulkan") then
     local folder = "VulkanSDK/" .. VULKAN_SDK_VERSION .. "/x86_64"
     os.execute("cd ./.tmp && bash ./vulkan-sdk.run &&" ..
                "mv " .. folder .. "/include/vulkan ../include &&" ..
-               "mv " .. folder .. "/lib/* ../lib")
+               "mv " .. folder .. "/lib/* ../lib &&" ..
+               "mv " .. folder .. "/etc/* ../etc")
 end
 
 -- Use hook
