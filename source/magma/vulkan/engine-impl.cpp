@@ -147,11 +147,45 @@ void EngineImpl::pickPhysicalDevice()
     }
 }
 
+void EngineImpl::createLogicalDevice()
+{
+    // Device
+    VkDeviceCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+    // Queues
+    float queuePriority = 1.0f;
+    auto indices = vulkan::findQueueFamilies(m_physicalDevice);
+    VkDeviceQueueCreateInfo queueCreateInfo = {};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphics;
+    queueCreateInfo.queueCount = 1;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+
+    // Features
+    VkPhysicalDeviceFeatures deviceFeatures = {};
+
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    // Really create
+    auto err = vkCreateDevice(m_physicalDevice, &createInfo, nullptr, m_device.replace());
+    if (err) {
+        logger::error("magma.vulkan.device") << "Unable to create logical device. " << vulkan::toString(err) << std::endl;
+        exit(1);
+    };
+
+    vkGetDeviceQueue(m_device, indices.graphics, 0, &m_graphicsQueue);
+}
+
 void EngineImpl::initVulkan()
 {
     createInstance();
     setupDebug();
     pickPhysicalDevice();
+    createLogicalDevice();
 
     /*// Vulkan device creation
     // This is handled by a separate class that gets a logical device representation

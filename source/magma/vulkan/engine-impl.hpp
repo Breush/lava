@@ -3,7 +3,6 @@
 #include "./capsule.hpp"
 #include "./device.hpp"
 #include "./proxy.hpp"
-#include "./swap-chain.hpp"
 
 namespace lava {
     struct Semaphores {
@@ -22,8 +21,6 @@ namespace lava::priv {
         EngineImpl();
 
         inline vulkan::Capsule<VkInstance>& instance() { return m_instance; }
-        inline lava::Device& device() { return m_device; }
-        inline lava::SwapChain& swapChain() { return m_swapChain; }
 
     protected:
         void initVulkan();
@@ -35,18 +32,9 @@ namespace lava::priv {
         void initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo);
 
         void pickPhysicalDevice();
+        void createLogicalDevice();
 
     private:
-        // VkQueue m_queue;
-        lava::Device m_device;
-        lava::SwapChain m_swapChain;
-        /*lava::Semaphores m_semaphores;
-
-        VkSubmitInfo m_submitInfo;
-        VkPipelineStageFlags m_submitPipelineStages;
-        VkPhysicalDeviceFeatures m_enabledFeatures;
-        std::vector<const char*> m_enabledExtensions;*/
-
         // Instance-related
         vulkan::Capsule<VkInstance> m_instance{vkDestroyInstance};
         VkApplicationInfo m_applicationInfo;
@@ -59,5 +47,7 @@ namespace lava::priv {
 
         // Devices
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+        vulkan::Capsule<VkDevice> m_device{vkDestroyDevice};
+        VkQueue m_graphicsQueue;
     };
 }
