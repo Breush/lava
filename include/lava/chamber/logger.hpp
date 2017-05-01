@@ -23,6 +23,15 @@ namespace lava::logger {
     }
 
     /**
+     * Log an output with highest severity level.
+     */
+    std::ostream& error(const std::string& category)
+    {
+        std::cout << "[" << category << "] /!\\ /!\\ /!\\ ";
+        return std::cout;
+    }
+
+    /**
      * Add spacing.
      */
     constexpr const char* sub(int i)

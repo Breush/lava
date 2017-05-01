@@ -12,77 +12,95 @@ EngineImpl::EngineImpl()
     initVulkan();
 }
 
-bool EngineImpl::validationLayerSupported()
+void EngineImpl::initApplication(VkInstanceCreateInfo& instanceCreateInfo)
 {
-    auto layers = vulkan::availableLayers();
+    m_applicationInfo = {};
+    m_applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    m_applicationInfo.pApplicationName = "lava-magma";
+    m_applicationInfo.pEngineName = "lava-magma";
+    m_applicationInfo.apiVersion = VK_API_VERSION_1_0;
 
-    for (auto layerName : m_validationLayers) {
-        bool layerFound = false;
-
-        for (const auto& layerProperties : layers) {
-            if (strcmp(layerName, layerProperties.layerName) == 0) {
-                layerFound = true;
-                break;
-            }
-        }
-
-        if (!layerFound) {
-            return false;
-        }
-    }
-
-    return true;
+    instanceCreateInfo.pApplicationInfo = &m_applicationInfo;
 }
 
-VkResult EngineImpl::vulkanCreateInstance()
+void EngineImpl::initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo)
 {
+    // Logging all available extensions
+    auto availableExtensions = vulkan::availableExtensions();
+    logger::info("magma.vulkan.extensions") << "Available extensions:" << std::endl;
+    for (const auto& extension : availableExtensions) {
+        logger::info("magma.vulkan.extensions") << logger::sub(1) << extension.extensionName << std::endl;
+    }
+
+    // Enable surface extensions depending on os
+    // TODO Depend on OS, there should be an interface to get those somewhere
+    m_instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME};
+    m_instanceExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+
+    // Validation layers
+    if (m_validationLayersEnabled) {
+        m_instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    }
+
+    instanceCreateInfo.enabledExtensionCount = m_instanceExtensions.size();
+    instanceCreateInfo.ppEnabledExtensionNames = m_instanceExtensions.data();
+
+    // Logging all enabled extensions
+    logger::info("magma.vulkan.extensions") << "Enabled extensions:" << std::endl;
+    for (const auto& extensionName : m_instanceExtensions) {
+        logger::info("magma.vulkan.extensions") << logger::sub(1) << extensionName << std::endl;
+    }
+}
+
+void EngineImpl::initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo)
+{
+    instanceCreateInfo.enabledLayerCount = 0;
+
+    if (!m_validationLayersEnabled) return;
+
+    if (!vulkan::validationLayersSupported(m_validationLayers)) {
+        logger::warning("magma.vulkan") << "Validation layers enabled, but are not available." << std::endl;
+        m_validationLayersEnabled = false;
+        return;
+    }
+
+    instanceCreateInfo.enabledLayerCount = m_validationLayers.size();
+    instanceCreateInfo.ppEnabledLayerNames = m_validationLayers.data();
+
+    logger::info("magma.vulkan.layers") << "Validation layers enabled." << std::endl;
+}
+
+void EngineImpl::createInstance()
+{
+    // Optional data
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "lava-magma";
     appInfo.pEngineName = "lava-magma";
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
-    // Enable surface extensions depending on os
-    // TODO Depend on OS
-    std::vector<const char*> instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME};
-    instanceExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-
     VkInstanceCreateInfo instanceCreateInfo{};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pNext = nullptr;
     instanceCreateInfo.pApplicationInfo = &appInfo;
-    instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
-    instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
-    instanceCreateInfo.enabledLayerCount = 0;
 
-    // Checking validation layers
-    if (m_validationLayersEnabled) {
-        if (validationLayerSupported()) {
-            logger::info("magma.vulkan") << "Validation layers enabled." << std::endl;
-        }
-        else {
-            logger::warning("magma.vulkan") << "Validation layers enabled, but not available..." << std::endl;
-            m_validationLayersEnabled = false;
-        }
-    }
+    // Initialization of extensions and layers
+    initValidationLayers(instanceCreateInfo);
+    initRequiredExtensions(instanceCreateInfo);
 
-    // Logging all available extensions
-    auto extensions = vulkan::availableExtensions();
-    logger::info("magma.vulkan") << "Available extensions:" << std::endl;
-    for (const auto& extension : extensions) {
-        logger::info("magma.vulkan") << logger::sub(1) << extension.extensionName << std::endl;
-    }
+    // Really create the instance
+    auto err = vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
+    if (!err) return;
 
-    return vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
+    // @todo Have a way to have this exit(1) included! And debug trace?
+    logger::error("magma.vulkan") << "Could not create Vulkan instance. " << vulkan::toString(err) << std::endl;
+    exit(1);
 }
 
 void EngineImpl::initVulkan()
 {
     // Vulkan instance
-    auto err = vulkanCreateInstance();
-    if (err) {
-        // @todo Use logger vks::tools::exitFatal("Could not create Vulkan instance : \n" + vks::tools::errorString(err), "Fatal error");
-    }
+    createInstance();
 
     // Physical device
     uint32_t gpuCount = 0;
@@ -91,9 +109,10 @@ void EngineImpl::initVulkan()
     assert(gpuCount > 0);
     // Enumerate devices
     std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
-    err = vkEnumeratePhysicalDevices(m_instance, &gpuCount, physicalDevices.data());
+    auto err = vkEnumeratePhysicalDevices(m_instance, &gpuCount, physicalDevices.data());
     if (err) {
-        // vks::tools::exitFatal("Could not enumerate physical devices : \n" + vks::tools::errorString(err), "Fatal error");
+        logger::error("magma.vulkan") << "Could not enumerate physical devices. " << vulkan::toString(err) << std::endl;
+        exit(1);
     }
 
     // Select physical device to be used for the Vulkan example
@@ -107,7 +126,8 @@ void EngineImpl::initVulkan()
     m_device.bind(physicalDevice);
     VkResult res = m_device.createLogicalDevice(m_enabledFeatures, m_enabledExtensions);
     if (res != VK_SUCCESS) {
-        // vks::tools::exitFatal("Could not create Vulkan device: \n" + vks::tools::errorString(res), "Fatal error");
+        logger::error("magma.vulkan") << "Could not create Vulkan device. " << vulkan::toString(err) << std::endl;
+        exit(1);
     }
 
     // Get a graphics queue from the device

@@ -24,16 +24,18 @@ namespace lava::priv {
         inline lava::SwapChain& swapChain() { return m_swapChain; }
 
     protected:
-        VkResult vulkanCreateInstance();
+        void createInstance();
         void initVulkan();
 
         /**
          * Checks if the validation layer are supported.
          */
         bool validationLayerSupported();
+        void initApplication(VkInstanceCreateInfo& instanceCreateInfo);
+        void initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo);
+        void initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo);
 
     private:
-        VkInstance m_instance;
         VkQueue m_queue;
         lava::Device m_device;
         lava::SwapChain m_swapChain;
@@ -44,7 +46,12 @@ namespace lava::priv {
         VkPhysicalDeviceFeatures m_enabledFeatures;
         std::vector<const char*> m_enabledExtensions;
 
-        // Validation layer
+        // Instance-related
+        VkInstance m_instance;
+        VkApplicationInfo m_applicationInfo;
+        std::vector<const char*> m_instanceExtensions;
+
+        // Validation layers
         bool m_validationLayersEnabled = true;
         const std::vector<const char*> m_validationLayers = {"VK_LAYER_LUNARG_standard_validation"};
     };
