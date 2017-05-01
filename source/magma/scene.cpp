@@ -25,7 +25,7 @@ void Scene::bind(Window& window)
 {
     m_window = &window;
 
-    m_engine.impl().swapChain().initSurface(window);
+    // m_engine.impl().swapChain().initSurface(window);
 }
 
 void Scene::render()

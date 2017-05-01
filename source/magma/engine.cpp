@@ -8,3 +8,8 @@ Engine::Engine()
 {
     m_impl = new priv::EngineImpl();
 }
+
+Engine::~Engine()
+{
+    delete m_impl;
+}

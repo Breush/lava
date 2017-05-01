@@ -4,6 +4,42 @@
 #include <vulkan/vulkan.hpp>
 
 namespace lava::vulkan {
+
+    std::string toString(VkDebugReportObjectTypeEXT objType)
+    {
+        switch (objType) {
+        case VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT: return "instance";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_PHYSICAL_DEVICE_EXT: return "physical-device";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT: return "device";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT: return "queue";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT: return "semaphore";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT: return "command-buffer";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT: return "fence";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT: return "device-memory";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT: return "buffer";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT: return "image";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT: return "event";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT: return "query-pool";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT: return "buffer-view";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT: return "image-view";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT: return "shader-module";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_CACHE_EXT: return "pipeline-cache";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT: return "pipeline-layout";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT: return "render-pass";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT: return "pipeline";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT: return "descriptor-set-layout";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT: return "sampler";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT: return "descriptor-pool";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT: return "descriptor-set";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT: return "framebuffer";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_POOL_EXT: return "command-pool";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT: return "surface-khr";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT: return "swapchain-khr";
+        case VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT: return "debug-report";
+        }
+        return "unknown";
+    }
+
     /**
      * Convert a VkResult to a string.
      */
@@ -40,9 +76,6 @@ namespace lava::vulkan {
         }
     }
 
-    /**
-     * Listing some support.
-     */
     inline std::vector<VkExtensionProperties> availableExtensions()
     {
         uint32_t count = 0;
@@ -52,9 +85,6 @@ namespace lava::vulkan {
         return properties;
     }
 
-    /**
-     * Listing some support.
-     */
     inline std::vector<VkLayerProperties> availableLayers()
     {
         uint32_t count = 0;
@@ -62,6 +92,15 @@ namespace lava::vulkan {
         std::vector<VkLayerProperties> properties(count);
         vkEnumerateInstanceLayerProperties(&count, properties.data());
         return properties;
+    }
+
+    inline std::vector<VkPhysicalDevice> availablePhysicalDevices(VkInstance instance)
+    {
+        uint32_t count = 0;
+        vkEnumeratePhysicalDevices(instance, &count, nullptr);
+        std::vector<VkPhysicalDevice> devices(count);
+        vkEnumeratePhysicalDevices(instance, &count, devices.data());
+        return devices;
     }
 
     bool validationLayersSupported(const std::vector<const char*>& validationLayers)

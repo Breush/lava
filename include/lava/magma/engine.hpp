@@ -12,6 +12,7 @@ namespace lava {
     class Engine {
     public:
         Engine();
+        ~Engine();
 
         inline priv::EngineImpl& impl() { return *m_impl; }
 

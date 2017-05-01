@@ -3,7 +3,24 @@
 #include <lava/chamber/logger.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "./proxy.hpp"
 #include "./tools.hpp"
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location,
+                                                    int32_t code, const char* layerPrefix, const char* msg, void* userData)
+{
+    auto category = lava::vulkan::toString(objType);
+
+    if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+        lava::logger::warning("magma.vulkan." + category) << msg << std::endl;
+    }
+    else if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+        lava::logger::error("magma.vulkan." + category) << msg << std::endl;
+        exit(1);
+    }
+
+    return VK_FALSE;
+}
 
 using namespace lava::priv;
 
@@ -27,9 +44,9 @@ void EngineImpl::initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo
 {
     // Logging all available extensions
     auto availableExtensions = vulkan::availableExtensions();
-    logger::info("magma.vulkan.extensions") << "Available extensions:" << std::endl;
+    logger::info("magma.vulkan.extension") << "Available extensions:" << std::endl;
     for (const auto& extension : availableExtensions) {
-        logger::info("magma.vulkan.extensions") << logger::sub(1) << extension.extensionName << std::endl;
+        logger::info("magma.vulkan.extension") << logger::sub(1) << extension.extensionName << std::endl;
     }
 
     // Enable surface extensions depending on os
@@ -46,9 +63,9 @@ void EngineImpl::initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo
     instanceCreateInfo.ppEnabledExtensionNames = m_instanceExtensions.data();
 
     // Logging all enabled extensions
-    logger::info("magma.vulkan.extensions") << "Enabled extensions:" << std::endl;
+    logger::info("magma.vulkan.extension") << "Enabled extensions:" << std::endl;
     for (const auto& extensionName : m_instanceExtensions) {
-        logger::info("magma.vulkan.extensions") << logger::sub(1) << extensionName << std::endl;
+        logger::info("magma.vulkan.extension") << logger::sub(1) << extensionName << std::endl;
     }
 }
 
@@ -59,7 +76,7 @@ void EngineImpl::initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo)
     if (!m_validationLayersEnabled) return;
 
     if (!vulkan::validationLayersSupported(m_validationLayers)) {
-        logger::warning("magma.vulkan") << "Validation layers enabled, but are not available." << std::endl;
+        logger::warning("magma.vulkan.layer") << "Validation layers enabled, but are not available." << std::endl;
         m_validationLayersEnabled = false;
         return;
     }
@@ -67,7 +84,7 @@ void EngineImpl::initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo)
     instanceCreateInfo.enabledLayerCount = m_validationLayers.size();
     instanceCreateInfo.ppEnabledLayerNames = m_validationLayers.data();
 
-    logger::info("magma.vulkan.layers") << "Validation layers enabled." << std::endl;
+    logger::info("magma.vulkan.layer") << "Validation layers enabled." << std::endl;
 }
 
 void EngineImpl::createInstance()
@@ -89,7 +106,7 @@ void EngineImpl::createInstance()
     initRequiredExtensions(instanceCreateInfo);
 
     // Really create the instance
-    auto err = vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
+    auto err = vkCreateInstance(&instanceCreateInfo, nullptr, m_instance.replace());
     if (!err) return;
 
     // @todo Have a way to have this exit(1) included! And debug trace?
@@ -97,30 +114,38 @@ void EngineImpl::createInstance()
     exit(1);
 }
 
-void EngineImpl::initVulkan()
+void EngineImpl::setupDebug()
 {
-    // Vulkan instance
-    createInstance();
+    if (!m_validationLayersEnabled) return;
 
-    // Physical device
-    uint32_t gpuCount = 0;
-    // Get number of available physical devices
-    assert(vkEnumeratePhysicalDevices(m_instance, &gpuCount, nullptr) == VK_SUCCESS);
-    assert(gpuCount > 0);
-    // Enumerate devices
-    std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
-    auto err = vkEnumeratePhysicalDevices(m_instance, &gpuCount, physicalDevices.data());
-    if (err) {
-        logger::error("magma.vulkan") << "Could not enumerate physical devices. " << vulkan::toString(err) << std::endl;
+    VkDebugReportCallbackCreateInfoEXT createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+    createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+    createInfo.pfnCallback = debugCallback;
+
+    vulkan::CreateDebugReportCallbackEXT(m_instance, &createInfo, nullptr, m_debugReportCallback.replace());
+}
+
+void EngineImpl::pickPhysicalDevice()
+{
+    auto devices = vulkan::availablePhysicalDevices(m_instance);
+
+    if (devices.size() == 0) {
+        logger::error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;
         exit(1);
     }
 
-    // Select physical device to be used for the Vulkan example
-    // Defaults to the first device
-    uint32_t selectedDevice = 0;
-    auto physicalDevice = physicalDevices[selectedDevice];
+    // @todo Have a suitability check
+    m_physicalDevice = devices[0];
+}
 
-    // Vulkan device creation
+void EngineImpl::initVulkan()
+{
+    createInstance();
+    setupDebug();
+    pickPhysicalDevice();
+
+    /*// Vulkan device creation
     // This is handled by a separate class that gets a logical device representation
     // and encapsulates functions related to a device
     m_device.bind(physicalDevice);
@@ -164,5 +189,5 @@ void EngineImpl::initVulkan()
     m_submitInfo.waitSemaphoreCount = 1;
     m_submitInfo.pWaitSemaphores = &m_semaphores.presentComplete;
     m_submitInfo.signalSemaphoreCount = 1;
-    m_submitInfo.pSignalSemaphores = &m_semaphores.renderComplete;
+    m_submitInfo.pSignalSemaphores = &m_semaphores.renderComplete;*/
 }
