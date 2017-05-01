@@ -15,8 +15,8 @@ int main(void)
 
     // An engine is the global manager.
     // A scene is our 3D environment, and set it to be shown in the window
-    lava::Engine engine;
-    lava::Scene scene(engine, window);
+    lava::Engine engine(window);
+    lava::Scene scene(engine);
 
     // Keep running while the window is open
     bool quit = false;

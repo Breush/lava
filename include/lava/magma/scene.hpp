@@ -1,7 +1,5 @@
 #pragma once
 
-#include <lava/crater/Window.hpp>
-
 namespace lava {
     class Engine;
 }
@@ -15,13 +13,7 @@ namespace lava {
     class Scene {
     public:
         Scene(Engine& engine);
-        Scene(Engine& engine, lava::Window& window);
         ~Scene();
-
-        /**
-         * Bind or rebind the scene to a lava::Window.
-         */
-        void bind(lava::Window& window);
 
         /**
          * Render the whole scene.
@@ -30,6 +22,5 @@ namespace lava {
 
     private:
         Engine& m_engine;
-        lava::Window* m_window = nullptr;
     };
 }

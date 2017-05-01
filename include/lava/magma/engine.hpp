@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lava/crater/Window.hpp>
+
 namespace lava::priv {
     class EngineImpl;
 }
@@ -11,10 +13,8 @@ namespace lava {
      */
     class Engine {
     public:
-        Engine();
+        Engine(lava::Window& window);
         ~Engine();
-
-        inline priv::EngineImpl& impl() { return *m_impl; }
 
     private:
         priv::EngineImpl* m_impl = nullptr;

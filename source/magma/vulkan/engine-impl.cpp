@@ -1,6 +1,7 @@
 #include "./engine-impl.hpp"
 
 #include <lava/chamber/logger.hpp>
+#include <set>
 #include <vulkan/vulkan.hpp>
 
 #include "./proxy.hpp"
@@ -24,7 +25,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags,
 
 using namespace lava::priv;
 
-EngineImpl::EngineImpl()
+EngineImpl::EngineImpl(lava::Window& window)
+    : m_windowHandle(window.getSystemHandle())
 {
     initVulkan();
 }
@@ -126,6 +128,22 @@ void EngineImpl::setupDebug()
     vulkan::CreateDebugReportCallbackEXT(m_instance, &createInfo, nullptr, m_debugReportCallback.replace());
 }
 
+void EngineImpl::createSurface()
+{
+    // @todo This is platform-specific!
+    VkXcbSurfaceCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+    createInfo.connection = m_windowHandle.connection;
+    createInfo.window = m_windowHandle.window;
+
+    auto CreateXcbSurfaceKHR = (PFN_vkCreateXcbSurfaceKHR)vkGetInstanceProcAddr(m_instance, "vkCreateXcbSurfaceKHR");
+    auto err = CreateXcbSurfaceKHR(m_instance, &createInfo, nullptr, m_surface.replace());
+    if (!err) return;
+
+    logger::error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
+    exit(1);
+}
+
 void EngineImpl::pickPhysicalDevice()
 {
     auto devices = vulkan::availablePhysicalDevices(m_instance);
@@ -136,15 +154,15 @@ void EngineImpl::pickPhysicalDevice()
     }
 
     for (const auto& device : devices) {
-        if (!vulkan::deviceSuitable(device)) continue;
+        if (!vulkan::deviceSuitable(device, m_surface)) continue;
         m_physicalDevice = device;
         break;
     }
 
-    if (m_physicalDevice == VK_NULL_HANDLE) {
-        logger::error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
-        exit(1);
-    }
+    if (m_physicalDevice != VK_NULL_HANDLE) return;
+
+    logger::error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
+    exit(1);
 }
 
 void EngineImpl::createLogicalDevice()
@@ -155,15 +173,21 @@ void EngineImpl::createLogicalDevice()
 
     // Queues
     float queuePriority = 1.0f;
-    auto indices = vulkan::findQueueFamilies(m_physicalDevice);
-    VkDeviceQueueCreateInfo queueCreateInfo = {};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphics;
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    auto indices = vulkan::findQueueFamilies(m_physicalDevice, m_surface);
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<int> uniqueQueueFamilies = {indices.graphics, indices.present};
 
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = 1;
+    for (int queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+    createInfo.queueCreateInfoCount = queueCreateInfos.size();
 
     // Features
     VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -178,58 +202,14 @@ void EngineImpl::createLogicalDevice()
     };
 
     vkGetDeviceQueue(m_device, indices.graphics, 0, &m_graphicsQueue);
+    vkGetDeviceQueue(m_device, indices.present, 0, &m_presentQueue);
 }
 
 void EngineImpl::initVulkan()
 {
     createInstance();
     setupDebug();
+    createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
-
-    /*// Vulkan device creation
-    // This is handled by a separate class that gets a logical device representation
-    // and encapsulates functions related to a device
-    m_device.bind(physicalDevice);
-    VkResult res = m_device.createLogicalDevice(m_enabledFeatures, m_enabledExtensions);
-    if (res != VK_SUCCESS) {
-        logger::error("magma.vulkan") << "Could not create Vulkan device. " << vulkan::toString(err) << std::endl;
-        exit(1);
-    }
-
-    // Get a graphics queue from the device
-    auto logicalDevice = m_device.logicalDevice();
-    vkGetDeviceQueue(logicalDevice, m_device.queueFamilyIndices().graphics, 0, &m_queue);
-
-    // Find a suitable depth format
-    // VkBool32 validDepthFormat = vks::tools::getSupportedDepthFormat(physicalDevice, &depthFormat);
-    // assert(validDepthFormat);
-
-    m_swapChain.bind(*this);
-
-    // Create synchronization objects
-    VkSemaphoreCreateInfo semaphoreCreateInfo{};
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    // Create a semaphore used to synchronize image presentation
-    // Ensures that the image is displayed before we start submitting new commands to the queu
-    vkCreateSemaphore(logicalDevice, &semaphoreCreateInfo, nullptr, &m_semaphores.presentComplete);
-    // Create a semaphore used to synchronize command submission
-    // Ensures that the image is not presented until all commands have been sumbitted and executed
-    vkCreateSemaphore(logicalDevice, &semaphoreCreateInfo, nullptr, &m_semaphores.renderComplete);
-    // Create a semaphore used to synchronize command submission
-    // Ensures that the image is not presented until all commands for the text overlay have been sumbitted and executed
-    // Will be inserted after the render complete semaphore if the text overlay is enabled
-    vkCreateSemaphore(logicalDevice, &semaphoreCreateInfo, nullptr, &m_semaphores.textOverlayComplete);
-
-    // Set up submit info structure
-    // Semaphores will stay the same during application lifetime
-    // Command buffer submission info is set by each example
-    m_submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-    m_submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    m_submitInfo.pWaitDstStageMask = &m_submitPipelineStages;
-    m_submitInfo.waitSemaphoreCount = 1;
-    m_submitInfo.pWaitSemaphores = &m_semaphores.presentComplete;
-    m_submitInfo.signalSemaphoreCount = 1;
-    m_submitInfo.pSignalSemaphores = &m_semaphores.renderComplete;*/
 }

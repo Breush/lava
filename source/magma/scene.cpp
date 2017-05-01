@@ -11,21 +11,8 @@ Scene::Scene(Engine& engine)
 {
 }
 
-Scene::Scene(Engine& engine, Window& window)
-    : m_engine(engine)
-{
-    bind(window);
-}
-
 Scene::~Scene()
 {
-}
-
-void Scene::bind(Window& window)
-{
-    m_window = &window;
-
-    // m_engine.impl().swapChain().initSurface(window);
 }
 
 void Scene::render()
