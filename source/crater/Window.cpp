@@ -77,13 +77,5 @@ namespace lava {
 
     WindowHandle Window::getSystemHandle() const { return m_impl->getSystemHandle(); }
 
-    void Window::onCreate()
-    {
-        // Nothing by default
-    }
-
-    void Window::onResize()
-    {
-        // Nothing by default
-    }
+    VideoMode Window::videoMode() const { return m_impl->videoMode(); }
 }

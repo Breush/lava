@@ -86,6 +86,7 @@ using namespace lava;
 using namespace lava::priv;
 
 WindowImplX11::WindowImplX11(VideoMode mode, const String& title, unsigned long style)
+    : WindowImpl(mode)
 {
     initXcbConnection();
     setupWindow(mode);

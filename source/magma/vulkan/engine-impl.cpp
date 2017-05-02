@@ -27,6 +27,7 @@ using namespace lava::priv;
 
 EngineImpl::EngineImpl(lava::Window& window)
     : m_windowHandle(window.getSystemHandle())
+    , m_windowExtent({window.videoMode().width, window.videoMode().height})
 {
     initVulkan();
 }
@@ -209,6 +210,44 @@ void EngineImpl::createLogicalDevice()
     vkGetDeviceQueue(m_device, indices.present, 0, &m_presentQueue);
 }
 
+void EngineImpl::createSwapChain()
+{
+    auto details = vulkan::swapChainSupportDetails(m_physicalDevice, m_surface);
+
+    auto surfaceFormat = vulkan::swapChainSurfaceFormat(details.formats);
+    auto presentMode = vulkan::swapChainPresentMode(details.presentModes);
+    auto extent = vulkan::swapChainExtent(details.capabilities, m_windowExtent);
+
+    uint32_t imageCount = details.capabilities.minImageCount + 1;
+    if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
+        imageCount = details.capabilities.maxImageCount;
+    }
+
+    VkSwapchainCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.surface = m_surface;
+    createInfo.minImageCount = imageCount;
+    createInfo.imageFormat = surfaceFormat.format;
+    createInfo.imageColorSpace = surfaceFormat.colorSpace;
+    createInfo.imageExtent = extent;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    auto indices = vulkan::findQueueFamilies(m_physicalDevice, m_surface);
+    std::vector<uint32_t> queueFamilyIndices = {(uint32_t)indices.graphics, (uint32_t)indices.present};
+
+    if (indices.graphics != indices.present) {
+        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        createInfo.queueFamilyIndexCount = queueFamilyIndices.size();
+        createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+    }
+    else {
+        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        createInfo.queueFamilyIndexCount = 0;
+        createInfo.pQueueFamilyIndices = nullptr;
+    }
+}
+
 void EngineImpl::initVulkan()
 {
     createInstance();
@@ -216,4 +255,5 @@ void EngineImpl::initVulkan()
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
+    createSwapChain();
 }

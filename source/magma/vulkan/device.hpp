@@ -34,7 +34,7 @@ namespace lava::vulkan {
         auto extensionsSupported = deviceExtensionsSupported(device, deviceExtensions);
         if (!extensionsSupported) return false;
 
-        auto swapChainSupport = swapChainSupported(device, surface);
+        auto swapChainSupport = swapChainSupportDetails(device, surface);
         if (!swapChainSupport.valid()) false;
 
         return true;

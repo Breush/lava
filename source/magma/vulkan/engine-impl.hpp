@@ -19,7 +19,6 @@ namespace lava::priv {
     protected:
         void initVulkan();
         void setupDebug();
-        void createSurface();
 
         void createInstance();
         void initApplication(VkInstanceCreateInfo& instanceCreateInfo);
@@ -29,8 +28,12 @@ namespace lava::priv {
         void pickPhysicalDevice();
         void createLogicalDevice();
 
+        void createSurface();
+        void createSwapChain();
+
     private:
         lava::WindowHandle m_windowHandle;
+        VkExtent2D m_windowExtent;
 
         // Instance-related
         vulkan::Capsule<VkInstance> m_instance{vkDestroyInstance};

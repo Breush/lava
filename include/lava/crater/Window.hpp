@@ -133,19 +133,7 @@ namespace lava {
         /// \return System handle of the window
         WindowHandle getSystemHandle() const;
 
-    protected:
-        /// \brief Function called after the window has been created
-        ///
-        /// This function is called so that derived classes can
-        /// perform their own specific initialization as soon as
-        /// the window is created.
-        virtual void onCreate();
-
-        /// \brief Function called after the window has been resized
-        ///
-        /// This function is called so that derived classes can
-        /// perform custom actions when the size of the window changes.
-        virtual void onResize();
+        VideoMode videoMode() const;
 
     private:
         priv::WindowImpl* m_impl = nullptr; ///< Platform-specific implementation of the window

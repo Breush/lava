@@ -14,7 +14,8 @@ WindowImpl* WindowImpl::create(VideoMode mode, const String& title, uint32_t sty
     return new WindowImplType(mode, title, style);
 }
 
-WindowImpl::WindowImpl()
+WindowImpl::WindowImpl(VideoMode mode)
+    : m_videoMode(mode)
 {
 }
 

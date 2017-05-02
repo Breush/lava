@@ -32,6 +32,7 @@ namespace lava::priv {
         static WindowImpl* create(VideoMode mode, const String& title, uint32_t style);
 
     public:
+        WindowImpl(VideoMode mode);
         virtual ~WindowImpl();
 
         /// \brief Return the next window event available
@@ -53,6 +54,8 @@ namespace lava::priv {
 
         virtual WindowHandle getSystemHandle() const = 0;
 
+        inline VideoMode videoMode() const { return m_videoMode; }
+
     protected:
         WindowImpl();
 
@@ -70,5 +73,7 @@ namespace lava::priv {
 
     private:
         std::queue<Event> m_events; ///< Queue of available events
+
+        VideoMode m_videoMode;
     };
 }
