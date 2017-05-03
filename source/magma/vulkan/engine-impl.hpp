@@ -30,6 +30,7 @@ namespace lava::priv {
 
         void createSurface();
         void createSwapChain();
+        void createImageViews();
 
     private:
         lava::WindowHandle m_windowHandle;
@@ -51,12 +52,13 @@ namespace lava::priv {
         const std::vector<const char*> m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
         VkQueue m_graphicsQueue;
 
-        // Surfaces
+        // Surfaces (and swap chain)
         vulkan::Capsule<VkSurfaceKHR> m_surface{m_instance, vkDestroySurfaceKHR};
         VkQueue m_presentQueue;
         vulkan::Capsule<VkSwapchainKHR> m_swapChain{m_device, vkDestroySwapchainKHR};
         std::vector<VkImage> m_swapChainImages;
         VkFormat m_swapChainImageFormat;
         VkExtent2D m_swapChainExtent;
+        std::vector<vulkan::Capsule<VkImageView>> m_swapChainImageViews;
     };
 }
