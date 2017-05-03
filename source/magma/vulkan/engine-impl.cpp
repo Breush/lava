@@ -232,20 +232,33 @@ void EngineImpl::createSwapChain()
     createInfo.imageExtent = extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    createInfo.preTransform = details.capabilities.currentTransform;
+    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.presentMode = presentMode;
+    createInfo.clipped = VK_TRUE;
+    createInfo.oldSwapchain = VK_NULL_HANDLE;
 
     auto indices = vulkan::findQueueFamilies(m_physicalDevice, m_surface);
     std::vector<uint32_t> queueFamilyIndices = {(uint32_t)indices.graphics, (uint32_t)indices.present};
 
-    if (indices.graphics != indices.present) {
-        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = queueFamilyIndices.size();
-        createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+    auto sameFamily = (indices.graphics == indices.present);
+    createInfo.imageSharingMode = sameFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
+    createInfo.queueFamilyIndexCount = sameFamily ? 0 : queueFamilyIndices.size();
+    createInfo.pQueueFamilyIndices = sameFamily ? nullptr : queueFamilyIndices.data();
+
+    if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, m_swapChain.replace()) != VK_SUCCESS) {
+        logger::error("magma.vulkan.swap-chain") << "Failed to create swap chain." << std::endl;
+        exit(1);
     }
-    else {
-        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        createInfo.queueFamilyIndexCount = 0;
-        createInfo.pQueueFamilyIndices = nullptr;
-    }
+
+    // Retrieving image handles (we need to request the real image count as the implementation can require more)
+    vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
+    m_swapChainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, m_swapChainImages.data());
+
+    // Saving some values
+    m_swapChainExtent = extent;
+    m_swapChainImageFormat = surfaceFormat.format;
 }
 
 void EngineImpl::initVulkan()

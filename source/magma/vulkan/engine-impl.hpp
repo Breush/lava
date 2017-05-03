@@ -54,5 +54,9 @@ namespace lava::priv {
         // Surfaces
         vulkan::Capsule<VkSurfaceKHR> m_surface{m_instance, vkDestroySurfaceKHR};
         VkQueue m_presentQueue;
+        vulkan::Capsule<VkSwapchainKHR> m_swapChain{m_device, vkDestroySwapchainKHR};
+        std::vector<VkImage> m_swapChainImages;
+        VkFormat m_swapChainImageFormat;
+        VkExtent2D m_swapChainExtent;
     };
 }
