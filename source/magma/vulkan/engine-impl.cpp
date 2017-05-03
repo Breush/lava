@@ -287,6 +287,10 @@ void EngineImpl::createImageViews()
     }
 }
 
+void EngineImpl::createGraphicsPipeline()
+{
+}
+
 void EngineImpl::initVulkan()
 {
     createInstance();
@@ -296,4 +300,5 @@ void EngineImpl::initVulkan()
     createLogicalDevice();
     createSwapChain();
     createImageViews();
+    createGraphicsPipeline();
 }

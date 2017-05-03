@@ -32,6 +32,8 @@ namespace lava::priv {
         void createSwapChain();
         void createImageViews();
 
+        void createGraphicsPipeline();
+
     private:
         lava::WindowHandle m_windowHandle;
         VkExtent2D m_windowExtent;
