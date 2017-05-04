@@ -35,6 +35,8 @@ namespace lava::priv {
         void createRenderPass();
         void createGraphicsPipeline();
 
+        void createFramebuffers();
+
     private:
         lava::WindowHandle m_windowHandle;
         VkExtent2D m_windowExtent;
@@ -68,5 +70,9 @@ namespace lava::priv {
         vulkan::Capsule<VkPipelineLayout> m_pipelineLayout{m_device, vkDestroyPipelineLayout};
         vulkan::Capsule<VkRenderPass> m_renderPass{m_device, vkDestroyRenderPass};
         vulkan::Capsule<VkPipeline> m_graphicsPipeline{m_device, vkDestroyPipeline};
+
+        // Drawing
+        std::vector<vulkan::Capsule<VkFramebuffer>> m_swapChainFramebuffers;
+        vulkan::Capsule<VkCommandPool> m_commandPool{m_device, vkDestroyCommandPool};
     };
 }

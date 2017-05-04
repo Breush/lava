@@ -446,7 +446,7 @@ void EngineImpl::createGraphicsPipeline()
     pipelineLayoutInfo.pPushConstantRanges = 0;
 
     if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.graphics-pipeline") << "Failed to create pipeline layout." << std::endl;
+        logger::error("magma.vulkan.pipeline-layout") << "Failed to create pipeline layout." << std::endl;
         exit(1);
     }
 
@@ -477,6 +477,29 @@ void EngineImpl::createGraphicsPipeline()
     }
 }
 
+void EngineImpl::createFramebuffers()
+{
+    m_swapChainFramebuffers.resize(m_swapChainImageViews.size(), vulkan::Capsule<VkFramebuffer>{m_device, vkDestroyFramebuffer});
+
+    for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
+        VkImageView attachments[] = {m_swapChainImageViews[i]};
+
+        VkFramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = m_renderPass;
+        framebufferInfo.attachmentCount = 1;
+        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.width = m_swapChainExtent.width;
+        framebufferInfo.height = m_swapChainExtent.height;
+        framebufferInfo.layers = 1;
+
+        if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, m_swapChainFramebuffers[i].replace()) != VK_SUCCESS) {
+            logger::error("magma.vulkan.framebuffer") << "Failed to create frame buffers." << std::endl;
+            exit(1);
+        }
+    }
+}
+
 void EngineImpl::initVulkan()
 {
     createInstance();
@@ -488,4 +511,5 @@ void EngineImpl::initVulkan()
     createImageViews();
     createRenderPass();
     createGraphicsPipeline();
+    createFramebuffers();
 }
