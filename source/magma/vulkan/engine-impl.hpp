@@ -32,6 +32,7 @@ namespace lava::priv {
         void createSwapChain();
         void createImageViews();
 
+        void createRenderPass();
         void createGraphicsPipeline();
 
     private:
@@ -65,5 +66,7 @@ namespace lava::priv {
 
         // Graphics pipeline
         vulkan::Capsule<VkPipelineLayout> m_pipelineLayout{m_device, vkDestroyPipelineLayout};
+        vulkan::Capsule<VkRenderPass> m_renderPass{m_device, vkDestroyRenderPass};
+        vulkan::Capsule<VkPipeline> m_graphicsPipeline{m_device, vkDestroyPipeline};
     };
 }
