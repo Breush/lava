@@ -36,6 +36,8 @@ namespace lava::priv {
         void createGraphicsPipeline();
 
         void createFramebuffers();
+        void createCommandPool();
+        void createCommandBuffers();
 
     private:
         lava::WindowHandle m_windowHandle;
@@ -74,5 +76,6 @@ namespace lava::priv {
         // Drawing
         std::vector<vulkan::Capsule<VkFramebuffer>> m_swapChainFramebuffers;
         vulkan::Capsule<VkCommandPool> m_commandPool{m_device, vkDestroyCommandPool};
+        std::vector<VkCommandBuffer> m_commandBuffers;
     };
 }

@@ -494,9 +494,40 @@ void EngineImpl::createFramebuffers()
         framebufferInfo.layers = 1;
 
         if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, m_swapChainFramebuffers[i].replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.framebuffer") << "Failed to create frame buffers." << std::endl;
+            logger::error("magma.vulkan.framebuffer") << "Failed to create framebuffers." << std::endl;
             exit(1);
         }
+    }
+}
+
+void EngineImpl::createCommandPool()
+{
+    auto queueFamilyIndices = vulkan::findQueueFamilies(m_physicalDevice, m_surface);
+
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
+    poolInfo.flags = 0;
+
+    if (vkCreateCommandPool(m_device, &poolInfo, nullptr, m_commandPool.replace()) != VK_SUCCESS) {
+        logger::error("magma.vulkan.command-pool") << "Failed to create command pool." << std::endl;
+        exit(1);
+    }
+}
+
+void EngineImpl::createCommandBuffers()
+{
+    m_commandBuffers.resize(m_swapChainFramebuffers.size());
+
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = m_commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
+
+    if (vkAllocateCommandBuffers(m_device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS) {
+        logger::error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
+        exit(1);
     }
 }
 
@@ -512,4 +543,6 @@ void EngineImpl::initVulkan()
     createRenderPass();
     createGraphicsPipeline();
     createFramebuffers();
+    createCommandPool();
+    createCommandBuffers();
 }
