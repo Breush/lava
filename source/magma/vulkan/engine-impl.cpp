@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./proxy.hpp"
+#include "./shader.hpp"
 #include "./tools.hpp"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location,
@@ -289,6 +290,31 @@ void EngineImpl::createImageViews()
 
 void EngineImpl::createGraphicsPipeline()
 {
+    auto vertShaderCode = vulkan::readShaderFile("./data/shaders/triangle.vert.spv");
+    auto fragShaderCode = vulkan::readShaderFile("./data/shaders/triangle.frag.spv");
+
+    vulkan::Capsule<VkShaderModule> vertShaderModule{m_device, vkDestroyShaderModule};
+    vulkan::Capsule<VkShaderModule> fragShaderModule{m_device, vkDestroyShaderModule};
+
+    vulkan::createShaderModule(m_device, vertShaderCode, vertShaderModule);
+    vulkan::createShaderModule(m_device, fragShaderCode, fragShaderModule);
+
+    // Shader stages
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageInfo.module = vertShaderModule;
+    vertShaderStageInfo.pName = "main";
+    vertShaderStageInfo.pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = fragShaderModule;
+    fragShaderStageInfo.pName = "main";
+    fragShaderStageInfo.pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 }
 
 void EngineImpl::initVulkan()

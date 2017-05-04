@@ -9,7 +9,7 @@ namespace lava::logger {
      */
     std::ostream& info(const std::string& category)
     {
-        std::cout << "\e[1;39m[" << category << "] ";
+        std::cout << "\e[1;39m[" << category << "] \e[1;32m";
         return std::cout;
     }
 
