@@ -62,5 +62,8 @@ namespace lava::priv {
         VkFormat m_swapChainImageFormat;
         VkExtent2D m_swapChainExtent;
         std::vector<vulkan::Capsule<VkImageView>> m_swapChainImageViews;
+
+        // Graphics pipeline
+        vulkan::Capsule<VkPipelineLayout> m_pipelineLayout{m_device, vkDestroyPipelineLayout};
     };
 }
