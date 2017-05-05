@@ -1,9 +1,12 @@
 {
     "files.exclude": {
         "**/.tmp": true,
-        "**.make": true,
+        "**/*.make": true,
+        "**/*.spv": true,
         "build/": true,
-        "external/lib": true
+        "external/lib": true,
+        "external/bin": true,
+        "external/etc": true
     },
 
     "C_Cpp.clang_format_sortIncludes": true,

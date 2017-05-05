@@ -529,6 +529,41 @@ void EngineImpl::createCommandBuffers()
         logger::error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
         exit(1);
     }
+
+    // Start recording
+    for (size_t i = 0; i < m_commandBuffers.size(); i++) {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        beginInfo.pInheritanceInfo = nullptr;
+
+        vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo);
+
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_renderPass;
+        renderPassInfo.framebuffer = m_swapChainFramebuffers[i];
+
+        renderPassInfo.renderArea.offset = {0, 0};
+        renderPassInfo.renderArea.extent = m_swapChainExtent;
+
+        VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        renderPassInfo.clearValueCount = 1;
+        renderPassInfo.pClearValues = &clearColor;
+
+        vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+
+        // Draw the triangle!
+        vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+
+        vkCmdEndRenderPass(m_commandBuffers[i]);
+
+        if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS) {
+            logger::error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
+            exit(1);
+        }
+    }
 }
 
 void EngineImpl::initVulkan()
