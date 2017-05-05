@@ -13,3 +13,8 @@ Engine::~Engine()
 {
     delete m_impl;
 }
+
+void Engine::draw()
+{
+    m_impl->draw();
+}

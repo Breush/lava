@@ -35,7 +35,8 @@ int main(void)
         update();
 
         // Render the scene
-        scene.render();
+        // scene.Render();
+        engine.draw();
     }
 
     return EXIT_SUCCESS;

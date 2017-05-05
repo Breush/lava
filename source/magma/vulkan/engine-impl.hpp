@@ -13,8 +13,11 @@ namespace lava::priv {
     class EngineImpl {
     public:
         EngineImpl(lava::Window& window);
+        virtual ~EngineImpl();
 
         inline vulkan::Capsule<VkInstance>& instance() { return m_instance; }
+
+        void draw();
 
     protected:
         void initVulkan();
@@ -38,6 +41,8 @@ namespace lava::priv {
         void createFramebuffers();
         void createCommandPool();
         void createCommandBuffers();
+
+        void createSemaphores();
 
     private:
         lava::WindowHandle m_windowHandle;
@@ -77,5 +82,9 @@ namespace lava::priv {
         std::vector<vulkan::Capsule<VkFramebuffer>> m_swapChainFramebuffers;
         vulkan::Capsule<VkCommandPool> m_commandPool{m_device, vkDestroyCommandPool};
         std::vector<VkCommandBuffer> m_commandBuffers;
+
+        // Rendering
+        vulkan::Capsule<VkSemaphore> m_imageAvailableSemaphore{m_device, vkDestroySemaphore};
+        vulkan::Capsule<VkSemaphore> m_renderFinishedSemaphore{m_device, vkDestroySemaphore};
     };
 }

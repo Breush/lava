@@ -16,6 +16,8 @@ namespace lava {
         Engine(lava::Window& window);
         ~Engine();
 
+        void draw();
+
     private:
         priv::EngineImpl* m_impl = nullptr;
     };
