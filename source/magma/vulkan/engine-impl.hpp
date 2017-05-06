@@ -2,9 +2,8 @@
 
 #include <lava/crater/Window.hpp>
 
-#include "./capsule.hpp"
 #include "./device.hpp"
-#include "./proxy.hpp"
+#include "./instance.hpp"
 
 namespace lava::priv {
     /**
@@ -15,21 +14,10 @@ namespace lava::priv {
         EngineImpl(lava::Window& window);
         virtual ~EngineImpl();
 
-        inline vulkan::Capsule<VkInstance>& instance() { return m_instance; }
-
         void draw();
 
     protected:
         void initVulkan();
-        void setupDebug();
-
-        void createInstance();
-        void initApplication(VkInstanceCreateInfo& instanceCreateInfo);
-        void initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo);
-        void initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo);
-
-        void pickPhysicalDevice();
-        void createLogicalDevice();
 
         void createSurface();
         void createSwapChain();
@@ -49,20 +37,13 @@ namespace lava::priv {
         VkExtent2D m_windowExtent;
 
         // Instance-related
-        vulkan::Capsule<VkInstance> m_instance{vkDestroyInstance};
-        VkApplicationInfo m_applicationInfo;
-        std::vector<const char*> m_instanceExtensions;
-
-        // Validation layers
-        bool m_validationLayersEnabled = true;
-        const std::vector<const char*> m_validationLayers = {"VK_LAYER_LUNARG_standard_validation"};
-        vulkan::Capsule<VkDebugReportCallbackEXT> m_debugReportCallback{m_instance, vulkan::DestroyDebugReportCallbackEXT};
+        vulkan::Instance m_instance;
 
         // Devices
         vulkan::Device m_device;
 
         // Surfaces (and swap chain)
-        vulkan::Capsule<VkSurfaceKHR> m_surface{m_instance, vkDestroySurfaceKHR};
+        vulkan::Capsule<VkSurfaceKHR> m_surface{m_instance.capsule(), vkDestroySurfaceKHR};
         vulkan::Capsule<VkSwapchainKHR> m_swapChain{m_device.capsule(), vkDestroySwapchainKHR};
         std::vector<VkImage> m_swapChainImages;
         VkFormat m_swapChainImageFormat;

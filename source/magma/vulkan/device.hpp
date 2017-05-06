@@ -15,7 +15,7 @@ namespace lava::vulkan {
 
         // ----- Getters
 
-        vulkan::Capsule<VkDevice>& capsule() { return m_device; }
+        Capsule<VkDevice>& capsule() { return m_device; }
         const VkPhysicalDevice& physicalDevice() const { return m_physicalDevice; }
         const std::vector<const char*>& extensions() const { return m_extensions; }
         const VkQueue& graphicsQueue() const { return m_graphicsQueue; }
