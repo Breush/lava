@@ -46,7 +46,7 @@ namespace lava::vulkan {
     inline std::string toString(VkResult errorCode)
     {
         switch (errorCode) {
-#define STR(r)                                                                                                                                       \
+#define STR(r)                                                                                                                   \
     case VK_##r: return #r
             STR(NOT_READY);
             STR(TIMEOUT);
@@ -140,5 +140,19 @@ namespace lava::vulkan {
         }
 
         return true;
+    }
+
+    inline uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+    {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }

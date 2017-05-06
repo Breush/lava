@@ -4,10 +4,14 @@
 #include <set>
 #include <vulkan/vulkan.hpp>
 
+#include "../vertex.hpp"
 #include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
 #include "./tools.hpp"
+
+const std::vector<lava::Vertex> vertices = {
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}, {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
 
 using namespace lava::priv;
 
@@ -154,12 +158,15 @@ void EngineImpl::createGraphicsPipeline()
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
     // Vertex input
+    auto bindingDescription = lava::Vertex::bindingDescription();
+    auto attributeDescriptions = lava::Vertex::attributeDescriptions();
+
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     // Input assembly
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -216,7 +223,8 @@ void EngineImpl::createGraphicsPipeline()
 
     // Color-blending
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     colorBlendAttachment.blendEnable = VK_FALSE;
     colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
     colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
@@ -271,7 +279,8 @@ void EngineImpl::createGraphicsPipeline()
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineInfo.basePipelineIndex = -1;
 
-    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, m_graphicsPipeline.replace()) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, m_graphicsPipeline.replace())
+        != VK_SUCCESS) {
         if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != VK_SUCCESS) {
             logger::error("magma.vulkan.graphics-pipeline") << "Failed to create graphics pipeline." << std::endl;
             exit(1);
@@ -281,7 +290,8 @@ void EngineImpl::createGraphicsPipeline()
 
 void EngineImpl::createFramebuffers()
 {
-    m_swapchainFramebuffers.resize(m_swapchain.imageViews().size(), vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
+    m_swapchainFramebuffers.resize(m_swapchain.imageViews().size(),
+                                   vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
 
     for (size_t i = 0; i < m_swapchain.imageViews().size(); i++) {
         VkImageView attachments[] = {m_swapchain.imageViews()[i]};
@@ -315,6 +325,46 @@ void EngineImpl::createCommandPool()
         logger::error("magma.vulkan.command-pool") << "Failed to create command pool." << std::endl;
         exit(1);
     }
+}
+
+void EngineImpl::createVertexBuffer()
+{
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = sizeof(lava::Vertex) * vertices.size();
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    bufferInfo.flags = 0;
+
+    if (vkCreateBuffer(m_device, &bufferInfo, nullptr, m_vertexBuffer.replace()) != VK_SUCCESS) {
+        logger::error("magma.vulkan.vertex-buffer") << "Failed to create vertex buffer." << std::endl;
+        exit(1);
+    }
+
+    // Allocating memory buffer
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(m_device, m_vertexBuffer, &memRequirements);
+
+    auto memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex =
+        vulkan::findMemoryType(m_device.physicalDevice(), memRequirements.memoryTypeBits, memoryPropertyFlags);
+
+    if (vkAllocateMemory(m_device, &allocInfo, nullptr, m_vertexBufferMemory.replace()) != VK_SUCCESS) {
+        logger::error("magma.vulkan.vertex-buffer") << "Failed to allocate vertex buffer memory." << std::endl;
+        exit(1);
+    }
+
+    // Binding it
+    vkBindBufferMemory(m_device, m_vertexBuffer, m_vertexBufferMemory, 0);
+
+    // Copying data to the buffer
+    void* data;
+    vkMapMemory(m_device, m_vertexBufferMemory, 0, bufferInfo.size, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferInfo.size);
+    vkUnmapMemory(m_device, m_vertexBufferMemory);
 }
 
 void EngineImpl::createCommandBuffers()
@@ -361,8 +411,13 @@ void EngineImpl::createCommandBuffers()
         vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
-        // Draw the triangle!
-        vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+        // Add the vertex buffer
+        VkBuffer vertexBuffers[] = {m_vertexBuffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
+
+        // Draw
+        vkCmdDraw(m_commandBuffers[i], vertices.size(), 1, 0, 0);
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -411,6 +466,7 @@ void EngineImpl::initVulkan()
     createGraphicsPipeline();
     createFramebuffers();
     createCommandPool();
+    createVertexBuffer();
     createCommandBuffers();
     createSemaphores();
 }

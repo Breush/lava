@@ -27,6 +27,7 @@ namespace lava::priv {
 
         void createFramebuffers();
         void createCommandPool();
+        void createVertexBuffer();
         void createCommandBuffers();
 
         void createSemaphores();
@@ -57,5 +58,9 @@ namespace lava::priv {
         // Rendering
         vulkan::Capsule<VkSemaphore> m_imageAvailableSemaphore{m_device.capsule(), vkDestroySemaphore};
         vulkan::Capsule<VkSemaphore> m_renderFinishedSemaphore{m_device.capsule(), vkDestroySemaphore};
+
+        // Mesh
+        vulkan::Capsule<VkBuffer> m_vertexBuffer{m_device.capsule(), vkDestroyBuffer};
+        vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory{m_device.capsule(), vkFreeMemory};
     };
 }
