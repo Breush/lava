@@ -17,6 +17,7 @@ namespace lava::priv {
         virtual ~EngineImpl();
 
         void draw();
+        void mode(const lava::VideoMode& mode);
 
     protected:
         void initVulkan();
@@ -29,6 +30,8 @@ namespace lava::priv {
         void createCommandBuffers();
 
         void createSemaphores();
+
+        void recreateSwapchain();
 
     private:
         lava::WindowHandle m_windowHandle;

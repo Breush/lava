@@ -18,3 +18,8 @@ void Engine::draw()
 {
     m_impl->draw();
 }
+
+void Engine::mode(const lava::VideoMode& mode)
+{
+    m_impl->mode(mode);
+}

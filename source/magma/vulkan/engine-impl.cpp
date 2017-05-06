@@ -63,6 +63,13 @@ void EngineImpl::draw()
 
     vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
 }
+
+void EngineImpl::mode(const lava::VideoMode& mode)
+{
+    m_windowExtent = {mode.width, mode.height};
+    recreateSwapchain();
+}
+
 void EngineImpl::createRenderPass()
 {
     VkAttachmentDescription colorAttachment = {};
@@ -302,6 +309,11 @@ void EngineImpl::createCommandPool()
 
 void EngineImpl::createCommandBuffers()
 {
+    // Free previous command buffers if any
+    if (m_commandBuffers.size() > 0) {
+        vkFreeCommandBuffers(m_device, m_commandPool, m_commandBuffers.size(), m_commandBuffers.data());
+    }
+
     m_commandBuffers.resize(m_swapchainFramebuffers.size());
 
     VkCommandBufferAllocateInfo allocInfo = {};
@@ -362,6 +374,20 @@ void EngineImpl::createSemaphores()
         logger::error("magma.vulkan.command-buffer") << "Failed to create semaphores." << std::endl;
         exit(1);
     }
+}
+
+void EngineImpl::recreateSwapchain()
+{
+    logger::info("magma.vulkan.swapchain") << "Recreating swapchain." << std::endl;
+
+    vkDeviceWaitIdle(m_device);
+
+    m_swapchain.init(m_surface, m_windowExtent);
+
+    createRenderPass();
+    createGraphicsPipeline();
+    createFramebuffers();
+    createCommandBuffers();
 }
 
 void EngineImpl::initVulkan()

@@ -94,7 +94,7 @@ void Swapchain::createSwapchain(VkSurfaceKHR surface, VkExtent2D& windowExtent)
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    createInfo.oldSwapchain = VkSwapchainKHR(m_swapchain);
 
     auto indices = findQueueFamilies(m_device.physicalDevice(), surface);
     std::vector<uint32_t> queueFamilyIndices = {(uint32_t)indices.graphics, (uint32_t)indices.present};
@@ -104,10 +104,12 @@ void Swapchain::createSwapchain(VkSurfaceKHR surface, VkExtent2D& windowExtent)
     createInfo.queueFamilyIndexCount = sameFamily ? 0 : queueFamilyIndices.size();
     createInfo.pQueueFamilyIndices = sameFamily ? nullptr : queueFamilyIndices.data();
 
-    if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, m_swapchain.replace()) != VK_SUCCESS) {
+    VkSwapchainKHR swapchain;
+    if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &swapchain) != VK_SUCCESS) {
         logger::error("magma.vulkan.swap-chain") << "Failed to create swap chain." << std::endl;
         exit(1);
     }
+    m_swapchain = swapchain;
 
     // Retrieving image handles (we need to request the real image count as the implementation can require more)
     vkGetSwapchainImagesKHR(m_device, m_swapchain, &imageCount, nullptr);

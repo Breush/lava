@@ -17,6 +17,7 @@ namespace lava {
         ~Engine();
 
         void draw();
+        void mode(const lava::VideoMode& mode);
 
     private:
         priv::EngineImpl* m_impl = nullptr;
