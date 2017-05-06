@@ -26,7 +26,17 @@ EngineImpl::~EngineImpl()
 void EngineImpl::draw()
 {
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(m_device, m_swapchain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    const auto MAX = std::numeric_limits<uint64_t>::max();
+    auto result = vkAcquireNextImageKHR(m_device, m_swapchain, MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        recreateSwapchain();
+        return;
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        logger::error("magma.vulkan.draw") << "Failed to acquire swapchain image." << std::endl;
+        exit(1);
+    }
 
     // Submit to the queue
     VkSubmitInfo submitInfo = {};
@@ -368,8 +378,8 @@ void EngineImpl::createSemaphores()
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != VK_SUCCESS ||
-        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != VK_SUCCESS) {
+    if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != VK_SUCCESS
+        || vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != VK_SUCCESS) {
 
         logger::error("magma.vulkan.command-buffer") << "Failed to create semaphores." << std::endl;
         exit(1);
