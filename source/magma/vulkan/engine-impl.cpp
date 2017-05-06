@@ -7,7 +7,6 @@
 #include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
-#include "./swap-chain.hpp"
 #include "./tools.hpp"
 
 using namespace lava::priv;
@@ -27,7 +26,7 @@ EngineImpl::~EngineImpl()
 void EngineImpl::draw()
 {
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(m_device, m_swapchain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     // Submit to the queue
     VkSubmitInfo submitInfo = {};
@@ -56,7 +55,7 @@ void EngineImpl::draw()
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = {m_swapChain};
+    VkSwapchainKHR swapChains[] = {m_swapchain};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
@@ -64,88 +63,10 @@ void EngineImpl::draw()
 
     vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
 }
-
-void EngineImpl::createSwapChain()
-{
-    auto details = vulkan::swapChainSupportDetails(m_device.physicalDevice(), m_surface);
-
-    auto surfaceFormat = vulkan::swapChainSurfaceFormat(details.formats);
-    auto presentMode = vulkan::swapChainPresentMode(details.presentModes);
-    auto extent = vulkan::swapChainExtent(details.capabilities, m_windowExtent);
-
-    uint32_t imageCount = details.capabilities.minImageCount + 1;
-    if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
-        imageCount = details.capabilities.maxImageCount;
-    }
-
-    VkSwapchainCreateInfoKHR createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = m_surface;
-    createInfo.minImageCount = imageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    createInfo.preTransform = details.capabilities.currentTransform;
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode = presentMode;
-    createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-    auto indices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
-    std::vector<uint32_t> queueFamilyIndices = {(uint32_t)indices.graphics, (uint32_t)indices.present};
-
-    auto sameFamily = (indices.graphics == indices.present);
-    createInfo.imageSharingMode = sameFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
-    createInfo.queueFamilyIndexCount = sameFamily ? 0 : queueFamilyIndices.size();
-    createInfo.pQueueFamilyIndices = sameFamily ? nullptr : queueFamilyIndices.data();
-
-    if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, m_swapChain.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.swap-chain") << "Failed to create swap chain." << std::endl;
-        exit(1);
-    }
-
-    // Retrieving image handles (we need to request the real image count as the implementation can require more)
-    vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
-    m_swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, m_swapChainImages.data());
-
-    // Saving some values
-    m_swapChainExtent = extent;
-    m_swapChainImageFormat = surfaceFormat.format;
-}
-
-void EngineImpl::createImageViews()
-{
-    m_swapChainImageViews.resize(m_swapChainImages.size(), vulkan::Capsule<VkImageView>{m_device.capsule(), vkDestroyImageView});
-
-    for (uint32_t i = 0; i < m_swapChainImages.size(); i++) {
-        VkImageViewCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = m_swapChainImages[i];
-        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = m_swapChainImageFormat;
-        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        createInfo.subresourceRange.baseMipLevel = 0;
-        createInfo.subresourceRange.levelCount = 1;
-        createInfo.subresourceRange.baseArrayLayer = 0;
-        createInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(m_device, &createInfo, nullptr, m_swapChainImageViews[i].replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.image-view") << "Failed to create image views." << std::endl;
-        }
-    }
-}
-
 void EngineImpl::createRenderPass()
 {
     VkAttachmentDescription colorAttachment = {};
-    colorAttachment.format = m_swapChainImageFormat;
+    colorAttachment.format = m_swapchain.imageFormat();
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -233,14 +154,14 @@ void EngineImpl::createGraphicsPipeline()
     VkViewport viewport = {};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(m_swapChainExtent.width);
-    viewport.height = static_cast<float>(m_swapChainExtent.height);
+    viewport.width = static_cast<float>(m_swapchain.extent().width);
+    viewport.height = static_cast<float>(m_swapchain.extent().height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor = {};
     scissor.offset = {0, 0};
-    scissor.extent = m_swapChainExtent;
+    scissor.extent = m_swapchain.extent();
 
     VkPipelineViewportStateCreateInfo viewportState = {};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -343,21 +264,21 @@ void EngineImpl::createGraphicsPipeline()
 
 void EngineImpl::createFramebuffers()
 {
-    m_swapChainFramebuffers.resize(m_swapChainImageViews.size(), vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
+    m_swapchainFramebuffers.resize(m_swapchain.imageViews().size(), vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
 
-    for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
-        VkImageView attachments[] = {m_swapChainImageViews[i]};
+    for (size_t i = 0; i < m_swapchain.imageViews().size(); i++) {
+        VkImageView attachments[] = {m_swapchain.imageViews()[i]};
 
         VkFramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = m_renderPass;
         framebufferInfo.attachmentCount = 1;
         framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = m_swapChainExtent.width;
-        framebufferInfo.height = m_swapChainExtent.height;
+        framebufferInfo.width = m_swapchain.extent().width;
+        framebufferInfo.height = m_swapchain.extent().height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, m_swapChainFramebuffers[i].replace()) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, m_swapchainFramebuffers[i].replace()) != VK_SUCCESS) {
             logger::error("magma.vulkan.framebuffer") << "Failed to create framebuffers." << std::endl;
             exit(1);
         }
@@ -381,7 +302,7 @@ void EngineImpl::createCommandPool()
 
 void EngineImpl::createCommandBuffers()
 {
-    m_commandBuffers.resize(m_swapChainFramebuffers.size());
+    m_commandBuffers.resize(m_swapchainFramebuffers.size());
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -406,10 +327,10 @@ void EngineImpl::createCommandBuffers()
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_renderPass;
-        renderPassInfo.framebuffer = m_swapChainFramebuffers[i];
+        renderPassInfo.framebuffer = m_swapchainFramebuffers[i];
 
         renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = m_swapChainExtent;
+        renderPassInfo.renderArea.extent = m_swapchain.extent();
 
         VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
         renderPassInfo.clearValueCount = 1;
@@ -448,9 +369,8 @@ void EngineImpl::initVulkan()
     m_instance.init(true);
     m_surface.init(m_windowHandle);
     m_device.init(m_instance.capsule(), m_surface);
+    m_swapchain.init(m_surface, m_windowExtent);
 
-    createSwapChain();
-    createImageViews();
     createRenderPass();
     createGraphicsPipeline();
     createFramebuffers();

@@ -3,7 +3,7 @@
 #include <lava/chamber/logger.hpp>
 
 #include "./queue.hpp"
-#include "./swap-chain.hpp"
+#include "./swapchain-support-details.hpp"
 #include "./tools.hpp"
 
 namespace {
@@ -33,7 +33,7 @@ namespace {
         auto extensionsSupported = deviceExtensionsSupported(device, deviceExtensions);
         if (!extensionsSupported) return false;
 
-        auto swapChainSupport = lava::vulkan::swapChainSupportDetails(device, surface);
+        auto swapChainSupport = lava::vulkan::swapchainSupportDetails(device, surface);
         if (!swapChainSupport.valid()) false;
 
         return true;

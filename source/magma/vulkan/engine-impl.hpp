@@ -5,6 +5,7 @@
 #include "./device.hpp"
 #include "./instance.hpp"
 #include "./surface.hpp"
+#include "./swapchain.hpp"
 
 namespace lava::priv {
     /**
@@ -19,10 +20,6 @@ namespace lava::priv {
 
     protected:
         void initVulkan();
-
-        void createSurface();
-        void createSwapChain();
-        void createImageViews();
 
         void createRenderPass();
         void createGraphicsPipeline();
@@ -40,13 +37,9 @@ namespace lava::priv {
         vulkan::Instance m_instance;
         vulkan::Device m_device;
         vulkan::Surface m_surface{m_instance};
+        vulkan::Swapchain m_swapchain{m_device};
 
         // Swap chain
-        vulkan::Capsule<VkSwapchainKHR> m_swapChain{m_device.capsule(), vkDestroySwapchainKHR};
-        std::vector<VkImage> m_swapChainImages;
-        VkFormat m_swapChainImageFormat;
-        VkExtent2D m_swapChainExtent;
-        std::vector<vulkan::Capsule<VkImageView>> m_swapChainImageViews;
 
         // Graphics pipeline
         vulkan::Capsule<VkPipelineLayout> m_pipelineLayout{m_device.capsule(), vkDestroyPipelineLayout};
@@ -54,7 +47,7 @@ namespace lava::priv {
         vulkan::Capsule<VkPipeline> m_graphicsPipeline{m_device.capsule(), vkDestroyPipeline};
 
         // Drawing
-        std::vector<vulkan::Capsule<VkFramebuffer>> m_swapChainFramebuffers;
+        std::vector<vulkan::Capsule<VkFramebuffer>> m_swapchainFramebuffers;
         vulkan::Capsule<VkCommandPool> m_commandPool{m_device.capsule(), vkDestroyCommandPool};
         std::vector<VkCommandBuffer> m_commandBuffers;
 
