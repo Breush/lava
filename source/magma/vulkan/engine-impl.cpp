@@ -5,7 +5,9 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./proxy.hpp"
+#include "./queue.hpp"
 #include "./shader.hpp"
+#include "./swap-chain.hpp"
 #include "./tools.hpp"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location,
@@ -59,7 +61,7 @@ void EngineImpl::draw()
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+    if (vkQueueSubmit(m_device.graphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
         logger::error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
         exit(1);
     }
@@ -76,7 +78,7 @@ void EngineImpl::draw()
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    vkQueuePresentKHR(m_presentQueue, &presentInfo);
+    vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
 }
 
 void EngineImpl::initApplication(VkInstanceCreateInfo& instanceCreateInfo)
@@ -192,74 +194,9 @@ void EngineImpl::createSurface()
     exit(1);
 }
 
-void EngineImpl::pickPhysicalDevice()
-{
-    auto devices = vulkan::availablePhysicalDevices(m_instance);
-
-    if (devices.size() == 0) {
-        logger::error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;
-        exit(1);
-    }
-
-    for (const auto& device : devices) {
-        if (!vulkan::deviceSuitable(device, m_deviceExtensions, m_surface)) continue;
-        m_physicalDevice = device;
-        break;
-    }
-
-    if (m_physicalDevice != VK_NULL_HANDLE) return;
-
-    logger::error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
-    exit(1);
-}
-
-void EngineImpl::createLogicalDevice()
-{
-    // Device
-    VkDeviceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-    // Queues
-    float queuePriority = 1.0f;
-    auto indices = vulkan::findQueueFamilies(m_physicalDevice, m_surface);
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<int> uniqueQueueFamilies = {indices.graphics, indices.present};
-
-    for (int queueFamily : uniqueQueueFamilies) {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
-    }
-
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.queueCreateInfoCount = queueCreateInfos.size();
-
-    // Extensions
-    createInfo.enabledExtensionCount = m_deviceExtensions.size();
-    createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
-
-    // Features
-    VkPhysicalDeviceFeatures deviceFeatures = {};
-
-    createInfo.pEnabledFeatures = &deviceFeatures;
-
-    // Really create
-    auto err = vkCreateDevice(m_physicalDevice, &createInfo, nullptr, m_device.replace());
-    if (err) {
-        logger::error("magma.vulkan.device") << "Unable to create logical device. " << vulkan::toString(err) << std::endl;
-        exit(1);
-    };
-
-    vkGetDeviceQueue(m_device, indices.graphics, 0, &m_graphicsQueue);
-    vkGetDeviceQueue(m_device, indices.present, 0, &m_presentQueue);
-}
-
 void EngineImpl::createSwapChain()
 {
-    auto details = vulkan::swapChainSupportDetails(m_physicalDevice, m_surface);
+    auto details = vulkan::swapChainSupportDetails(m_device.physicalDevice(), m_surface);
 
     auto surfaceFormat = vulkan::swapChainSurfaceFormat(details.formats);
     auto presentMode = vulkan::swapChainPresentMode(details.presentModes);
@@ -285,7 +222,7 @@ void EngineImpl::createSwapChain()
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    auto indices = vulkan::findQueueFamilies(m_physicalDevice, m_surface);
+    auto indices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
     std::vector<uint32_t> queueFamilyIndices = {(uint32_t)indices.graphics, (uint32_t)indices.present};
 
     auto sameFamily = (indices.graphics == indices.present);
@@ -310,7 +247,7 @@ void EngineImpl::createSwapChain()
 
 void EngineImpl::createImageViews()
 {
-    m_swapChainImageViews.resize(m_swapChainImages.size(), vulkan::Capsule<VkImageView>{m_device, vkDestroyImageView});
+    m_swapChainImageViews.resize(m_swapChainImages.size(), vulkan::Capsule<VkImageView>{m_device.capsule(), vkDestroyImageView});
 
     for (uint32_t i = 0; i < m_swapChainImages.size(); i++) {
         VkImageViewCreateInfo createInfo = {};
@@ -384,8 +321,8 @@ void EngineImpl::createGraphicsPipeline()
     auto vertShaderCode = vulkan::readShaderFile("./data/shaders/triangle.vert.spv");
     auto fragShaderCode = vulkan::readShaderFile("./data/shaders/triangle.frag.spv");
 
-    vulkan::Capsule<VkShaderModule> vertShaderModule{m_device, vkDestroyShaderModule};
-    vulkan::Capsule<VkShaderModule> fragShaderModule{m_device, vkDestroyShaderModule};
+    vulkan::Capsule<VkShaderModule> vertShaderModule{m_device.capsule(), vkDestroyShaderModule};
+    vulkan::Capsule<VkShaderModule> fragShaderModule{m_device.capsule(), vkDestroyShaderModule};
 
     vulkan::createShaderModule(m_device, vertShaderCode, vertShaderModule);
     vulkan::createShaderModule(m_device, fragShaderCode, fragShaderModule);
@@ -535,7 +472,7 @@ void EngineImpl::createGraphicsPipeline()
 
 void EngineImpl::createFramebuffers()
 {
-    m_swapChainFramebuffers.resize(m_swapChainImageViews.size(), vulkan::Capsule<VkFramebuffer>{m_device, vkDestroyFramebuffer});
+    m_swapChainFramebuffers.resize(m_swapChainImageViews.size(), vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
 
     for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
         VkImageView attachments[] = {m_swapChainImageViews[i]};
@@ -558,7 +495,7 @@ void EngineImpl::createFramebuffers()
 
 void EngineImpl::createCommandPool()
 {
-    auto queueFamilyIndices = vulkan::findQueueFamilies(m_physicalDevice, m_surface);
+    auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
 
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -640,8 +577,9 @@ void EngineImpl::initVulkan()
     createInstance();
     setupDebug();
     createSurface();
-    pickPhysicalDevice();
-    createLogicalDevice();
+
+    m_device.init(m_instance, m_surface);
+
     createSwapChain();
     createImageViews();
     createRenderPass();

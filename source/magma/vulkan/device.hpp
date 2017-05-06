@@ -3,40 +3,35 @@
 #include <set>
 #include <vulkan/vulkan.hpp>
 
-#include "./queue.hpp"
-#include "./swap-chain.hpp"
-#include "./tools.hpp"
+#include "./capsule.hpp"
 
 namespace lava::vulkan {
     /**
-     * Checks if a device supports the extensions.
+     * An abstraction over a VkDevice.
      */
-    inline bool deviceExtensionsSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions)
-    {
-        auto extensions = availableExtensions(device);
-        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+    class Device {
+    public:
+        void init(VkInstance instance, VkSurfaceKHR surface);
 
-        for (const auto& extension : extensions) {
-            requiredExtensions.erase(extension.extensionName);
-        }
+        // ----- Getters
 
-        return requiredExtensions.empty();
-    }
+        vulkan::Capsule<VkDevice>& capsule() { return m_device; }
+        const VkPhysicalDevice& physicalDevice() const { return m_physicalDevice; }
+        const std::vector<const char*>& extensions() const { return m_extensions; }
+        const VkQueue& graphicsQueue() const { return m_graphicsQueue; }
+        const VkQueue& presentQueue() const { return m_presentQueue; }
 
-    /**
-     * Checks if a device is suitable for our operations.
-     */
-    inline bool deviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface)
-    {
-        QueueFamilyIndices indices = findQueueFamilies(device, surface);
-        if (!indices.valid()) return false;
+        operator VkDevice() const { return m_device; }
 
-        auto extensionsSupported = deviceExtensionsSupported(device, deviceExtensions);
-        if (!extensionsSupported) return false;
+    protected:
+        void pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
+        void createLogicalDevice(VkSurfaceKHR surface);
 
-        auto swapChainSupport = swapChainSupportDetails(device, surface);
-        if (!swapChainSupport.valid()) false;
-
-        return true;
-    }
+    private:
+        Capsule<VkDevice> m_device{vkDestroyDevice};
+        VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+        const std::vector<const char*> m_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+        VkQueue m_graphicsQueue;
+        VkQueue m_presentQueue;
+    };
 }
