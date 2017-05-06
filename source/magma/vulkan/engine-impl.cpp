@@ -65,22 +65,6 @@ void EngineImpl::draw()
     vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
 }
 
-void EngineImpl::createSurface()
-{
-    // @todo This is platform-specific!
-    VkXcbSurfaceCreateInfoKHR createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-    createInfo.connection = m_windowHandle.connection;
-    createInfo.window = m_windowHandle.window;
-
-    auto CreateXcbSurfaceKHR = (PFN_vkCreateXcbSurfaceKHR)vkGetInstanceProcAddr(m_instance.capsule(), "vkCreateXcbSurfaceKHR");
-    auto err = CreateXcbSurfaceKHR(m_instance, &createInfo, nullptr, m_surface.replace());
-    if (!err) return;
-
-    logger::error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
-    exit(1);
-}
-
 void EngineImpl::createSwapChain()
 {
     auto details = vulkan::swapChainSupportDetails(m_device.physicalDevice(), m_surface);
@@ -462,9 +446,7 @@ void EngineImpl::createSemaphores()
 void EngineImpl::initVulkan()
 {
     m_instance.init(true);
-
-    createSurface();
-
+    m_surface.init(m_windowHandle);
     m_device.init(m_instance.capsule(), m_surface);
 
     createSwapChain();

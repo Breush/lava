@@ -4,6 +4,7 @@
 
 #include "./device.hpp"
 #include "./instance.hpp"
+#include "./surface.hpp"
 
 namespace lava::priv {
     /**
@@ -36,14 +37,11 @@ namespace lava::priv {
         lava::WindowHandle m_windowHandle;
         VkExtent2D m_windowExtent;
 
-        // Instance-related
         vulkan::Instance m_instance;
-
-        // Devices
         vulkan::Device m_device;
+        vulkan::Surface m_surface{m_instance};
 
-        // Surfaces (and swap chain)
-        vulkan::Capsule<VkSurfaceKHR> m_surface{m_instance.capsule(), vkDestroySurfaceKHR};
+        // Swap chain
         vulkan::Capsule<VkSwapchainKHR> m_swapChain{m_device.capsule(), vkDestroySwapchainKHR};
         std::vector<VkImage> m_swapChainImages;
         VkFormat m_swapChainImageFormat;
