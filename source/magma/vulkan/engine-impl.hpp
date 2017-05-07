@@ -27,12 +27,15 @@ namespace lava::priv {
 
         void createFramebuffers();
         void createCommandPool();
-        void createVertexBuffer();
         void createCommandBuffers();
 
         void createSemaphores();
 
         void recreateSwapchain();
+
+        // Mesh
+        void createVertexBuffer();
+        void createIndexBuffer();
 
     private:
         lava::WindowHandle m_windowHandle;
@@ -62,5 +65,7 @@ namespace lava::priv {
         // Mesh
         vulkan::Capsule<VkBuffer> m_vertexBuffer{m_device.capsule(), vkDestroyBuffer};
         vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory{m_device.capsule(), vkFreeMemory};
+        vulkan::Capsule<VkBuffer> m_indexBuffer{m_device.capsule(), vkDestroyBuffer};
+        vulkan::Capsule<VkDeviceMemory> m_indexBufferMemory{m_device.capsule(), vkFreeMemory};
     };
 }

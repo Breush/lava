@@ -11,8 +11,12 @@
 #include "./shader.hpp"
 #include "./tools.hpp"
 
-const std::vector<lava::Vertex> vertices = {
-    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}, {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+const std::vector<lava::Vertex> vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                                            {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+                                            {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+                                            {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+
+const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
 
 using namespace lava::priv;
 
@@ -330,7 +334,7 @@ void EngineImpl::createCommandPool()
 
 void EngineImpl::createVertexBuffer()
 {
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
     // Staging buffer
     vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
@@ -351,6 +355,31 @@ void EngineImpl::createVertexBuffer()
 
     // Copy
     vulkan::copyBuffer(m_device, m_commandPool, stagingBuffer, m_vertexBuffer, bufferSize);
+}
+
+void EngineImpl::createIndexBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(uint16_t) * indices.size();
+
+    // Staging buffer
+    vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
+    vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_device.capsule(), vkFreeMemory};
+    int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, indices.data(), (size_t)bufferSize);
+    vkUnmapMemory(m_device, stagingBufferMemory);
+
+    // Actual index buffer
+    bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_indexBuffer, m_indexBufferMemory);
+
+    // Copy
+    vulkan::copyBuffer(m_device, m_commandPool, stagingBuffer, m_indexBuffer, bufferSize);
 }
 
 void EngineImpl::createCommandBuffers()
@@ -401,9 +430,10 @@ void EngineImpl::createCommandBuffers()
         VkBuffer vertexBuffers[] = {m_vertexBuffer};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
         // Draw
-        vkCmdDraw(m_commandBuffers[i], vertices.size(), 1, 0, 0);
+        vkCmdDrawIndexed(m_commandBuffers[i], indices.size(), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -453,6 +483,7 @@ void EngineImpl::initVulkan()
     createFramebuffers();
     createCommandPool();
     createVertexBuffer();
+    createIndexBuffer();
     createCommandBuffers();
     createSemaphores();
 }
