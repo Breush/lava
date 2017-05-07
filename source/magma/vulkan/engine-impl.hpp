@@ -1,11 +1,18 @@
 #pragma once
 
+#include <glm/mat4x4.hpp>
 #include <lava/crater/Window.hpp>
 
 #include "./device.hpp"
 #include "./instance.hpp"
 #include "./surface.hpp"
 #include "./swapchain.hpp"
+
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 projection;
+};
 
 namespace lava::priv {
     /**
@@ -17,6 +24,8 @@ namespace lava::priv {
         virtual ~EngineImpl();
 
         void draw();
+        void update();
+
         void mode(const lava::VideoMode& mode);
 
     protected:
@@ -24,6 +33,8 @@ namespace lava::priv {
 
         void createRenderPass();
         void createGraphicsPipeline();
+
+        void createDescriptorSetLayout();
 
         void createFramebuffers();
         void createCommandPool();
@@ -36,6 +47,9 @@ namespace lava::priv {
         // Mesh
         void createVertexBuffer();
         void createIndexBuffer();
+        void createUniformBuffer();
+        void createDescriptorPool();
+        void createDescriptorSet();
 
     private:
         lava::WindowHandle m_windowHandle;
@@ -46,7 +60,10 @@ namespace lava::priv {
         vulkan::Surface m_surface{m_instance};
         vulkan::Swapchain m_swapchain{m_device};
 
-        // Swap chain
+        // UBO
+        vulkan::Capsule<VkDescriptorSetLayout> m_descriptorSetLayout{m_device.capsule(), vkDestroyDescriptorSetLayout};
+        vulkan::Capsule<VkDescriptorPool> m_descriptorPool{m_device.capsule(), vkDestroyDescriptorPool};
+        VkDescriptorSet m_descriptorSet;
 
         // Graphics pipeline
         vulkan::Capsule<VkPipelineLayout> m_pipelineLayout{m_device.capsule(), vkDestroyPipelineLayout};
@@ -67,5 +84,10 @@ namespace lava::priv {
         vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory{m_device.capsule(), vkFreeMemory};
         vulkan::Capsule<VkBuffer> m_indexBuffer{m_device.capsule(), vkDestroyBuffer};
         vulkan::Capsule<VkDeviceMemory> m_indexBufferMemory{m_device.capsule(), vkFreeMemory};
+
+        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer{m_device.capsule(), vkDestroyBuffer};
+        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory{m_device.capsule(), vkFreeMemory};
+        vulkan::Capsule<VkBuffer> m_uniformBuffer{m_device.capsule(), vkDestroyBuffer};
+        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory{m_device.capsule(), vkFreeMemory};
     };
 }

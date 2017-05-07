@@ -6,7 +6,6 @@
 using namespace lava;
 
 void handleEvent(Event& event, Window& window, Engine& engine);
-void update();
 
 int main(void)
 {
@@ -16,7 +15,6 @@ int main(void)
     // An engine is the global manager.
     // A scene is our 3D environment, and set it to be shown in the window
     Engine engine(window);
-    Scene scene(engine);
 
     // Keep running while the window is open
     while (window.isOpen()) {
@@ -26,12 +24,8 @@ int main(void)
             handleEvent(event, window, engine);
         }
 
-        // Update the logic
-        update();
-
-        // Render the scene
-        // scene.Render();
-        engine.draw();
+        engine.update(); // Update the logic
+        engine.draw();   // Render the scene
     }
 
     return EXIT_SUCCESS;
@@ -59,8 +53,4 @@ void handleEvent(Event& event, Window& window, Engine& engine)
 
     default: break;
     }
-}
-
-void update()
-{
 }

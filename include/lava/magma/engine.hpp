@@ -17,6 +17,8 @@ namespace lava {
         ~Engine();
 
         void draw();
+        void update();
+
         void mode(const lava::VideoMode& mode);
 
     private:
