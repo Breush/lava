@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../vertex.hpp"
+#include "./buffer.hpp"
 #include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
@@ -329,41 +330,15 @@ void EngineImpl::createCommandPool()
 
 void EngineImpl::createVertexBuffer()
 {
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = sizeof(lava::Vertex) * vertices.size();
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    bufferInfo.flags = 0;
-
-    if (vkCreateBuffer(m_device, &bufferInfo, nullptr, m_vertexBuffer.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.vertex-buffer") << "Failed to create vertex buffer." << std::endl;
-        exit(1);
-    }
-
-    // Allocating memory buffer
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(m_device, m_vertexBuffer, &memRequirements);
-
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    auto bufferUsageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     auto memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex =
-        vulkan::findMemoryType(m_device.physicalDevice(), memRequirements.memoryTypeBits, memoryPropertyFlags);
-
-    if (vkAllocateMemory(m_device, &allocInfo, nullptr, m_vertexBufferMemory.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.vertex-buffer") << "Failed to allocate vertex buffer memory." << std::endl;
-        exit(1);
-    }
-
-    // Binding it
-    vkBindBufferMemory(m_device, m_vertexBuffer, m_vertexBufferMemory, 0);
+    vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_vertexBuffer, m_vertexBufferMemory);
 
     // Copying data to the buffer
     void* data;
-    vkMapMemory(m_device, m_vertexBufferMemory, 0, bufferInfo.size, 0, &data);
-    memcpy(data, vertices.data(), (size_t)bufferInfo.size);
+    vkMapMemory(m_device, m_vertexBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferSize);
     vkUnmapMemory(m_device, m_vertexBufferMemory);
 }
 
