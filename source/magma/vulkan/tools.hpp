@@ -36,6 +36,7 @@ namespace lava::vulkan {
         case VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT: return "surface-khr";
         case VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT: return "swapchain-khr";
         case VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT: return "debug-report";
+        default: break;
         }
         return "unknown";
     }

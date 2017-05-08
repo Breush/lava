@@ -22,7 +22,7 @@ namespace lava::vulkan {
         QueueFamilyIndices indices;
 
         auto queueFamilies = availableQueueFamilies(device);
-        for (int i = 0; i < queueFamilies.size(); ++i) {
+        for (size_t i = 0; i < queueFamilies.size(); ++i) {
             const auto& queueFamily = queueFamilies[i];
             if (queueFamily.queueCount <= 0) continue;
 

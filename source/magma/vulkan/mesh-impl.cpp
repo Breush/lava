@@ -12,18 +12,23 @@ using namespace lava;
 Mesh::Impl::Impl(Engine& engine)
     : m_engine(engine.impl())
     , m_device(m_engine.device())
-    , m_vertexBuffer{m_device.capsule(), vkDestroyBuffer}
-    , m_vertexBufferMemory{m_device.capsule(), vkFreeMemory}
-    , m_indexBuffer{m_device.capsule(), vkDestroyBuffer}
-    , m_indexBufferMemory{m_device.capsule(), vkFreeMemory}
-    , m_uniformStagingBuffer{m_device.capsule(), vkDestroyBuffer}
-    , m_uniformStagingBufferMemory{m_device.capsule(), vkFreeMemory}
-    , m_uniformBuffer{m_device.capsule(), vkDestroyBuffer}
-    , m_uniformBufferMemory{m_device.capsule(), vkFreeMemory}
+    , m_vertexBuffer({m_device.capsule(), vkDestroyBuffer})
+    , m_vertexBufferMemory({m_device.capsule(), vkFreeMemory})
+    , m_indexBuffer({m_device.capsule(), vkDestroyBuffer})
+    , m_indexBufferMemory({m_device.capsule(), vkFreeMemory})
+    , m_uniformStagingBuffer({m_device.capsule(), vkDestroyBuffer})
+    , m_uniformStagingBufferMemory({m_device.capsule(), vkFreeMemory})
+    , m_uniformBuffer({m_device.capsule(), vkDestroyBuffer})
+    , m_uniformBufferMemory({m_device.capsule(), vkFreeMemory})
 {
     m_engine.add(*this);
 
-    // createDescriptorSet();
+    createUniformBuffer();
+}
+
+Mesh::Impl::~Impl()
+{
+    vkDeviceWaitIdle(m_device);
 }
 
 void Mesh::Impl::vertices(const std::vector<glm::vec2>& vertices)
@@ -31,6 +36,7 @@ void Mesh::Impl::vertices(const std::vector<glm::vec2>& vertices)
     m_vertices.resize(vertices.size());
     for (uint32_t i = 0u; i < vertices.size(); ++i) {
         m_vertices[i].pos = vertices[i];
+        m_vertices[i].color = glm::vec3(1.f, 1.f, 0.f);
     }
 
     createVertexBuffer();
@@ -129,39 +135,6 @@ void Mesh::Impl::createUniformBuffer()
     vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer, m_uniformBufferMemory);
 }
 
-void Mesh::Impl::createDescriptorSet()
-{
-    VkDescriptorSetLayout layouts[] = {m_engine.descriptorSetLayout()};
-    VkDescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = m_engine.descriptorPool();
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = layouts;
-
-    if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
-        logger::error("magma.vulkan.descriptor-sets") << "Failed to create descriptor sets." << std::endl;
-        exit(1);
-    }
-
-    VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBuffer;
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
-
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-    descriptorWrite.pImageInfo = nullptr;
-    descriptorWrite.pTexelBufferView = nullptr;
-
-    vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
-}
-
 void Mesh::Impl::addCommands(VkCommandBuffer commandBuffer)
 {
     // Add the vertex buffer
@@ -171,8 +144,8 @@ void Mesh::Impl::addCommands(VkCommandBuffer commandBuffer)
     vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
     // Add uniform buffers
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), 0, 1, &m_descriptorSet, 0,
-                            nullptr);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), 0, 1,
+                            &m_engine.descriptorSet(), 0, nullptr);
 
     // Draw
     vkCmdDrawIndexed(commandBuffer, m_indices.size(), 1, 0, 0, 0);

@@ -185,7 +185,7 @@ void Engine::Impl::createDescriptorSetLayout()
     layoutInfo.pBindings = &uboLayoutBinding;
 
     if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_descriptorSetLayout.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.render-pass") << "Failed to create descriptor set layout." << std::endl;
+        logger::error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
         exit(1);
     }
 }
@@ -563,9 +563,9 @@ void Engine::Impl::createCommandBuffers()
         vkCmdDrawIndexed(m_commandBuffers[i], indices.size(), 1, 0, 0, 0);
 
         // Other meshes
-        /* for (size_t i = 0; i < m_meshes.size(); ++i) {
-            m_meshes[i]->addCommands(m_commandBuffers[i]);
-        }*/
+        for (size_t j = 0; j < m_meshes.size(); ++j) {
+            m_meshes[j]->addCommands(m_commandBuffers[i]);
+        }
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 

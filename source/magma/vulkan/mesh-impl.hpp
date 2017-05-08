@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/chamber/properties.hpp>
 #include <lava/magma/engine.hpp>
 #include <lava/magma/mesh.hpp>
 
@@ -14,14 +15,13 @@ namespace lava {
     class Mesh::Impl {
     public:
         Impl(Engine& engine);
+        ~Impl();
 
         // Main interface
-
         void vertices(const std::vector<glm::vec2>& vertices);
         void indices(const std::vector<uint16_t>& indices);
 
         // Internal interface
-
         void update();
         void addCommands(VkCommandBuffer commandBuffer);
 
@@ -29,8 +29,6 @@ namespace lava {
         void createVertexBuffer();
         void createIndexBuffer();
         void createUniformBuffer();
-
-        void createDescriptorSet();
 
         void createCommandBuffers();
 
@@ -44,8 +42,6 @@ namespace lava {
         std::vector<uint16_t> m_indices;
 
         // Buffers
-        std::vector<VkCommandBuffer> m_commandBuffers;
-
         vulkan::Capsule<VkBuffer> m_vertexBuffer;
         vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory;
         vulkan::Capsule<VkBuffer> m_indexBuffer;
@@ -55,7 +51,5 @@ namespace lava {
         vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
         vulkan::Capsule<VkBuffer> m_uniformBuffer;
         vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
-
-        VkDescriptorSet m_descriptorSet;
     };
 }

@@ -41,8 +41,6 @@ namespace lava {
         void createRenderPass();
         void createGraphicsPipeline();
 
-        void createDescriptorSetLayout();
-
         void createFramebuffers();
         void createCommandPool();
         void createCommandBuffers();
@@ -55,6 +53,7 @@ namespace lava {
         void createVertexBuffer();
         void createIndexBuffer();
         void createUniformBuffer();
+        void createDescriptorSetLayout();
         void createDescriptorPool();
         void createDescriptorSet();
 
