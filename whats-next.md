@@ -17,7 +17,7 @@
 ### Crater
 
 - Everything's left!
-- Switch to Wayland!
+- Have Win32 and Wayland support
 - Rename file to lower case
 - Remove comments \brief and such
 - Have a way to access keyboard/mouse state (isKeyPressed)
@@ -26,12 +26,8 @@
 
 ### Magma
 
-- Redoing everything from scratch
-
-- Auto destroyer like in vulkan tutorial
-- Everything's left!
-- Rename file to lower case
-- Wrapper class to simplfy usage - this is basically SFML's Graphics
+- Mesh have own secondary buffers
+- Engine update main command buffer every frame
 
 ## Example app
 
