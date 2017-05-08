@@ -2,6 +2,7 @@
 
 #include <glm/mat4x4.hpp>
 #include <lava/crater/Window.hpp>
+#include <lava/magma/engine.hpp>
 
 #include "./device.hpp"
 #include "./instance.hpp"
@@ -14,19 +15,23 @@ struct UniformBufferObject {
     glm::mat4 projection;
 };
 
-namespace lava::priv {
+namespace lava {
     /**
      * Vulkan-based implementation of the lava::Engine.
      */
-    class EngineImpl {
+    class Engine::Impl {
     public:
-        EngineImpl(lava::Window& window);
-        virtual ~EngineImpl();
+        Impl(lava::Window& window);
+        ~Impl();
 
         void draw();
         void update();
 
         void mode(const lava::VideoMode& mode);
+
+        // Getters
+        vulkan::Device& device() { return m_device; }
+        vulkan::Capsule<VkCommandPool>& commandPool() { return m_commandPool; }
 
     protected:
         void initVulkan();

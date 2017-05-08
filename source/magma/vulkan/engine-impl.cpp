@@ -6,35 +6,35 @@
 #include <set>
 #include <vulkan/vulkan.hpp>
 
-#include "../vertex.hpp"
 #include "./buffer.hpp"
 #include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
 #include "./tools.hpp"
+#include "./vertex.hpp"
 
-const std::vector<lava::Vertex> vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-                                            {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-                                            {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-                                            {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+const std::vector<lava::vulkan::Vertex> vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                                                    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+                                                    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+                                                    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
 
 const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
 
-using namespace lava::priv;
+using namespace lava;
 
-EngineImpl::EngineImpl(lava::Window& window)
+Engine::Impl::Impl(Window& window)
     : m_windowHandle(window.getSystemHandle())
     , m_windowExtent({window.videoMode().width, window.videoMode().height})
 {
     initVulkan();
 }
 
-EngineImpl::~EngineImpl()
+Engine::Impl::~Impl()
 {
     vkDeviceWaitIdle(m_device);
 }
 
-void EngineImpl::draw()
+void Engine::Impl::draw()
 {
     uint32_t imageIndex;
     const auto MAX = std::numeric_limits<uint64_t>::max();
@@ -85,7 +85,7 @@ void EngineImpl::draw()
     vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
 }
 
-void EngineImpl::update()
+void Engine::Impl::update()
 {
     // @todo Get time!
     static float time = 0.f;
@@ -108,13 +108,13 @@ void EngineImpl::update()
     vulkan::copyBuffer(m_device, m_commandPool, m_uniformStagingBuffer, m_uniformBuffer, sizeof(ubo));
 }
 
-void EngineImpl::mode(const lava::VideoMode& mode)
+void Engine::Impl::mode(const VideoMode& mode)
 {
     m_windowExtent = {mode.width, mode.height};
     recreateSwapchain();
 }
 
-void EngineImpl::createRenderPass()
+void Engine::Impl::createRenderPass()
 {
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = m_swapchain.imageFormat();
@@ -159,7 +159,7 @@ void EngineImpl::createRenderPass()
     }
 }
 
-void EngineImpl::createDescriptorSetLayout()
+void Engine::Impl::createDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
     uboLayoutBinding.binding = 0;
@@ -179,7 +179,7 @@ void EngineImpl::createDescriptorSetLayout()
     }
 }
 
-void EngineImpl::createGraphicsPipeline()
+void Engine::Impl::createGraphicsPipeline()
 {
     auto vertShaderCode = vulkan::readShaderFile("./data/shaders/triangle.vert.spv");
     auto fragShaderCode = vulkan::readShaderFile("./data/shaders/triangle.frag.spv");
@@ -208,8 +208,8 @@ void EngineImpl::createGraphicsPipeline()
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
     // Vertex input
-    auto bindingDescription = lava::Vertex::bindingDescription();
-    auto attributeDescriptions = lava::Vertex::attributeDescriptions();
+    auto bindingDescription = vulkan::Vertex::bindingDescription();
+    auto attributeDescriptions = vulkan::Vertex::attributeDescriptions();
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -339,7 +339,7 @@ void EngineImpl::createGraphicsPipeline()
     }
 }
 
-void EngineImpl::createFramebuffers()
+void Engine::Impl::createFramebuffers()
 {
     m_swapchainFramebuffers.resize(m_swapchain.imageViews().size(),
                                    vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
@@ -363,7 +363,7 @@ void EngineImpl::createFramebuffers()
     }
 }
 
-void EngineImpl::createCommandPool()
+void Engine::Impl::createCommandPool()
 {
     auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
 
@@ -378,9 +378,9 @@ void EngineImpl::createCommandPool()
     }
 }
 
-void EngineImpl::createVertexBuffer()
+void Engine::Impl::createVertexBuffer()
 {
-    VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+    VkDeviceSize bufferSize = sizeof(vulkan::Vertex) * vertices.size();
 
     // Staging buffer
     vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
@@ -403,7 +403,7 @@ void EngineImpl::createVertexBuffer()
     vulkan::copyBuffer(m_device, m_commandPool, stagingBuffer, m_vertexBuffer, bufferSize);
 }
 
-void EngineImpl::createIndexBuffer()
+void Engine::Impl::createIndexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(uint16_t) * indices.size();
 
@@ -428,7 +428,7 @@ void EngineImpl::createIndexBuffer()
     vulkan::copyBuffer(m_device, m_commandPool, stagingBuffer, m_indexBuffer, bufferSize);
 }
 
-void EngineImpl::createUniformBuffer()
+void Engine::Impl::createUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -442,7 +442,7 @@ void EngineImpl::createUniformBuffer()
     vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer, m_uniformBufferMemory);
 }
 
-void EngineImpl::createDescriptorPool()
+void Engine::Impl::createDescriptorPool()
 {
     VkDescriptorPoolSize poolSize = {};
     poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -461,7 +461,7 @@ void EngineImpl::createDescriptorPool()
     }
 }
 
-void EngineImpl::createDescriptorSet()
+void Engine::Impl::createDescriptorSet()
 {
     VkDescriptorSetLayout layouts[] = {m_descriptorSetLayout};
     VkDescriptorSetAllocateInfo allocInfo = {};
@@ -494,7 +494,7 @@ void EngineImpl::createDescriptorSet()
     vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
 }
 
-void EngineImpl::createCommandBuffers()
+void Engine::Impl::createCommandBuffers()
 {
     // Free previous command buffers if any
     if (m_commandBuffers.size() > 0) {
@@ -560,7 +560,7 @@ void EngineImpl::createCommandBuffers()
     }
 }
 
-void EngineImpl::createSemaphores()
+void Engine::Impl::createSemaphores()
 {
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -573,7 +573,7 @@ void EngineImpl::createSemaphores()
     }
 }
 
-void EngineImpl::recreateSwapchain()
+void Engine::Impl::recreateSwapchain()
 {
     logger::info("magma.vulkan.swapchain") << "Recreating swapchain." << std::endl;
 
@@ -587,7 +587,7 @@ void EngineImpl::recreateSwapchain()
     createCommandBuffers();
 }
 
-void EngineImpl::initVulkan()
+void Engine::Impl::initVulkan()
 {
     m_instance.init(true);
     m_surface.init(m_windowHandle);

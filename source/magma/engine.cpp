@@ -6,7 +6,7 @@ using namespace lava;
 
 Engine::Engine(lava::Window& window)
 {
-    m_impl = new priv::EngineImpl(window);
+    m_impl = new Impl(window);
 }
 
 Engine::~Engine()

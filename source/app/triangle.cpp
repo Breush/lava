@@ -16,6 +16,11 @@ int main(void)
     // A scene is our 3D environment, and set it to be shown in the window
     Engine engine(window);
 
+    // Create and register a mesh
+    Mesh mesh(engine);
+    mesh.vertices({{-0.5f, -0.5f}, {0.5f, -0.5f}, {0.5f, 0.5f}, {-0.5f, 0.5f}});
+    mesh.indices({0, 1, 2, 2, 3, 0});
+
     // Keep running while the window is open
     while (window.isOpen()) {
         // Treat all events since last frame

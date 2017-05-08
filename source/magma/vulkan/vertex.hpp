@@ -2,8 +2,9 @@
 
 #include <array>
 #include <glm/glm.hpp>
+#include <vulkan/vulkan.hpp>
 
-namespace lava {
+namespace lava::vulkan {
     class Vertex {
     public:
         glm::vec2 pos;

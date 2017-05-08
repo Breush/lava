@@ -4,8 +4,8 @@
 #include "./tools.hpp"
 
 namespace lava::vulkan {
-    void createBuffer(Device& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                      Capsule<VkBuffer>& buffer, Capsule<VkDeviceMemory>& bufferMemory)
+    inline void createBuffer(Device& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+                             Capsule<VkBuffer>& buffer, Capsule<VkDeviceMemory>& bufferMemory)
     {
         VkBufferCreateInfo bufferInfo = {};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -34,7 +34,7 @@ namespace lava::vulkan {
         vkBindBufferMemory(device, buffer, bufferMemory, 0);
     }
 
-    void copyBuffer(Device& device, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+    inline void copyBuffer(Device& device, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     {
         // Temporary command buffer
         VkCommandBufferAllocateInfo allocInfo = {};

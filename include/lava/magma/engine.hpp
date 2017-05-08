@@ -2,10 +2,6 @@
 
 #include <lava/crater/Window.hpp>
 
-namespace lava::priv {
-    class EngineImpl;
-}
-
 namespace lava {
     /**
      * An Engine manages should have a unique instance as it initializes
@@ -16,12 +12,15 @@ namespace lava {
         Engine(lava::Window& window);
         ~Engine();
 
+        class Impl;
+        Impl& impl() const { return *m_impl; }
+
         void draw();
         void update();
 
         void mode(const lava::VideoMode& mode);
 
     private:
-        priv::EngineImpl* m_impl = nullptr;
+        Impl* m_impl = nullptr;
     };
 }
