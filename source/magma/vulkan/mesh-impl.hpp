@@ -15,12 +15,24 @@ namespace lava {
     public:
         Impl(Engine& engine);
 
+        // Main interface
+
         void vertices(const std::vector<glm::vec2>& vertices);
         void indices(const std::vector<uint16_t>& indices);
+
+        // Internal interface
+
+        void update();
+        void addCommands(VkCommandBuffer commandBuffer);
 
     private:
         void createVertexBuffer();
         void createIndexBuffer();
+        void createUniformBuffer();
+
+        void createDescriptorSet();
+
+        void createCommandBuffers();
 
     private:
         // References
@@ -32,6 +44,8 @@ namespace lava {
         std::vector<uint16_t> m_indices;
 
         // Buffers
+        std::vector<VkCommandBuffer> m_commandBuffers;
+
         vulkan::Capsule<VkBuffer> m_vertexBuffer;
         vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory;
         vulkan::Capsule<VkBuffer> m_indexBuffer;
@@ -41,5 +55,7 @@ namespace lava {
         vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
         vulkan::Capsule<VkBuffer> m_uniformBuffer;
         vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
+
+        VkDescriptorSet m_descriptorSet;
     };
 }

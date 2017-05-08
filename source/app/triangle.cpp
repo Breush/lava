@@ -18,7 +18,7 @@ int main(void)
 
     // Create and register a mesh
     Mesh mesh(engine);
-    mesh.vertices({{-0.5f, -0.5f}, {0.5f, -0.5f}, {0.5f, 0.5f}, {-0.5f, 0.5f}});
+    mesh.vertices({{-1.f, -1.f}, {0.25f, -0.25f}, {0.25f, 0.25f}, {-0.25f, 0.25f}});
     mesh.indices({0, 1, 2, 2, 3, 0});
 
     // Keep running while the window is open

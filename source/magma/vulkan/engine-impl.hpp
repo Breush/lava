@@ -3,6 +3,7 @@
 #include <glm/mat4x4.hpp>
 #include <lava/crater/Window.hpp>
 #include <lava/magma/engine.hpp>
+#include <lava/magma/mesh.hpp>
 
 #include "./device.hpp"
 #include "./instance.hpp"
@@ -24,14 +25,24 @@ namespace lava {
         Impl(lava::Window& window);
         ~Impl();
 
+        // Main interface
         void draw();
         void update();
 
         void mode(const lava::VideoMode& mode);
 
+        // Internal interface
+        void add(Mesh::Impl& mesh);
+
         // Getters
+        // $property::readOnly(vulkan::Device, device);
+
         vulkan::Device& device() { return m_device; }
+        vulkan::Swapchain& swapchain() { return m_swapchain; }
+        vulkan::Capsule<VkDescriptorSetLayout>& descriptorSetLayout() { return m_descriptorSetLayout; }
+        vulkan::Capsule<VkDescriptorPool>& descriptorPool() { return m_descriptorPool; }
         vulkan::Capsule<VkCommandPool>& commandPool() { return m_commandPool; }
+        vulkan::Capsule<VkPipelineLayout>& pipelineLayout() { return m_pipelineLayout; }
 
     protected:
         void initVulkan();
@@ -94,5 +105,8 @@ namespace lava {
         vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory{m_device.capsule(), vkFreeMemory};
         vulkan::Capsule<VkBuffer> m_uniformBuffer{m_device.capsule(), vkDestroyBuffer};
         vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory{m_device.capsule(), vkFreeMemory};
+
+        // Meshes
+        std::vector<Mesh::Impl*> m_meshes;
     };
 }

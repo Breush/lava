@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./buffer.hpp"
+#include "./mesh-impl.hpp"
 #include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
@@ -112,6 +113,11 @@ void Engine::Impl::mode(const VideoMode& mode)
 {
     m_windowExtent = {mode.width, mode.height};
     recreateSwapchain();
+}
+
+void Engine::Impl::add(Mesh::Impl& mesh)
+{
+    m_meshes.emplace_back(&mesh);
 }
 
 void Engine::Impl::createRenderPass()
@@ -550,6 +556,11 @@ void Engine::Impl::createCommandBuffers()
 
         // Draw
         vkCmdDrawIndexed(m_commandBuffers[i], indices.size(), 1, 0, 0, 0);
+
+        // Other meshes
+        /* for (size_t i = 0; i < m_meshes.size(); ++i) {
+            m_meshes[i]->addCommands(m_commandBuffers[i]);
+        }*/
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 

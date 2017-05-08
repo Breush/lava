@@ -16,11 +16,13 @@ namespace lava {
         Mesh(Engine& engine);
         ~Mesh();
 
+        class Impl;
+        Impl& impl() { return *m_impl; }
+
         void vertices(const std::vector<glm::vec2>& vertices);
         void indices(const std::vector<uint16_t>& indices);
 
     private:
-        class Impl;
         Impl* m_impl = nullptr;
     };
 }
