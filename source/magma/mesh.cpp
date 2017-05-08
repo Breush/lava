@@ -14,9 +14,19 @@ Mesh::~Mesh()
     delete m_impl;
 }
 
-void Mesh::vertices(const std::vector<glm::vec2>& vertices)
+void Mesh::verticesCount(const uint32_t count)
 {
-    m_impl->vertices(vertices);
+    m_impl->verticesCount(count);
+}
+
+void Mesh::verticesPositions(const std::vector<glm::vec2>& positions)
+{
+    m_impl->verticesPositions(positions);
+}
+
+void Mesh::verticesColors(const std::vector<glm::vec3>& colors)
+{
+    m_impl->verticesColors(colors);
 }
 
 void Mesh::indices(const std::vector<uint16_t>& indices)

@@ -25,12 +25,26 @@ Mesh::Impl::~Impl()
     vkDeviceWaitIdle(m_device);
 }
 
-void Mesh::Impl::vertices(const std::vector<glm::vec2>& vertices)
+void Mesh::Impl::verticesCount(const uint32_t count)
 {
-    m_vertices.resize(vertices.size());
-    for (uint32_t i = 0u; i < vertices.size(); ++i) {
-        m_vertices[i].pos = vertices[i];
-        m_vertices[i].color = glm::vec3(1.f, 1.f, 0.f);
+    m_vertices.resize(count);
+}
+
+void Mesh::Impl::verticesPositions(const std::vector<glm::vec2>& positions)
+{
+    auto length = std::min(m_vertices.size(), positions.size());
+    for (uint32_t i = 0u; i < length; ++i) {
+        m_vertices[i].pos = positions[i];
+    }
+
+    createVertexBuffer();
+}
+
+void Mesh::Impl::verticesColors(const std::vector<glm::vec3>& colors)
+{
+    auto length = std::min(m_vertices.size(), colors.size());
+    for (uint32_t i = 0u; i < length; ++i) {
+        m_vertices[i].color = colors[i];
     }
 
     createVertexBuffer();

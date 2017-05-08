@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <lava/crater/Event.hpp>
 #include <lava/magma.hpp>
@@ -16,9 +15,11 @@ int main(void)
     // A scene is our 3D environment, and set it to be shown in the window
     Engine engine(window);
 
-    // Create and register a mesh
+    // Create a mesh
     Mesh mesh(engine);
-    mesh.vertices({{-1.f, -1.f}, {0.25f, -0.25f}, {0.25f, 0.25f}, {-0.25f, 0.25f}});
+    mesh.verticesCount(4);
+    mesh.verticesPositions({{-1.f, -1.f}, {0.25f, -0.5f}, {0.25f, 0.25f}, {-0.25f, 0.25f}});
+    mesh.verticesColors({{1.f, 0.f, 0.f}, {1.f, 0.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 0.f}});
     mesh.indices({0, 1, 2, 2, 3, 0});
 
     // Keep running while the window is open
