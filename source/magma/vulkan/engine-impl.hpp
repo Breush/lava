@@ -62,26 +62,26 @@ namespace lava {
         lava::WindowHandle m_windowHandle;
         VkExtent2D m_windowExtent;
 
-        $property_readonly(vulkan::Instance, instance);
-        $property_readonly(vulkan::Surface, surface, {m_instance});
-        $property_readonly(vulkan::Device, device);
-        $property_readonly(vulkan::Swapchain, swapchain, {m_device});
+        $attribute(vulkan::Instance, instance);
+        $attribute(vulkan::Surface, surface, {m_instance});
+        $attribute(vulkan::Device, device);
+        $attribute(vulkan::Swapchain, swapchain, {m_device});
 
         // UBO
-        $property_readonly(vulkan::Capsule<VkDescriptorSetLayout>, descriptorSetLayout,
-                           {m_device.capsule(), vkDestroyDescriptorSetLayout});
-        $property_readonly(vulkan::Capsule<VkDescriptorPool>, descriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
-        $property_readonly(VkDescriptorSet, descriptorSet);
+        $attribute(vulkan::Capsule<VkDescriptorSetLayout>, descriptorSetLayout,
+                   {m_device.capsule(), vkDestroyDescriptorSetLayout});
+        $attribute(vulkan::Capsule<VkDescriptorPool>, descriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
+        $attribute(VkDescriptorSet, descriptorSet);
 
         // Graphics pipeline
-        $property_readonly(vulkan::Capsule<VkPipelineLayout>, pipelineLayout, {m_device.capsule(), vkDestroyPipelineLayout});
-        $property_readonly(vulkan::Capsule<VkRenderPass>, renderPass, {m_device.capsule(), vkDestroyRenderPass});
-        $property_readonly(vulkan::Capsule<VkPipeline>, graphicsPipeline, {m_device.capsule(), vkDestroyPipeline});
+        $attribute(vulkan::Capsule<VkPipelineLayout>, pipelineLayout, {m_device.capsule(), vkDestroyPipelineLayout});
+        $attribute(vulkan::Capsule<VkRenderPass>, renderPass, {m_device.capsule(), vkDestroyRenderPass});
+        $attribute(vulkan::Capsule<VkPipeline>, graphicsPipeline, {m_device.capsule(), vkDestroyPipeline});
 
         // Drawing
-        $property_readonly(std::vector<vulkan::Capsule<VkFramebuffer>>, swapchainFramebuffers);
-        $property_readonly(vulkan::Capsule<VkCommandPool>, commandPool, {m_device.capsule(), vkDestroyCommandPool});
-        $property_readonly(std::vector<VkCommandBuffer>, commandBuffers);
+        $attribute(std::vector<vulkan::Capsule<VkFramebuffer>>, swapchainFramebuffers);
+        $attribute(vulkan::Capsule<VkCommandPool>, commandPool, {m_device.capsule(), vkDestroyCommandPool});
+        $attribute(std::vector<VkCommandBuffer>, commandBuffers);
 
         // Rendering
         vulkan::Capsule<VkSemaphore> m_imageAvailableSemaphore{m_device.capsule(), vkDestroySemaphore};
