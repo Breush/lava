@@ -40,6 +40,9 @@ void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
 {
     m_indices = indices;
     createIndexBuffer();
+
+    // @todo The engine should update the main command buffer every frame
+    // while we update our secondary command buffer right here
 }
 
 void Mesh::Impl::update()
