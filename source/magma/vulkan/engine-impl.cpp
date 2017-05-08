@@ -107,6 +107,11 @@ void Engine::Impl::update()
     vkUnmapMemory(m_device, m_uniformStagingBufferMemory);
 
     vulkan::copyBuffer(m_device, m_commandPool, m_uniformStagingBuffer, m_uniformBuffer, sizeof(ubo));
+
+    // Other meshes
+    /* for (size_t i = 0; i < m_meshes.size(); ++i) {
+        m_meshes[i]->addCommands(m_commandBuffers[i]);
+    }*/
 }
 
 void Engine::Impl::mode(const VideoMode& mode)
