@@ -28,9 +28,6 @@ namespace lava {
     private:
         void createVertexBuffer();
         void createIndexBuffer();
-        void createUniformBuffer();
-
-        void createCommandBuffers();
 
     private:
         // References
@@ -46,10 +43,5 @@ namespace lava {
         vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory;
         vulkan::Capsule<VkBuffer> m_indexBuffer;
         vulkan::Capsule<VkDeviceMemory> m_indexBufferMemory;
-
-        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
-        vulkan::Capsule<VkBuffer> m_uniformBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
     };
 }
