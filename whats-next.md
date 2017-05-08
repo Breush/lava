@@ -26,8 +26,12 @@
 
 ### Magma
 
+- 3D meshes !
 - Mesh have own secondary buffers
 - Engine update main command buffer every frame
+- Textures
+- Depth buffers
+- Lighting
 
 ## Example app
 
