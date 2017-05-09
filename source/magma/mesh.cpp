@@ -19,7 +19,7 @@ void Mesh::verticesCount(const uint32_t count)
     m_impl->verticesCount(count);
 }
 
-void Mesh::verticesPositions(const std::vector<glm::vec2>& positions)
+void Mesh::verticesPositions(const std::vector<glm::vec3>& positions)
 {
     m_impl->verticesPositions(positions);
 }

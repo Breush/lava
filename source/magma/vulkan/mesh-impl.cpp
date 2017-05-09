@@ -30,7 +30,7 @@ void Mesh::Impl::verticesCount(const uint32_t count)
     m_vertices.resize(count);
 }
 
-void Mesh::Impl::verticesPositions(const std::vector<glm::vec2>& positions)
+void Mesh::Impl::verticesPositions(const std::vector<glm::vec3>& positions)
 {
     auto length = std::min(m_vertices.size(), positions.size());
     for (uint32_t i = 0u; i < length; ++i) {
