@@ -31,6 +31,8 @@ end
 local externalPath = path.getabsolute(".")
 function useGlm()
     includedirs(externalPath .. "/include")
+
+    defines { "GLM_FORCE_RADIANS", "GLM_FORCE_DEPTH_ZERO_TO_ONE" }
 end
 
 print("[Dependencies] GLM (" .. GLM_VERSION .. ") is ready.")
