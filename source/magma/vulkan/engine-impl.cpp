@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./buffer.hpp"
+#include "./image.hpp"
 #include "./mesh-impl.hpp"
 #include "./proxy.hpp"
 #include "./queue.hpp"
@@ -385,12 +386,16 @@ void Engine::Impl::createCommandPool()
 
 void Engine::Impl::createDepthResources()
 {
-    /*auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
+    auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
     auto extent = m_swapchain.extent();
 
-    createImage(extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-    createImageView(m_depthImage, depthFormat, m_depthImageView);*/
+    vulkan::createImage(m_device, extent.width, extent.height, format, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage,
+                        m_depthImageMemory);
+    vulkan::createImageView(m_device, m_depthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT, m_depthImageView);
+
+    vulkan::transitionImageLayout(m_device, m_commandPool, m_depthImage, format, VK_IMAGE_LAYOUT_UNDEFINED,
+                                  VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
 void Engine::Impl::createUniformBuffer()
