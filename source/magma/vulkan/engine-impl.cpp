@@ -383,6 +383,16 @@ void Engine::Impl::createCommandPool()
     }
 }
 
+void Engine::Impl::createDepthResources()
+{
+    /*auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
+    auto extent = m_swapchain.extent();
+
+    createImage(extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
+    createImageView(m_depthImage, depthFormat, m_depthImageView);*/
+}
+
 void Engine::Impl::createUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
@@ -550,6 +560,7 @@ void Engine::Impl::initVulkan()
     createGraphicsPipeline();
     createFramebuffers();
     createCommandPool();
+    createDepthResources();
     createUniformBuffer();
     createDescriptorPool();
     createDescriptorSet();
