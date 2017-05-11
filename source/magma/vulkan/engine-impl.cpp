@@ -582,6 +582,7 @@ void Engine::Impl::recreateSwapchain()
 
     createRenderPass();
     createGraphicsPipeline();
+    createDepthResources();
     createFramebuffers();
     createCommandBuffers();
 }
