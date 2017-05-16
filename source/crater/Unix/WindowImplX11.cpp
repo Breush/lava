@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <cstring>
 #include <fcntl.h>
-#include <lava/chamber/Err.hpp>
 #include <lava/chamber/Lock.hpp>
 #include <lava/chamber/Mutex.hpp>
 #include <lava/chamber/Utf.hpp>
+#include <lava/chamber/logger.hpp>
 #include <libgen.h>
 #include <string>
 #include <sys/stat.h>
@@ -108,7 +108,7 @@ void WindowImplX11::initXcbConnection()
     int scr;
     m_connection = xcb_connect(nullptr, &scr);
     if (m_connection == nullptr) {
-        err() << "Could not find a XCB connection.\n" << std::endl;
+        logger.error("crater.window") << "Could not find a XCB connection.\n" << std::endl;
         exit(1);
     }
 
@@ -126,8 +126,9 @@ void WindowImplX11::setupWindow(VideoMode mode)
 
     value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     value_list[0] = m_screen->black_pixel;
-    value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY |
-                    XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
+    value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE
+                    | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS
+                    | XCB_EVENT_MASK_BUTTON_RELEASE;
 
     /*if (settings.fullscreen)
     {
@@ -135,8 +136,8 @@ void WindowImplX11::setupWindow(VideoMode mode)
         height = destHeight = m_screen->height_in_pixels;
     }*/
 
-    xcb_create_window(m_connection, XCB_COPY_FROM_PARENT, m_window, m_screen->root, 0, 0, mode.width, mode.height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-                      m_screen->root_visual, value_mask, value_list);
+    xcb_create_window(m_connection, XCB_COPY_FROM_PARENT, m_window, m_screen->root, 0, 0, mode.width, mode.height, 0,
+                      XCB_WINDOW_CLASS_INPUT_OUTPUT, m_screen->root_visual, value_mask, value_list);
 
     // Enable window destroyed notifications
     auto reply = internAtomHelper(m_connection, true, "WM_PROTOCOLS");
@@ -145,7 +146,8 @@ void WindowImplX11::setupWindow(VideoMode mode)
     xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, reply->atom, 4, 32, 1, &m_atomWmDeleteWindow->atom);
 
     std::string windowTitle = "What a nice title!";
-    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, windowTitle.size(), windowTitle.c_str());
+    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, windowTitle.size(),
+                        windowTitle.c_str());
 
     free(reply);
 

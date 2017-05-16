@@ -1,5 +1,7 @@
 #include <lava/chamber/logger-stream.hpp>
 
+#include <lava/chamber/call-stack.hpp>
+
 using namespace lava;
 
 LoggerStream::LoggerStream(std::ostream& stream, const std::string& resetString)
@@ -37,5 +39,13 @@ LoggerStream& LoggerStream::operator<<(uint64_t number)
 LoggerStream& LoggerStream::operator<<(LoggerStream::EndlType endl)
 {
     (*m_stream) << m_resetString << endl;
+
+    if (m_autoExit) {
+        CallStack callStack;
+        callStack.refresh(1);
+        (*m_stream) << callStack;
+        exit(1);
+    }
+
     return *this;
 }

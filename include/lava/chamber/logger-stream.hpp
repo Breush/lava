@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 
+#include <lava/chamber/properties.hpp>
+
 namespace lava {
     /**
      * Stream managing colors and reset upon line end.
@@ -32,6 +34,8 @@ namespace lava {
 
     private:
         std::ostream* m_stream = nullptr;
-        std::string m_resetString;
+
+        $property(std::string, resetString);
+        $property(bool, autoExit, = false);
     };
 }

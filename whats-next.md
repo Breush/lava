@@ -8,7 +8,6 @@
 
 - Rename file to lower case
 - Remove comments \brief and such
-- Replace `err()` with `Logger` class (with categories)
 - Remove Export.hpp, lava/config.hpp
 - Window -> Remove everything not used
 - (?) Remove lava::String and lava::Utf class

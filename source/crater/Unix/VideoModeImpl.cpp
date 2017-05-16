@@ -1,7 +1,6 @@
 #include "../VideoModeImpl.hpp"
 
 #include <algorithm>
-#include <lava/chamber/Err.hpp>
 
 namespace lava::priv {
     ////////////////////////////////////////////////////////////
@@ -65,7 +64,8 @@ namespace lava::priv {
                 else
                 {
                     // Failed to get the screen configuration
-                    err() << "Failed to retrieve the screen configuration while trying to get the supported video modes" << std::endl;
+                    err() << "Failed to retrieve the screen configuration while trying to get the supported video modes" <<
+        std::endl;
                 }
             }
             else
@@ -115,7 +115,8 @@ namespace lava::priv {
                     XRRScreenSize* sizes = XRRConfigSizes(config, &nbSizes);
                     if (sizes && (nbSizes > 0))
                     {
-                        desktopMode = VideoMode(sizes[currentMode].width, sizes[currentMode].height, DefaultDepth(display, screen));
+                        desktopMode = VideoMode(sizes[currentMode].width, sizes[currentMode].height, DefaultDepth(display,
+        screen));
 
                         Rotation currentRotation;
                         XRRConfigRotations(config, &currentRotation);
@@ -130,7 +131,8 @@ namespace lava::priv {
                 else
                 {
                     // Failed to get the screen configuration
-                    err() << "Failed to retrieve the screen configuration while trying to get the desktop video modes" << std::endl;
+                    err() << "Failed to retrieve the screen configuration while trying to get the desktop video modes" <<
+        std::endl;
                 }
             }
             else

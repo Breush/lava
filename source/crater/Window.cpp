@@ -1,11 +1,11 @@
 #include <lava/crater/Window.hpp>
 
-#include <lava/chamber/Err.hpp>
+#include <lava/chamber/logger.hpp>
 
 #include "./WindowImpl.hpp"
 
 namespace {
-    const lava::Window* fullscreenWindow = NULL;
+    const lava::Window* fullscreenWindow = nullptr;
 }
 
 namespace lava {
@@ -23,13 +23,15 @@ namespace lava {
         if (style & Style::Fullscreen) {
             // Make sure there's not already a fullscreen window (only one is allowed)
             if (fullscreenWindow) {
-                err() << "Creating two fullscreen windows is not allowed, switching to windowed mode" << std::endl;
+                logger.warning("crater.window") << "Creating two fullscreen windows is not allowed, switching to windowed mode."
+                                                << std::endl;
                 style &= ~Style::Fullscreen;
             }
             else {
                 // Make sure that the chosen video mode is compatible
                 if (!mode.isValid()) {
-                    err() << "The requested video mode is not available, switching to a valid mode" << std::endl;
+                    logger.warning("crater.window") << "The requested video mode is not available, switching to a valid mode."
+                                                    << std::endl;
                     mode = VideoMode::getFullscreenModes()[0];
                 }
 
