@@ -106,7 +106,7 @@ void Swapchain::createSwapchain(VkSurfaceKHR surface, VkExtent2D& windowExtent)
 
     VkSwapchainKHR swapchain;
     if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &swapchain) != VK_SUCCESS) {
-        logger::error("magma.vulkan.swap-chain") << "Failed to create swap chain." << std::endl;
+        logger.error("magma.vulkan.swap-chain") << "Failed to create swap chain." << std::endl;
         exit(1);
     }
     m_swapchain = swapchain;
@@ -142,7 +142,7 @@ void Swapchain::createImageViews()
         createInfo.subresourceRange.layerCount = 1;
 
         if (vkCreateImageView(m_device, &createInfo, nullptr, m_imageViews[i].replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.image-view") << "Failed to create image views." << std::endl;
+            logger.error("magma.vulkan.image-view") << "Failed to create image views." << std::endl;
         }
     }
 }

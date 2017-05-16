@@ -13,7 +13,7 @@ namespace lava::vulkan {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
-            logger::warning("magma.vulkan.shader") << "Unable to shader file " << filename << std::endl;
+            logger.warning("magma.vulkan.shader") << "Unable to shader file " << filename << std::endl;
         }
 
         size_t fileSize = file.tellg();
@@ -22,7 +22,7 @@ namespace lava::vulkan {
         file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
         file.close();
 
-        logger::info("magma.vulkan.shader") << "Reading shader file '" << filename << "' (" << fileSize << "B)" << std::endl;
+        logger.info("magma.vulkan.shader") << "Reading shader file '" << filename << "' (" << fileSize << "B)" << std::endl;
 
         return buffer;
     }
@@ -39,7 +39,7 @@ namespace lava::vulkan {
         createInfo.pCode = codeAligned.data();
 
         if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.shader") << "Failed to create shader module" << std::endl;
+            logger.error("magma.vulkan.shader") << "Failed to create shader module" << std::endl;
         }
     }
 }

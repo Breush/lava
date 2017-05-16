@@ -29,6 +29,6 @@ void Surface::createSurface(WindowHandle& windowHandle)
     auto err = CreateXcbSurfaceKHR(m_instance, &createInfo, nullptr, m_surface.replace());
     if (!err) return;
 
-    logger::error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
+    logger.error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
     exit(1);
 }

@@ -53,7 +53,7 @@ void Device::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
     auto devices = availablePhysicalDevices(instance);
 
     if (devices.size() == 0) {
-        logger::error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;
+        logger.error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;
         exit(1);
     }
 
@@ -65,7 +65,7 @@ void Device::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
 
     if (m_physicalDevice != VK_NULL_HANDLE) return;
 
-    logger::error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
+    logger.error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
     exit(1);
 }
 
@@ -105,7 +105,7 @@ void Device::createLogicalDevice(VkSurfaceKHR surface)
     // Really create
     auto err = vkCreateDevice(m_physicalDevice, &createInfo, nullptr, m_device.replace());
     if (err) {
-        logger::error("magma.vulkan.device") << "Unable to create logical device. " << vulkan::toString(err) << std::endl;
+        logger.error("magma.vulkan.device") << "Unable to create logical device. " << vulkan::toString(err) << std::endl;
         exit(1);
     };
 

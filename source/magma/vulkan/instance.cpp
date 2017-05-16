@@ -5,16 +5,16 @@
 #include "./tools.hpp"
 
 namespace {
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj,
-                                                        size_t location, int32_t code, const char* layerPrefix, const char* msg, void* userData)
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t,
+                                                        size_t, int32_t, const char*, const char* msg, void*)
     {
         auto category = lava::vulkan::toString(objType);
 
         if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
-            lava::logger::warning("magma.vulkan." + category) << msg << std::endl;
+            lava::logger.warning("magma.vulkan." + category) << msg << std::endl;
         }
         else if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
-            lava::logger::error("magma.vulkan." + category) << msg << std::endl;
+            lava::logger.error("magma.vulkan." + category) << msg << std::endl;
             exit(1);
         }
 
@@ -55,7 +55,7 @@ void Instance::createInstance()
     if (!err) return;
 
     // @todo Have a way to have this exit(1) included! And debug trace?
-    logger::error("magma.vulkan") << "Could not create Vulkan instance. " << toString(err) << std::endl;
+    logger.error("magma.vulkan") << "Could not create Vulkan instance. " << toString(err) << std::endl;
     exit(1);
 }
 
@@ -86,9 +86,9 @@ void Instance::initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo)
 {
     // Logging all available extensions
     auto extensions = availableExtensions();
-    logger::info("magma.vulkan.extension") << "Available extensions:" << std::endl;
+    logger.info("magma.vulkan.extension") << "Available extensions:" << std::endl;
     for (const auto& extension : extensions) {
-        logger::info("magma.vulkan.extension") << logger::sub(1) << extension.extensionName << std::endl;
+        logger.info("magma.vulkan.extension")[1] << extension.extensionName << std::endl;
     }
 
     // Enable surface extensions depending on os
@@ -105,9 +105,9 @@ void Instance::initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo)
     instanceCreateInfo.ppEnabledExtensionNames = m_extensions.data();
 
     // Logging all enabled extensions
-    logger::info("magma.vulkan.extension") << "Enabled extensions:" << std::endl;
+    logger.info("magma.vulkan.extension") << "Enabled extensions:" << std::endl;
     for (const auto& extensionName : m_extensions) {
-        logger::info("magma.vulkan.extension") << logger::sub(1) << extensionName << std::endl;
+        logger.info("magma.vulkan.extension")[1] << extensionName << std::endl;
     }
 }
 
@@ -118,7 +118,7 @@ void Instance::initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo)
     if (!m_debugEnabled) return;
 
     if (!validationLayersSupported(m_validationLayers)) {
-        logger::warning("magma.vulkan.layer") << "Validation layers enabled, but are not available." << std::endl;
+        logger.warning("magma.vulkan.layer") << "Validation layers enabled, but are not available." << std::endl;
         m_debugEnabled = false;
         return;
     }
@@ -126,5 +126,5 @@ void Instance::initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo)
     instanceCreateInfo.enabledLayerCount = m_validationLayers.size();
     instanceCreateInfo.ppEnabledLayerNames = m_validationLayers.data();
 
-    logger::info("magma.vulkan.layer") << "Validation layers enabled." << std::endl;
+    logger.info("magma.vulkan.layer") << "Validation layers enabled." << std::endl;
 }

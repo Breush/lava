@@ -41,7 +41,7 @@ void Engine::Impl::draw()
         return;
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        logger::error("magma.vulkan.draw") << "Failed to acquire swapchain image." << std::endl;
+        logger.error("magma.vulkan.draw") << "Failed to acquire swapchain image." << std::endl;
         exit(1);
     }
 
@@ -62,7 +62,7 @@ void Engine::Impl::draw()
     submitInfo.pSignalSemaphores = signalSemaphores;
 
     if (vkQueueSubmit(m_device.graphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
-        logger::error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
+        logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
         exit(1);
     }
 
@@ -179,7 +179,7 @@ void Engine::Impl::createRenderPass()
     renderPassInfo.pDependencies = &dependency;
 
     if (vkCreateRenderPass(m_device, &renderPassInfo, nullptr, m_renderPass.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.render-pass") << "Failed to create render pass." << std::endl;
+        logger.error("magma.vulkan.render-pass") << "Failed to create render pass." << std::endl;
         exit(1);
     }
 }
@@ -199,7 +199,7 @@ void Engine::Impl::createDescriptorSetLayout()
     layoutInfo.pBindings = &uboLayoutBinding;
 
     if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_descriptorSetLayout.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
+        logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
         exit(1);
     }
 }
@@ -345,7 +345,7 @@ void Engine::Impl::createGraphicsPipeline()
     pipelineLayoutInfo.pPushConstantRanges = 0;
 
     if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.pipeline-layout") << "Failed to create pipeline layout." << std::endl;
+        logger.error("magma.vulkan.pipeline-layout") << "Failed to create pipeline layout." << std::endl;
         exit(1);
     }
 
@@ -371,7 +371,7 @@ void Engine::Impl::createGraphicsPipeline()
     if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, m_graphicsPipeline.replace())
         != VK_SUCCESS) {
         if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.graphics-pipeline") << "Failed to create graphics pipeline." << std::endl;
+            logger.error("magma.vulkan.graphics-pipeline") << "Failed to create graphics pipeline." << std::endl;
             exit(1);
         }
     }
@@ -395,7 +395,7 @@ void Engine::Impl::createFramebuffers()
         framebufferInfo.layers = 1;
 
         if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, m_swapchainFramebuffers[i].replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.framebuffer") << "Failed to create framebuffers." << std::endl;
+            logger.error("magma.vulkan.framebuffer") << "Failed to create framebuffers." << std::endl;
             exit(1);
         }
     }
@@ -411,7 +411,7 @@ void Engine::Impl::createCommandPool()
     poolInfo.flags = 0;
 
     if (vkCreateCommandPool(m_device, &poolInfo, nullptr, m_commandPool.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.command-pool") << "Failed to create command pool." << std::endl;
+        logger.error("magma.vulkan.command-pool") << "Failed to create command pool." << std::endl;
         exit(1);
     }
 }
@@ -421,10 +421,9 @@ void Engine::Impl::createTextureImage()
     auto filename = "./data/images/debug.png";
     int texWidth, texHeight, texChannels;
     auto pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
-        logger::error("magma.image") << "Failed to load image from filename " << filename << std::endl;
+        logger.error("magma.image") << "Failed to load image from filename " << filename << std::endl;
         exit(1);
     }
 
@@ -487,7 +486,7 @@ void Engine::Impl::createDescriptorPool()
     poolInfo.flags = 0;
 
     if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_descriptorPool.replace()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.descriptor-pool") << "Failed to create descriptor pool." << std::endl;
+        logger.error("magma.vulkan.descriptor-pool") << "Failed to create descriptor pool." << std::endl;
         exit(1);
     }
 }
@@ -502,7 +501,7 @@ void Engine::Impl::createDescriptorSet()
     allocInfo.pSetLayouts = layouts;
 
     if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
-        logger::error("magma.vulkan.descriptor-sets") << "Failed to create descriptor sets." << std::endl;
+        logger.error("magma.vulkan.descriptor-sets") << "Failed to create descriptor sets." << std::endl;
         exit(1);
     }
 
@@ -541,7 +540,7 @@ void Engine::Impl::createCommandBuffers()
     allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
 
     if (vkAllocateCommandBuffers(m_device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS) {
-        logger::error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
+        logger.error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
         exit(1);
     }
 
@@ -583,7 +582,7 @@ void Engine::Impl::createCommandBuffers()
         vkCmdEndRenderPass(m_commandBuffers[i]);
 
         if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS) {
-            logger::error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
+            logger.error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
             exit(1);
         }
     }
@@ -597,14 +596,14 @@ void Engine::Impl::createSemaphores()
     if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != VK_SUCCESS
         || vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != VK_SUCCESS) {
 
-        logger::error("magma.vulkan.command-buffer") << "Failed to create semaphores." << std::endl;
+        logger.error("magma.vulkan.command-buffer") << "Failed to create semaphores." << std::endl;
         exit(1);
     }
 }
 
 void Engine::Impl::recreateSwapchain()
 {
-    logger::info("magma.vulkan.swapchain") << "Recreating swapchain." << std::endl;
+    logger.info("magma.vulkan.swapchain") << "Recreating swapchain." << std::endl;
 
     vkDeviceWaitIdle(m_device);
 

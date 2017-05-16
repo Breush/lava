@@ -14,7 +14,7 @@ namespace lava::vulkan {
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateBuffer(device, &bufferInfo, nullptr, buffer.replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.buffer") << "Failed to create buffer." << std::endl;
+            logger.error("magma.vulkan.buffer") << "Failed to create buffer." << std::endl;
             exit(1);
         }
 
@@ -27,7 +27,7 @@ namespace lava::vulkan {
         allocInfo.memoryTypeIndex = findMemoryType(device.physicalDevice(), memRequirements.memoryTypeBits, properties);
 
         if (vkAllocateMemory(device, &allocInfo, nullptr, bufferMemory.replace()) != VK_SUCCESS) {
-            logger::error("magma.vulkan.buffer") << "Failed to allocate buffer memory." << std::endl;
+            logger.error("magma.vulkan.buffer") << "Failed to allocate buffer memory." << std::endl;
             exit(1);
         }
 
@@ -88,7 +88,7 @@ namespace lava::vulkan {
             }
         }
 
-        logger::error("magma.vulkan.buffer") << "Unable to find valid format." << std::endl;
+        logger.error("magma.vulkan.buffer") << "Unable to find valid format." << std::endl;
         exit(1);
     }
 
