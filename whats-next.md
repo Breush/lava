@@ -29,6 +29,7 @@
 - 3D meshes !
 - Mesh have own secondary buffers
 - Engine update main command buffer every frame
+- Mesh loading
 - Textures
 - Lighting
 

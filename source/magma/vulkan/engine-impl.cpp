@@ -4,6 +4,7 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
 #include <set>
+#include <stb/stb_image.h>
 #include <vulkan/vulkan.hpp>
 
 #include "./buffer.hpp"
@@ -415,6 +416,35 @@ void Engine::Impl::createCommandPool()
     }
 }
 
+void Engine::Impl::createTextureImage()
+{
+    auto filename = "./data/images/debug.png";
+    int texWidth, texHeight, texChannels;
+    auto pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    if (!pixels) {
+        logger::error("magma.image") << "Failed to load image from filename " << filename << std::endl;
+        exit(1);
+    }
+
+    vulkan::Capsule<VkImage> stagingImage{m_device.capsule(), vkDestroyImage};
+    vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_device.capsule(), vkFreeMemory};
+    vulkan::Capsule<VkImageView> stagingImageView{m_device.capsule(), vkDestroyImageView};
+
+    vulkan::createImage(
+        m_device, texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
+
+    VkImageSubresource subresource = {};
+    subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresource.mipLevel = 0;
+    subresource.arrayLayer = 0;
+
+    VkSubresourceLayout stagingImageLayout;
+    vkGetImageSubresourceLayout(m_device, stagingImage, &subresource, &stagingImageLayout);
+}
+
 void Engine::Impl::createDepthResources()
 {
     auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
@@ -425,7 +455,7 @@ void Engine::Impl::createDepthResources()
                         m_depthImageMemory);
     vulkan::createImageView(m_device, m_depthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT, m_depthImageView);
 
-    vulkan::transitionImageLayout(m_device, m_commandPool, m_depthImage, format, VK_IMAGE_LAYOUT_UNDEFINED,
+    vulkan::transitionImageLayout(m_device, m_commandPool, m_depthImage, VK_IMAGE_LAYOUT_UNDEFINED,
                                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
@@ -598,6 +628,7 @@ void Engine::Impl::initVulkan()
     createDescriptorSetLayout();
     createGraphicsPipeline();
     createCommandPool();
+    createTextureImage();
     createDepthResources();
     createFramebuffers();
     createUniformBuffer();

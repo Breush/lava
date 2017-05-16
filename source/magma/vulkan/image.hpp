@@ -65,8 +65,8 @@ namespace lava::vulkan {
         }
     }
 
-    inline void transitionImageLayout(Device& device, VkCommandPool commandPool, VkImage image, VkFormat format,
-                                      VkImageLayout oldLayout, VkImageLayout newLayout)
+    inline void transitionImageLayout(Device& device, VkCommandPool commandPool, VkImage image, VkImageLayout oldLayout,
+                                      VkImageLayout newLayout)
     {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
