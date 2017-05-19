@@ -45,6 +45,7 @@ namespace lava {
         void createCommandPool();
         void createTextureImage();
         void createTextureImageView();
+        void createTextureSampler();
         void createCommandBuffers();
 
         void createDepthResources();
@@ -87,6 +88,7 @@ namespace lava {
         vulkan::Capsule<VkImage> m_textureImage{m_device.capsule(), vkDestroyImage};
         vulkan::Capsule<VkDeviceMemory> m_textureImageMemory{m_device.capsule(), vkFreeMemory};
         vulkan::Capsule<VkImageView> m_textureImageView{m_device.capsule(), vkDestroyImageView};
+        vulkan::Capsule<VkSampler> m_textureSampler{m_device.capsule(), vkDestroySampler};
 
         // Depth
         vulkan::Capsule<VkImage> m_depthImage{m_device.capsule(), vkDestroyImage};

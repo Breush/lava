@@ -476,6 +476,31 @@ void Engine::Impl::createTextureImageView()
     vulkan::createImageView(m_device, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_textureImageView);
 }
 
+void Engine::Impl::createTextureSampler()
+{
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = 16; // @todo Over 16 is useless, but lower that for better performances
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+
+    if (vkCreateSampler(m_device, &samplerInfo, nullptr, m_textureSampler.replace()) != VK_SUCCESS) {
+        logger.error("magma.vulkan.texture-sampler") << "Failed to texture sampler." << std::endl;
+    }
+}
+
 void Engine::Impl::createDepthResources()
 {
     auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
@@ -662,6 +687,7 @@ void Engine::Impl::initVulkan()
     createCommandPool();
     createTextureImage();
     createTextureImageView();
+    createTextureSampler();
     createDepthResources();
     createFramebuffers();
     createUniformBuffer();

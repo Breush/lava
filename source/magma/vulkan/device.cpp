@@ -36,6 +36,10 @@ namespace {
         auto swapChainSupport = lava::vulkan::swapchainSupportDetails(device, surface);
         if (!swapChainSupport.valid()) return false;
 
+        VkPhysicalDeviceFeatures supportedFeatures;
+        vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+        if (!supportedFeatures.samplerAnisotropy) return false;
+
         return true;
     }
 }
@@ -99,6 +103,7 @@ void Device::createLogicalDevice(VkSurfaceKHR surface)
 
     // Features
     VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 

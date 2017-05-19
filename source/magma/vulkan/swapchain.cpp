@@ -3,6 +3,7 @@
 #include <lava/chamber/logger.hpp>
 
 #include "./device.hpp"
+#include "./image.hpp"
 #include "./queue.hpp"
 #include "./swapchain-support-details.hpp"
 
@@ -14,7 +15,8 @@ namespace {
         }
 
         for (const auto& availableFormat : availableFormats) {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
+                && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 return availableFormat;
             }
         }
@@ -126,23 +128,6 @@ void Swapchain::createImageViews()
     m_imageViews.resize(m_images.size(), Capsule<VkImageView>{m_device.capsule(), vkDestroyImageView});
 
     for (uint32_t i = 0; i < m_images.size(); i++) {
-        VkImageViewCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = m_images[i];
-        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = m_imageFormat;
-        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        createInfo.subresourceRange.baseMipLevel = 0;
-        createInfo.subresourceRange.levelCount = 1;
-        createInfo.subresourceRange.baseArrayLayer = 0;
-        createInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(m_device, &createInfo, nullptr, m_imageViews[i].replace()) != VK_SUCCESS) {
-            logger.error("magma.vulkan.image-view") << "Failed to create image views." << std::endl;
-        }
+        createImageView(m_device, m_images[i], m_imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, m_imageViews[i]);
     }
 }
