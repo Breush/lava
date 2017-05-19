@@ -44,6 +44,7 @@ namespace lava {
         void createFramebuffers();
         void createCommandPool();
         void createTextureImage();
+        void createTextureImageView();
         void createCommandBuffers();
 
         void createDepthResources();

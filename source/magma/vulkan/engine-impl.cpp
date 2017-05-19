@@ -155,7 +155,7 @@ void Engine::Impl::createRenderPass()
 
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    // subpass.colorAttachmentCount = 1;
+    subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
     subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
@@ -442,6 +442,38 @@ void Engine::Impl::createTextureImage()
 
     VkSubresourceLayout stagingImageLayout;
     vkGetImageSubresourceLayout(m_device, stagingImage, &subresource, &stagingImageLayout);
+
+    // Staging buffer
+    vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
+    vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_device.capsule(), vkFreeMemory};
+
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+    vulkan::createBuffer(m_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                         stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, pixels, static_cast<size_t>(imageSize));
+    vkUnmapMemory(m_device, stagingBufferMemory);
+
+    stbi_image_free(pixels);
+
+    // The real image
+    vulkan::createImage(m_device, texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        m_textureImage, m_textureImageMemory);
+
+    vulkan::transitionImageLayout(m_device, m_commandPool, m_textureImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth),
+                              static_cast<uint32_t>(texHeight));
+}
+
+void Engine::Impl::createTextureImageView()
+{
+    vulkan::createImageView(m_device, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_textureImageView);
 }
 
 void Engine::Impl::createDepthResources()
@@ -452,6 +484,7 @@ void Engine::Impl::createDepthResources()
     vulkan::createImage(m_device, extent.width, extent.height, format, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage,
                         m_depthImageMemory);
+
     vulkan::createImageView(m_device, m_depthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT, m_depthImageView);
 
     vulkan::transitionImageLayout(m_device, m_commandPool, m_depthImage, VK_IMAGE_LAYOUT_UNDEFINED,
@@ -628,6 +661,7 @@ void Engine::Impl::initVulkan()
     createGraphicsPipeline();
     createCommandPool();
     createTextureImage();
+    createTextureImageView();
     createDepthResources();
     createFramebuffers();
     createUniformBuffer();
