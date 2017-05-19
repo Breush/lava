@@ -20,12 +20,14 @@ int main(void)
     mesh.verticesCount(4);
     mesh.verticesPositions({{-1.f, -1.f, 0.25f}, {1.f, -1.f, 0.25f}, {1.f, 1.f, 0.25f}, {-1.f, 1.f, 0.25f}});
     mesh.verticesColors({{1.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
+    mesh.verticesUvs({{0.f, 0.f}, {0.f, 1.f}, {1.f, 1.f}, {1.f, 0.f}});
     mesh.indices({0, 1, 2, 2, 3, 0});
 
     Mesh mesh2(engine);
     mesh2.verticesCount(4);
     mesh2.verticesPositions({{-1.f, -1.f, 0.f}, {1.f, -1.f, 0.f}, {1.f, 1.f, 0.f}, {-1.f, 1.f, 0.f}});
     mesh2.verticesColors({{1.f, 0.f, 0.f}, {1.f, 0.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 0.f}});
+    mesh2.verticesUvs({{0.f, 0.f}, {1.f, 0.f}, {1.f, 1.f}, {0.f, 1.f}});
     mesh2.indices({0, 1, 2, 2, 3, 0});
 
     // Keep running while the window is open

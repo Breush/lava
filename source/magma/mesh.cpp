@@ -29,6 +29,11 @@ void Mesh::verticesColors(const std::vector<glm::vec3>& colors)
     m_impl->verticesColors(colors);
 }
 
+void Mesh::verticesUvs(const std::vector<glm::vec2>& uvs)
+{
+    m_impl->verticesUvs(uvs);
+}
+
 void Mesh::indices(const std::vector<uint16_t>& indices)
 {
     m_impl->indices(indices);
