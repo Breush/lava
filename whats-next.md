@@ -25,6 +25,8 @@
 
 ### Magma
 
+- RenderEngine (ou namespace magma ?)
+- RenderWindow
 - 3D meshes !
 - Mesh have own secondary buffers
 - Engine update main command buffer every frame

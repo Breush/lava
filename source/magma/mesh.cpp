@@ -4,7 +4,7 @@
 
 using namespace lava;
 
-Mesh::Mesh(Engine& engine)
+Mesh::Mesh(RenderEngine& engine)
 {
     m_impl = new Impl(engine);
 }

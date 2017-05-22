@@ -5,11 +5,11 @@
 #include <lava/chamber/logger.hpp>
 
 #include "./buffer.hpp"
-#include "./engine-impl.hpp"
+#include "./render-engine-impl.hpp"
 
 using namespace lava;
 
-Mesh::Impl::Impl(Engine& engine)
+Mesh::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
     , m_device(m_engine.device())
     , m_vertexBuffer({m_device.capsule(), vkDestroyBuffer})

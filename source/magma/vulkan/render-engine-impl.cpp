@@ -1,8 +1,9 @@
-#include "./engine-impl.hpp"
+#include "./render-engine-impl.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
+#include <lava/magma/interfaces/render-target.hpp>
 #include <set>
 #include <stb/stb_image.h>
 #include <vulkan/vulkan.hpp>
@@ -18,20 +19,24 @@
 
 using namespace lava;
 
-Engine::Impl::Impl(Window& window)
-    : m_windowHandle(window.getSystemHandle())
-    , m_windowExtent({window.videoMode().width, window.videoMode().height})
+RenderEngine::Impl::Impl()
 {
-    initVulkan();
 }
 
-Engine::Impl::~Impl()
+RenderEngine::Impl::~Impl()
 {
     vkDeviceWaitIdle(m_device);
 }
 
-void Engine::Impl::draw()
+void RenderEngine::Impl::add(IRenderTarget& renderTarget)
 {
+    m_renderTargets.emplace_back(&renderTarget);
+}
+
+void RenderEngine::Impl::draw()
+{
+    m_renderTargets[0]->draw();
+
     uint32_t imageIndex;
     const auto MAX = std::numeric_limits<uint64_t>::max();
     auto result = vkAcquireNextImageKHR(m_device, m_swapchain, MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
@@ -42,7 +47,6 @@ void Engine::Impl::draw()
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         logger.error("magma.vulkan.draw") << "Failed to acquire swapchain image." << std::endl;
-        exit(1);
     }
 
     // Submit to the queue
@@ -81,12 +85,12 @@ void Engine::Impl::draw()
     vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
 }
 
-void Engine::Impl::update()
+void RenderEngine::Impl::update()
 {
     // @todo Get time!
     static float time = 0.f;
     const float dt = 0.001f;
-    const auto viewExtent = m_swapchain.extent();
+    const VkExtent2D viewExtent = m_swapchain.extent();
 
     time += dt;
 
@@ -110,18 +114,12 @@ void Engine::Impl::update()
     }*/
 }
 
-void Engine::Impl::mode(const VideoMode& mode)
-{
-    m_windowExtent = {mode.width, mode.height};
-    recreateSwapchain();
-}
-
-void Engine::Impl::add(Mesh::Impl& mesh)
+void RenderEngine::Impl::add(Mesh::Impl& mesh)
 {
     m_meshes.emplace_back(&mesh);
 }
 
-void Engine::Impl::createRenderPass()
+void RenderEngine::Impl::createRenderPass()
 {
     // Color attachement
     VkAttachmentDescription colorAttachment = {};
@@ -184,7 +182,7 @@ void Engine::Impl::createRenderPass()
     }
 }
 
-void Engine::Impl::createDescriptorSetLayout()
+void RenderEngine::Impl::createDescriptorSetLayout()
 {
     // UBO
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
@@ -213,7 +211,7 @@ void Engine::Impl::createDescriptorSetLayout()
     }
 }
 
-void Engine::Impl::createGraphicsPipeline()
+void RenderEngine::Impl::createGraphicsPipeline()
 {
     auto vertShaderCode = vulkan::readShaderFile("./data/shaders/triangle.vert.spv");
     auto fragShaderCode = vulkan::readShaderFile("./data/shaders/triangle.frag.spv");
@@ -302,9 +300,6 @@ void Engine::Impl::createGraphicsPipeline()
     multisampling.alphaToCoverageEnable = VK_FALSE;
     multisampling.alphaToOneEnable = VK_FALSE;
 
-    // Depth/stencil
-    // @todo Not used yet VkPipelineDepthStencilStateCreateInfo
-
     // Color-blending
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.colorWriteMask =
@@ -386,7 +381,7 @@ void Engine::Impl::createGraphicsPipeline()
     }
 }
 
-void Engine::Impl::createFramebuffers()
+void RenderEngine::Impl::createFramebuffers()
 {
     m_swapchainFramebuffers.resize(m_swapchain.imageViews().size(),
                                    vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
@@ -410,7 +405,7 @@ void Engine::Impl::createFramebuffers()
     }
 }
 
-void Engine::Impl::createCommandPool()
+void RenderEngine::Impl::createCommandPool()
 {
     auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
 
@@ -425,7 +420,7 @@ void Engine::Impl::createCommandPool()
     }
 }
 
-void Engine::Impl::createTextureImage()
+void RenderEngine::Impl::createTextureImage()
 {
     auto filename = "./data/images/debug.png";
     int texWidth, texHeight, texChannels;
@@ -480,12 +475,12 @@ void Engine::Impl::createTextureImage()
                               static_cast<uint32_t>(texHeight));
 }
 
-void Engine::Impl::createTextureImageView()
+void RenderEngine::Impl::createTextureImageView()
 {
     vulkan::createImageView(m_device, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_textureImageView);
 }
 
-void Engine::Impl::createTextureSampler()
+void RenderEngine::Impl::createTextureSampler()
 {
     VkSamplerCreateInfo samplerInfo = {};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -510,7 +505,7 @@ void Engine::Impl::createTextureSampler()
     }
 }
 
-void Engine::Impl::createDepthResources()
+void RenderEngine::Impl::createDepthResources()
 {
     auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
     auto extent = m_swapchain.extent();
@@ -525,7 +520,7 @@ void Engine::Impl::createDepthResources()
                                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
-void Engine::Impl::createUniformBuffer()
+void RenderEngine::Impl::createUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -539,7 +534,7 @@ void Engine::Impl::createUniformBuffer()
     vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer, m_uniformBufferMemory);
 }
 
-void Engine::Impl::createDescriptorPool()
+void RenderEngine::Impl::createDescriptorPool()
 {
     std::array<VkDescriptorPoolSize, 2> poolSizes = {};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -560,7 +555,7 @@ void Engine::Impl::createDescriptorPool()
     }
 }
 
-void Engine::Impl::createDescriptorSet()
+void RenderEngine::Impl::createDescriptorSet()
 {
     VkDescriptorSetLayout layouts[] = {m_descriptorSetLayout};
     VkDescriptorSetAllocateInfo allocInfo = {};
@@ -611,7 +606,7 @@ void Engine::Impl::createDescriptorSet()
     vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
-void Engine::Impl::createCommandBuffers()
+void RenderEngine::Impl::createCommandBuffers()
 {
     // Free previous command buffers if any
     if (m_commandBuffers.size() > 0) {
@@ -675,7 +670,7 @@ void Engine::Impl::createCommandBuffers()
     }
 }
 
-void Engine::Impl::createSemaphores()
+void RenderEngine::Impl::createSemaphores()
 {
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -688,7 +683,7 @@ void Engine::Impl::createSemaphores()
     }
 }
 
-void Engine::Impl::recreateSwapchain()
+void RenderEngine::Impl::recreateSwapchain()
 {
     logger.info("magma.vulkan.swapchain") << "Recreating swapchain." << std::endl;
 
@@ -703,7 +698,7 @@ void Engine::Impl::recreateSwapchain()
     createCommandBuffers();
 }
 
-void Engine::Impl::initVulkan()
+void RenderEngine::Impl::initVulkan()
 {
     m_instance.init(true);
     m_surface.init(m_windowHandle);

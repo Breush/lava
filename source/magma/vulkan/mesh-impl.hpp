@@ -1,8 +1,8 @@
 #pragma once
 
 #include <lava/chamber/properties.hpp>
-#include <lava/magma/engine.hpp>
 #include <lava/magma/mesh.hpp>
+#include <lava/magma/render-engine.hpp>
 
 #include "./capsule.hpp"
 #include "./device.hpp"
@@ -14,7 +14,7 @@ namespace lava {
      */
     class Mesh::Impl {
     public:
-        Impl(Engine& engine);
+        Impl(RenderEngine& engine);
         ~Impl();
 
         // Main interface
@@ -34,7 +34,7 @@ namespace lava {
 
     private:
         // References
-        Engine::Impl& m_engine;
+        RenderEngine::Impl& m_engine;
         vulkan::Device& m_device;
 
         // Data

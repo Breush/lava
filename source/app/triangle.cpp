@@ -4,16 +4,16 @@
 
 using namespace lava;
 
-void handleEvent(Event& event, Window& window, Engine& engine);
+void handleEvent(Event& event, RenderWindow& window, RenderEngine& engine);
 
 int main(void)
 {
-    // Create a window, holding our scene
-    Window window({800, 600}, "The best example");
+    // A render engine is the global manager.
+    RenderEngine engine;
 
-    // An engine is the global manager.
-    // A scene is our 3D environment, and set it to be shown in the window
-    Engine engine(window);
+    // Create a window we can draw to
+    RenderWindow window({800, 600}, "The best example");
+    engine.add(window);
 
     // Create a mesh
     Mesh mesh(engine);
@@ -31,7 +31,7 @@ int main(void)
     mesh2.indices({0, 1, 2, 2, 3, 0});
 
     // Keep running while the window is open
-    while (window.isOpen()) {
+    while (window.opened()) {
         // Treat all events since last frame
         Event event;
         while (window.pollEvent(event)) {
@@ -45,7 +45,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void handleEvent(Event& event, Window& window, Engine& engine)
+void handleEvent(Event& event, RenderWindow& window, RenderEngine& engine)
 {
     switch (event.type) {
     case Event::WindowClosed: {
@@ -61,7 +61,8 @@ void handleEvent(Event& event, Window& window, Engine& engine)
     }
 
     case Event::WindowResized: {
-        engine.mode(window.videoMode());
+        std::cout << event.size.width << " " << event.size.height << std::endl;
+        window.refresh();
         break;
     }
 

@@ -3,8 +3,8 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/properties.hpp>
 #include <lava/crater/Window.hpp>
-#include <lava/magma/engine.hpp>
 #include <lava/magma/mesh.hpp>
+#include <lava/magma/render-engine.hpp>
 
 #include "./device.hpp"
 #include "./instance.hpp"
@@ -19,25 +19,22 @@ struct UniformBufferObject {
 
 namespace lava {
     /**
-     * Vulkan-based implementation of the lava::Engine.
+     * Vulkan-based implementation of the lava::RenderEngine.
      */
-    class Engine::Impl {
+    class RenderEngine::Impl {
     public:
-        Impl(lava::Window& window);
+        Impl();
         ~Impl();
 
         // Main interface
         void draw();
         void update();
-
-        void mode(const lava::VideoMode& mode);
+        void add(IRenderTarget& renderTarget);
 
         // Internal interface
         void add(Mesh::Impl& mesh);
 
     protected:
-        void initVulkan();
-
         void createRenderPass();
         void createGraphicsPipeline();
 
@@ -51,22 +48,25 @@ namespace lava {
         void createDepthResources();
         void createSemaphores();
 
-        void recreateSwapchain();
-
         // Mesh
         void createUniformBuffer();
         void createDescriptorSetLayout();
         void createDescriptorPool();
         void createDescriptorSet();
 
-    private:
-        lava::WindowHandle m_windowHandle;
+        // @todo TBR Temporary setup
+    public:
+        WindowHandle m_windowHandle;
         VkExtent2D m_windowExtent;
 
+        void initVulkan(); // @todo That is a really really bad idea
+        void recreateSwapchain();
+
+    private:
         $attribute(vulkan::Instance, instance);
         $attribute(vulkan::Surface, surface, {m_instance});
         $attribute(vulkan::Device, device);
-        $attribute(vulkan::Swapchain, swapchain, {m_device});
+        $attribute(vulkan::Swapchain, swapchain, {m_device}); // @todo TBR
 
         // UBO
         $attribute(vulkan::Capsule<VkDescriptorSetLayout>, descriptorSetLayout,
@@ -104,6 +104,9 @@ namespace lava {
         vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory{m_device.capsule(), vkFreeMemory};
         vulkan::Capsule<VkBuffer> m_uniformBuffer{m_device.capsule(), vkDestroyBuffer};
         vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory{m_device.capsule(), vkFreeMemory};
+
+        // Targets
+        std::vector<IRenderTarget*> m_renderTargets;
 
         // Meshes
         std::vector<Mesh::Impl*> m_meshes;

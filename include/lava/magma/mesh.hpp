@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace lava {
-    class Engine;
+    class RenderEngine;
 }
 
 namespace lava {
@@ -14,7 +14,7 @@ namespace lava {
      */
     class Mesh {
     public:
-        Mesh(Engine& engine);
+        Mesh(RenderEngine& engine);
         ~Mesh();
 
         class Impl;
