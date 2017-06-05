@@ -1,6 +1,6 @@
 -- UPDATE THESE WHENEVER NEEDED
 
-local VULKAN_SDK_VERSION = "1.0.46.0"
+local VULKAN_SDK_VERSION = "1.0.49.0"
 
 -- Download
 
@@ -13,8 +13,10 @@ if not fileValid("./.tmp/vulkan-sdk.run") then
     local downloadResult = http.download(url, "./.tmp/vulkan-sdk.run", { progress = downloadProgress })
 
     if downloadResult ~= "OK" then
+        downloadStop()
         print("[Dependencies] FAILURE while downloading Vulkan SDK (" .. VULKAN_SDK_VERSION .. ")...")
         print("If it persists, please try downloading " .. url .. " by yourself")
+        print("and move it to " .. path.getabsolute("./.tmp/vulkan-sdk.run"))
         print(downloadResult)
         os.exit(1)
     end

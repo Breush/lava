@@ -12,8 +12,10 @@ if not fileValid("./.tmp/glm.zip") then
     local downloadResult = http.download(url, "./.tmp/glm.zip", { progress = downloadProgress })
 
     if downloadResult ~= "OK" then
+        downloadStop()
         print("[Dependencies] FAILURE while downloading GLM (" .. GLM_VERSION .. ")...")
         print("If it persists, please try downloading " .. url .. " by yourself")
+        print("and move it to " .. path.getabsolute("./.tmp/glm.zip"))
         print(downloadResult)
         os.exit(1)
     end
