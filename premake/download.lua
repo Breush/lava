@@ -13,6 +13,11 @@ function downloadStart(kind, name)
 	io.flush()
 end
 
+function downloadStop()
+	io.write("\27[1B") -- Cursor down
+	print()
+end
+
 -- Tool function to display downloading progress
 function downloadProgress(total, current)
 	if downloadComplete then return end
@@ -26,7 +31,6 @@ function downloadProgress(total, current)
 
 	if current == total then
 		downloadComplete = true
-		io.write("\27[1B") -- Cursor down
-		print()
+		downloadStop()
 	end
 end

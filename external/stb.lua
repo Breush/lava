@@ -1,6 +1,6 @@
 -- Download
 
-if not fileValid("./.tmp/stb") then
+if not fileExists("./.tmp/stb") then
     os.mkdir("./.tmp")
 
     local url = "git@github.com:nothings/stb.git"
@@ -9,15 +9,17 @@ if not fileValid("./.tmp/stb") then
     local errorCode = os.execute("git clone --depth=1 " .. url .. " .tmp/stb")
 
     if errorCode ~= 0 then
+        downloadStop()
         print("[Dependencies] FAILURE while downloading STB librairies...")
-        print("If it persists, please try downloading " .. url .. " by yourself")
+        print("If it persists, please try cloning " .. url .. " by yourself")
+        print("and move it to " .. path.getabsolute("./.tmp/stb"))
         os.exit(1)
     end
 end
 
 -- Set up
 
-if not fileExists("./include/stb/stb_image.h") then
+if not fileExists("./include/stb") then
     os.mkdir("./include/stb")
 
     print("[Dependencies] Setting STB librairies up...")
