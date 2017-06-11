@@ -12,6 +12,7 @@ project "lava-magma"
         useCrater()
         useVulkanSdk()
         useStbFonts()
+        useNlohmannJson()
     end
 
     magmaDependencies()

@@ -16,7 +16,7 @@ int main(void)
     engine.add(window);
 
     // Create a mesh
-    Mesh mesh(engine);
+    /*Mesh mesh(engine);
     mesh.verticesCount(4);
     mesh.verticesPositions({{-1.f, -1.f, 0.25f}, {1.f, -1.f, 0.25f}, {1.f, 1.f, 0.25f}, {-1.f, 1.f, 0.25f}});
     mesh.verticesColors({{1.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
@@ -28,7 +28,9 @@ int main(void)
     mesh2.verticesPositions({{-1.f, -1.f, 0.f}, {1.f, -1.f, 0.f}, {1.f, 1.f, 0.f}, {-1.f, 1.f, 0.f}});
     mesh2.verticesColors({{1.f, 0.f, 0.f}, {1.f, 0.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 0.f}});
     mesh2.verticesUvs({{0.f, 0.f}, {1.f, 0.f}, {1.f, 1.f}, {0.f, 1.f}});
-    mesh2.indices({0, 1, 2, 2, 3, 0});
+    mesh2.indices({0, 1, 2, 2, 3, 0});*/
+
+    Mesh duckMesh(engine, "./assets/models/duck.glb");
 
     // Keep running while the window is open
     while (window.opened()) {

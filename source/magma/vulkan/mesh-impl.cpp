@@ -3,7 +3,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
+#include <nlohmann/json.hpp>
 
+#include "../glb-loader.hpp"
 #include "./buffer.hpp"
 #include "./render-engine-impl.hpp"
 
@@ -23,6 +25,30 @@ Mesh::Impl::Impl(RenderEngine& engine)
 Mesh::Impl::~Impl()
 {
     vkDeviceWaitIdle(m_device);
+}
+
+void Mesh::Impl::load(const std::string& fileName)
+{
+    // @todo Load glb
+
+    std::ifstream file(fileName, std::ifstream::binary);
+
+    Header header;
+    Chunk jsonChunk;
+    Chunk binChunk;
+
+    file >> header >> jsonChunk >> binChunk;
+
+    std::cout << header << jsonChunk << binChunk << std::endl;
+
+    auto json = nlohmann::json::parse(jsonChunk.data);
+    std::cout << json << std::endl;
+
+    verticesCount(4);
+    verticesPositions({{-1.f, -1.f, 0.25f}, {1.f, -1.f, 0.25f}, {1.f, 1.f, 0.25f}, {-1.f, 1.f, 0.25f}});
+    verticesColors({{1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
+    verticesUvs({{0.f, 0.f}, {0.f, 1.f}, {1.f, 1.f}, {1.f, 0.f}});
+    indices({0, 1, 2, 2, 3, 0});
 }
 
 void Mesh::Impl::verticesCount(const uint32_t count)

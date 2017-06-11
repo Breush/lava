@@ -2,6 +2,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <string>
 #include <vector>
 
 namespace lava {
@@ -15,6 +16,7 @@ namespace lava {
     class Mesh {
     public:
         Mesh(RenderEngine& engine);
+        Mesh(RenderEngine& engine, const std::string& fileName);
         ~Mesh();
 
         class Impl;

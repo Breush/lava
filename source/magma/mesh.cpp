@@ -9,6 +9,12 @@ Mesh::Mesh(RenderEngine& engine)
     m_impl = new Impl(engine);
 }
 
+Mesh::Mesh(RenderEngine& engine, const std::string& fileName)
+    : Mesh(engine)
+{
+    m_impl->load(fileName);
+}
+
 Mesh::~Mesh()
 {
     delete m_impl;
