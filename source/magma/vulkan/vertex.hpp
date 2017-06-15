@@ -8,7 +8,7 @@ namespace lava::vulkan {
     class Vertex {
     public:
         glm::vec3 pos;
-        glm::vec3 color;
+        glm::vec3 color = {1.f, 1.f, 1.f};
         glm::vec2 uv;
 
         static VkVertexInputBindingDescription bindingDescription()

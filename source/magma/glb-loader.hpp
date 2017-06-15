@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <nlohmann/json.hpp>
 
 namespace lava {
     struct Header {
@@ -65,5 +66,49 @@ namespace lava {
         chunk.data.resize(chunk.length);
         is.read(reinterpret_cast<char*>(chunk.data.data()), chunk.length);
         return is;
+    }
+
+    struct Accessor {
+        uint32_t bufferView = 0u;
+        uint32_t byteOffset = 0u;
+        uint32_t count = 0u;
+
+        Accessor(const typename nlohmann::json::basic_json& json)
+        {
+            bufferView = json["bufferView"];
+            byteOffset = json["byteOffset"];
+            count = json["count"];
+        }
+    };
+
+    struct BufferView {
+        uint32_t byteLength = 0u;
+        uint32_t byteOffset = 0u;
+        uint32_t byteStride = 0u;
+
+        BufferView(const typename nlohmann::json::basic_json& json)
+        {
+            byteLength = json["byteLength"];
+            byteOffset = json["byteOffset"];
+            if (json.find("byteStride") != json.end()) byteStride = json["byteStride"];
+        }
+    };
+
+    template <class T>
+    inline std::vector<T> access(const Accessor& accessor, const typename nlohmann::json::basic_json& bufferViews,
+                                 const std::vector<uint8_t>& buffer)
+    {
+        uint32_t bufferViewIndex = accessor.bufferView;
+        BufferView bufferView(bufferViews[bufferViewIndex]);
+        std::vector<T> vector(accessor.count);
+
+        auto offset = accessor.byteOffset + bufferView.byteOffset;
+        const auto step = sizeof(T) + bufferView.byteStride;
+        for (auto i = 0u; i < accessor.count; ++i) {
+            memcpy(&vector[i], &buffer[offset], sizeof(T));
+            offset += step;
+        }
+
+        return vector;
     }
 }

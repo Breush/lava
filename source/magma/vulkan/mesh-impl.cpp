@@ -3,7 +3,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
-#include <nlohmann/json.hpp>
 
 #include "../glb-loader.hpp"
 #include "./buffer.hpp"
@@ -29,7 +28,7 @@ Mesh::Impl::~Impl()
 
 void Mesh::Impl::load(const std::string& fileName)
 {
-    // @todo Load glb
+    // @todo Load glb - WAIT - shouldn't it be in Mesh directly?
 
     std::ifstream file(fileName, std::ifstream::binary);
 
@@ -42,13 +41,34 @@ void Mesh::Impl::load(const std::string& fileName)
     std::cout << header << jsonChunk << binChunk << std::endl;
 
     auto json = nlohmann::json::parse(jsonChunk.data);
-    std::cout << json << std::endl;
 
-    verticesCount(4);
-    verticesPositions({{-1.f, -1.f, 0.25f}, {1.f, -1.f, 0.25f}, {1.f, 1.f, 0.25f}, {-1.f, 1.f, 0.25f}});
-    verticesColors({{1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
-    verticesUvs({{0.f, 0.f}, {0.f, 1.f}, {1.f, 1.f}, {1.f, 0.f}});
-    indices({0, 1, 2, 2, 3, 0});
+    const auto& accessors = json["accessors"];
+    const auto& bufferViews = json["bufferViews"];
+
+    const auto& primitive = json["meshes"][0]["primitives"][0];
+    const auto& attributes = primitive["attributes"];
+
+    // Positions
+    uint32_t positionsAccessorIndex = attributes["POSITION"];
+    Accessor positionsAccessor(accessors[positionsAccessorIndex]);
+    auto positions = access<glm::vec3>(positionsAccessor, bufferViews, binChunk.data);
+
+    // Indices
+    uint32_t indicesAccessorIndex = primitive["indices"];
+    Accessor indicesAccessor(accessors[indicesAccessorIndex]);
+    std::cout << accessors[indicesAccessorIndex] << std::endl;
+    std::cout << bufferViews[0] << std::endl;
+    auto indicesVector = access<uint16_t>(indicesAccessor, bufferViews, binChunk.data);
+
+    for (auto i = 0u; i < indicesVector.size(); ++i) {
+        std::cout << indicesVector[i] << std::endl;
+    }
+
+    verticesCount(positions.size());
+    verticesPositions(std::move(positions));
+    // verticesColors({{1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
+    // verticesUvs({{0.f, 0.f}, {0.f, 1.f}, {1.f, 1.f}, {1.f, 0.f}});
+    indices(std::move(indicesVector));
 }
 
 void Mesh::Impl::verticesCount(const uint32_t count)
