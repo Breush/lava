@@ -4,7 +4,6 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
 
-#include "../glb-loader.hpp"
 #include "./buffer.hpp"
 #include "./render-engine-impl.hpp"
 
@@ -24,54 +23,6 @@ Mesh::Impl::Impl(RenderEngine& engine)
 Mesh::Impl::~Impl()
 {
     vkDeviceWaitIdle(m_device);
-}
-
-void Mesh::Impl::load(const std::string& fileName)
-{
-    // @todo Load glb - WAIT - shouldn't it be in Mesh directly?
-
-    std::ifstream file(fileName, std::ifstream::binary);
-
-    Header header;
-    Chunk jsonChunk;
-    Chunk binChunk;
-
-    file >> header >> jsonChunk >> binChunk;
-
-    std::cout << header << jsonChunk << binChunk << std::endl;
-
-    auto json = nlohmann::json::parse(jsonChunk.data);
-
-    const auto& accessors = json["accessors"];
-    const auto& bufferViews = json["bufferViews"];
-
-    const auto& primitive = json["meshes"][0]["primitives"][0];
-    const auto& attributes = primitive["attributes"];
-
-    // Positions
-    uint32_t positionsAccessorIndex = attributes["POSITION"];
-    Accessor positionsAccessor(accessors[positionsAccessorIndex]);
-    std::cout << accessors[positionsAccessorIndex] << std::endl;
-    auto positions = access<glm::vec3>(positionsAccessor, bufferViews, binChunk.data);
-
-    // Indices
-    uint32_t indicesAccessorIndex = primitive["indices"];
-    Accessor indicesAccessor(accessors[indicesAccessorIndex]);
-    std::cout << accessors[indicesAccessorIndex] << std::endl;
-    auto indicesVector = access<uint16_t>(indicesAccessor, bufferViews, binChunk.data);
-
-    for (auto& v : positions) {
-        auto z = v.z;
-        v.z = v.y;
-        v.y = z;
-        v *= 0.005;
-    }
-
-    std::cout << "Vertices: " << positions.size() << " " << sizeof(glm::vec3) << std::endl;
-
-    verticesCount(positions.size());
-    verticesPositions(positions);
-    indices(indicesVector);
 }
 
 void Mesh::Impl::verticesCount(const uint32_t count)

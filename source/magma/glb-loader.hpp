@@ -14,7 +14,7 @@ namespace lava {
     {
         os << "magic: " << header.magic[0] << header.magic[1] << header.magic[2] << header.magic[3] << std::endl;
         os << "version: " << header.version << std::endl;
-        os << "length: " << header.length << std::endl;
+        os << "length: " << header.length;
         return os;
     }
 
@@ -46,7 +46,6 @@ namespace lava {
         case Chunk::Type::BIN: os << "BIN"; break;
         case Chunk::Type::UNKNOWN: os << "UNKNOWN"; break;
         }
-        os << std::endl;
         return os;
     }
 
@@ -100,7 +99,6 @@ namespace lava {
     {
         uint32_t bufferViewIndex = accessor.bufferView;
         BufferView bufferView(bufferViews[bufferViewIndex]);
-        std::cout << bufferViews[bufferViewIndex] << std::endl;
         std::vector<T> vector(accessor.count);
 
         auto offset = accessor.byteOffset + bufferView.byteOffset;

@@ -87,9 +87,11 @@ void Instance::initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo)
     // Logging all available extensions
     auto extensions = availableExtensions();
     logger.info("magma.vulkan.extension") << "Available extensions:" << std::endl;
+    logger.log().tab(1);
     for (const auto& extension : extensions) {
-        logger.info("magma.vulkan.extension")[1] << extension.extensionName << std::endl;
+        logger.log() << extension.extensionName << std::endl;
     }
+    logger.log().tab(-1);
 
     // Enable surface extensions depending on os
     // TODO Depend on OS, there should be an interface to get those somewhere
@@ -105,10 +107,12 @@ void Instance::initRequiredExtensions(VkInstanceCreateInfo& instanceCreateInfo)
     instanceCreateInfo.ppEnabledExtensionNames = m_extensions.data();
 
     // Logging all enabled extensions
-    logger.info("magma.vulkan.extension") << "Enabled extensions:" << std::endl;
+    logger.log() << "Enabled extensions:" << std::endl;
+    logger.log().tab(1);
     for (const auto& extensionName : m_extensions) {
-        logger.info("magma.vulkan.extension")[1] << extensionName << std::endl;
+        logger.log() << extensionName << std::endl;
     }
+    logger.log().tab(-1);
 }
 
 void Instance::initValidationLayers(VkInstanceCreateInfo& instanceCreateInfo)

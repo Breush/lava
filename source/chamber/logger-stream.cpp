@@ -1,51 +1,54 @@
 #include <lava/chamber/logger-stream.hpp>
 
-#include <lava/chamber/call-stack.hpp>
+#include <lava/chamber/string-tools.hpp>
 
 using namespace lava;
 
 LoggerStream::LoggerStream(std::ostream& stream, const std::string& resetString)
-    : m_stream(&stream)
+    : std::ostream(this)
+    , m_stream(&stream)
     , m_resetString(resetString)
 {
 }
 
 LoggerStream& LoggerStream::operator[](uint8_t i)
 {
-    if (i == 1) (*m_stream) << "    ";
-    if (i == 2) (*m_stream) << "        ";
-    if (i == 3) (*m_stream) << "            ";
+    const std::string tab("    ");
+    if (i == 1) (*this) << tab * i;
     return *this;
 }
 
-LoggerStream& LoggerStream::operator<<(const std::string& string)
+LoggerStream& LoggerStream::tab(int8_t i)
 {
-    (*m_stream) << string;
+    const std::string tab("    ");
+    if (i > 0) {
+        m_prefixString += tab * i;
+    }
+    else if (i < 0) {
+        m_prefixString = m_prefixString.substr(0, m_prefixString.length() + tab.size() * i);
+    }
     return *this;
 }
 
-LoggerStream& LoggerStream::operator<<(int64_t number)
+int LoggerStream::overflow(int c)
 {
-    (*m_stream) << number;
-    return *this;
-}
+    if (c == '\n') {
+        stream() << resetString();
+        m_beenReset = true;
 
-LoggerStream& LoggerStream::operator<<(uint64_t number)
-{
-    (*m_stream) << number;
-    return *this;
-}
-
-LoggerStream& LoggerStream::operator<<(LoggerStream::EndlType endl)
-{
-    (*m_stream) << m_resetString << endl;
-
-    if (m_autoExit) {
-        CallStack callStack;
-        callStack.refresh(1);
-        (*m_stream) << callStack;
-        exit(1);
+        if (m_autoExit) {
+            CallStack callStack;
+            callStack.refresh(1);
+            stream() << callStack;
+            exit(1);
+        }
+    }
+    else if (m_beenReset) {
+        stream() << prefixString();
+        m_beenReset = false;
     }
 
-    return *this;
+    m_stream->put(c);
+
+    return 0;
 }

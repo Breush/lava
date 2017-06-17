@@ -14,6 +14,11 @@ namespace lava {
         Logger();
 
         /**
+         * Log with the same type and category as the last one.
+         */
+        LoggerStream& log();
+
+        /**
          * Log an output with information level.
          */
         LoggerStream& info(const std::string& category);

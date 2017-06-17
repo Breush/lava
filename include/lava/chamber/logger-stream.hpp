@@ -1,41 +1,47 @@
 #pragma once
 
 #include <iostream>
-#include <string>
 
+#include <lava/chamber/call-stack.hpp>
 #include <lava/chamber/properties.hpp>
 
 namespace lava {
     /**
      * Stream managing colors and reset upon line end.
      */
-    class LoggerStream {
+    class LoggerStream : public std::ostream, std::streambuf {
     public:
-        using CoutType = decltype(std::cout);
-        using EndlType = CoutType&(CoutType&);
-
         /**
          * The reset string will be applied before each std::endl.
          */
         LoggerStream(std::ostream& stream, const std::string& resetString);
 
         /**
-         * Add a spacing.
+         * The targetted stream.
          */
-        LoggerStream& operator[](uint8_t i);
+        std::ostream& stream() { return *m_stream; }
 
         /**
-         * Streaming wrappers.
+         * Add a one-time spacing.
          */
-        LoggerStream& operator<<(const std::string& string);
-        LoggerStream& operator<<(int64_t number);
-        LoggerStream& operator<<(uint64_t number);
-        LoggerStream& operator<<(EndlType endl);
+        LoggerStream& operator[](uint8_t spacingLength);
+
+        /**
+         * Add a spacing to the prefix.
+         * A negative one, will remove previous ones.
+         */
+        LoggerStream& tab(int8_t spacingLength);
+
+    protected:
+        int overflow(int c) override;
 
     private:
         std::ostream* m_stream = nullptr;
 
         $property(std::string, resetString);
+        $property(std::string, prefixString);
         $property(bool, autoExit, = false);
+
+        bool m_beenReset = true;
     };
 }
