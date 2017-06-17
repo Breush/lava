@@ -67,7 +67,7 @@ void Mesh::Impl::load(const std::string& fileName)
         v *= 0.005;
     }
 
-    std::cout << "Vertices: " << positions.size() << std::endl;
+    std::cout << "Vertices: " << positions.size() << " " << sizeof(glm::vec3) << std::endl;
 
     verticesCount(positions.size());
     verticesPositions(positions);

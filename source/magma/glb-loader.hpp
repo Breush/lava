@@ -105,15 +105,17 @@ namespace lava {
 
         auto offset = accessor.byteOffset + bufferView.byteOffset;
 
-        // No stride, optimisation
-        if (bufferView.byteStride == 0u) {
+        auto stride = bufferView.byteStride;
+        if (stride == 0u) stride = sizeof(T);
+
+        // Continuous memory, optimisation
+        if (stride == sizeof(T)) {
             memcpy(vector.data(), &buffer[offset], vector.size() * sizeof(T));
         }
         else {
-            const auto step = sizeof(T) + bufferView.byteStride;
-            for (auto i = 0u; i < accessor.count; ++i) {
+            for (auto i = 0u; i < vector.size(); ++i) {
                 memcpy(&vector[i], &buffer[offset], sizeof(T));
-                offset += step;
+                offset += stride;
             }
         }
 
