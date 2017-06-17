@@ -100,13 +100,21 @@ namespace lava {
     {
         uint32_t bufferViewIndex = accessor.bufferView;
         BufferView bufferView(bufferViews[bufferViewIndex]);
+        std::cout << bufferViews[bufferViewIndex] << std::endl;
         std::vector<T> vector(accessor.count);
 
         auto offset = accessor.byteOffset + bufferView.byteOffset;
-        const auto step = sizeof(T) + bufferView.byteStride;
-        for (auto i = 0u; i < accessor.count; ++i) {
-            memcpy(&vector[i], &buffer[offset], sizeof(T));
-            offset += step;
+
+        // No stride, optimisation
+        if (bufferView.byteStride == 0u) {
+            memcpy(vector.data(), &buffer[offset], vector.size() * sizeof(T));
+        }
+        else {
+            const auto step = sizeof(T) + bufferView.byteStride;
+            for (auto i = 0u; i < accessor.count; ++i) {
+                memcpy(&vector[i], &buffer[offset], sizeof(T));
+                offset += step;
+            }
         }
 
         return vector;

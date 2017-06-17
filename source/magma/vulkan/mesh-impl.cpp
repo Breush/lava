@@ -51,24 +51,27 @@ void Mesh::Impl::load(const std::string& fileName)
     // Positions
     uint32_t positionsAccessorIndex = attributes["POSITION"];
     Accessor positionsAccessor(accessors[positionsAccessorIndex]);
+    std::cout << accessors[positionsAccessorIndex] << std::endl;
     auto positions = access<glm::vec3>(positionsAccessor, bufferViews, binChunk.data);
 
     // Indices
     uint32_t indicesAccessorIndex = primitive["indices"];
     Accessor indicesAccessor(accessors[indicesAccessorIndex]);
     std::cout << accessors[indicesAccessorIndex] << std::endl;
-    std::cout << bufferViews[0] << std::endl;
     auto indicesVector = access<uint16_t>(indicesAccessor, bufferViews, binChunk.data);
 
-    for (auto i = 0u; i < indicesVector.size(); ++i) {
-        std::cout << indicesVector[i] << std::endl;
+    for (auto& v : positions) {
+        auto z = v.z;
+        v.z = v.y;
+        v.y = z;
+        v *= 0.005;
     }
 
+    std::cout << "Vertices: " << positions.size() << std::endl;
+
     verticesCount(positions.size());
-    verticesPositions(std::move(positions));
-    // verticesColors({{1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
-    // verticesUvs({{0.f, 0.f}, {0.f, 1.f}, {1.f, 1.f}, {1.f, 0.f}});
-    indices(std::move(indicesVector));
+    verticesPositions(positions);
+    indices(indicesVector);
 }
 
 void Mesh::Impl::verticesCount(const uint32_t count)
@@ -91,6 +94,16 @@ void Mesh::Impl::verticesColors(const std::vector<glm::vec3>& colors)
     auto length = std::min(m_vertices.size(), colors.size());
     for (uint32_t i = 0u; i < length; ++i) {
         m_vertices[i].color = colors[i];
+    }
+
+    createVertexBuffer();
+}
+
+void Mesh::Impl::verticesColors(const glm::vec3& color)
+{
+    auto length = m_vertices.size();
+    for (uint32_t i = 0u; i < length; ++i) {
+        m_vertices[i].color = color;
     }
 
     createVertexBuffer();

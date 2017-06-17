@@ -10,5 +10,6 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    outColor = vec4(fragColor * texture(tex, fragUv).rgb, 1.0);
+    // @fixme Have a way to unable or not uvs
+    outColor = vec4(fragColor/* * texture(tex, fragUv).rgb*/, 1.0);
 }
