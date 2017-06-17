@@ -14,6 +14,9 @@ namespace lava {
      */
     class MrrMaterial {
     public:
+        MrrMaterial();
+        ~MrrMaterial();
+
         class Impl;
         Impl& impl() { return *m_impl; }
 
