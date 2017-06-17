@@ -7,6 +7,7 @@
 
 namespace lava {
     class RenderEngine;
+    class MrrMaterial;
 }
 
 namespace lava {
@@ -28,6 +29,7 @@ namespace lava {
         void verticesColors(const std::vector<glm::vec3>& colors);
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
+        void material(const MrrMaterial& material);
 
     private:
         Impl* m_impl = nullptr;

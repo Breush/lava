@@ -8,11 +8,11 @@ private:                                                                        
 #define $property_getter(type, name)                                                                                             \
 public:                                                                                                                          \
     type& name() { return m_##name; }                                                                                            \
-    const type& name() const { return m_##name; }
+    type const& name() const { return m_##name; }
 
 #define $property_setter(type, name)                                                                                             \
 public:                                                                                                                          \
-    void name(const type& value) { m_##name = value; }
+    void name(type const& value) { m_##name = value; }
 
 /**
  * $attribute is a read-only property.

@@ -24,12 +24,14 @@ namespace lava {
         void verticesColors(const glm::vec3& color);
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
+        void material(const MrrMaterial& material);
 
         // Internal interface
         void update();
         void addCommands(VkCommandBuffer commandBuffer);
 
     private:
+        void createDescriptorSet();
         void createVertexBuffer();
         void createIndexBuffer();
 
@@ -41,6 +43,7 @@ namespace lava {
         // Data
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
+        const MrrMaterial* m_material = nullptr;
 
         // Buffers
         vulkan::Capsule<VkBuffer> m_vertexBuffer;

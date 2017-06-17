@@ -677,7 +677,6 @@ void RenderEngine::Impl::createSemaphores()
 
     if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != VK_SUCCESS
         || vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != VK_SUCCESS) {
-
         logger.error("magma.vulkan.command-buffer") << "Failed to create semaphores." << std::endl;
         exit(1);
     }

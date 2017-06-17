@@ -1,6 +1,8 @@
 #include <lava/magma/mesh.hpp>
 
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/pimpl.hpp>
+#include <lava/magma/mrr-material.hpp>
 
 #include <stb/stb_image.h>
 
@@ -9,10 +11,7 @@
 
 using namespace lava;
 
-Mesh::Mesh(RenderEngine& engine)
-{
-    m_impl = new Impl(engine);
-}
+$pimpl_class(Mesh, RenderEngine&, engine);
 
 Mesh::Mesh(RenderEngine& engine, const std::string& fileName)
     : Mesh(engine)
@@ -20,10 +19,12 @@ Mesh::Mesh(RenderEngine& engine, const std::string& fileName)
     load(fileName);
 }
 
-Mesh::~Mesh()
-{
-    delete m_impl;
-}
+$pimpl_method(Mesh, void, verticesCount, const uint32_t, count);
+$pimpl_method(Mesh, void, verticesPositions, const std::vector<glm::vec3>&, positions);
+$pimpl_method(Mesh, void, verticesColors, const std::vector<glm::vec3>&, colors);
+$pimpl_method(Mesh, void, verticesUvs, const std::vector<glm::vec2>&, uvs);
+$pimpl_method(Mesh, void, indices, const std::vector<uint16_t>&, indices);
+$pimpl_method(Mesh, void, material, const MrrMaterial&, material);
 
 void Mesh::load(const std::string& fileName)
 {
@@ -84,11 +85,12 @@ void Mesh::load(const std::string& fileName)
     // Indices
     uint32_t indicesAccessorIndex = primitive["indices"];
     Accessor indicesAccessor(accessors[indicesAccessorIndex]);
-    auto indicesVector = access<uint16_t>(indicesAccessor, bufferViews, binChunk.data);
+    auto indices = access<uint16_t>(indicesAccessor, bufferViews, binChunk.data);
 
     // Material
     uint32_t materialIndex = primitive["material"];
     PbrMetallicRoughnessMaterial material(materials[materialIndex]);
+    MrrMaterial mrrMaterial;
 
     // Material textures
     uint32_t textureIndex = material.baseColorTextureIndex;
@@ -98,41 +100,20 @@ void Mesh::load(const std::string& fileName)
     int texWidth, texHeight, texChannels;
     auto imageData = access(bufferViews[image.bufferView], binChunk.data);
     auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    std::vector<uint8_t> pixelsVector(texWidth * texHeight);
+    memmove(pixelsVector.data(), pixels, pixelsVector.size());
+    mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, texChannels);
     stbi_image_free(pixels);
 
     std::cout << bufferViews[image.bufferView] << std::endl;
 
     logger.log() << "Vertices count: " << positions.size() << std::endl;
-    logger.log() << "Indices count: " << indicesVector.size() << std::endl;
+    logger.log() << "Indices count: " << indices.size() << std::endl;
     logger.log() << "Uv1s count: " << uv1s.size() << std::endl;
 
-    verticesCount(positions.size());
-    verticesPositions(positions);
-    verticesUvs(uv1s);
-    indices(indicesVector);
-}
-
-void Mesh::verticesCount(const uint32_t count)
-{
-    m_impl->verticesCount(count);
-}
-
-void Mesh::verticesPositions(const std::vector<glm::vec3>& positions)
-{
+    m_impl->verticesCount(positions.size());
     m_impl->verticesPositions(positions);
-}
-
-void Mesh::verticesColors(const std::vector<glm::vec3>& colors)
-{
-    m_impl->verticesColors(colors);
-}
-
-void Mesh::verticesUvs(const std::vector<glm::vec2>& uvs)
-{
-    m_impl->verticesUvs(uvs);
-}
-
-void Mesh::indices(const std::vector<uint16_t>& indices)
-{
+    m_impl->verticesUvs(uv1s);
     m_impl->indices(indices);
+    m_impl->material(mrrMaterial);
 }

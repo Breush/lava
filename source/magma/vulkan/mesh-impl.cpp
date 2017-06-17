@@ -79,9 +79,19 @@ void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
     // while we update our secondary command buffer right here
 }
 
+void Mesh::Impl::material(const MrrMaterial& material)
+{
+    m_material = &material;
+    createDescriptorSet();
+}
+
 void Mesh::Impl::update()
 {
-    // UBOs ?
+    // @todo Is there any logic to update?
+}
+
+void Mesh::Impl::createDescriptorSet()
+{
 }
 
 void Mesh::Impl::createVertexBuffer()
