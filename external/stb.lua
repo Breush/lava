@@ -29,9 +29,8 @@ end
 -- Use hook
 
 local externalPath = path.getabsolute(".")
-function useStbFonts()
+function useStb()
     includedirs(externalPath .. "/include")
-    defines { "STB_IMAGE_IMPLEMENTATION" }
 end
 
 print("[Dependencies] STB librairies are ready.")

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 
 namespace lava {
@@ -67,6 +68,37 @@ namespace lava {
         return is;
     }
 
+    struct Image {
+        uint32_t bufferView = -1u;
+        std::string mimeType;
+
+        Image(const typename nlohmann::json::basic_json& json)
+        {
+            bufferView = json["bufferView"];
+            mimeType = json["mimeType"];
+        }
+    };
+
+    struct Texture {
+        uint32_t sampler = -1u;
+        uint32_t source = -1u;
+
+        Texture(const typename nlohmann::json::basic_json& json)
+        {
+            sampler = json["sampler"];
+            source = json["source"];
+        }
+    };
+
+    struct PbrMetallicRoughnessMaterial {
+        uint32_t baseColorTextureIndex = -1u;
+
+        PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json)
+        {
+            baseColorTextureIndex = json["pbrMetallicRoughness"]["baseColorTexture"]["index"];
+        }
+    };
+
     struct Accessor {
         uint32_t bufferView = 0u;
         uint32_t byteOffset = 0u;
@@ -92,6 +124,13 @@ namespace lava {
             if (json.find("byteStride") != json.end()) byteStride = json["byteStride"];
         }
     };
+
+    inline std::vector<uint8_t> access(const BufferView& bufferView, const std::vector<uint8_t>& buffer)
+    {
+        std::vector<uint8_t> vector(bufferView.byteLength);
+        memcpy(vector.data(), &buffer[bufferView.byteOffset], vector.size());
+        return vector;
+    }
 
     template <class T>
     inline std::vector<T> access(const Accessor& accessor, const typename nlohmann::json::basic_json& bufferViews,

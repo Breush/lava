@@ -8,6 +8,7 @@ project "lava-chamber"
         links { "pthread" }
 
         useGlm()
+        useStb()
     end
 
     chamberDependencies()

@@ -13,7 +13,6 @@ layout(location = 2) in vec2 inUv;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragUv;
-layout(location = 2) out float depth;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -23,5 +22,4 @@ void main() {
     gl_Position = ubo.projection * ubo.view * ubo.model * vec4(inPosition, 1.0);
     fragColor = inColor;
     fragUv = inUv;
-    depth = gl_Position.z;
 }
