@@ -13,8 +13,10 @@ namespace lava {
      */
     class MrrMaterial {
     public:
-        MrrMaterial(RenderEngine& engine);
+        MrrMaterial();
         ~MrrMaterial();
+
+        void init(RenderEngine& engine);
 
         class Impl;
         Impl& impl() { return *m_impl; }

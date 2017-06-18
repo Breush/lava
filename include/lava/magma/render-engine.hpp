@@ -1,9 +1,11 @@
 #pragma once
 
 #include <lava/crater/VideoMode.hpp>
+#include <memory>
 
 namespace lava {
     class IRenderTarget;
+    class MrrMaterial;
 }
 
 namespace lava {
@@ -22,6 +24,7 @@ namespace lava {
         void update();
 
         void add(IRenderTarget& renderTarget);
+        MrrMaterial& add(std::unique_ptr<MrrMaterial>&& material);
 
     private:
         Impl* m_impl = nullptr;

@@ -119,6 +119,13 @@ void RenderEngine::Impl::add(Mesh::Impl& mesh)
     m_meshes.emplace_back(&mesh);
 }
 
+MrrMaterial& RenderEngine::Impl::add(std::unique_ptr<MrrMaterial>&& material)
+{
+    auto& materialRef = *material;
+    m_materials.emplace_back(std::move(material));
+    return materialRef;
+}
+
 void RenderEngine::Impl::createRenderPass()
 {
     logger.info("magma.vulkan.render-engine") << "Creating render pass." << std::endl;

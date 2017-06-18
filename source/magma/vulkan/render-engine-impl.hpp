@@ -4,6 +4,7 @@
 #include <lava/chamber/properties.hpp>
 #include <lava/crater/Window.hpp>
 #include <lava/magma/mesh.hpp>
+#include <lava/magma/mrr-material.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "./device.hpp"
@@ -31,8 +32,12 @@ namespace lava {
         void update();
         void add(IRenderTarget& renderTarget);
 
+        template <class T>
+        T& makeMaterial();
+
         // Internal interface
         void add(Mesh::Impl& mesh);
+        MrrMaterial& add(std::unique_ptr<MrrMaterial>&& material);
 
     protected:
         void createRenderPass();
@@ -106,10 +111,9 @@ namespace lava {
         vulkan::Capsule<VkBuffer> m_uniformBuffer{m_device.capsule(), vkDestroyBuffer};
         vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory{m_device.capsule(), vkFreeMemory};
 
-        // Targets
+        // Data
         std::vector<IRenderTarget*> m_renderTargets;
-
-        // Meshes
         std::vector<Mesh::Impl*> m_meshes;
+        std::vector<std::unique_ptr<MrrMaterial>> m_materials;
     };
 }

@@ -2,6 +2,7 @@
 
 #include <lava/chamber/pimpl.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
+#include <lava/magma/mrr-material.hpp> // @todo Should be an interface
 
 #include "./vulkan/render-engine-impl.hpp"
 
@@ -16,4 +17,10 @@ void RenderEngine::add(IRenderTarget& renderTarget)
 {
     renderTarget.init(*this);
     m_impl->add(renderTarget);
+}
+
+MrrMaterial& RenderEngine::add(std::unique_ptr<MrrMaterial>&& material)
+{
+    material->init(*this);
+    return m_impl->add(std::move(material));
 }
