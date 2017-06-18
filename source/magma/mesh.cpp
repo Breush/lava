@@ -11,12 +11,21 @@
 
 using namespace lava;
 
-$pimpl_class(Mesh, RenderEngine&, engine);
+Mesh::Mesh(RenderEngine& engine)
+    : m_engine(engine)
+{
+    m_impl = new Impl(engine);
+}
 
 Mesh::Mesh(RenderEngine& engine, const std::string& fileName)
     : Mesh(engine)
 {
     load(fileName);
+}
+
+Mesh::~Mesh()
+{
+    delete m_impl;
 }
 
 $pimpl_method(Mesh, void, verticesCount, const uint32_t, count);
@@ -90,7 +99,7 @@ void Mesh::load(const std::string& fileName)
     // Material
     uint32_t materialIndex = primitive["material"];
     PbrMetallicRoughnessMaterial material(materials[materialIndex]);
-    MrrMaterial mrrMaterial;
+    MrrMaterial mrrMaterial(m_engine);
 
     // Material textures
     uint32_t textureIndex = material.baseColorTextureIndex;

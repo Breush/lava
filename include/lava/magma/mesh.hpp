@@ -33,5 +33,6 @@ namespace lava {
 
     private:
         Impl* m_impl = nullptr;
+        RenderEngine& m_engine;
     };
 }
