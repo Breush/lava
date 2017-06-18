@@ -99,22 +99,21 @@ void Mesh::load(const std::string& fileName)
     // Material
     uint32_t materialIndex = primitive["material"];
     PbrMetallicRoughnessMaterial material(materials[materialIndex]);
-    MrrMaterial mrrMaterial(m_engine);
+    auto& mrrMaterial = *(new MrrMaterial(m_engine));
+    // @todo Have the material managed somewhere (it is currently not deallocated)
 
     // Material textures
     uint32_t textureIndex = material.baseColorTextureIndex;
     Texture texture(textures[textureIndex]);
     Image image(images[texture.source]);
 
-    int texWidth, texHeight, texChannels;
+    int texWidth, texHeight;
     auto imageData = access(bufferViews[image.bufferView], binChunk.data);
-    auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    std::vector<uint8_t> pixelsVector(texWidth * texHeight);
+    auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
+    std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
     memmove(pixelsVector.data(), pixels, pixelsVector.size());
-    mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, texChannels);
+    mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
     stbi_image_free(pixels);
-
-    std::cout << bufferViews[image.bufferView] << std::endl;
 
     logger.log() << "Vertices count: " << positions.size() << std::endl;
     logger.log() << "Indices count: " << indices.size() << std::endl;

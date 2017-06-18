@@ -121,6 +121,8 @@ void RenderEngine::Impl::add(Mesh::Impl& mesh)
 
 void RenderEngine::Impl::createRenderPass()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating render pass." << std::endl;
+
     // Color attachement
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = m_swapchain.imageFormat();
@@ -184,6 +186,8 @@ void RenderEngine::Impl::createRenderPass()
 
 void RenderEngine::Impl::createDescriptorSetLayout()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating descriptor set layout." << std::endl;
+
     // UBO
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
     uboLayoutBinding.binding = 0;
@@ -213,6 +217,8 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
 void RenderEngine::Impl::createGraphicsPipeline()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating graphics pipeline." << std::endl;
+
     auto vertShaderCode = vulkan::readShaderFile("./data/shaders/triangle.vert.spv");
     auto fragShaderCode = vulkan::readShaderFile("./data/shaders/triangle.frag.spv");
 
@@ -383,6 +389,8 @@ void RenderEngine::Impl::createGraphicsPipeline()
 
 void RenderEngine::Impl::createFramebuffers()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating frame buffers." << std::endl;
+
     m_swapchainFramebuffers.resize(m_swapchain.imageViews().size(),
                                    vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
 
@@ -407,6 +415,8 @@ void RenderEngine::Impl::createFramebuffers()
 
 void RenderEngine::Impl::createCommandPool()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating command pool." << std::endl;
+
     auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
 
     VkCommandPoolCreateInfo poolInfo = {};
@@ -422,6 +432,8 @@ void RenderEngine::Impl::createCommandPool()
 
 void RenderEngine::Impl::createTextureImage()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating texture image." << std::endl;
+
     auto filename = "./data/images/debug.png";
     int texWidth, texHeight, texChannels;
     auto pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -477,11 +489,15 @@ void RenderEngine::Impl::createTextureImage()
 
 void RenderEngine::Impl::createTextureImageView()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating texture image view." << std::endl;
+
     vulkan::createImageView(m_device, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_textureImageView);
 }
 
 void RenderEngine::Impl::createTextureSampler()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating texture sampler." << std::endl;
+
     VkSamplerCreateInfo samplerInfo = {};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -507,6 +523,8 @@ void RenderEngine::Impl::createTextureSampler()
 
 void RenderEngine::Impl::createDepthResources()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating depth resources." << std::endl;
+
     auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
     auto extent = m_swapchain.extent();
 
@@ -522,6 +540,8 @@ void RenderEngine::Impl::createDepthResources()
 
 void RenderEngine::Impl::createUniformBuffer()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating uniform buffer." << std::endl;
+
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
     int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -536,6 +556,8 @@ void RenderEngine::Impl::createUniformBuffer()
 
 void RenderEngine::Impl::createDescriptorPool()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
+
     std::array<VkDescriptorPoolSize, 2> poolSizes = {};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = 1;
@@ -557,6 +579,8 @@ void RenderEngine::Impl::createDescriptorPool()
 
 void RenderEngine::Impl::createDescriptorSet()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating descriptor set." << std::endl;
+
     VkDescriptorSetLayout layouts[] = {m_descriptorSetLayout};
     VkDescriptorSetAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -608,6 +632,8 @@ void RenderEngine::Impl::createDescriptorSet()
 
 void RenderEngine::Impl::createCommandBuffers()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating command buffers." << std::endl;
+
     // Free previous command buffers if any
     if (m_commandBuffers.size() > 0) {
         vkFreeCommandBuffers(m_device, m_commandPool, m_commandBuffers.size(), m_commandBuffers.data());
@@ -672,6 +698,8 @@ void RenderEngine::Impl::createCommandBuffers()
 
 void RenderEngine::Impl::createSemaphores()
 {
+    logger.info("magma.vulkan.render-engine") << "Creating semaphores." << std::endl;
+
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 

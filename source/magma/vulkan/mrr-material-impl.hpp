@@ -3,7 +3,9 @@
 #include <lava/magma/mrr-material.hpp>
 
 #include <lava/magma/render-engine.hpp>
-#include <vulkan/vulkan.hpp>
+
+#include "./capsule.hpp"
+#include "./device.hpp"
 
 namespace lava {
     /**
@@ -19,6 +21,9 @@ namespace lava {
 
         // Internal interface
         void addCommands(VkCommandBuffer commandBuffer);
+
+    protected:
+        void rebindBaseColor();
 
     public:
         struct Attribute {
@@ -43,6 +48,12 @@ namespace lava {
     private:
         // References
         RenderEngine::Impl& m_engine;
+        vulkan::Device& m_device;
+
+        // @todo Should be in the texture itself
+        vulkan::Capsule<VkImage> m_textureImage{m_device.capsule(), vkDestroyImage};
+        vulkan::Capsule<VkDeviceMemory> m_textureImageMemory{m_device.capsule(), vkFreeMemory};
+        vulkan::Capsule<VkImageView> m_textureImageView{m_device.capsule(), vkDestroyImageView};
 
         // Data
         Attribute m_baseColor;

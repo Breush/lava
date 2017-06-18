@@ -87,8 +87,9 @@ namespace lava {
         // Debug texture
         vulkan::Capsule<VkImage> m_textureImage{m_device.capsule(), vkDestroyImage};
         vulkan::Capsule<VkDeviceMemory> m_textureImageMemory{m_device.capsule(), vkFreeMemory};
-        vulkan::Capsule<VkImageView> m_textureImageView{m_device.capsule(), vkDestroyImageView};
-        vulkan::Capsule<VkSampler> m_textureSampler{m_device.capsule(), vkDestroySampler};
+
+        $attribute(vulkan::Capsule<VkImageView>, textureImageView, {m_device.capsule(), vkDestroyImageView});
+        $attribute(vulkan::Capsule<VkSampler>, textureSampler, {m_device.capsule(), vkDestroySampler});
 
         // Depth
         vulkan::Capsule<VkImage> m_depthImage{m_device.capsule(), vkDestroyImage};

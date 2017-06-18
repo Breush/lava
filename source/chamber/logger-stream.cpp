@@ -39,7 +39,8 @@ int LoggerStream::overflow(int c)
         if (m_autoExit) {
             CallStack callStack;
             callStack.refresh(1);
-            stream() << c << callStack;
+            m_stream->put(c);
+            stream() << callStack;
             exit(1);
         }
     }

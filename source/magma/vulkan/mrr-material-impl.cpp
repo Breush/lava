@@ -1,5 +1,8 @@
 #include "./mrr-material-impl.hpp"
 
+#include <lava/chamber/logger.hpp>
+
+#include "./image.hpp"
 #include "./render-engine-impl.hpp"
 
 #include <cstring>
@@ -18,6 +21,7 @@ using namespace lava;
 
 MrrMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
+    , m_device(m_engine.device())
 {
     m_baseColor.type = Attribute::Type::NONE;
 }
@@ -36,8 +40,95 @@ void MrrMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t w
     m_baseColor.texture.width = width;
     m_baseColor.texture.height = height;
     m_baseColor.texture.channels = channels;
-    m_baseColor.texture.pixels = new uint8_t[width * height];
-    memcpy(m_baseColor.texture.pixels, pixels.data(), width * height);
+
+    if (pixels.size() != width * height * channels) {
+        logger.error("magma.vulkan.mrr-material") << "Image dimension for texture does not match provided data length."
+                                                  << " Data: " << pixels.size() << " Dimensions: " << width << "x" << height
+                                                  << " (" << static_cast<uint32_t>(channels) << ")" << std::endl;
+    }
+
+    m_baseColor.texture.pixels = new uint8_t[pixels.size()];
+    memcpy(m_baseColor.texture.pixels, pixels.data(), pixels.size());
+
+    rebindBaseColor();
+}
+
+void MrrMaterial::Impl::rebindBaseColor()
+{
+    if (m_baseColor.type != Attribute::Type::TEXTURE) return;
+
+    if (m_baseColor.texture.channels != 4u) {
+        logger.error("magma.culkan.mrr-material")
+            << "Cannot handle texture with " << static_cast<uint32_t>(m_baseColor.texture.channels)
+            << " channels. Only 4 is currently supported." << std::endl;
+    }
+
+    vulkan::Capsule<VkImage> stagingImage{m_device.capsule(), vkDestroyImage};
+    vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_device.capsule(), vkFreeMemory};
+    vulkan::Capsule<VkImageView> stagingImageView{m_device.capsule(), vkDestroyImageView};
+
+    vulkan::createImage(m_device, m_baseColor.texture.width, m_baseColor.texture.height, VK_FORMAT_R8G8B8A8_UNORM,
+                        VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage,
+                        stagingImageMemory);
+
+    VkImageSubresource subresource = {};
+    subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresource.mipLevel = 0;
+    subresource.arrayLayer = 0;
+
+    VkSubresourceLayout stagingImageLayout;
+    vkGetImageSubresourceLayout(m_device, stagingImage, &subresource, &stagingImageLayout);
+
+    // Staging buffer
+    vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
+    vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_device.capsule(), vkFreeMemory};
+
+    VkDeviceSize imageSize = m_baseColor.texture.width * m_baseColor.texture.height * 4;
+    vulkan::createBuffer(m_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                         stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, m_baseColor.texture.pixels, static_cast<size_t>(imageSize));
+    vkUnmapMemory(m_device, stagingBufferMemory);
+
+    // The real image
+    vulkan::createImage(m_device, m_baseColor.texture.width, m_baseColor.texture.height, VK_FORMAT_R8G8B8A8_UNORM,
+                        VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
+
+    vulkan::transitionImageLayout(m_device, m_engine.commandPool(), m_textureImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    vulkan::copyBufferToImage(m_device, m_engine.commandPool(), stagingBuffer, m_textureImage, m_baseColor.texture.width,
+                              m_baseColor.texture.height);
+
+    // Update image view
+    vulkan::createImageView(m_device, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_textureImageView);
+
+    // Update descriptor set
+    // @todo Have descriptor set per material type (e.g. 1 for MrrMaterial)
+    // and find a way to bind the image by instance of material (during addCommands?)
+    VkWriteDescriptorSet descriptorWrite = {};
+
+    VkDescriptorImageInfo imageInfo = {};
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = m_textureImageView;
+    imageInfo.sampler = m_engine.textureSampler();
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_engine.descriptorSet();
+    descriptorWrite.dstBinding = 1;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = nullptr;
+    descriptorWrite.pImageInfo = &imageInfo;
+    descriptorWrite.pTexelBufferView = nullptr;
+
+    vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void MrrMaterial::Impl::addCommands(VkCommandBuffer commandBuffer)
