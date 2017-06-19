@@ -30,6 +30,7 @@ Mesh::~Mesh()
 
 $pimpl_method(Mesh, void, verticesCount, const uint32_t, count);
 $pimpl_method(Mesh, void, verticesPositions, const std::vector<glm::vec3>&, positions);
+$pimpl_method(Mesh, void, verticesNormals, const std::vector<glm::vec3>&, normals);
 $pimpl_method(Mesh, void, verticesColors, const std::vector<glm::vec3>&, colors);
 $pimpl_method(Mesh, void, verticesUvs, const std::vector<glm::vec2>&, uvs);
 $pimpl_method(Mesh, void, indices, const std::vector<uint16_t>&, indices);
@@ -86,6 +87,18 @@ void Mesh::load(const std::string& fileName)
         v *= 0.007;
     }
 
+    // Normals
+    uint32_t normalsAccessorIndex = attributes["NORMAL"];
+    glb::Accessor normalsAccessor(accessors[normalsAccessorIndex]);
+    auto normals = normalsAccessor.get<glm::vec3>(bufferViews, binChunk.data);
+
+    // Fixing axes conventions
+    for (auto& v : normals) {
+        auto z = v.z;
+        v.z = v.y;
+        v.y = -z;
+    }
+
     // UVs
     uint32_t uv1sAccessorIndex = attributes["TEXCOORD_0"];
     glb::Accessor uv1sAccessor(accessors[uv1sAccessorIndex]);
@@ -117,11 +130,13 @@ void Mesh::load(const std::string& fileName)
 
     // All right, we're done!
     logger.log() << "Vertices count: " << positions.size() << std::endl;
+    logger.log() << "Normals count: " << normals.size() << std::endl;
     logger.log() << "Indices count: " << indices.size() << std::endl;
     logger.log() << "Uv1s count: " << uv1s.size() << std::endl;
 
     m_impl->verticesCount(positions.size());
     m_impl->verticesPositions(positions);
+    m_impl->verticesNormals(normals);
     m_impl->verticesUvs(uv1s);
     m_impl->indices(indices);
     m_impl->material(mrrMaterial);

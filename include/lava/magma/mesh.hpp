@@ -27,6 +27,7 @@ namespace lava {
         void load(const std::string& fileName);
         void verticesCount(const uint32_t count);
         void verticesPositions(const std::vector<glm::vec3>& positions);
+        void verticesNormals(const std::vector<glm::vec3>& normals);
         void verticesColors(const std::vector<glm::vec3>& colors);
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
