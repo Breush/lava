@@ -6,7 +6,7 @@
 
 #include <stb/stb_image.h>
 
-#include "./glb-loader.hpp"
+#include "./glb/loader.hpp"
 #include "./vulkan/mesh-impl.hpp"
 
 using namespace lava;
@@ -42,9 +42,9 @@ void Mesh::load(const std::string& fileName)
 
     std::ifstream file(fileName, std::ifstream::binary);
 
-    Header header;
-    Chunk jsonChunk;
-    Chunk binChunk;
+    glb::Header header;
+    glb::Chunk jsonChunk;
+    glb::Chunk binChunk;
     file >> header >> jsonChunk >> binChunk;
 
     logger.log() << "Header:" << std::endl;
@@ -75,8 +75,8 @@ void Mesh::load(const std::string& fileName)
 
     // Positions
     uint32_t positionsAccessorIndex = attributes["POSITION"];
-    Accessor positionsAccessor(accessors[positionsAccessorIndex]);
-    auto positions = access<glm::vec3>(positionsAccessor, bufferViews, binChunk.data);
+    glb::Accessor positionsAccessor(accessors[positionsAccessorIndex]);
+    auto positions = positionsAccessor.get<glm::vec3>(bufferViews, binChunk.data);
 
     // Fixing axes conventions and scaling
     for (auto& v : positions) {
@@ -88,32 +88,34 @@ void Mesh::load(const std::string& fileName)
 
     // UVs
     uint32_t uv1sAccessorIndex = attributes["TEXCOORD_0"];
-    Accessor uv1sAccessor(accessors[uv1sAccessorIndex]);
-    auto uv1s = access<glm::vec2>(uv1sAccessor, bufferViews, binChunk.data);
+    glb::Accessor uv1sAccessor(accessors[uv1sAccessorIndex]);
+    auto uv1s = uv1sAccessor.get<glm::vec2>(bufferViews, binChunk.data);
 
     // Indices
     uint32_t indicesAccessorIndex = primitive["indices"];
-    Accessor indicesAccessor(accessors[indicesAccessorIndex]);
-    auto indices = access<uint16_t>(indicesAccessor, bufferViews, binChunk.data);
+    glb::Accessor indicesAccessor(accessors[indicesAccessorIndex]);
+    auto indices = indicesAccessor.get<uint16_t>(bufferViews, binChunk.data);
 
     // Material
     uint32_t materialIndex = primitive["material"];
-    PbrMetallicRoughnessMaterial material(materials[materialIndex]);
+    glb::PbrMetallicRoughnessMaterial material(materials[materialIndex]);
     auto& mrrMaterial = m_engine.add(std::make_unique<MrrMaterial>());
 
     // Material textures
     uint32_t textureIndex = material.baseColorTextureIndex;
-    Texture texture(textures[textureIndex]);
-    Image image(images[texture.source]);
+    glb::Texture texture(textures[textureIndex]);
+    glb::Image image(images[texture.source]);
 
     int texWidth, texHeight;
-    auto imageData = access(bufferViews[image.bufferView], binChunk.data);
+    glb::BufferView imageBufferView(bufferViews[image.bufferView]);
+    auto imageData = imageBufferView.get(binChunk.data);
     auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
     std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
     memmove(pixelsVector.data(), pixels, pixelsVector.size());
     mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
     stbi_image_free(pixels);
 
+    // All right, we're done!
     logger.log() << "Vertices count: " << positions.size() << std::endl;
     logger.log() << "Indices count: " << indices.size() << std::endl;
     logger.log() << "Uv1s count: " << uv1s.size() << std::endl;

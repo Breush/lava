@@ -25,6 +25,8 @@
 
 ### Magma
 
+- USE VULKAN.HPP
+
 - RenderEngine (ou namespace magma ?)
 - RenderWindow
 - 3D meshes !
