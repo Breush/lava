@@ -19,8 +19,12 @@ void RenderEngine::add(IRenderTarget& renderTarget)
     m_impl->add(renderTarget);
 }
 
-IMaterial& RenderEngine::add(std::unique_ptr<IMaterial>&& material)
+void RenderEngine::add(std::unique_ptr<IMaterial>&& material)
 {
-    material->init(*this);
-    return m_impl->add(std::move(material));
+    m_impl->add(std::move(material));
+}
+
+void RenderEngine::add(std::unique_ptr<IMesh>&& mesh)
+{
+    m_impl->add(std::move(mesh));
 }

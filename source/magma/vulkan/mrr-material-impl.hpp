@@ -13,10 +13,8 @@ namespace lava {
      */
     class MrrMaterial::Impl {
     public:
-        Impl();
+        Impl(RenderEngine& engine);
         ~Impl();
-
-        void init(RenderEngine& engine);
 
         // Main interface
         void baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
@@ -49,12 +47,12 @@ namespace lava {
 
     private:
         // References
-        RenderEngine::Impl* m_engine = nullptr;
+        RenderEngine::Impl& m_engine;
 
-        // @todo Should be in the texture itself
-        vulkan::Capsule<VkImage>* m_textureImage = nullptr;
-        vulkan::Capsule<VkDeviceMemory>* m_textureImageMemory = nullptr;
-        vulkan::Capsule<VkImageView>* m_textureImageView = nullptr;
+        // @todo Should be in the texture itself, and probably unique_ptr, so that they can be deleted
+        vulkan::Capsule<VkImage> m_textureImage;
+        vulkan::Capsule<VkDeviceMemory> m_textureImageMemory;
+        vulkan::Capsule<VkImageView> m_textureImageView;
 
         // Data
         Attribute m_baseColor;

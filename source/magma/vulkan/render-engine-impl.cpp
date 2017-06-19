@@ -119,11 +119,14 @@ void RenderEngine::Impl::add(Mesh::Impl& mesh)
     m_meshes.emplace_back(&mesh);
 }
 
-IMaterial& RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)
+void RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)
 {
-    auto& materialRef = *material;
     m_materials.emplace_back(std::move(material));
-    return materialRef;
+}
+
+void RenderEngine::Impl::add(std::unique_ptr<IMesh>&& mesh)
+{
+    m_meshesSupreme.emplace_back(std::move(mesh));
 }
 
 void RenderEngine::Impl::createRenderPass()

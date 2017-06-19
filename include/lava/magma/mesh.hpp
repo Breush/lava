@@ -1,12 +1,13 @@
 #pragma once
 
+#include <lava/magma/interfaces/mesh.hpp>
+
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <string>
 #include <vector>
 
 namespace lava {
-    class RenderEngine;
     class MrrMaterial;
 }
 
@@ -14,7 +15,7 @@ namespace lava {
     /**
      * A mesh, holding geometry and transform.
      */
-    class Mesh {
+    class Mesh : public IMesh {
     public:
         Mesh(RenderEngine& engine);
         Mesh(RenderEngine& engine, const std::string& fileName);

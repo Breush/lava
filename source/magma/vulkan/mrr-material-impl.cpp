@@ -19,7 +19,11 @@ namespace {
 
 using namespace lava;
 
-MrrMaterial::Impl::Impl()
+MrrMaterial::Impl::Impl(RenderEngine& engine)
+    : m_engine(engine.impl())
+    , m_textureImage{m_engine.device().capsule(), vkDestroyImage}
+    , m_textureImageMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_textureImageView{m_engine.device().capsule(), vkDestroyImageView}
 {
     m_baseColor.type = Attribute::Type::NONE;
 }
@@ -27,21 +31,6 @@ MrrMaterial::Impl::Impl()
 MrrMaterial::Impl::~Impl()
 {
     cleanAttribute(m_baseColor);
-
-    // @todo Should be inside an attribute
-    delete m_textureImageView;
-    delete m_textureImageMemory;
-    delete m_textureImage;
-}
-
-void MrrMaterial::Impl::init(RenderEngine& engine)
-{
-    m_engine = &engine.impl();
-
-    auto& deviceCapsule = m_engine->device().capsule();
-    m_textureImage = new vulkan::Capsule<VkImage>{deviceCapsule, vkDestroyImage};
-    m_textureImageMemory = new vulkan::Capsule<VkDeviceMemory>{deviceCapsule, vkFreeMemory};
-    m_textureImageView = new vulkan::Capsule<VkImageView>{deviceCapsule, vkDestroyImageView};
 }
 
 // @todo This should be a reference to a texture, so that it can be shared between materials
@@ -76,11 +65,11 @@ void MrrMaterial::Impl::rebindBaseColor()
             << " channels. Only 4 is currently supported." << std::endl;
     }
 
-    vulkan::Capsule<VkImage> stagingImage{m_engine->device().capsule(), vkDestroyImage};
-    vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_engine->device().capsule(), vkFreeMemory};
-    vulkan::Capsule<VkImageView> stagingImageView{m_engine->device().capsule(), vkDestroyImageView};
+    vulkan::Capsule<VkImage> stagingImage{m_engine.device().capsule(), vkDestroyImage};
+    vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_engine.device().capsule(), vkFreeMemory};
+    vulkan::Capsule<VkImageView> stagingImageView{m_engine.device().capsule(), vkDestroyImageView};
 
-    vulkan::createImage(m_engine->device(), m_baseColor.texture.width, m_baseColor.texture.height, VK_FORMAT_R8G8B8A8_UNORM,
+    vulkan::createImage(m_engine.device(), m_baseColor.texture.width, m_baseColor.texture.height, VK_FORMAT_R8G8B8A8_UNORM,
                         VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage,
                         stagingImageMemory);
@@ -91,36 +80,36 @@ void MrrMaterial::Impl::rebindBaseColor()
     subresource.arrayLayer = 0;
 
     VkSubresourceLayout stagingImageLayout;
-    vkGetImageSubresourceLayout(m_engine->device(), stagingImage, &subresource, &stagingImageLayout);
+    vkGetImageSubresourceLayout(m_engine.device(), stagingImage, &subresource, &stagingImageLayout);
 
     // Staging buffer
-    vulkan::Capsule<VkBuffer> stagingBuffer{m_engine->device().capsule(), vkDestroyBuffer};
-    vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_engine->device().capsule(), vkFreeMemory};
+    vulkan::Capsule<VkBuffer> stagingBuffer{m_engine.device().capsule(), vkDestroyBuffer};
+    vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_engine.device().capsule(), vkFreeMemory};
 
     VkDeviceSize imageSize = m_baseColor.texture.width * m_baseColor.texture.height * 4;
-    vulkan::createBuffer(m_engine->device(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    vulkan::createBuffer(m_engine.device(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
                          stagingBufferMemory);
 
     void* data;
-    vkMapMemory(m_engine->device(), stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(m_engine.device(), stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, m_baseColor.texture.pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(m_engine->device(), stagingBufferMemory);
+    vkUnmapMemory(m_engine.device(), stagingBufferMemory);
 
     // The real image
-    vulkan::createImage(m_engine->device(), m_baseColor.texture.width, m_baseColor.texture.height, VK_FORMAT_R8G8B8A8_UNORM,
+    vulkan::createImage(m_engine.device(), m_baseColor.texture.width, m_baseColor.texture.height, VK_FORMAT_R8G8B8A8_UNORM,
                         VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, *m_textureImage, *m_textureImageMemory);
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
 
-    vulkan::transitionImageLayout(m_engine->device(), m_engine->commandPool(), *m_textureImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool(), m_textureImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    vulkan::copyBufferToImage(m_engine->device(), m_engine->commandPool(), stagingBuffer, *m_textureImage,
-                              m_baseColor.texture.width, m_baseColor.texture.height);
+    vulkan::copyBufferToImage(m_engine.device(), m_engine.commandPool(), stagingBuffer, m_textureImage, m_baseColor.texture.width,
+                              m_baseColor.texture.height);
 
     // Update image view
-    vulkan::createImageView(m_engine->device(), *m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
-                            *m_textureImageView);
+    vulkan::createImageView(m_engine.device(), m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
+                            m_textureImageView);
 
     // Update descriptor set
     // @todo Have descriptor set per material type (e.g. 1 for MrrMaterial)
@@ -129,11 +118,11 @@ void MrrMaterial::Impl::rebindBaseColor()
 
     VkDescriptorImageInfo imageInfo = {};
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = *m_textureImageView;
-    imageInfo.sampler = m_engine->textureSampler();
+    imageInfo.imageView = m_textureImageView;
+    imageInfo.sampler = m_engine.textureSampler();
 
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_engine->descriptorSet();
+    descriptorWrite.dstSet = m_engine.descriptorSet();
     descriptorWrite.dstBinding = 1;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -142,7 +131,7 @@ void MrrMaterial::Impl::rebindBaseColor()
     descriptorWrite.pImageInfo = &imageInfo;
     descriptorWrite.pTexelBufferView = nullptr;
 
-    vkUpdateDescriptorSets(m_engine->device(), 1, &descriptorWrite, 0, nullptr);
+    vkUpdateDescriptorSets(m_engine.device(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void MrrMaterial::Impl::addCommands(VkCommandBuffer /*commandBuffer*/)

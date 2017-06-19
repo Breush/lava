@@ -6,10 +6,10 @@ namespace lava {
 
 namespace lava {
     /**
-     * Interface for materials.
+     * Interface for meshes.
      */
-    class IMaterial {
+    class IMesh {
     public:
-        virtual ~IMaterial() = default;
+        virtual ~IMesh() = default;
     };
 }

@@ -16,7 +16,7 @@ int main(void)
     engine.add(window);
 
     // Create a mesh
-    Mesh duckMesh(engine, "./assets/models/duck.glb");
+    engine.make<Mesh>("./assets/models/duck.glb");
 
     // Keep running while the window is open
     while (window.opened()) {

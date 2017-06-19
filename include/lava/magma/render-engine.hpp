@@ -6,6 +6,7 @@
 namespace lava {
     class IRenderTarget;
     class IMaterial;
+    class IMesh;
 }
 
 namespace lava {
@@ -29,14 +30,15 @@ namespace lava {
          * @example
          *      auto& material = engine.make<MrrMaterial>();
          */
-        template <class T>
-        T& make();
+        template <class T, class... Arguments>
+        T& make(Arguments&&... arguments);
 
         /**
          * Add resource that has already been created.
          */
         void add(IRenderTarget& renderTarget);
-        IMaterial& add(std::unique_ptr<IMaterial>&& material);
+        void add(std::unique_ptr<IMesh>&& mesh);
+        void add(std::unique_ptr<IMaterial>&& material);
 
     private:
         Impl* m_impl = nullptr;
