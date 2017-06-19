@@ -5,7 +5,7 @@
 
 namespace lava {
     class IRenderTarget;
-    class MrrMaterial;
+    class IMaterial;
 }
 
 namespace lava {
@@ -23,10 +23,24 @@ namespace lava {
         void draw();
         void update();
 
+        /**
+         * Make a new resource and add it to the engine.
+         *
+         * @example
+         *      auto& material = engine.make<MrrMaterial>();
+         */
+        template <class T>
+        T& make();
+
+        /**
+         * Add resource that has already been created.
+         */
         void add(IRenderTarget& renderTarget);
-        MrrMaterial& add(std::unique_ptr<MrrMaterial>&& material);
+        IMaterial& add(std::unique_ptr<IMaterial>&& material);
 
     private:
         Impl* m_impl = nullptr;
     };
 }
+
+#include <lava/magma/render-engine.inl>

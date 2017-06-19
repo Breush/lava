@@ -3,8 +3,8 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/properties.hpp>
 #include <lava/crater/Window.hpp>
+#include <lava/magma/interfaces/material.hpp>
 #include <lava/magma/mesh.hpp>
-#include <lava/magma/mrr-material.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "./device.hpp"
@@ -31,13 +31,13 @@ namespace lava {
         void draw();
         void update();
         void add(IRenderTarget& renderTarget);
+        IMaterial& add(std::unique_ptr<IMaterial>&& material);
 
         template <class T>
         T& makeMaterial();
 
         // Internal interface
         void add(Mesh::Impl& mesh);
-        MrrMaterial& add(std::unique_ptr<MrrMaterial>&& material);
 
     protected:
         void createRenderPass();
@@ -114,6 +114,6 @@ namespace lava {
         // Data
         std::vector<IRenderTarget*> m_renderTargets;
         std::vector<Mesh::Impl*> m_meshes;
-        std::vector<std::unique_ptr<MrrMaterial>> m_materials;
+        std::vector<std::unique_ptr<IMaterial>> m_materials;
     };
 }

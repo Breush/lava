@@ -1,22 +1,20 @@
 #pragma once
 
+#include <lava/magma/interfaces/material.hpp>
+
 #include <cstdint>
 #include <vector>
-
-namespace lava {
-    class RenderEngine;
-}
 
 namespace lava {
     /**
      * Metallic-roughness rendered material.
      */
-    class MrrMaterial {
+    class MrrMaterial final : public IMaterial {
     public:
         MrrMaterial();
         ~MrrMaterial();
 
-        void init(RenderEngine& engine);
+        void init(RenderEngine& engine) override final;
 
         class Impl;
         Impl& impl() { return *m_impl; }

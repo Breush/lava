@@ -99,7 +99,7 @@ void Mesh::load(const std::string& fileName)
     // Material
     uint32_t materialIndex = primitive["material"];
     glb::PbrMetallicRoughnessMaterial material(materials[materialIndex]);
-    auto& mrrMaterial = m_engine.add(std::make_unique<MrrMaterial>());
+    auto& mrrMaterial = m_engine.make<MrrMaterial>();
 
     // Material textures
     uint32_t textureIndex = material.baseColorTextureIndex;

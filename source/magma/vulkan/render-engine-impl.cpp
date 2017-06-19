@@ -119,7 +119,7 @@ void RenderEngine::Impl::add(Mesh::Impl& mesh)
     m_meshes.emplace_back(&mesh);
 }
 
-MrrMaterial& RenderEngine::Impl::add(std::unique_ptr<MrrMaterial>&& material)
+IMaterial& RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)
 {
     auto& materialRef = *material;
     m_materials.emplace_back(std::move(material));
