@@ -5,39 +5,45 @@
 
 namespace lava::vulkan {
 
-    inline std::string toString(VkDebugReportObjectTypeEXT objType)
+    inline std::string toString(vk::DebugReportObjectTypeEXT objType)
     {
         switch (objType) {
-        case VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT: return "instance";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_PHYSICAL_DEVICE_EXT: return "physical-device";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT: return "device";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT: return "queue";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT: return "semaphore";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT: return "command-buffer";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT: return "fence";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT: return "device-memory";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT: return "buffer";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT: return "image";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT: return "event";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT: return "query-pool";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT: return "buffer-view";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT: return "image-view";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT: return "shader-module";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_CACHE_EXT: return "pipeline-cache";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT: return "pipeline-layout";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT: return "render-pass";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT: return "pipeline";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT: return "descriptor-set-layout";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT: return "sampler";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT: return "descriptor-pool";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT: return "descriptor-set";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT: return "framebuffer";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_POOL_EXT: return "command-pool";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT: return "surface-khr";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT: return "swapchain-khr";
-        case VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT: return "debug-report";
+        case vk::DebugReportObjectTypeEXT::eInstance: return "instance";
+        case vk::DebugReportObjectTypeEXT::ePhysicalDevice: return "physical-device";
+        case vk::DebugReportObjectTypeEXT::eDevice: return "device";
+        case vk::DebugReportObjectTypeEXT::eQueue: return "queue";
+        case vk::DebugReportObjectTypeEXT::eSemaphore: return "semaphore";
+        case vk::DebugReportObjectTypeEXT::eCommandBuffer: return "command-buffer";
+        case vk::DebugReportObjectTypeEXT::eFence: return "fence";
+        case vk::DebugReportObjectTypeEXT::eDeviceMemory: return "device-memory";
+        case vk::DebugReportObjectTypeEXT::eBuffer: return "buffer";
+        case vk::DebugReportObjectTypeEXT::eImage: return "image";
+        case vk::DebugReportObjectTypeEXT::eEvent: return "event";
+        case vk::DebugReportObjectTypeEXT::eQueryPool: return "query-pool";
+        case vk::DebugReportObjectTypeEXT::eBufferView: return "buffer-view";
+        case vk::DebugReportObjectTypeEXT::eImageView: return "image-view";
+        case vk::DebugReportObjectTypeEXT::eShaderModule: return "shader-module";
+        case vk::DebugReportObjectTypeEXT::ePipelineCache: return "pipeline-cache";
+        case vk::DebugReportObjectTypeEXT::ePipelineLayout: return "pipeline-layout";
+        case vk::DebugReportObjectTypeEXT::eRenderPass: return "render-pass";
+        case vk::DebugReportObjectTypeEXT::ePipeline: return "pipeline";
+        case vk::DebugReportObjectTypeEXT::eDescriptorSetLayout: return "descriptor-set-layout";
+        case vk::DebugReportObjectTypeEXT::eSampler: return "sampler";
+        case vk::DebugReportObjectTypeEXT::eDescriptorPool: return "descriptor-pool";
+        case vk::DebugReportObjectTypeEXT::eDescriptorSet: return "descriptor-set";
+        case vk::DebugReportObjectTypeEXT::eFramebuffer: return "framebuffer";
+        case vk::DebugReportObjectTypeEXT::eCommandPool: return "command-pool";
+        case vk::DebugReportObjectTypeEXT::eSurfaceKhr: return "surface-khr";
+        case vk::DebugReportObjectTypeEXT::eSwapchainKhr: return "swapchain-khr";
+        case vk::DebugReportObjectTypeEXT::eDebugReportCallbackExt: return "debug-report-callback-ext";
+        case vk::DebugReportObjectTypeEXT::eDisplayKhr: return "display-khr";
+        case vk::DebugReportObjectTypeEXT::eDisplayModeKhr: return "display-mode-khr";
+        case vk::DebugReportObjectTypeEXT::eObjectTableNvx: return "object-table-nvx";
+        case vk::DebugReportObjectTypeEXT::eIndirectCommandsLayoutNvx: return "indirect-commands-layout-nvx";
+        case vk::DebugReportObjectTypeEXT::eDescriptorUpdateTemplateKHR: return "descriptor-update-template-khr";
         default: break;
         }
+
         return "unknown";
     }
 
