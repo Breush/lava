@@ -17,7 +17,6 @@ Mesh::Impl::Impl(RenderEngine& engine)
     , m_indexBuffer({m_device.capsule(), vkDestroyBuffer})
     , m_indexBufferMemory({m_device.capsule(), vkFreeMemory})
 {
-    m_engine.add(*this);
 }
 
 Mesh::Impl::~Impl()
@@ -95,11 +94,6 @@ void Mesh::Impl::material(const MrrMaterial& material)
     createDescriptorSet();
 }
 
-void Mesh::Impl::update()
-{
-    // @todo Is there any logic to update?
-}
-
 void Mesh::Impl::createDescriptorSet()
 {
 }
@@ -154,8 +148,12 @@ void Mesh::Impl::createIndexBuffer()
     vulkan::copyBuffer(m_device, m_engine.commandPool(), stagingBuffer, m_indexBuffer, bufferSize);
 }
 
-void Mesh::Impl::addCommands(VkCommandBuffer commandBuffer)
+// ----- IMesh -----
+
+void* Mesh::Impl::render(void* data)
 {
+    auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
+
     // Add the vertex buffer
     VkBuffer vertexBuffers[] = {m_vertexBuffer};
     VkDeviceSize offsets[] = {0};
@@ -164,4 +162,6 @@ void Mesh::Impl::addCommands(VkCommandBuffer commandBuffer)
 
     // Draw
     vkCmdDrawIndexed(commandBuffer, m_indices.size(), 1, 0, 0, 0);
+
+    return nullptr;
 }

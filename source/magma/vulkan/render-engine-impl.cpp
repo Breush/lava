@@ -114,11 +114,6 @@ void RenderEngine::Impl::update()
     }*/
 }
 
-void RenderEngine::Impl::add(Mesh::Impl& mesh)
-{
-    m_meshes.emplace_back(&mesh);
-}
-
 void RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)
 {
     m_materials.emplace_back(std::move(material));
@@ -126,7 +121,7 @@ void RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)
 
 void RenderEngine::Impl::add(std::unique_ptr<IMesh>&& mesh)
 {
-    m_meshesSupreme.emplace_back(std::move(mesh));
+    m_meshes.emplace_back(std::move(mesh));
 }
 
 void RenderEngine::Impl::createRenderPass()
@@ -694,7 +689,7 @@ void RenderEngine::Impl::createCommandBuffers()
 
         // Other meshes
         for (size_t j = 0; j < m_meshes.size(); ++j) {
-            m_meshes[j]->addCommands(m_commandBuffers[i]);
+            m_meshes[j]->render(&m_commandBuffers[i]);
         }
 
         vkCmdEndRenderPass(m_commandBuffers[i]);

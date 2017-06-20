@@ -17,6 +17,10 @@ namespace lava {
         Impl(RenderEngine& engine);
         ~Impl();
 
+        // IMesh
+        // void update();
+        void* render(void* data);
+
         // Main interface
         void verticesCount(const uint32_t count);
         void verticesPositions(const std::vector<glm::vec3>& positions);
@@ -26,10 +30,6 @@ namespace lava {
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
         void material(const MrrMaterial& material);
-
-        // Internal interface
-        void update();
-        void addCommands(VkCommandBuffer commandBuffer);
 
     private:
         void createDescriptorSet();

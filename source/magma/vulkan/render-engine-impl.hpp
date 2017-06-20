@@ -5,7 +5,6 @@
 #include <lava/crater/Window.hpp>
 #include <lava/magma/interfaces/material.hpp>
 #include <lava/magma/interfaces/mesh.hpp>
-#include <lava/magma/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "./device.hpp"
@@ -34,12 +33,6 @@ namespace lava {
         void add(IRenderTarget& renderTarget);
         void add(std::unique_ptr<IMaterial>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
-
-        template <class T>
-        T& makeMaterial();
-
-        // Internal interface
-        void add(Mesh::Impl& mesh);
 
     protected:
         void createRenderPass();
@@ -115,8 +108,7 @@ namespace lava {
 
         // Data
         std::vector<IRenderTarget*> m_renderTargets;
-        std::vector<Mesh::Impl*> m_meshes;
         std::vector<std::unique_ptr<IMaterial>> m_materials;
-        std::vector<std::unique_ptr<IMesh>> m_meshesSupreme;
+        std::vector<std::unique_ptr<IMesh>> m_meshes;
     };
 }

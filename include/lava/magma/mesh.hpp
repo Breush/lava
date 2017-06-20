@@ -21,6 +21,8 @@ namespace lava {
         Mesh(RenderEngine& engine, const std::string& fileName);
         ~Mesh();
 
+        void* render(void* data) override final;
+
         class Impl;
         Impl& impl() { return *m_impl; }
 
