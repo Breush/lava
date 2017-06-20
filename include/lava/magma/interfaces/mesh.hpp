@@ -12,6 +12,7 @@ namespace lava {
     public:
         virtual ~IMesh() = default;
 
-        virtual void* render(void* data) = 0;
+        using UserData = void*;
+        virtual UserData render(UserData data) = 0;
     };
 }

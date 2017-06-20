@@ -1,22 +1,23 @@
 -- UPDATE THESE WHENEVER NEEDED
 
-local VULKAN_SDK_VERSION = "1.0.51.0"
+local NAME = "Vulkan SDK"
+local VERSION = "1.0.51.0"
 
 -- Download
 
-local localFile = "./.tmp/vulkan-sdk_" .. VULKAN_SDK_VERSION .. ".run";
+local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".run";
 if not fileValid(localFile) then
     os.mkdir("./.tmp/")
     os.remove("./include/vulkan")
-    local filename = "vulkansdk-linux-x86_64-" .. VULKAN_SDK_VERSION .. ".run"
-    local url = "https://vulkan.lunarg.com/sdk/download/" .. VULKAN_SDK_VERSION .. "/linux/" .. filename .. "?Human=true"
+    local filename = "vulkansdk-linux-x86_64-" .. VERSION .. ".run"
+    local url = "https://vulkan.lunarg.com/sdk/download/" .. VERSION .. "/linux/" .. filename .. "?Human=true"
 
-    downloadStart("Dependencies", "Vulkan SDK (" .. VULKAN_SDK_VERSION .. ")")
+    downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
     local downloadResult = http.download(url, localFile, { progress = downloadProgress })
 
     if downloadResult ~= "OK" then
         downloadStop()
-        print("[Dependencies] FAILURE while downloading Vulkan SDK (" .. VULKAN_SDK_VERSION .. ")...")
+        print("[Dependencies] FAILURE while downloading " .. NAME .. " (" .. VERSION .. ")...")
         print("If it persists, please try downloading " .. url .. " by yourself")
         print("and move it to " .. path.getabsolute(localFile))
         print(downloadResult)
@@ -27,9 +28,9 @@ end
 -- Set up
 
 if not fileExists("./include/vulkan") then
-    print("[Dependencies] Setting Vulkan SDK (" .. VULKAN_SDK_VERSION .. ") up...")
-    local folder = "VulkanSDK/" .. VULKAN_SDK_VERSION .. "/x86_64"
-    os.execute("cd ./.tmp && bash ./vulkan-sdk.run &&" ..
+    print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
+    local folder = "VulkanSDK/" .. VERSION .. "/x86_64"
+    os.execute("cd ./.tmp && bash ./vulkan-sdk_" .. VERSION .. ".run &&" ..
                "cp -R " .. folder .. "/include/vulkan ../include &&" ..
                "cp -R " .. folder .. "/lib/* ../lib &&" ..
                "cp -R " .. folder .. "/bin/* ../bin &&" ..
@@ -50,4 +51,4 @@ function useVulkanSdk()
     filter {}
 end
 
-print("[Dependencies] Vulkan SDK (" .. VULKAN_SDK_VERSION .. ") is ready.")
+print("[Dependencies] " .. NAME .. " (" .. VERSION .. ") is ready.")

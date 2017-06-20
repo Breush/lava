@@ -28,7 +28,7 @@ Mesh::~Mesh()
     delete m_impl;
 }
 
-$pimpl_method(Mesh, void*, render, void*, data);
+$pimpl_method(Mesh, IMesh::UserData, render, IMesh::UserData, data);
 
 $pimpl_method(Mesh, void, verticesCount, const uint32_t, count);
 $pimpl_method(Mesh, void, verticesPositions, const std::vector<glm::vec3>&, positions);

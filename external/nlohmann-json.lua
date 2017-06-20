@@ -29,7 +29,7 @@ end
 if not fileExists("./include/nlohmann") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
     os.mkdir("./include/nlohmann")
-    os.execute("cp " .. localFile .. " ./include/nlohmann")
+    os.execute("cp " .. localFile .. " ./include/nlohmann/json.hpp")
 end
 
 -- Use hook

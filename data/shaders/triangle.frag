@@ -31,7 +31,7 @@ void main()
 
 vec4 lightContribution()
 {
-    vec4 ambientColor = vec4(0.1, 0.1, 0.1, 1.0);
+    vec4 ambientColor = vec4(0.2, 0.2, 0.2, 1.0);
     vec4 pointLightColor = pointLightContribution(pointLight, fragNormal);
 
     return ambientColor + pointLightColor;
@@ -53,7 +53,7 @@ vec4 pointLightContribution(PointLight pointLight, vec3 normal)
     vec4 contribution = lightContribution(lightDirection, normal);
     
     // @todo Have more complex attenuation setup
-    float attenuation = 0.5 * lightDistance;
+    float attenuation = 0.3 * lightDistance;
 
     return contribution / attenuation;
 }
