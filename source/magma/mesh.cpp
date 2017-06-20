@@ -71,12 +71,16 @@ void Mesh::load(const std::string& fileName)
 
     // Check mode TRIANGLES validity
     if (primitive.find("mode") != primitive.end() && primitive["mode"] != 4u) {
-        logger.error("magma.mesh") << "Invalid mode " << primitive["mode"] << " for primitive."
-                                   << " Only 4 (TRIANGLES) is supported." << std::endl;
+        logger.error("magma.mesh.glb-loader") << "Invalid mode " << primitive["mode"] << " for primitive."
+                                              << " Only 4 (TRIANGLES) is supported." << std::endl;
         return;
     }
 
     // Positions
+    if (attributes.find("POSITION") == attributes.end()) {
+        logger.error("magma.mesh.glb-loader") << "No position found." << std::endl;
+    }
+
     uint32_t positionsAccessorIndex = attributes["POSITION"];
     glb::Accessor positionsAccessor(accessors[positionsAccessorIndex]);
     auto positions = positionsAccessor.get<glm::vec3>(bufferViews, binChunk.data);
@@ -86,7 +90,7 @@ void Mesh::load(const std::string& fileName)
         auto z = v.z;
         v.z = v.y;
         v.y = -z;
-        v *= 0.007;
+        v *= 20;
     }
 
     // Normals
@@ -117,18 +121,20 @@ void Mesh::load(const std::string& fileName)
     auto& mrrMaterial = m_engine.make<MrrMaterial>();
 
     // Material textures
-    uint32_t textureIndex = material.baseColorTextureIndex;
-    glb::Texture texture(textures[textureIndex]);
-    glb::Image image(images[texture.source]);
+    if (material.baseColorTextureIndex != -1u) {
+        uint32_t textureIndex = material.baseColorTextureIndex;
+        glb::Texture texture(textures[textureIndex]);
+        glb::Image image(images[texture.source]);
 
-    int texWidth, texHeight;
-    glb::BufferView imageBufferView(bufferViews[image.bufferView]);
-    auto imageData = imageBufferView.get(binChunk.data);
-    auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
-    std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
-    memmove(pixelsVector.data(), pixels, pixelsVector.size());
-    mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
-    stbi_image_free(pixels);
+        int texWidth, texHeight;
+        glb::BufferView imageBufferView(bufferViews[image.bufferView]);
+        auto imageData = imageBufferView.get(binChunk.data);
+        auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
+        std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
+        memmove(pixelsVector.data(), pixels, pixelsVector.size());
+        mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
+        stbi_image_free(pixels);
+    }
 
     // All right, we're done!
     logger.log() << "Vertices count: " << positions.size() << std::endl;

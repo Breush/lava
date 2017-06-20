@@ -4,7 +4,7 @@
 
 using namespace lava;
 
-void handleEvent(Event& event, RenderWindow& window, RenderEngine& engine);
+void handleEvent(Event& event, RenderWindow& window);
 
 int main(void)
 {
@@ -16,14 +16,15 @@ int main(void)
     engine.add(window);
 
     // Create a mesh
-    engine.make<Mesh>("./assets/models/duck.glb");
+    // engine.make<Mesh>("./assets/models/duck.glb");
+    engine.make<Mesh>("./assets/models/corset.glb");
 
     // Keep running while the window is open
     while (window.opened()) {
         // Treat all events since last frame
         Event event;
         while (window.pollEvent(event)) {
-            handleEvent(event, window, engine);
+            handleEvent(event, window);
         }
 
         engine.update(); // Update the logic
@@ -33,7 +34,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void handleEvent(Event& event, RenderWindow& window, RenderEngine& engine)
+void handleEvent(Event& event, RenderWindow& window)
 {
     switch (event.type) {
     case Event::WindowClosed: {

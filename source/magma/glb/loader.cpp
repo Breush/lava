@@ -10,26 +10,31 @@ Image::Image(const typename nlohmann::json::basic_json& json)
 
 Texture::Texture(const typename nlohmann::json::basic_json& json)
 {
-    sampler = json["sampler"];
+    if (json.find("sampler") != json.end()) sampler = json["sampler"];
     source = json["source"];
 }
 
 PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json)
 {
-    baseColorTextureIndex = json["pbrMetallicRoughness"]["baseColorTexture"]["index"];
+    if (json.find("pbrMetallicRoughness") != json.end()) {
+        auto& pbrMetallicRoughness = json["pbrMetallicRoughness"];
+        if (pbrMetallicRoughness.find("baseColorTexture") != pbrMetallicRoughness.end()) {
+            baseColorTextureIndex = pbrMetallicRoughness["baseColorTexture"]["index"];
+        }
+    }
 }
 
 Accessor::Accessor(const typename nlohmann::json::basic_json& json)
 {
-    bufferView = json["bufferView"];
-    byteOffset = json["byteOffset"];
+    if (json.find("bufferView") != json.end()) bufferView = json["bufferView"];
+    if (json.find("byteOffset") != json.end()) byteOffset = json["byteOffset"];
     count = json["count"];
 }
 
 BufferView::BufferView(const typename nlohmann::json::basic_json& json)
 {
     byteLength = json["byteLength"];
-    byteOffset = json["byteOffset"];
+    if (json.find("byteOffset") != json.end()) byteOffset = json["byteOffset"];
     if (json.find("byteStride") != json.end()) byteStride = json["byteStride"];
 }
 

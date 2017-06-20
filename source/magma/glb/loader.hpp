@@ -49,7 +49,7 @@ namespace lava::glb {
     };
 
     struct Accessor {
-        uint32_t bufferView = 0u;
+        uint32_t bufferView = -1u;
         uint32_t byteOffset = 0u;
         uint32_t count = 0u;
 
