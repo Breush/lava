@@ -44,6 +44,7 @@ namespace lava::glb {
 
     struct PbrMetallicRoughnessMaterial {
         uint32_t baseColorTextureIndex = -1u;
+        uint32_t metallicRoughnessTextureIndex = -1u;
 
         PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json);
     };

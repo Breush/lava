@@ -135,6 +135,20 @@ void Mesh::load(const std::string& fileName)
         mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
         stbi_image_free(pixels);
     }
+    if (material.metallicRoughnessTextureIndex != -1u) {
+        uint32_t textureIndex = material.metallicRoughnessTextureIndex;
+        glb::Texture texture(textures[textureIndex]);
+        glb::Image image(images[texture.source]);
+
+        int texWidth, texHeight;
+        glb::BufferView imageBufferView(bufferViews[image.bufferView]);
+        auto imageData = imageBufferView.get(binChunk.data);
+        auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
+        std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
+        memmove(pixelsVector.data(), pixels, pixelsVector.size());
+        mrrMaterial.metallicRoughnessColor(pixelsVector, texWidth, texHeight, 4);
+        stbi_image_free(pixels);
+    }
 
     // All right, we're done!
     logger.log() << "Vertices count: " << positions.size() << std::endl;

@@ -21,6 +21,9 @@ PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohma
         if (pbrMetallicRoughness.find("baseColorTexture") != pbrMetallicRoughness.end()) {
             baseColorTextureIndex = pbrMetallicRoughness["baseColorTexture"]["index"];
         }
+        if (pbrMetallicRoughness.find("metallicRoughnessTexture") != pbrMetallicRoughness.end()) {
+            metallicRoughnessTextureIndex = pbrMetallicRoughness["metallicRoughnessTexture"]["index"];
+        }
     }
 }
 

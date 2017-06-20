@@ -15,6 +15,7 @@ namespace lava {
         ~MrrMaterial();
 
         void baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
+        void metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
 
     public:
         class Impl;

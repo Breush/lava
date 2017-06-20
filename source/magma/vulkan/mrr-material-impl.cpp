@@ -55,6 +55,12 @@ void MrrMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t w
     rebindBaseColor();
 }
 
+void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
+                                               uint8_t channels)
+{
+    // @todo
+}
+
 void MrrMaterial::Impl::rebindBaseColor()
 {
     if (m_baseColor.type != Attribute::Type::TEXTURE) return;
