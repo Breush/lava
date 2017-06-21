@@ -51,11 +51,16 @@ namespace lava {
         RenderEngine::Impl& m_engine;
 
         // @todo Should be in the texture itself, and probably unique_ptr, so that they can be deleted
-        vulkan::Capsule<VkImage> m_textureImage;
-        vulkan::Capsule<VkDeviceMemory> m_textureImageMemory;
-        vulkan::Capsule<VkImageView> m_textureImageView;
+        vulkan::Capsule<VkImage> m_baseColorImage;
+        vulkan::Capsule<VkDeviceMemory> m_baseColorImageMemory;
+        vulkan::Capsule<VkImageView> m_baseColorImageView;
+
+        vulkan::Capsule<VkImage> m_metallicRoughnessImage;
+        vulkan::Capsule<VkDeviceMemory> m_metallicRoughnessImageMemory;
+        vulkan::Capsule<VkImageView> m_metallicRoughnessImageView;
 
         // Data
         Attribute m_baseColor;
+        Attribute m_metallicRoughness;
     };
 }
