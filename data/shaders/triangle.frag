@@ -17,18 +17,29 @@ struct PointLight {
 };
 PointLight pointLight = PointLight(vec3(-5, 5, -10));
 
-
 vec4 lightContribution();
 vec4 pointLightContribution(PointLight pointLight, vec3 normal);
 
 void main()
 {
     vec4 lightColor = lightContribution();
-    vec4 textureColor = vec4(fragColor * texture(baseColorSampler, fragUv).rgb, 1.0);
-    textureColor = vec4(fragColor * texture(metallicRoughnessSampler, fragUv).rgb, 1.0);
 
-    // @fixme Have a way to enable/disable uvs
-    outColor = lightColor * textureColor;
+    // @fixme Have a way to know if a texture is present, and if not, have the default value
+    
+    // PBR thingy
+    vec4 baseColor = vec4(fragColor * texture(baseColorSampler, fragUv).rgb, 1.0);
+    vec2 metallicRoughness = (fragColor * texture(metallicRoughnessSampler, fragUv).rgb).rg;
+    float metallic = metallicRoughness.r;
+    float roughness = metallicRoughness.g;
+
+    // glTF Specification
+    const vec3 dielectricSpecular = vec3(0.04);
+    const vec3 black = vec3(0);
+    const vec3 cdiff = mix(baseColor.rgb * (1 - dielectricSpecular.r), black, metallic);
+    const vec3 F0 = mix(dielectricSpecular, baseColor.rgb, metallic);
+    const float alpha = roughness * roughness;
+
+    outColor = lightColor * baseColor;
 }
 
 vec4 lightContribution()
