@@ -23,11 +23,12 @@ out gl_PerVertex {
 };
 
 void main() {
-    vec4 worldPosition = ubo.view * ubo.model * vec4(inPosition, 1.0);
+    vec4 worldPosition = ubo.model * vec4(inPosition, 1.0);
 
-    gl_Position = ubo.projection * worldPosition;
+    gl_Position = ubo.projection * ubo.view * worldPosition;
 
-    fragCameraPosition = (ubo.view * vec4(0, 0, 0, 1.0)).xyz;
+    // @fixme Get it instead!
+    fragCameraPosition = vec3(2, 2, -2); //(ubo.view * vec4(0, 0, 0, 1.0)).xyz;
     fragWorldPosition = worldPosition.xyz;
     fragNormal = inNormal;
     fragColor = inColor;

@@ -18,7 +18,7 @@ struct PointLight {
     vec3 position;
     vec3 color;
 };
-PointLight pointLight = PointLight(vec3(-5, 5, -10), vec3(1));
+PointLight pointLight = PointLight(vec3(10, 0, 0), vec3(1));
 
 const float PI = 3.1415926535897932384626433832795;
 
@@ -28,8 +28,6 @@ vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirect
 
 void main()
 {
-    vec4 lightColor = lightContribution();
-
     // @todo For each light
     vec3 lightDirection = normalize(pointLight.position - fragWorldPosition);
 	vec3 viewDirection = normalize(fragCameraPosition - fragWorldPosition);
@@ -43,52 +41,51 @@ void main()
     float metallic = metallicRoughness.r;
     float roughness = metallicRoughness.g;
 
-    // glTF Specification
     vec3 dielectricSpecular = vec3(0.04);
     vec3 black = vec3(0);
     vec3 cdiff = mix(baseColor.rgb * (1 - dielectricSpecular.r), black, metallic);
     vec3 F0 = mix(dielectricSpecular, baseColor.rgb, metallic);
     float alpha = roughness * roughness;
 
-    // Computation
     vec4 pbrColor = bdrf(cdiff, F0, alpha, lightDirection, viewDirection, normal);
 
-    outColor = /*lightColor * baseColor +*/ pbrColor;
+    // Ambient
+    vec4 ambientColor = baseColor * 0.5;
+
+    outColor = ambientColor + pbrColor;
 }
 
-// Normal Distribution function --------------------------------------
+// D = Normal distribution (Distribution of the microfacets)
 float D_GGX(float dotNH, float alpha)
 {
 	float alpha2 = alpha * alpha;
 	float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
-	return (alpha2)/(PI * denom*denom); 
+	return alpha2 / (PI * denom * denom); 
 }
 
-// Geometric Shadowing function --------------------------------------
+// G = Geometric shadowing term (Microfacets shadowing)
 float G_SchlicksmithGGX(float dotNL, float dotNV, float alpha)
 {
-	float r = (sqrt(alpha) + 1.0);
-	float k = (r*r) / 8.0;
+	float r = sqrt(alpha) + 1.0;
+	float k = r * r / 8.0;
 	float GL = dotNL / (dotNL * (1.0 - k) + k);
 	float GV = dotNV / (dotNV * (1.0 - k) + k);
 	return GL * GV;
 }
 
-// Fresnel function ----------------------------------------------------
+// F = Fresnel factor (Reflectance depending on angle of incidence)
 vec3 F_Schlick(float cosTheta, vec3 F0)
 {
 	vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0); 
 	return F;    
 }
 
-vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal)
+vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 L, vec3 V, vec3 N)
 {
-    // @todo cdiff unused
+    // Diffuse
+    vec3 diffuseColor = cdiff / PI;
 
-    vec3 L = lightDirection;
-    vec3 V = viewDirection;
-    vec3 N = normal;
-
+    // Specular
 	// Precalculate vectors and dot products	
 	vec3 H = normalize (V + L);
 	float dotNV = clamp(dot(N, V), 0.0, 1.0);
@@ -97,49 +94,17 @@ vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirect
 	float dotNH = clamp(dot(N, H), 0.0, 1.0);
 
 	vec3 lightColor = pointLight.color;
-	vec3 color = vec3(0.0);
+	vec3 specularColor = vec3(0.0);
 
 	if (dotNL > 0.0) {
-		// D = Normal distribution (Distribution of the microfacets)
 		float D = D_GGX(dotNH, alpha); 
-		// G = Geometric shadowing term (Microfacets shadowing)
 		float G = G_SchlicksmithGGX(dotNL, dotNV, alpha);
-		// F = Fresnel factor (Reflectance depending on angle of incidence)
-		vec3 F = F_Schlick(dotNV, F0);
+		vec3 F = F_Schlick(dotNH, F0);
 
 		vec3 spec = D * F * G / (4.0 * dotNL * dotNV);
 
-		color += spec * dotNL * lightColor;
+		specularColor += spec * dotNL * lightColor;
 	}
 
-	return vec4(color, 1.0);
-}
-
-vec4 lightContribution()
-{
-    vec4 ambientColor = vec4(0.5, 0.5, 0.5, 1.0);
-    vec4 pointLightColor = pointLightContribution(pointLight, fragNormal);
-
-    return ambientColor + pointLightColor;
-}
-
-vec4 lightContribution(vec3 lightDirection, vec3 normal)
-{
-    float diffuseFactor = dot(normal, lightDirection);
-    vec4 diffuseColor = vec4(diffuseFactor, diffuseFactor, diffuseFactor, 1.0);
-    return diffuseColor;
-}
-
-vec4 pointLightContribution(PointLight pointLight, vec3 normal)
-{
-    vec3 lightDirection = fragWorldPosition - pointLight.position;
-    float lightDistance = length(lightDirection);
-    lightDirection = normalize(lightDirection);
-
-    vec4 contribution = lightContribution(lightDirection, normal);
-    
-    // @todo Have more complex attenuation setup
-    float attenuation = lightDistance * lightDistance;
-
-    return contribution / attenuation;
+	return vec4(diffuseColor + specularColor, 1.0);
 }
