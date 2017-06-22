@@ -20,9 +20,11 @@ struct PointLight {
 };
 PointLight pointLight = PointLight(vec3(-5, 5, -10), vec3(1));
 
+const float PI = 3.1415926535897932384626433832795;
+
 vec4 lightContribution();
 vec4 pointLightContribution(PointLight pointLight, vec3 normal);
-vec4 BDRF(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal);
+vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal);
 
 void main()
 {
@@ -49,9 +51,9 @@ void main()
     float alpha = roughness * roughness;
 
     // Computation
-    vec4 pbrColor = BDRF(cdiff, F0, alpha, lightDirection, viewDirection, normal);
+    vec4 pbrColor = bdrf(cdiff, F0, alpha, lightDirection, viewDirection, normal);
 
-    outColor = lightColor * baseColor * pbrColor;
+    outColor = /*lightColor * baseColor +*/ pbrColor;
 }
 
 // Normal Distribution function --------------------------------------
@@ -79,7 +81,7 @@ vec3 F_Schlick(float cosTheta, vec3 F0)
 	return F;    
 }
 
-vec4 BDRF(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal)
+vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal)
 {
     // @todo cdiff unused
 
@@ -110,12 +112,12 @@ vec4 BDRF(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirect
 		color += spec * dotNL * lightColor;
 	}
 
-	return color;
+	return vec4(color, 1.0);
 }
 
 vec4 lightContribution()
 {
-    vec4 ambientColor = vec4(0.2, 0.2, 0.2, 1.0);
+    vec4 ambientColor = vec4(0.5, 0.5, 0.5, 1.0);
     vec4 pointLightColor = pointLightContribution(pointLight, fragNormal);
 
     return ambientColor + pointLightColor;
@@ -137,7 +139,7 @@ vec4 pointLightContribution(PointLight pointLight, vec3 normal)
     vec4 contribution = lightContribution(lightDirection, normal);
     
     // @todo Have more complex attenuation setup
-    float attenuation = 0.3 * lightDistance;
+    float attenuation = lightDistance * lightDistance;
 
     return contribution / attenuation;
 }
