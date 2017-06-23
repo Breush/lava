@@ -7,5 +7,5 @@ namespace lava {
 }
 
 namespace lava::makers {
-    std::function<void(Mesh& mesh)> sphereMeshMaker(uint32_t tessellation);
+    std::function<void(Mesh& mesh)> sphereMeshMaker(uint32_t tessellation, float radius);
 }
