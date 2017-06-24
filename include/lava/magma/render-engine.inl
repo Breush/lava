@@ -9,4 +9,12 @@ namespace lava {
         add(std::move(pResource));
         return resource;
     }
+
+    template <class T, class... Arguments>
+    inline T& RenderEngine::make(std::function<void(T&)> maker, Arguments&&... arguments)
+    {
+        auto& resource = make<T>(std::forward<Arguments>(arguments)...);
+        maker(resource);
+        return resource;
+    }
 }

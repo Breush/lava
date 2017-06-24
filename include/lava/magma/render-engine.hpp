@@ -34,6 +34,12 @@ namespace lava {
         T& make(Arguments&&... arguments);
 
         /**
+         * Make a new resource using a custom maker.
+         */
+        template <class T, class... Arguments>
+        T& make(std::function<void(T&)> maker, Arguments&&... arguments);
+
+        /**
          * Add resource that has already been created.
          */
         void add(IRenderTarget& renderTarget);

@@ -52,7 +52,7 @@ void main()
     // Ambient
     vec4 ambientColor = baseColor * 0.5;
 
-    outColor = ambientColor + pbrColor;
+    outColor = ambientColor/* + pbrColor*/;
 }
 
 // D = Normal distribution (Distribution of the microfacets)

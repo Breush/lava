@@ -17,7 +17,8 @@ int main(void)
 
     // Create a mesh
     // engine.make<Mesh>("./assets/models/duck.glb");
-    engine.make<Mesh>("./assets/models/corset.glb");
+    // engine.make<Mesh>("./assets/models/corset.glb");
+    engine.make(lava::makers::sphereMeshMaker(32, 0.5));
 
     // Keep running while the window is open
     while (window.opened()) {

@@ -97,7 +97,7 @@ void RenderEngine::Impl::update()
     // This is basically our camera
     UniformBufferObject ubo = {};
     ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 0.5f), glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.projection = glm::perspective(glm::radians(45.0f), viewExtent.width / (float)viewExtent.height, 0.1f, 10.0f);
     ubo.projection[1][1] *= -1; // Well, this is not OpenGL!
 
@@ -613,7 +613,7 @@ void RenderEngine::Impl::createDescriptorSet()
         exit(1);
     }
 
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites = {};
 
     // UBO
     VkDescriptorBufferInfo bufferInfo = {};
@@ -646,6 +646,17 @@ void RenderEngine::Impl::createDescriptorSet()
     descriptorWrites[1].pBufferInfo = nullptr;
     descriptorWrites[1].pImageInfo = &imageInfo;
     descriptorWrites[1].pTexelBufferView = nullptr;
+
+    // Sampler - MetallicRoughness
+    descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[2].dstSet = m_descriptorSet;
+    descriptorWrites[2].dstBinding = 2;
+    descriptorWrites[2].dstArrayElement = 0;
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[2].descriptorCount = 1;
+    descriptorWrites[2].pBufferInfo = nullptr;
+    descriptorWrites[2].pImageInfo = &imageInfo;
+    descriptorWrites[2].pTexelBufferView = nullptr;
 
     vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
