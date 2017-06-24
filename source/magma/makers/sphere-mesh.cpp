@@ -7,7 +7,7 @@
 namespace {
     void addCirclePoints(std::vector<glm::vec3>& points, const uint32_t tessellation, const float radius, const float height)
     {
-        const auto step = lava::math::TWO_PI / (tessellation - 1u);
+        const auto step = lava::math::TWO_PI / tessellation;
         const auto cStep = lava::math::cos(step);
         const auto sStep = lava::math::sin(step);
 
@@ -23,9 +23,9 @@ namespace {
     void addPoleStrip(std::vector<uint16_t>& indices, uint32_t tessellation, uint16_t startIndex, uint16_t poleIndex,
                       bool reverse)
     {
-        for (auto j = 0u; j < tessellation; ++j) {
-            uint16_t d0 = startIndex + j;
-            uint16_t d1 = startIndex + ((j + 1u) % tessellation);
+        for (auto j = 0u, i = tessellation - 1u; j < tessellation; i = j++) {
+            uint16_t d0 = startIndex + i;
+            uint16_t d1 = startIndex + j;
             if (reverse) std::swap(d0, d1);
             indices.emplace_back(d0);
             indices.emplace_back(d1);
@@ -35,9 +35,9 @@ namespace {
 
     void addRowStrip(std::vector<uint16_t>& indices, uint32_t tessellation, uint16_t startIndex)
     {
-        for (auto j = 0u; j < tessellation; ++j) {
-            uint16_t d0 = startIndex + j;
-            uint16_t d1 = startIndex + ((j + 1u) % tessellation);
+        for (auto j = 0u, i = tessellation - 1u; j < tessellation; i = j++) {
+            uint16_t d0 = startIndex + i;
+            uint16_t d1 = startIndex + j;
             uint16_t u0 = d0 + tessellation;
             uint16_t u1 = d1 + tessellation;
             indices.emplace_back(d0);
@@ -55,11 +55,12 @@ using namespace lava;
 std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, float radius)
 {
     return [tessellation, radius](Mesh& mesh) {
+        // @todo Reserve those
         std::vector<glm::vec3> positions;
         std::vector<uint16_t> indices;
 
         // South pole
-        addPoleStrip(indices, tessellation, 0u, 1u, false);
+        addPoleStrip(indices, tessellation, 1u, 0u, true);
         positions.emplace_back(glm::vec3{0.f, 0.f, -radius});
 
         // Main strips
@@ -83,12 +84,20 @@ std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, f
 
         // North pole
         const uint16_t northPoleIndex = positions.size();
-        const uint16_t indexStart = northPoleIndex - tessellation - 1u;
+        const uint16_t indexStart = northPoleIndex - tessellation;
         addPoleStrip(indices, tessellation, indexStart, northPoleIndex, false);
         positions.emplace_back(glm::vec3{0.f, 0.f, radius});
 
+        // Normals
+        std::vector<glm::vec3> normals;
+        normals.reserve(positions.size());
+        for (const auto& position : positions) {
+            normals.emplace_back(position / radius);
+        }
+
         mesh.verticesCount(positions.size());
         mesh.verticesPositions(positions);
+        mesh.verticesNormals(normals);
         mesh.indices(indices);
     };
 }
