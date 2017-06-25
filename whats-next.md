@@ -26,15 +26,11 @@
 ### Magma
 
 - USE VULKAN.HPP
+- Material: Use define to know whether there is a texture (compile shaders within the engine)
+- Mesh: have own secondary buffers
 
-- RenderEngine (ou namespace magma ?)
-- RenderWindow
-- 3D meshes !
-- Mesh have own secondary buffers
 - Engine update main command buffer every frame
-- Mesh loading
-- Textures
-- Lighting
+- Reflection probe
 
 ## Example app
 
