@@ -24,9 +24,15 @@ namespace lava {
         void addCommands(VkCommandBuffer commandBuffer);
 
     protected:
-        void rebindBaseColor();
+        void init();
+        void updateAttributesUbo();
 
     public:
+        struct UniformBufferObject {
+            bool hasBaseColorSampler = false;
+            bool hasMetallicRoughnessSampler = true;
+        };
+
         struct Attribute {
             enum class Type {
                 NONE,
@@ -49,6 +55,12 @@ namespace lava {
     private:
         // References
         RenderEngine::Impl& m_engine;
+
+        // UBO for attributes
+        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
+        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
+        vulkan::Capsule<VkBuffer> m_uniformBuffer;
+        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
 
         // @todo Should be in the texture itself, and probably unique_ptr, so that they can be deleted
         vulkan::Capsule<VkImage> m_baseColorImage;

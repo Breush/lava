@@ -1,16 +1,21 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform UniformBufferObject {
+layout(binding = 0) uniform TransformsUbo {
     mat4 model;
     mat4 view;
     mat4 projection;
     vec3 cameraPosition;
 } transforms;
 
-// Should probably be push const
-layout(binding = 1) uniform sampler2D baseColorSampler;
-layout(binding = 2) uniform sampler2D metallicRoughnessSampler;
+// Should probably be #define
+layout(binding = 1) uniform AttributesUbo {
+    bool hasBaseColorSampler;
+    bool hasMettallicRoughnessSampler;
+} attributes;
+
+layout(binding = 2) uniform sampler2D baseColorSampler;
+layout(binding = 3) uniform sampler2D metallicRoughnessSampler;
 
 layout(location = 0) in vec3 fragWorldPosition;
 layout(location = 1) in vec3 fragNormal;
@@ -19,7 +24,7 @@ layout(location = 3) in vec2 fragUv;
 
 layout(location = 0) out vec4 outColor;
 
-// Pass this through
+// @todo Pass this through
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -39,13 +44,19 @@ void main()
 	vec3 viewDirection = normalize(transforms.cameraPosition - fragWorldPosition);
 	vec3 normal = normalize(fragNormal);
 
-    // @fixme Have a way to know if a texture is present, and if not, have the default value
+    // PBR
+    vec4 baseColor = vec4(1);
+    if (attributes.hasBaseColorSampler) {
+        baseColor *= vec4(fragColor * texture(baseColorSampler, fragUv).rgb, 1.0);
+    }
     
-    // PBR thingy
-    vec4 baseColor = vec4(fragColor * texture(baseColorSampler, fragUv).rgb, 1.0);
-    vec2 metallicRoughness = (fragColor * texture(metallicRoughnessSampler, fragUv).rgb).rg;
-    float metallic = metallicRoughness.r;
-    float roughness = metallicRoughness.g;
+    float metallic = 1;
+    float roughness = 1;
+    if (attributes.hasMettallicRoughnessSampler) {
+        vec2 metallicRoughness = (fragColor * texture(metallicRoughnessSampler, fragUv).rgb).rg;
+        metallic *= metallicRoughness.r;
+        roughness *= metallicRoughness.g;
+    }
 
     vec3 dielectricSpecular = vec3(0.04);
     vec3 black = vec3(0);

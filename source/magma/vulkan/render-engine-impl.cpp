@@ -194,17 +194,25 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor set layout." << std::endl;
 
-    // UBO
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-    uboLayoutBinding.pImmutableSamplers = nullptr;
+    // Transforms UBO
+    VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
+    transformsLayoutBinding.binding = 0;
+    transformsLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    transformsLayoutBinding.descriptorCount = 1;
+    transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    transformsLayoutBinding.pImmutableSamplers = nullptr;
+
+    // Attributes UBO
+    VkDescriptorSetLayoutBinding attributesLayoutBinding = {};
+    attributesLayoutBinding.binding = 1;
+    attributesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    attributesLayoutBinding.descriptorCount = 1;
+    attributesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    attributesLayoutBinding.pImmutableSamplers = nullptr;
 
     // Sampler
     VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
-    baseColorLayoutBinding.binding = 1;
+    baseColorLayoutBinding.binding = 2;
     baseColorLayoutBinding.descriptorCount = 1;
     baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     baseColorLayoutBinding.pImmutableSamplers = nullptr;
@@ -212,14 +220,14 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
     // Sampler
     VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};
-    metallicRoughnessLayoutBinding.binding = 2;
+    metallicRoughnessLayoutBinding.binding = 3;
     metallicRoughnessLayoutBinding.descriptorCount = 1;
     metallicRoughnessLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
     metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    std::array<VkDescriptorSetLayoutBinding, 3> bindings = {uboLayoutBinding, baseColorLayoutBinding,
-                                                            metallicRoughnessLayoutBinding};
+    std::array<VkDescriptorSetLayoutBinding, 4> bindings = {transformsLayoutBinding, attributesLayoutBinding,
+                                                            baseColorLayoutBinding, metallicRoughnessLayoutBinding};
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -445,68 +453,18 @@ void RenderEngine::Impl::createCommandPool()
     }
 }
 
-void RenderEngine::Impl::createTextureImage()
+void RenderEngine::Impl::createDummyTexture()
 {
-    logger.info("magma.vulkan.render-engine") << "Creating texture image." << std::endl;
+    logger.info("magma.vulkan.render-engine") << "Creating dummy texture." << std::endl;
 
-    auto filename = "./data/images/debug.png";
-    int texWidth, texHeight, texChannels;
-    auto pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    lava::vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+                              VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                              m_dummyImage, m_dummyImageMemory);
 
-    if (!pixels) {
-        logger.error("magma.image") << "Failed to load image from filename " << filename << std::endl;
-        exit(1);
-    }
+    // lava::vulkan::transitionImageLayout(m_device, m_commandPool, m_dummyImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+    //                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    vulkan::Capsule<VkImage> stagingImage{m_device.capsule(), vkDestroyImage};
-    vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_device.capsule(), vkFreeMemory};
-    vulkan::Capsule<VkImageView> stagingImageView{m_device.capsule(), vkDestroyImageView};
-
-    vulkan::createImage(
-        m_device, texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
-
-    VkImageSubresource subresource = {};
-    subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    subresource.mipLevel = 0;
-    subresource.arrayLayer = 0;
-
-    VkSubresourceLayout stagingImageLayout;
-    vkGetImageSubresourceLayout(m_device, stagingImage, &subresource, &stagingImageLayout);
-
-    // Staging buffer
-    vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
-    vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_device.capsule(), vkFreeMemory};
-
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
-    vulkan::createBuffer(m_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-                         stagingBufferMemory);
-
-    void* data;
-    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(m_device, stagingBufferMemory);
-
-    stbi_image_free(pixels);
-
-    // The real image
-    vulkan::createImage(m_device, texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        m_textureImage, m_textureImageMemory);
-
-    vulkan::transitionImageLayout(m_device, m_commandPool, m_textureImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth),
-                              static_cast<uint32_t>(texHeight));
-}
-
-void RenderEngine::Impl::createTextureImageView()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating texture image view." << std::endl;
-
-    vulkan::createImageView(m_device, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_textureImageView);
+    lava::vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
 }
 
 void RenderEngine::Impl::createTextureSampler()
@@ -573,17 +531,22 @@ void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
-    std::array<VkDescriptorPoolSize, 3> poolSizes = {};
+    std::array<VkDescriptorPoolSize, 4> poolSizes = {};
+    // Transforms UBO
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = 1;
 
-    // Base color
-    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    // Attributes UBO
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[1].descriptorCount = 1;
 
-    // Metallic roughness
+    // Base color
     poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[2].descriptorCount = 1;
+
+    // Metallic roughness
+    poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[3].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -614,9 +577,9 @@ void RenderEngine::Impl::createDescriptorSet()
         exit(1);
     }
 
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites = {};
+    std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
 
-    // UBO
+    // Transforms UBO
     VkDescriptorBufferInfo bufferInfo = {};
     bufferInfo.buffer = m_uniformBuffer;
     bufferInfo.offset = 0;
@@ -631,33 +594,6 @@ void RenderEngine::Impl::createDescriptorSet()
     descriptorWrites[0].pBufferInfo = &bufferInfo;
     descriptorWrites[0].pImageInfo = nullptr;
     descriptorWrites[0].pTexelBufferView = nullptr;
-
-    // Sampler
-    VkDescriptorImageInfo imageInfo = {};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = m_textureImageView;
-    imageInfo.sampler = m_textureSampler;
-
-    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[1].dstSet = m_descriptorSet;
-    descriptorWrites[1].dstBinding = 1;
-    descriptorWrites[1].dstArrayElement = 0;
-    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pBufferInfo = nullptr;
-    descriptorWrites[1].pImageInfo = &imageInfo;
-    descriptorWrites[1].pTexelBufferView = nullptr;
-
-    // Sampler - MetallicRoughness
-    descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[2].dstSet = m_descriptorSet;
-    descriptorWrites[2].dstBinding = 2;
-    descriptorWrites[2].dstArrayElement = 0;
-    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrites[2].descriptorCount = 1;
-    descriptorWrites[2].pBufferInfo = nullptr;
-    descriptorWrites[2].pImageInfo = &imageInfo;
-    descriptorWrites[2].pTexelBufferView = nullptr;
 
     vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
@@ -768,8 +704,7 @@ void RenderEngine::Impl::initVulkan()
     createDescriptorSetLayout();
     createGraphicsPipeline();
     createCommandPool();
-    createTextureImage();
-    createTextureImageView();
+    createDummyTexture();
     createTextureSampler();
     createDepthResources();
     createFramebuffers();

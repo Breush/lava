@@ -41,8 +41,7 @@ namespace lava {
 
         void createFramebuffers();
         void createCommandPool();
-        void createTextureImage();
-        void createTextureImageView();
+        void createDummyTexture();
         void createTextureSampler();
         void createCommandBuffers();
 
@@ -85,11 +84,10 @@ namespace lava {
         $attribute(vulkan::Capsule<VkCommandPool>, commandPool, {m_device.capsule(), vkDestroyCommandPool});
         $attribute(std::vector<VkCommandBuffer>, commandBuffers);
 
-        // Debug texture
-        vulkan::Capsule<VkImage> m_textureImage{m_device.capsule(), vkDestroyImage};
-        vulkan::Capsule<VkDeviceMemory> m_textureImageMemory{m_device.capsule(), vkFreeMemory};
-
-        $attribute(vulkan::Capsule<VkImageView>, textureImageView, {m_device.capsule(), vkDestroyImageView});
+        // Dummy texture
+        vulkan::Capsule<VkImage> m_dummyImage{m_device.capsule(), vkDestroyImage};
+        vulkan::Capsule<VkDeviceMemory> m_dummyImageMemory{m_device.capsule(), vkFreeMemory};
+        $attribute(vulkan::Capsule<VkImageView>, dummyImageView, {m_device.capsule(), vkDestroyImageView});
         $attribute(vulkan::Capsule<VkSampler>, textureSampler, {m_device.capsule(), vkDestroySampler});
 
         // Depth

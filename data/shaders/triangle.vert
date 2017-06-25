@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform UniformBufferObject {
+layout(binding = 0) uniform TransformsUbo {
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -23,7 +23,7 @@ out gl_PerVertex {
 };
 
 void main() {
-    vec4 worldPosition = transforms.model * vec4(inPosition, 1.0);
+    vec4 worldPosition = transforms.model * vec4(inPosition, 1);
 
     gl_Position = transforms.projection * transforms.view * worldPosition;
 
