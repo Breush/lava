@@ -28,9 +28,9 @@ void main() {
     gl_Position = ubo.projection * ubo.view * worldPosition;
 
     // @fixme Get it instead!
-    fragCameraPosition = vec3(2, 2, -2); //(ubo.view * vec4(0, 0, 0, 1.0)).xyz;
+    fragCameraPosition = vec3(ubo.view * vec4(0, 0, 0, 1.0)));
     fragWorldPosition = worldPosition.xyz;
-    fragNormal = inNormal;
+    fragNormal = mat3(ubo.model) * inNormal;
     fragColor = inColor;
     fragUv = inUv;
 }

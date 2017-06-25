@@ -47,12 +47,12 @@ void main()
     vec3 F0 = mix(dielectricSpecular, baseColor.rgb, metallic);
     float alpha = roughness * roughness;
 
-    vec4 pbrColor = bdrf(cdiff, F0, alpha, lightDirection, viewDirection, normal);
+    vec4 reflectedColor = bdrf(cdiff, F0, alpha, lightDirection, viewDirection, normal);
 
     // Ambient
     vec4 ambientColor = baseColor * 0.5;
 
-    outColor = ambientColor/* + pbrColor*/;
+    outColor = ambientColor + reflectedColor;
 }
 
 // D = Normal distribution (Distribution of the microfacets)
@@ -87,7 +87,7 @@ vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 L, vec3 V, vec3 N)
 
     // Specular
 	// Precalculate vectors and dot products	
-	vec3 H = normalize (V + L);
+	vec3 H = normalize(V + L);
 	float dotNV = clamp(dot(N, V), 0.0, 1.0);
 	float dotNL = clamp(dot(N, L), 0.0, 1.0);
 	float dotLH = clamp(dot(L, H), 0.0, 1.0);
