@@ -242,8 +242,8 @@ void RenderEngine::Impl::createGraphicsPipeline()
 {
     logger.info("magma.vulkan.render-engine") << "Creating graphics pipeline." << std::endl;
 
-    auto vertShaderCode = vulkan::readShaderFile("./data/shaders/triangle.vert.spv");
-    auto fragShaderCode = vulkan::readShaderFile("./data/shaders/triangle.frag.spv");
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/triangle.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/triangle.frag");
 
     vulkan::Capsule<VkShaderModule> vertShaderModule{m_device.capsule(), vkDestroyShaderModule};
     vulkan::Capsule<VkShaderModule> fragShaderModule{m_device.capsule(), vkDestroyShaderModule};

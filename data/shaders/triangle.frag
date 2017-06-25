@@ -12,6 +12,7 @@ layout(binding = 0) uniform TransformsUbo {
 layout(binding = 1) uniform AttributesUbo {
     bool hasBaseColorSampler;
     bool hasMettallicRoughnessSampler;
+    // @todo Keep the UBO anyway for colors and such
 } attributes;
 
 layout(binding = 2) uniform sampler2D baseColorSampler;
@@ -52,15 +53,15 @@ void main()
     
     float metallic = 1;
     float roughness = 1;
-    if (attributes.hasMettallicRoughnessSampler) {
-        vec2 metallicRoughness = (fragColor * texture(metallicRoughnessSampler, fragUv).rgb).rg;
-        metallic *= metallicRoughness.r;
-        roughness *= metallicRoughness.g;
-    }
+
+#if defined(MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER)
+    vec4 metallicRoughness = fragColor * texture(metallicRoughnessSampler, fragUv).rgb;
+    metallic *= metallicRoughness.r;
+    roughness *= metallicRoughness.g;
+#endif
 
     vec3 dielectricSpecular = vec3(0.04);
-    vec3 black = vec3(0);
-    vec3 cdiff = mix(baseColor.rgb * (1 - dielectricSpecular.r), black, metallic);
+    vec3 cdiff = mix(baseColor.rgb * (1 - dielectricSpecular.r), vec3(0), metallic);
     vec3 F0 = mix(dielectricSpecular, baseColor.rgb, metallic);
     float alpha = roughness * roughness;
 
@@ -70,6 +71,7 @@ void main()
     vec4 ambientColor = baseColor * 0.5;
 
     outColor = ambientColor + reflectedColor;
+    outColor = vec4(1);
 }
 
 // D = Normal distribution (Distribution of the microfacets)
