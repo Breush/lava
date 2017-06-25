@@ -96,9 +96,10 @@ void RenderEngine::Impl::update()
 
     // This is basically our camera
     UniformBufferObject ubo = {};
-    ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 0.5f), glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.projection = glm::perspective(glm::radians(45.0f), viewExtent.width / (float)viewExtent.height, 0.1f, 10.0f);
+    ubo.cameraPosition = glm::vec3(0.f, 2.f, 1.f);
+    ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.f), glm::vec3(0.f, 0.f, 1.f));
+    ubo.view = glm::lookAt(ubo.cameraPosition, glm::vec3(0.f, 0.f, 0.5f), glm::vec3(0.f, 0.f, 1.f));
+    ubo.projection = glm::perspective(glm::radians(45.f), viewExtent.width / (float)viewExtent.height, 0.1f, 10.f);
     ubo.projection[1][1] *= -1; // Well, this is not OpenGL!
 
     void* data;
@@ -198,7 +199,7 @@ void RenderEngine::Impl::createDescriptorSetLayout()
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
     uboLayoutBinding.pImmutableSamplers = nullptr;
 
     // Sampler
@@ -278,12 +279,12 @@ void RenderEngine::Impl::createGraphicsPipeline()
 
     // Viewport and scissor
     VkViewport viewport = {};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
+    viewport.x = 0.f;
+    viewport.y = 0.f;
     viewport.width = static_cast<float>(m_swapchain.extent().width);
     viewport.height = static_cast<float>(m_swapchain.extent().height);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
 
     VkRect2D scissor = {};
     scissor.offset = {0, 0};
@@ -302,20 +303,20 @@ void RenderEngine::Impl::createGraphicsPipeline()
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer.lineWidth = 1.0f;
+    rasterizer.lineWidth = 1.f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
-    rasterizer.depthBiasConstantFactor = 0.0f;
-    rasterizer.depthBiasClamp = 0.0f;
-    rasterizer.depthBiasSlopeFactor = 0.0f;
+    rasterizer.depthBiasConstantFactor = 0.f;
+    rasterizer.depthBiasClamp = 0.f;
+    rasterizer.depthBiasSlopeFactor = 0.f;
 
     // Multi-sample
     VkPipelineMultisampleStateCreateInfo multisampling = {};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-    multisampling.minSampleShading = 1.0f;
+    multisampling.minSampleShading = 1.f;
     multisampling.pSampleMask = nullptr;
     multisampling.alphaToCoverageEnable = VK_FALSE;
     multisampling.alphaToOneEnable = VK_FALSE;
@@ -338,10 +339,10 @@ void RenderEngine::Impl::createGraphicsPipeline()
     colorBlending.logicOp = VK_LOGIC_OP_COPY;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
-    colorBlending.blendConstants[0] = 0.0f;
-    colorBlending.blendConstants[1] = 0.0f;
-    colorBlending.blendConstants[2] = 0.0f;
-    colorBlending.blendConstants[3] = 0.0f;
+    colorBlending.blendConstants[0] = 0.f;
+    colorBlending.blendConstants[1] = 0.f;
+    colorBlending.blendConstants[2] = 0.f;
+    colorBlending.blendConstants[3] = 0.f;
 
     // Depth buffer
     VkPipelineDepthStencilStateCreateInfo depthStencil = {};
@@ -350,8 +351,8 @@ void RenderEngine::Impl::createGraphicsPipeline()
     depthStencil.depthWriteEnable = VK_TRUE;
     depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
     depthStencil.depthBoundsTestEnable = VK_FALSE;
-    depthStencil.minDepthBounds = 0.0f;
-    depthStencil.maxDepthBounds = 1.0f;
+    depthStencil.minDepthBounds = 0.f;
+    depthStencil.maxDepthBounds = 1.f;
     depthStencil.stencilTestEnable = VK_FALSE;
     depthStencil.front = {};
     depthStencil.back = {};
@@ -526,9 +527,9 @@ void RenderEngine::Impl::createTextureSampler()
     samplerInfo.compareEnable = VK_FALSE;
     samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 0.0f;
+    samplerInfo.mipLodBias = 0.f;
+    samplerInfo.minLod = 0.f;
+    samplerInfo.maxLod = 0.f;
 
     if (vkCreateSampler(m_device, &samplerInfo, nullptr, m_textureSampler.replace()) != VK_SUCCESS) {
         logger.error("magma.vulkan.texture-sampler") << "Failed to texture sampler." << std::endl;
@@ -701,8 +702,8 @@ void RenderEngine::Impl::createCommandBuffers()
         renderPassInfo.renderArea.extent = m_swapchain.extent();
 
         std::array<VkClearValue, 2> clearValues = {};
-        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-        clearValues[1].depthStencil = {1.0f, 0};
+        clearValues[0].color = {0.f, 0.f, 0.f, 1.f};
+        clearValues[1].depthStencil = {1.f, 0};
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 

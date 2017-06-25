@@ -1,15 +1,21 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout(binding = 0) uniform UniformBufferObject {
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+    vec3 cameraPosition;
+} transforms;
+
 // Should probably be push const
 layout(binding = 1) uniform sampler2D baseColorSampler;
 layout(binding = 2) uniform sampler2D metallicRoughnessSampler;
 
-layout(location = 0) in vec3 fragCameraPosition;
-layout(location = 1) in vec3 fragWorldPosition;
-layout(location = 2) in vec3 fragNormal;
-layout(location = 3) in vec3 fragColor;
-layout(location = 4) in vec2 fragUv;
+layout(location = 0) in vec3 fragWorldPosition;
+layout(location = 1) in vec3 fragNormal;
+layout(location = 2) in vec3 fragColor;
+layout(location = 3) in vec2 fragUv;
 
 layout(location = 0) out vec4 outColor;
 
@@ -18,7 +24,7 @@ struct PointLight {
     vec3 position;
     vec3 color;
 };
-PointLight pointLight = PointLight(vec3(10, 0, 0), vec3(1));
+PointLight pointLight = PointLight(vec3(5, 5, 0), vec3(1));
 
 const float PI = 3.1415926535897932384626433832795;
 
@@ -30,7 +36,7 @@ void main()
 {
     // @todo For each light
     vec3 lightDirection = normalize(pointLight.position - fragWorldPosition);
-	vec3 viewDirection = normalize(fragCameraPosition - fragWorldPosition);
+	vec3 viewDirection = normalize(transforms.cameraPosition - fragWorldPosition);
 	vec3 normal = normalize(fragNormal);
 
     // @fixme Have a way to know if a texture is present, and if not, have the default value
