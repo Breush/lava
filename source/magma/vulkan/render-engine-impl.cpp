@@ -457,14 +457,11 @@ void RenderEngine::Impl::createDummyTexture()
 {
     logger.info("magma.vulkan.render-engine") << "Creating dummy texture." << std::endl;
 
-    lava::vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-                              VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                              m_dummyImage, m_dummyImageMemory);
+    vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        m_dummyImage, m_dummyImageMemory);
 
-    // lava::vulkan::transitionImageLayout(m_device, m_commandPool, m_dummyImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
-    //                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    lava::vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
+    vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
 }
 
 void RenderEngine::Impl::createTextureSampler()
