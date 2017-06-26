@@ -54,8 +54,9 @@ void main()
     float metallic = 1;
     float roughness = 1;
 
+#define MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER true
 #if defined(MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER)
-    vec4 metallicRoughness = fragColor * texture(metallicRoughnessSampler, fragUv).rgb;
+    vec2 metallicRoughness = fragColor.rg * texture(metallicRoughnessSampler, fragUv).rg;
     metallic *= metallicRoughness.r;
     roughness *= metallicRoughness.g;
 #endif
@@ -71,7 +72,6 @@ void main()
     vec4 ambientColor = baseColor * 0.5;
 
     outColor = ambientColor + reflectedColor;
-    outColor = vec4(1);
 }
 
 // D = Normal distribution (Distribution of the microfacets)

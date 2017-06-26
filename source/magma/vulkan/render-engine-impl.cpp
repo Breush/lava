@@ -22,15 +22,10 @@ using namespace lava;
 
 RenderEngine::Impl::Impl()
 {
-    // @todo Where to put that?
-    glslang::InitializeProcess();
 }
 
 RenderEngine::Impl::~Impl()
 {
-    // @todo Where to put that?
-    glslang::FinalizeProcess();
-
     vkDeviceWaitIdle(m_device);
 }
 
