@@ -210,7 +210,7 @@ void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixel
     setupTexture(m_metallicRoughness.texture, pixels, width, height, channels);
     setupTextureImage(m_metallicRoughness.texture, m_engine.device(), m_engine.commandPool(), m_metallicRoughnessImage,
                       m_metallicRoughnessImageMemory, m_metallicRoughnessImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(),
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 4, m_engine.device(), m_engine.textureSampler(),
                              m_metallicRoughnessImageView);
 
     updateAttributesUbo();

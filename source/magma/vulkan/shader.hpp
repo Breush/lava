@@ -10,6 +10,9 @@
 
 #include "./capsule.hpp"
 
+// @todo This is going to be so complicated, it needs its own library
+// (as it might help other people too).
+
 namespace lava::vulkan {
     EShLanguage findShaderLanguage(const std::string& filename)
     {

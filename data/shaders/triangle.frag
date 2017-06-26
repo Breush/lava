@@ -1,6 +1,9 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+#define MAGMA_HAS_NORMAL_MAP_SAMPLER
+#define MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER
+
 layout(binding = 0) uniform TransformsUbo {
     mat4 model;
     mat4 view;
@@ -16,7 +19,10 @@ layout(binding = 1) uniform AttributesUbo {
 } attributes;
 
 layout(binding = 2) uniform sampler2D baseColorSampler;
-layout(binding = 3) uniform sampler2D metallicRoughnessSampler;
+#if defined(MAGMA_HAS_NORMALS_SAMPLER)
+layout(binding = 3) uniform sampler2D normalsSampler;
+#endif
+layout(binding = 4) uniform sampler2D metallicRoughnessSampler;
 
 layout(location = 0) in vec3 fragWorldPosition;
 layout(location = 1) in vec3 fragNormal;
@@ -54,7 +60,6 @@ void main()
     float metallic = 1;
     float roughness = 1;
 
-#define MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER true
 #if defined(MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER)
     vec2 metallicRoughness = fragColor.rg * texture(metallicRoughnessSampler, fragUv).rg;
     metallic *= metallicRoughness.r;

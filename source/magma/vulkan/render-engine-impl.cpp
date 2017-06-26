@@ -220,15 +220,24 @@ void RenderEngine::Impl::createDescriptorSetLayout()
     baseColorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     // Sampler
+    VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
+    normalMapLayoutBinding.binding = 3;
+    normalMapLayoutBinding.descriptorCount = 1;
+    normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    normalMapLayoutBinding.pImmutableSamplers = nullptr;
+    normalMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    // Sampler
     VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};
-    metallicRoughnessLayoutBinding.binding = 3;
+    metallicRoughnessLayoutBinding.binding = 4;
     metallicRoughnessLayoutBinding.descriptorCount = 1;
     metallicRoughnessLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
     metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    std::array<VkDescriptorSetLayoutBinding, 4> bindings = {transformsLayoutBinding, attributesLayoutBinding,
-                                                            baseColorLayoutBinding, metallicRoughnessLayoutBinding};
+    std::array<VkDescriptorSetLayoutBinding, 5> bindings = {transformsLayoutBinding, attributesLayoutBinding,
+                                                            baseColorLayoutBinding, normalMapLayoutBinding,
+                                                            metallicRoughnessLayoutBinding};
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -529,7 +538,7 @@ void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
-    std::array<VkDescriptorPoolSize, 4> poolSizes = {};
+    std::array<VkDescriptorPoolSize, 5> poolSizes = {};
     // Transforms UBO
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = 1;
@@ -542,9 +551,13 @@ void RenderEngine::Impl::createDescriptorPool()
     poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[2].descriptorCount = 1;
 
-    // Metallic roughness
+    // Normal map
     poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[3].descriptorCount = 1;
+
+    // Metallic roughness
+    poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[4].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
