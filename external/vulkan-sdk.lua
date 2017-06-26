@@ -43,7 +43,8 @@ if not fileExists("./include/vulkan") then
     os.execute("cd ./.tmp/" .. folder .. " && mkdir -p build && cd build && CXXFLAGS=-fPIC cmake .. && make -j 2")
     os.execute("cd ./.tmp/ &&" ..
                "cp -R " .. folder .. "/glslang ../include &&" ..
-               "cp -R " .. folder .. "/build/**/*.a ../lib")
+               "cp -R " .. folder .. "/SPIRV ../include &&" ..
+               "cp -R `find " .. folder .. " -name *.a` ../lib")
 end
 
 -- Use hook
@@ -52,7 +53,7 @@ local externalPath = path.getabsolute(".")
 function useVulkanSdk()
     includedirs(externalPath .. "/include")
     libdirs(externalPath .. "/lib")
-    links { "vulkan", "OGLCompiler", "HLSL", "OSDependent", "glslang" }
+    links { "vulkan", "SPIRV", "OGLCompiler", "HLSL", "OSDependent", "glslang" }
     linkoptions("-pthread")
     
     filter { "configurations:debug" }

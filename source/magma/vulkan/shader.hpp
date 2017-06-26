@@ -1,7 +1,10 @@
 #pragma once
 
+// @fixme
+#include <SPIRV/GlslangToSpv.h>
+#include <glslang/MachineIndependent/localintermediate.h>
+
 #include <fstream>
-#include <glslang/Public/ShaderLang.h>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
@@ -34,7 +37,8 @@ namespace lava::vulkan {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
-            logger.warning("magma.vulkan.shader") << "Unable to shader file " << filename << std::endl;
+            logger.warning("magma.vulkan.shader") << "Unable to find shader file " << filename << std::endl;
+            return std::vector<uint8_t>();
         }
 
         size_t fileSize = file.tellg();
@@ -45,24 +49,23 @@ namespace lava::vulkan {
 
         logger.info("magma.vulkan.shader") << "Reading GLSL shader file '" << filename << "' (" << fileSize << "B)" << std::endl;
 
-        auto compiler = ShConstructCompiler(findShaderLanguage(filename), 0);
-        // @todo Error message if (compiler == 0) return;
+        const auto language = findShaderLanguage(filename);
+        const glslang::TIntermediate intermediate(language);
 
-        // CompileFile(workItem->name.c_str(), compiler);
+        std::vector<unsigned int> spirv;
+        glslang::GlslangToSpv(intermediate, spirv);
 
-        int length = fileSize;
-        EShOptimizationLevel optimizationLevel = EShOptSimple;
-        TBuiltInResource resources;
-        ShCompile(compiler, reinterpret_cast<char* const*>(&buffer), 1, &length, optimizationLevel, &resources, 0);
+        if (spirv.size() == 0u) {
+            logger.error("magma.vulkan.shader") << "Unable to compile shader file  " << filename << std::endl;
+        }
 
-        // if (!(Options & EOptionSuppressInfolog)) workItem->results = ShGetInfoLog(compiler);
-
-        ShDestruct(compiler);
+        buffer.resize(spirv.size() * sizeof(unsigned int));
+        memmove(buffer.data(), spirv.data(), buffer.size());
 
         return buffer;
     }
 
-    static std::vector<uint8_t> readShaderFile(const std::string& filename)
+    /*static std::vector<uint8_t> readShaderFile(const std::string& filename)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -79,7 +82,7 @@ namespace lava::vulkan {
         logger.info("magma.vulkan.shader") << "Reading shader file '" << filename << "' (" << fileSize << "B)" << std::endl;
 
         return buffer;
-    }
+    }*/
 
     void createShaderModule(VkDevice device, const std::vector<uint8_t>& code, Capsule<VkShaderModule>& shaderModule)
     {

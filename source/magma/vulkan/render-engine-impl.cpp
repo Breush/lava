@@ -23,13 +23,13 @@ using namespace lava;
 RenderEngine::Impl::Impl()
 {
     // @todo Where to put that?
-    ShInitialize();
+    glslang::InitializeProcess();
 }
 
 RenderEngine::Impl::~Impl()
 {
     // @todo Where to put that?
-    ShFinalize();
+    glslang::FinalizeProcess();
 
     vkDeviceWaitIdle(m_device);
 }
