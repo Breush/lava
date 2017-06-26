@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <glslang/Public/ShaderLang.h>
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
 #include <set>
@@ -21,10 +22,15 @@ using namespace lava;
 
 RenderEngine::Impl::Impl()
 {
+    // @todo Where to put that?
+    ShInitialize();
 }
 
 RenderEngine::Impl::~Impl()
 {
+    // @todo Where to put that?
+    ShFinalize();
+
     vkDeviceWaitIdle(m_device);
 }
 

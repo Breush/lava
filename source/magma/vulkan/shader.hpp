@@ -50,6 +50,11 @@ namespace lava::vulkan {
 
         // CompileFile(workItem->name.c_str(), compiler);
 
+        int length = fileSize;
+        EShOptimizationLevel optimizationLevel = EShOptSimple;
+        TBuiltInResource resources;
+        ShCompile(compiler, reinterpret_cast<char* const*>(&buffer), 1, &length, optimizationLevel, &resources, 0);
+
         // if (!(Options & EOptionSuppressInfolog)) workItem->results = ShGetInfoLog(compiler);
 
         ShDestruct(compiler);
