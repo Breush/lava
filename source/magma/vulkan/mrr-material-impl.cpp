@@ -128,6 +128,9 @@ MrrMaterial::Impl::Impl(RenderEngine& engine)
     , m_baseColorImage{m_engine.device().capsule(), vkDestroyImage}
     , m_baseColorImageMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_baseColorImageView{m_engine.device().capsule(), vkDestroyImageView}
+    , m_normalImage{m_engine.device().capsule(), vkDestroyImage}
+    , m_normalImageMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_normalImageView{m_engine.device().capsule(), vkDestroyImageView}
     , m_metallicRoughnessImage{m_engine.device().capsule(), vkDestroyImage}
     , m_metallicRoughnessImageMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_metallicRoughnessImageView{m_engine.device().capsule(), vkDestroyImageView}
@@ -140,6 +143,7 @@ MrrMaterial::Impl::Impl(RenderEngine& engine)
 MrrMaterial::Impl::~Impl()
 {
     cleanAttribute(m_baseColor);
+    cleanAttribute(m_normal);
     cleanAttribute(m_metallicRoughness);
 }
 
@@ -177,14 +181,24 @@ void MrrMaterial::Impl::init()
 
     vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
 
-    // Updates
-    updateAttributesUbo();
-
-    // Bind empty textures to materials
+    // Bind empty textures to materials @fixme Should be removed afterwards
     bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(),
                              m_engine.dummyImageView());
     bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(),
                              m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 4, m_engine.device(), m_engine.textureSampler(),
+                             m_engine.dummyImageView());
+}
+
+void MrrMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
+{
+    cleanAttribute(m_normal);
+
+    m_normal.type = Attribute::Type::TEXTURE;
+    setupTexture(m_normal.texture, pixels, width, height, channels);
+    setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool(), m_normalImage, m_normalImageMemory,
+                      m_normalImageView);
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(), m_normalImageView);
 }
 
 // @todo This should be a reference to a texture, so that it can be shared between materials
@@ -196,9 +210,7 @@ void MrrMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t w
     setupTexture(m_baseColor.texture, pixels, width, height, channels);
     setupTextureImage(m_baseColor.texture, m_engine.device(), m_engine.commandPool(), m_baseColorImage, m_baseColorImageMemory,
                       m_baseColorImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
-
-    updateAttributesUbo();
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
 }
 
 void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
@@ -212,22 +224,6 @@ void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixel
                       m_metallicRoughnessImageMemory, m_metallicRoughnessImageView);
     bindTextureDescriptorSet(m_engine.descriptorSet(), 4, m_engine.device(), m_engine.textureSampler(),
                              m_metallicRoughnessImageView);
-
-    updateAttributesUbo();
-}
-
-void MrrMaterial::Impl::updateAttributesUbo()
-{
-    UniformBufferObject ubo = {};
-    ubo.hasBaseColorSampler = m_baseColor.type == Attribute::Type::TEXTURE;
-    ubo.hasMetallicRoughnessSampler = m_metallicRoughness.type == Attribute::Type::TEXTURE;
-
-    void* data;
-    vkMapMemory(m_engine.device(), m_uniformStagingBufferMemory, 0, sizeof(ubo), 0, &data);
-    memcpy(data, &ubo, sizeof(ubo));
-    vkUnmapMemory(m_engine.device(), m_uniformStagingBufferMemory);
-
-    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(ubo));
 }
 
 void MrrMaterial::Impl::addCommands(VkCommandBuffer /*commandBuffer*/)

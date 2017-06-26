@@ -29,6 +29,7 @@
 - Material: Use define to know whether there is a texture (compile shaders within the engine)
 - Mesh: have own secondary buffers
 - Shader: have own wrapper around glslang... something like shaderc but way better
+- Material: Occlusion
 
 - Engine update main command buffer every frame
 - Reflection probe

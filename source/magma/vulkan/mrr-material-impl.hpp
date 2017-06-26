@@ -17,6 +17,7 @@ namespace lava {
         ~Impl();
 
         // Main interface
+        void normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
 
@@ -29,8 +30,6 @@ namespace lava {
 
     public:
         struct UniformBufferObject {
-            bool hasBaseColorSampler = false;
-            bool hasMetallicRoughnessSampler = true;
         };
 
         struct Attribute {
@@ -67,12 +66,17 @@ namespace lava {
         vulkan::Capsule<VkDeviceMemory> m_baseColorImageMemory;
         vulkan::Capsule<VkImageView> m_baseColorImageView;
 
+        vulkan::Capsule<VkImage> m_normalImage;
+        vulkan::Capsule<VkDeviceMemory> m_normalImageMemory;
+        vulkan::Capsule<VkImageView> m_normalImageView;
+
         vulkan::Capsule<VkImage> m_metallicRoughnessImage;
         vulkan::Capsule<VkDeviceMemory> m_metallicRoughnessImageMemory;
         vulkan::Capsule<VkImageView> m_metallicRoughnessImageView;
 
         // Data
         Attribute m_baseColor;
+        Attribute m_normal;
         Attribute m_metallicRoughness;
     };
 }

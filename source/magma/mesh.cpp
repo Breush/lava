@@ -40,7 +40,7 @@ $pimpl_method(Mesh, void, material, const MrrMaterial&, material);
 
 void Mesh::load(const std::string& fileName)
 {
-    logger.info("magma.mesh") << "Loading file " << fileName << std::endl;
+    logger.info("magma.mesh.glb-loader") << "Loading file " << fileName << std::endl;
     logger.log().tab(1);
 
     std::ifstream file(fileName, std::ifstream::binary);
@@ -122,6 +122,8 @@ void Mesh::load(const std::string& fileName)
 
     // Material textures
     if (material.baseColorTextureIndex != -1u) {
+        logger.log() << "Base color texture found." << std::endl;
+
         uint32_t textureIndex = material.baseColorTextureIndex;
         glb::Texture texture(textures[textureIndex]);
         glb::Image image(images[texture.source]);
@@ -135,7 +137,25 @@ void Mesh::load(const std::string& fileName)
         mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
         stbi_image_free(pixels);
     }
+    if (material.normalTextureIndex != -1u) {
+        logger.log() << "Normal texture found." << std::endl;
+
+        uint32_t textureIndex = material.occlusionTextureIndex;
+        glb::Texture texture(textures[textureIndex]);
+        glb::Image image(images[texture.source]);
+
+        int texWidth, texHeight;
+        glb::BufferView imageBufferView(bufferViews[image.bufferView]);
+        auto imageData = imageBufferView.get(binChunk.data);
+        auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
+        std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
+        memmove(pixelsVector.data(), pixels, pixelsVector.size());
+        mrrMaterial.normal(pixelsVector, texWidth, texHeight, 4);
+        stbi_image_free(pixels);
+    }
     if (material.metallicRoughnessTextureIndex != -1u) {
+        logger.log() << "Metallic roughness texture found." << std::endl;
+
         uint32_t textureIndex = material.metallicRoughnessTextureIndex;
         glb::Texture texture(textures[textureIndex]);
         glb::Image image(images[texture.source]);

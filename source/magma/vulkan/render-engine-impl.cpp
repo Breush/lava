@@ -212,20 +212,20 @@ void RenderEngine::Impl::createDescriptorSetLayout()
     attributesLayoutBinding.pImmutableSamplers = nullptr;
 
     // Sampler
-    VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
-    baseColorLayoutBinding.binding = 2;
-    baseColorLayoutBinding.descriptorCount = 1;
-    baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    baseColorLayoutBinding.pImmutableSamplers = nullptr;
-    baseColorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-    // Sampler
     VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
-    normalMapLayoutBinding.binding = 3;
+    normalMapLayoutBinding.binding = 2;
     normalMapLayoutBinding.descriptorCount = 1;
     normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     normalMapLayoutBinding.pImmutableSamplers = nullptr;
     normalMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    // Sampler
+    VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
+    baseColorLayoutBinding.binding = 3;
+    baseColorLayoutBinding.descriptorCount = 1;
+    baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    baseColorLayoutBinding.pImmutableSamplers = nullptr;
+    baseColorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     // Sampler
     VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};

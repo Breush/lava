@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#define MAGMA_HAS_NORMAL_MAP_SAMPLER
+#define MAGMA_HAS_NORMAL_SAMPLER
 #define MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER
 
 layout(binding = 0) uniform TransformsUbo {
@@ -11,17 +11,15 @@ layout(binding = 0) uniform TransformsUbo {
     vec3 cameraPosition;
 } transforms;
 
-// Should probably be #define
 layout(binding = 1) uniform AttributesUbo {
-    bool hasBaseColorSampler;
-    bool hasMettallicRoughnessSampler;
-    // @todo Keep the UBO anyway for colors and such
+    // @todo Colors
+    bool dummy;
 } attributes;
 
-layout(binding = 2) uniform sampler2D baseColorSampler;
-#if defined(MAGMA_HAS_NORMALS_SAMPLER)
-layout(binding = 3) uniform sampler2D normalsSampler;
+#if defined(MAGMA_HAS_NORMAL_SAMPLER)
+layout(binding = 2) uniform sampler2D normalSampler;
 #endif
+layout(binding = 3) uniform sampler2D baseColorSampler;
 layout(binding = 4) uniform sampler2D metallicRoughnessSampler;
 
 layout(location = 0) in vec3 fragWorldPosition;
@@ -53,9 +51,7 @@ void main()
 
     // PBR
     vec4 baseColor = vec4(1);
-    if (attributes.hasBaseColorSampler) {
-        baseColor *= vec4(fragColor * texture(baseColorSampler, fragUv).rgb, 1.0);
-    }
+    baseColor *= vec4(fragColor * texture(baseColorSampler, fragUv).rgb, 1.0);
     
     float metallic = 1;
     float roughness = 1;
@@ -77,6 +73,7 @@ void main()
     vec4 ambientColor = baseColor * 0.5;
 
     outColor = ambientColor + reflectedColor;
+    outColor = texture(normalSampler, fragUv);
 }
 
 // D = Normal distribution (Distribution of the microfacets)
