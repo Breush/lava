@@ -26,10 +26,10 @@ namespace lava {
 
     protected:
         void init();
-        void updateAttributesUbo();
 
     public:
         struct UniformBufferObject {
+            bool dummy;
         };
 
         struct Attribute {
@@ -62,13 +62,13 @@ namespace lava {
         vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
 
         // @todo Should be in the texture itself, and probably unique_ptr, so that they can be deleted
-        vulkan::Capsule<VkImage> m_baseColorImage;
-        vulkan::Capsule<VkDeviceMemory> m_baseColorImageMemory;
-        vulkan::Capsule<VkImageView> m_baseColorImageView;
-
         vulkan::Capsule<VkImage> m_normalImage;
         vulkan::Capsule<VkDeviceMemory> m_normalImageMemory;
         vulkan::Capsule<VkImageView> m_normalImageView;
+
+        vulkan::Capsule<VkImage> m_baseColorImage;
+        vulkan::Capsule<VkDeviceMemory> m_baseColorImageMemory;
+        vulkan::Capsule<VkImageView> m_baseColorImageView;
 
         vulkan::Capsule<VkImage> m_metallicRoughnessImage;
         vulkan::Capsule<VkDeviceMemory> m_metallicRoughnessImageMemory;

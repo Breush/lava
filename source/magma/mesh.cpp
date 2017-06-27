@@ -140,7 +140,7 @@ void Mesh::load(const std::string& fileName)
     if (material.normalTextureIndex != -1u) {
         logger.log() << "Normal texture found." << std::endl;
 
-        uint32_t textureIndex = material.occlusionTextureIndex;
+        uint32_t textureIndex = material.normalTextureIndex;
         glb::Texture texture(textures[textureIndex]);
         glb::Image image(images[texture.source]);
 

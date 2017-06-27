@@ -125,12 +125,12 @@ MrrMaterial::Impl::Impl(RenderEngine& engine)
     , m_uniformStagingBufferMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_uniformBuffer{m_engine.device().capsule(), vkDestroyBuffer}
     , m_uniformBufferMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_baseColorImage{m_engine.device().capsule(), vkDestroyImage}
-    , m_baseColorImageMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_baseColorImageView{m_engine.device().capsule(), vkDestroyImageView}
     , m_normalImage{m_engine.device().capsule(), vkDestroyImage}
     , m_normalImageMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_normalImageView{m_engine.device().capsule(), vkDestroyImageView}
+    , m_baseColorImage{m_engine.device().capsule(), vkDestroyImage}
+    , m_baseColorImageMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_baseColorImageView{m_engine.device().capsule(), vkDestroyImageView}
     , m_metallicRoughnessImage{m_engine.device().capsule(), vkDestroyImage}
     , m_metallicRoughnessImageMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_metallicRoughnessImageView{m_engine.device().capsule(), vkDestroyImageView}
