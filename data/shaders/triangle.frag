@@ -1,8 +1,16 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+// @todo These should be generated
 #define MAGMA_HAS_NORMAL_SAMPLER
-#define MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER
+#define MAGMA_HAS_ALBEDO_SAMPLER
+#define MAGMA_HAS_ORM_SAMPLER
+
+#if defined(MAGMA_HAS_ORM_SAMPLER)
+    #define MAGMA_USE_ORM_OCCLUSION
+    #define MAGMA_USE_ORM_ROUGHNESS
+    #define MAGMA_USE_ORM_METALLIC
+#endif
 
 layout(binding = 0) uniform TransformsUbo {
     mat4 model;
@@ -19,12 +27,16 @@ layout(binding = 1) uniform AttributesUbo {
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
 layout(binding = 2) uniform sampler2D normalSampler;
 #endif
-layout(binding = 3) uniform sampler2D baseColorSampler;
-layout(binding = 4) uniform sampler2D metallicRoughnessSampler;
+#if defined(MAGMA_HAS_ALBEDO_SAMPLER)
+layout(binding = 3) uniform sampler2D albedoSampler;
+#endif
+#if defined(MAGMA_HAS_ORM_SAMPLER)
+layout(binding = 4) uniform sampler2D ormSampler;
+#endif
 
 layout(location = 0) in vec3 fragWorldPosition;
 layout(location = 1) in mat3 fragTbn;
-layout(location = 4) in vec3 fragColor;
+layout(location = 4) in vec3 fragColor; // Who cares?
 layout(location = 5) in vec2 fragUv;
 
 layout(location = 0) out vec4 outColor;
@@ -38,28 +50,39 @@ PointLight pointLight = PointLight(vec3(5, 5, 0), vec3(1));
 
 const float PI = 3.1415926535897932384626433832795;
 
-vec4 lightContribution();
-vec4 pointLightContribution(PointLight pointLight, vec3 normal);
-vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal);
+vec3 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal);
 
 void main()
 {
+    // Samplers
+#if defined(MAGMA_HAS_ALBEDO_SAMPLER)
+    vec4 albedo = texture(albedoSampler, fragUv);
+#endif
+#if defined(MAGMA_HAS_ORM_SAMPLER)
+    vec4 orm = texture(ormSampler, fragUv);
+#endif
+
     // @todo For each light
     vec3 lightDirection = normalize(pointLight.position - fragWorldPosition);
 	vec3 viewDirection = normalize(transforms.cameraPosition - fragWorldPosition);
 	vec3 normal = normalize(fragTbn * (texture(normalSampler, fragUv).rgb * 2 - 1));
 
+    // @todo Inverse the TBN matrix in the vertex shader
+
     // PBR
     vec4 baseColor = vec4(1);
-    baseColor *= vec4(fragColor * texture(baseColorSampler, fragUv).rgb, 1.0);
-    
-    float metallic = 1;
-    float roughness = 1;
+#if defined(MAGMA_HAS_ALBEDO_SAMPLER)
+    baseColor *= vec4(fragColor * albedo.rgb, 1.0);
+#endif
 
-#if defined(MAGMA_HAS_METALLIC_ROUGHNESS_SAMPLER)
-    vec4 metallicRoughness = texture(metallicRoughnessSampler, fragUv);
-    metallic *= metallicRoughness.b;
-    roughness *= metallicRoughness.g;
+    float roughness = 1;
+    float metallic = 1;
+
+#if defined(MAGMA_USE_ORM_ROUGHNESS)
+    roughness *= orm.g;
+#endif
+#if defined(MAGMA_USE_ORM_METALLIC)
+    metallic *= orm.b;
 #endif
 
     vec3 dielectricSpecular = vec3(0.04);
@@ -67,13 +90,18 @@ void main()
     vec3 F0 = mix(dielectricSpecular, baseColor.rgb, metallic);
     float alpha = roughness * roughness;
 
-    vec4 reflectedColor = bdrf(cdiff, F0, alpha, lightDirection, viewDirection, normal);
+    vec3 reflectedColor = bdrf(cdiff, F0, alpha, lightDirection, viewDirection, normal);
 
     // Ambient
-    vec4 ambientColor = baseColor * 0.5;
+    vec3 ambientColor = baseColor.rgb * 0.5;
 
-    outColor = ambientColor + reflectedColor;
-    //outColor = vec4(normal, 1);
+    // Occlusion
+    float occlusion = 1;
+#if defined(MAGMA_USE_ORM_OCCLUSION)
+    occlusion *= orm.r;
+#endif
+
+    outColor = vec4((ambientColor + reflectedColor) * occlusion, albedo.a);
 }
 
 // D = Normal distribution (Distribution of the microfacets)
@@ -101,7 +129,7 @@ vec3 F_Schlick(float cosTheta, vec3 F0)
 	return F;    
 }
 
-vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 L, vec3 V, vec3 N)
+vec3 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 L, vec3 V, vec3 N)
 {
     // Diffuse
     vec3 diffuseColor = cdiff / PI;
@@ -127,5 +155,5 @@ vec4 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 L, vec3 V, vec3 N)
 		specularColor += spec * dotNL * lightColor;
 	}
 
-	return vec4(diffuseColor + specularColor, 1.0);
+	return diffuseColor + specularColor;
 }
