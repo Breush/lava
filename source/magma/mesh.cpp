@@ -98,6 +98,11 @@ void Mesh::load(const std::string& fileName)
     glb::Accessor normalsAccessor(accessors[normalsAccessorIndex]);
     auto normals = normalsAccessor.get<glm::vec3>(bufferViews, binChunk.data);
 
+    // Tangents
+    uint32_t tangentsAccessorIndex = attributes["TANGENT"];
+    glb::Accessor tangentsAccessor(accessors[tangentsAccessorIndex]);
+    auto tangents = tangentsAccessor.get<glm::vec4>(bufferViews, binChunk.data);
+
     // Fixing axes conventions
     for (auto& v : normals) {
         auto z = v.z;
@@ -179,6 +184,7 @@ void Mesh::load(const std::string& fileName)
     m_impl->verticesCount(positions.size());
     m_impl->verticesPositions(positions);
     m_impl->verticesNormals(normals);
+    m_impl->verticesTangents(tangents);
     m_impl->verticesUvs(uv1s);
     m_impl->indices(indices);
     m_impl->material(mrrMaterial);

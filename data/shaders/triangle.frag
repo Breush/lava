@@ -23,9 +23,9 @@ layout(binding = 3) uniform sampler2D baseColorSampler;
 layout(binding = 4) uniform sampler2D metallicRoughnessSampler;
 
 layout(location = 0) in vec3 fragWorldPosition;
-layout(location = 1) in vec3 fragNormal;
-layout(location = 2) in vec3 fragColor;
-layout(location = 3) in vec2 fragUv;
+layout(location = 1) in mat3 fragTbn;
+layout(location = 4) in vec3 fragColor;
+layout(location = 5) in vec2 fragUv;
 
 layout(location = 0) out vec4 outColor;
 
@@ -47,7 +47,7 @@ void main()
     // @todo For each light
     vec3 lightDirection = normalize(pointLight.position - fragWorldPosition);
 	vec3 viewDirection = normalize(transforms.cameraPosition - fragWorldPosition);
-	vec3 normal = normalize(fragNormal);
+	vec3 normal = normalize(fragTbn * (texture(normalSampler, fragUv).rgb * 2 - 1));
 
     // PBR
     vec4 baseColor = vec4(1);
@@ -73,6 +73,7 @@ void main()
     vec4 ambientColor = baseColor * 0.5;
 
     outColor = ambientColor + reflectedColor;
+    //outColor = vec4(normal, 1);
 }
 
 // D = Normal distribution (Distribution of the microfacets)
