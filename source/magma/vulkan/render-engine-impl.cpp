@@ -1,5 +1,6 @@
 #include "./render-engine-impl.hpp"
 
+#include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <glslang/Public/ShaderLang.h>
@@ -88,14 +89,18 @@ void RenderEngine::Impl::draw()
 
 void RenderEngine::Impl::update()
 {
-    // @todo Get time!
+    // Get time
     static float time = 0.f;
-    const float dt = 0.001f;
-    const VkExtent2D viewExtent = m_swapchain.extent();
+    static auto previousTimePoint = std::chrono::high_resolution_clock::now();
+    auto currentTimePoint = std::chrono::high_resolution_clock::now();
+    const float dt = std::chrono::duration<float>(currentTimePoint - previousTimePoint).count();
+    previousTimePoint = currentTimePoint;
 
-    time += dt;
+    const float rotationSpeed = 1.f;
+    time += dt * rotationSpeed;
 
     // This is basically our camera
+    const VkExtent2D viewExtent = m_swapchain.extent();
     UniformBufferObject ubo = {};
     ubo.cameraPosition = glm::vec3(0.f, 2.f, 1.f);
     ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.f), glm::vec3(0.f, 0.f, 1.f));

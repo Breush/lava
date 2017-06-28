@@ -25,8 +25,6 @@
 
 ### Magma
 
-- PBR: Compute inverse TBN in vertex shader, transforming lights position
-
 - USE VULKAN.HPP 
 - Material: Use define to know whether there is a texture (compile shaders within the engine)
 - Mesh: have own secondary buffers
