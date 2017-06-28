@@ -15,6 +15,11 @@ int main(void)
     RenderWindow window({800, 600}, "The best example");
     engine.add(window);
 
+    auto& camera = engine.make<OrbitCamera>();
+    camera.position({0.f, 2.f, 5.f});
+    camera.target({0.f, 0.f, 0.f});
+    // @todo Should manage viewports and such?
+
     // Create a mesh
     // engine.make<Mesh>("./assets/models/duck.glb");
 

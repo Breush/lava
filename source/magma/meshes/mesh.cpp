@@ -1,13 +1,13 @@
-#include <lava/magma/mesh.hpp>
+#include <lava/magma/meshes/mesh.hpp>
 
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/pimpl.hpp>
-#include <lava/magma/mrr-material.hpp>
+#include <lava/magma/materials/mrr-material.hpp>
 
 #include <stb/stb_image.h>
 
-#include "./glb/loader.hpp"
-#include "./vulkan/mesh-impl.hpp"
+#include "../glb/loader.hpp"
+#include "../vulkan/meshes/mesh-impl.hpp"
 
 using namespace lava;
 

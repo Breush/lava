@@ -1,8 +1,8 @@
-#include <lava/magma/mrr-material.hpp>
+#include <lava/magma/materials/mrr-material.hpp>
 
 #include <lava/chamber/pimpl.hpp>
 
-#include "./vulkan/mrr-material-impl.hpp"
+#include "../vulkan/materials/mrr-material-impl.hpp"
 
 using namespace lava;
 

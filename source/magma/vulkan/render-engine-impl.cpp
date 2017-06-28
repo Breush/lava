@@ -12,7 +12,7 @@
 
 #include "./buffer.hpp"
 #include "./image.hpp"
-#include "./mesh-impl.hpp"
+#include "./meshes/mesh-impl.hpp"
 #include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
@@ -119,6 +119,11 @@ void RenderEngine::Impl::update()
     /* for (size_t i = 0; i < m_meshes.size(); ++i) {
         m_meshes[i]->update();
     }*/
+}
+
+void RenderEngine::Impl::add(std::unique_ptr<ICamera>&& camera)
+{
+    m_cameras.emplace_back(std::move(camera));
 }
 
 void RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)

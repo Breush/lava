@@ -55,6 +55,7 @@
         "system_error": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "vector": "cpp"
     }
 }

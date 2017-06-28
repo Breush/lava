@@ -3,8 +3,8 @@
 #include <lava/chamber/logger.hpp>
 #include <vulkan/vulkan.h>
 
-#include "./image.hpp"
-#include "./render-engine-impl.hpp"
+#include "../image.hpp"
+#include "../render-engine-impl.hpp"
 
 #include <cstring>
 

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <lava/chamber/math.hpp>
-#include <lava/magma/mesh.hpp>
+#include <lava/magma/meshes/mesh.hpp>
 
 namespace {
     void addCirclePoints(std::vector<glm::vec3>& points, const uint32_t tessellation, const float radius, const float height)
