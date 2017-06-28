@@ -14,16 +14,23 @@ Texture::Texture(const typename nlohmann::json::basic_json& json)
     source = json["source"];
 }
 
-PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json)
+Material::Material(const typename nlohmann::json::basic_json& json)
 {
-    if (json.find("pbrMetallicRoughness") != json.end()) {
-        auto& pbrMetallicRoughness = json["pbrMetallicRoughness"];
-        if (pbrMetallicRoughness.find("baseColorTexture") != pbrMetallicRoughness.end()) {
-            baseColorTextureIndex = pbrMetallicRoughness["baseColorTexture"]["index"];
-        }
-        if (pbrMetallicRoughness.find("metallicRoughnessTexture") != pbrMetallicRoughness.end()) {
-            metallicRoughnessTextureIndex = pbrMetallicRoughness["metallicRoughnessTexture"]["index"];
-        }
+    if (json.find("normalTexture") != json.end()) normalTextureIndex = json["normalTexture"]["index"];
+    if (json.find("occlusionTexture") != json.end()) occlusionTextureIndex = json["occlusionTexture"]["index"];
+}
+
+PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json)
+    : Material(json)
+{
+    if (json.find("pbrMetallicRoughness") == json.end()) return;
+    auto& pbrMetallicRoughness = json["pbrMetallicRoughness"];
+
+    if (pbrMetallicRoughness.find("baseColorTexture") != pbrMetallicRoughness.end()) {
+        baseColorTextureIndex = pbrMetallicRoughness["baseColorTexture"]["index"];
+    }
+    if (pbrMetallicRoughness.find("metallicRoughnessTexture") != pbrMetallicRoughness.end()) {
+        metallicRoughnessTextureIndex = pbrMetallicRoughness["metallicRoughnessTexture"]["index"];
     }
 }
 

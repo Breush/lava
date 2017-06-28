@@ -17,6 +17,7 @@ namespace lava {
         ~Impl();
 
         // Main interface
+        void normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
 
@@ -24,9 +25,13 @@ namespace lava {
         void addCommands(VkCommandBuffer commandBuffer);
 
     protected:
-        void rebindBaseColor();
+        void init();
 
     public:
+        struct UniformBufferObject {
+            bool dummy;
+        };
+
         struct Attribute {
             enum class Type {
                 NONE,
@@ -50,7 +55,17 @@ namespace lava {
         // References
         RenderEngine::Impl& m_engine;
 
+        // UBO for attributes
+        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
+        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
+        vulkan::Capsule<VkBuffer> m_uniformBuffer;
+        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
+
         // @todo Should be in the texture itself, and probably unique_ptr, so that they can be deleted
+        vulkan::Capsule<VkImage> m_normalImage;
+        vulkan::Capsule<VkDeviceMemory> m_normalImageMemory;
+        vulkan::Capsule<VkImageView> m_normalImageView;
+
         vulkan::Capsule<VkImage> m_baseColorImage;
         vulkan::Capsule<VkDeviceMemory> m_baseColorImageMemory;
         vulkan::Capsule<VkImageView> m_baseColorImageView;
@@ -61,6 +76,7 @@ namespace lava {
 
         // Data
         Attribute m_baseColor;
+        Attribute m_normal;
         Attribute m_metallicRoughness;
     };
 }

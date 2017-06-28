@@ -29,12 +29,22 @@ end
 
 if not fileExists("./include/vulkan") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
+    
+    -- Vulkan SDK
     local folder = "VulkanSDK/" .. VERSION .. "/x86_64"
     os.execute("cd ./.tmp && bash ./vulkan-sdk_" .. VERSION .. ".run &&" ..
                "cp -R " .. folder .. "/include/vulkan ../include &&" ..
                "cp -R " .. folder .. "/lib/* ../lib &&" ..
                "cp -R " .. folder .. "/bin/* ../bin &&" ..
                "cp -R " .. folder .. "/etc/* ../etc")
+
+    -- glslang
+    folder = "VulkanSDK/" .. VERSION .. "/source/glslang"
+    os.execute("cd ./.tmp/" .. folder .. " && mkdir -p build && cd build && CXXFLAGS=-fPIC cmake .. && make -j 2")
+    os.execute("cd ./.tmp/ &&" ..
+               "cp -R " .. folder .. "/glslang ../include &&" ..
+               "cp -R " .. folder .. "/SPIRV ../include &&" ..
+               "cp -R `find " .. folder .. " -name *.a` ../lib")
 end
 
 -- Use hook
@@ -43,7 +53,8 @@ local externalPath = path.getabsolute(".")
 function useVulkanSdk()
     includedirs(externalPath .. "/include")
     libdirs(externalPath .. "/lib")
-    links "vulkan"
+    links { "vulkan", "SPIRV", "OGLCompiler", "HLSL", "OSDependent", "glslang" }
+    linkoptions("-pthread")
     
     filter { "configurations:debug" }
         linkoptions("-Wl,-rpath," .. externalPath .. "/lib")

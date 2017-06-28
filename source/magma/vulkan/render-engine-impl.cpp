@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <glslang/Public/ShaderLang.h>
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
 #include <set>
@@ -96,9 +97,10 @@ void RenderEngine::Impl::update()
 
     // This is basically our camera
     UniformBufferObject ubo = {};
-    ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.projection = glm::perspective(glm::radians(45.0f), viewExtent.width / (float)viewExtent.height, 0.1f, 10.0f);
+    ubo.cameraPosition = glm::vec3(0.f, 2.f, 1.f);
+    ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.f), glm::vec3(0.f, 0.f, 1.f));
+    ubo.view = glm::lookAt(ubo.cameraPosition, glm::vec3(0.f, 0.f, 0.5f), glm::vec3(0.f, 0.f, 1.f));
+    ubo.projection = glm::perspective(glm::radians(45.f), viewExtent.width / (float)viewExtent.height, 0.1f, 10.f);
     ubo.projection[1][1] *= -1; // Well, this is not OpenGL!
 
     void* data;
@@ -193,17 +195,33 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor set layout." << std::endl;
 
-    // UBO
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers = nullptr;
+    // Transforms UBO
+    VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
+    transformsLayoutBinding.binding = 0;
+    transformsLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    transformsLayoutBinding.descriptorCount = 1;
+    transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    transformsLayoutBinding.pImmutableSamplers = nullptr;
+
+    // Attributes UBO
+    VkDescriptorSetLayoutBinding attributesLayoutBinding = {};
+    attributesLayoutBinding.binding = 1;
+    attributesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    attributesLayoutBinding.descriptorCount = 1;
+    attributesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    attributesLayoutBinding.pImmutableSamplers = nullptr;
+
+    // Sampler
+    VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
+    normalMapLayoutBinding.binding = 2;
+    normalMapLayoutBinding.descriptorCount = 1;
+    normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    normalMapLayoutBinding.pImmutableSamplers = nullptr;
+    normalMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     // Sampler
     VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
-    baseColorLayoutBinding.binding = 1;
+    baseColorLayoutBinding.binding = 3;
     baseColorLayoutBinding.descriptorCount = 1;
     baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     baseColorLayoutBinding.pImmutableSamplers = nullptr;
@@ -211,13 +229,14 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
     // Sampler
     VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};
-    metallicRoughnessLayoutBinding.binding = 2;
+    metallicRoughnessLayoutBinding.binding = 4;
     metallicRoughnessLayoutBinding.descriptorCount = 1;
     metallicRoughnessLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
     metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    std::array<VkDescriptorSetLayoutBinding, 3> bindings = {uboLayoutBinding, baseColorLayoutBinding,
+    std::array<VkDescriptorSetLayoutBinding, 5> bindings = {transformsLayoutBinding, attributesLayoutBinding,
+                                                            baseColorLayoutBinding, normalMapLayoutBinding,
                                                             metallicRoughnessLayoutBinding};
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -233,8 +252,8 @@ void RenderEngine::Impl::createGraphicsPipeline()
 {
     logger.info("magma.vulkan.render-engine") << "Creating graphics pipeline." << std::endl;
 
-    auto vertShaderCode = vulkan::readShaderFile("./data/shaders/triangle.vert.spv");
-    auto fragShaderCode = vulkan::readShaderFile("./data/shaders/triangle.frag.spv");
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/triangle.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/triangle.frag");
 
     vulkan::Capsule<VkShaderModule> vertShaderModule{m_device.capsule(), vkDestroyShaderModule};
     vulkan::Capsule<VkShaderModule> fragShaderModule{m_device.capsule(), vkDestroyShaderModule};
@@ -278,12 +297,12 @@ void RenderEngine::Impl::createGraphicsPipeline()
 
     // Viewport and scissor
     VkViewport viewport = {};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
+    viewport.x = 0.f;
+    viewport.y = 0.f;
     viewport.width = static_cast<float>(m_swapchain.extent().width);
     viewport.height = static_cast<float>(m_swapchain.extent().height);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
 
     VkRect2D scissor = {};
     scissor.offset = {0, 0};
@@ -302,20 +321,20 @@ void RenderEngine::Impl::createGraphicsPipeline()
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer.lineWidth = 1.0f;
+    rasterizer.lineWidth = 1.f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
-    rasterizer.depthBiasConstantFactor = 0.0f;
-    rasterizer.depthBiasClamp = 0.0f;
-    rasterizer.depthBiasSlopeFactor = 0.0f;
+    rasterizer.depthBiasConstantFactor = 0.f;
+    rasterizer.depthBiasClamp = 0.f;
+    rasterizer.depthBiasSlopeFactor = 0.f;
 
     // Multi-sample
     VkPipelineMultisampleStateCreateInfo multisampling = {};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-    multisampling.minSampleShading = 1.0f;
+    multisampling.minSampleShading = 1.f;
     multisampling.pSampleMask = nullptr;
     multisampling.alphaToCoverageEnable = VK_FALSE;
     multisampling.alphaToOneEnable = VK_FALSE;
@@ -338,10 +357,10 @@ void RenderEngine::Impl::createGraphicsPipeline()
     colorBlending.logicOp = VK_LOGIC_OP_COPY;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
-    colorBlending.blendConstants[0] = 0.0f;
-    colorBlending.blendConstants[1] = 0.0f;
-    colorBlending.blendConstants[2] = 0.0f;
-    colorBlending.blendConstants[3] = 0.0f;
+    colorBlending.blendConstants[0] = 0.f;
+    colorBlending.blendConstants[1] = 0.f;
+    colorBlending.blendConstants[2] = 0.f;
+    colorBlending.blendConstants[3] = 0.f;
 
     // Depth buffer
     VkPipelineDepthStencilStateCreateInfo depthStencil = {};
@@ -350,8 +369,8 @@ void RenderEngine::Impl::createGraphicsPipeline()
     depthStencil.depthWriteEnable = VK_TRUE;
     depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
     depthStencil.depthBoundsTestEnable = VK_FALSE;
-    depthStencil.minDepthBounds = 0.0f;
-    depthStencil.maxDepthBounds = 1.0f;
+    depthStencil.minDepthBounds = 0.f;
+    depthStencil.maxDepthBounds = 1.f;
     depthStencil.stencilTestEnable = VK_FALSE;
     depthStencil.front = {};
     depthStencil.back = {};
@@ -444,68 +463,15 @@ void RenderEngine::Impl::createCommandPool()
     }
 }
 
-void RenderEngine::Impl::createTextureImage()
+void RenderEngine::Impl::createDummyTexture()
 {
-    logger.info("magma.vulkan.render-engine") << "Creating texture image." << std::endl;
+    logger.info("magma.vulkan.render-engine") << "Creating dummy texture." << std::endl;
 
-    auto filename = "./data/images/debug.png";
-    int texWidth, texHeight, texChannels;
-    auto pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-    if (!pixels) {
-        logger.error("magma.image") << "Failed to load image from filename " << filename << std::endl;
-        exit(1);
-    }
-
-    vulkan::Capsule<VkImage> stagingImage{m_device.capsule(), vkDestroyImage};
-    vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_device.capsule(), vkFreeMemory};
-    vulkan::Capsule<VkImageView> stagingImageView{m_device.capsule(), vkDestroyImageView};
-
-    vulkan::createImage(
-        m_device, texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
-
-    VkImageSubresource subresource = {};
-    subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    subresource.mipLevel = 0;
-    subresource.arrayLayer = 0;
-
-    VkSubresourceLayout stagingImageLayout;
-    vkGetImageSubresourceLayout(m_device, stagingImage, &subresource, &stagingImageLayout);
-
-    // Staging buffer
-    vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
-    vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_device.capsule(), vkFreeMemory};
-
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
-    vulkan::createBuffer(m_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-                         stagingBufferMemory);
-
-    void* data;
-    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(m_device, stagingBufferMemory);
-
-    stbi_image_free(pixels);
-
-    // The real image
-    vulkan::createImage(m_device, texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+    vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        m_textureImage, m_textureImageMemory);
+                        m_dummyImage, m_dummyImageMemory);
 
-    vulkan::transitionImageLayout(m_device, m_commandPool, m_textureImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth),
-                              static_cast<uint32_t>(texHeight));
-}
-
-void RenderEngine::Impl::createTextureImageView()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating texture image view." << std::endl;
-
-    vulkan::createImageView(m_device, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_textureImageView);
+    vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
 }
 
 void RenderEngine::Impl::createTextureSampler()
@@ -526,9 +492,9 @@ void RenderEngine::Impl::createTextureSampler()
     samplerInfo.compareEnable = VK_FALSE;
     samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 0.0f;
+    samplerInfo.mipLodBias = 0.f;
+    samplerInfo.minLod = 0.f;
+    samplerInfo.maxLod = 0.f;
 
     if (vkCreateSampler(m_device, &samplerInfo, nullptr, m_textureSampler.replace()) != VK_SUCCESS) {
         logger.error("magma.vulkan.texture-sampler") << "Failed to texture sampler." << std::endl;
@@ -572,17 +538,26 @@ void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
-    std::array<VkDescriptorPoolSize, 3> poolSizes = {};
+    std::array<VkDescriptorPoolSize, 5> poolSizes = {};
+    // Transforms UBO
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = 1;
 
-    // Base color
-    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    // Attributes UBO
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[1].descriptorCount = 1;
 
-    // Metallic roughness
+    // Base color
     poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[2].descriptorCount = 1;
+
+    // Normal map
+    poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[3].descriptorCount = 1;
+
+    // Metallic roughness
+    poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[4].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -613,9 +588,9 @@ void RenderEngine::Impl::createDescriptorSet()
         exit(1);
     }
 
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+    std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
 
-    // UBO
+    // Transforms UBO
     VkDescriptorBufferInfo bufferInfo = {};
     bufferInfo.buffer = m_uniformBuffer;
     bufferInfo.offset = 0;
@@ -630,22 +605,6 @@ void RenderEngine::Impl::createDescriptorSet()
     descriptorWrites[0].pBufferInfo = &bufferInfo;
     descriptorWrites[0].pImageInfo = nullptr;
     descriptorWrites[0].pTexelBufferView = nullptr;
-
-    // Sampler
-    VkDescriptorImageInfo imageInfo = {};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = m_textureImageView;
-    imageInfo.sampler = m_textureSampler;
-
-    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[1].dstSet = m_descriptorSet;
-    descriptorWrites[1].dstBinding = 1;
-    descriptorWrites[1].dstArrayElement = 0;
-    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pBufferInfo = nullptr;
-    descriptorWrites[1].pImageInfo = &imageInfo;
-    descriptorWrites[1].pTexelBufferView = nullptr;
 
     vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
@@ -690,8 +649,8 @@ void RenderEngine::Impl::createCommandBuffers()
         renderPassInfo.renderArea.extent = m_swapchain.extent();
 
         std::array<VkClearValue, 2> clearValues = {};
-        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-        clearValues[1].depthStencil = {1.0f, 0};
+        clearValues[0].color = {0.f, 0.f, 0.f, 1.f};
+        clearValues[1].depthStencil = {1.f, 0};
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
@@ -756,8 +715,7 @@ void RenderEngine::Impl::initVulkan()
     createDescriptorSetLayout();
     createGraphicsPipeline();
     createCommandPool();
-    createTextureImage();
-    createTextureImageView();
+    createDummyTexture();
     createTextureSampler();
     createDepthResources();
     createFramebuffers();

@@ -25,16 +25,18 @@
 
 ### Magma
 
-- USE VULKAN.HPP
+- PBR: Compute inverse TBN in vertex shader, transforming lights position
 
-- RenderEngine (ou namespace magma ?)
-- RenderWindow
-- 3D meshes !
-- Mesh have own secondary buffers
+- USE VULKAN.HPP 
+- Material: Use define to know whether there is a texture (compile shaders within the engine)
+- Mesh: have own secondary buffers
+- Shader: have own wrapper around glslang... something like shaderc but way better
+- Mesh: Compute tangents if not provided
+- Material: Rename to RmMaterial
+- PBR: Reflection cube maps
+- PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
+- Reflection probes
 - Engine update main command buffer every frame
-- Mesh loading
-- Textures
-- Lighting
 
 ## Example app
 

@@ -121,6 +121,13 @@ using namespace lava;
 
 MrrMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
+    , m_uniformStagingBuffer{m_engine.device().capsule(), vkDestroyBuffer}
+    , m_uniformStagingBufferMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_uniformBuffer{m_engine.device().capsule(), vkDestroyBuffer}
+    , m_uniformBufferMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_normalImage{m_engine.device().capsule(), vkDestroyImage}
+    , m_normalImageMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_normalImageView{m_engine.device().capsule(), vkDestroyImageView}
     , m_baseColorImage{m_engine.device().capsule(), vkDestroyImage}
     , m_baseColorImageMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_baseColorImageView{m_engine.device().capsule(), vkDestroyImageView}
@@ -129,12 +136,69 @@ MrrMaterial::Impl::Impl(RenderEngine& engine)
     , m_metallicRoughnessImageView{m_engine.device().capsule(), vkDestroyImageView}
 {
     m_baseColor.type = Attribute::Type::NONE;
+
+    init();
 }
 
 MrrMaterial::Impl::~Impl()
 {
     cleanAttribute(m_baseColor);
+    cleanAttribute(m_normal);
     cleanAttribute(m_metallicRoughness);
+}
+
+void MrrMaterial::Impl::init()
+{
+    // Create uniform buffer
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+    int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    vulkan::createBuffer(m_engine.device(), bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformStagingBuffer,
+                         m_uniformStagingBufferMemory);
+
+    bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    vulkan::createBuffer(m_engine.device(), bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer,
+                         m_uniformBufferMemory);
+
+    // Set it up
+    VkDescriptorBufferInfo bufferInfo = {};
+    bufferInfo.buffer = m_uniformBuffer;
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(UniformBufferObject);
+
+    VkWriteDescriptorSet descriptorWrite = {};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_engine.descriptorSet();
+    descriptorWrite.dstBinding = 1;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+    descriptorWrite.pImageInfo = nullptr;
+    descriptorWrite.pTexelBufferView = nullptr;
+
+    vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
+
+    // Bind empty textures to materials @fixme Should be removed afterwards
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(),
+                             m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(),
+                             m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 4, m_engine.device(), m_engine.textureSampler(),
+                             m_engine.dummyImageView());
+}
+
+void MrrMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
+{
+    cleanAttribute(m_normal);
+
+    m_normal.type = Attribute::Type::TEXTURE;
+    setupTexture(m_normal.texture, pixels, width, height, channels);
+    setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool(), m_normalImage, m_normalImageMemory,
+                      m_normalImageView);
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(), m_normalImageView);
 }
 
 // @todo This should be a reference to a texture, so that it can be shared between materials
@@ -146,7 +210,7 @@ void MrrMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t w
     setupTexture(m_baseColor.texture, pixels, width, height, channels);
     setupTextureImage(m_baseColor.texture, m_engine.device(), m_engine.commandPool(), m_baseColorImage, m_baseColorImageMemory,
                       m_baseColorImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 1, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
 }
 
 void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
@@ -158,7 +222,7 @@ void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixel
     setupTexture(m_metallicRoughness.texture, pixels, width, height, channels);
     setupTextureImage(m_metallicRoughness.texture, m_engine.device(), m_engine.commandPool(), m_metallicRoughnessImage,
                       m_metallicRoughnessImageMemory, m_metallicRoughnessImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(),
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 4, m_engine.device(), m_engine.textureSampler(),
                              m_metallicRoughnessImageView);
 }
 

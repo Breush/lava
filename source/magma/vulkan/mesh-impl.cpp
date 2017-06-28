@@ -79,6 +79,16 @@ void Mesh::Impl::verticesUvs(const std::vector<glm::vec2>& uvs)
     createVertexBuffer();
 }
 
+void Mesh::Impl::verticesTangents(const std::vector<glm::vec4>& tangents)
+{
+    auto length = std::min(m_vertices.size(), tangents.size());
+    for (uint32_t i = 0u; i < length; ++i) {
+        m_vertices[i].tangent = tangents[i];
+    }
+
+    createVertexBuffer();
+}
+
 void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
 {
     m_indices = indices;

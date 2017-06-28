@@ -14,6 +14,7 @@ namespace lava {
         MrrMaterial(RenderEngine& engine);
         ~MrrMaterial();
 
+        void normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
 
