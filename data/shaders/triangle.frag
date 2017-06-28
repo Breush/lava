@@ -12,13 +12,6 @@
     #define MAGMA_USE_ORM_METALLIC
 #endif
 
-layout(binding = 0) uniform TransformsUbo {
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-    vec3 cameraPosition;
-} transforms;
-
 layout(binding = 1) uniform AttributesUbo {
     // @todo Colors
     bool dummy;
@@ -35,22 +28,25 @@ layout(binding = 4) uniform sampler2D ormSampler;
 #endif
 
 layout(location = 0) in vec3 fragWorldPosition;
-layout(location = 1) in mat3 fragTbn;
-layout(location = 4) in vec3 fragColor; // Who cares?
-layout(location = 5) in vec2 fragUv;
+layout(location = 1) in vec3 fragColor; // @todo Who really cares?
+layout(location = 2) in vec2 fragUv;
+
+// Lights
+layout(location = 3) in vec3 fragEyePosition;
+layout(location = 4) in vec3 fragLightPosition;
 
 layout(location = 0) out vec4 outColor;
 
-// @todo Pass this through
+// Pass this through
 struct PointLight {
     vec3 position;
     vec3 color;
 };
-PointLight pointLight = PointLight(vec3(5, 5, 0), vec3(1));
+PointLight pointLight = PointLight(fragLightPosition, vec3(1));
 
 const float PI = 3.1415926535897932384626433832795;
 
-vec3 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 viewDirection, vec3 normal);
+vec3 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 eyeDirection, vec3 normal);
 
 void main()
 {
@@ -63,9 +59,9 @@ void main()
 #endif
 
     // @todo For each light
-    vec3 lightDirection = normalize(pointLight.position - fragWorldPosition);
-	vec3 viewDirection = normalize(transforms.cameraPosition - fragWorldPosition);
-	vec3 normal = normalize(fragTbn * (texture(normalSampler, fragUv).rgb * 2 - 1));
+    vec3 lightDirection = normalize(fragLightPosition - fragWorldPosition);
+	vec3 eyeDirection = normalize(fragEyePosition - fragWorldPosition);
+	vec3 normal = normalize(texture(normalSampler, fragUv).rgb * 2 - 1);
 
     // @todo Inverse the TBN matrix in the vertex shader
 
@@ -90,7 +86,7 @@ void main()
     vec3 F0 = mix(dielectricSpecular, baseColor.rgb, metallic);
     float alpha = roughness * roughness;
 
-    vec3 reflectedColor = bdrf(cdiff, F0, alpha, lightDirection, viewDirection, normal);
+    vec3 reflectedColor = bdrf(cdiff, F0, alpha, lightDirection, eyeDirection, normal);
 
     // Ambient
     vec3 ambientColor = baseColor.rgb * 0.5;
