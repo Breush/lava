@@ -18,7 +18,7 @@ layout(binding = 1) uniform AttributesUbo {
 } attributes;
 
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
-layout(binding = 2) uniform sampler2D normalSampler;
+layout(binding = 2) uniform sampler2D tNormalSampler;
 #endif
 #if defined(MAGMA_HAS_ALBEDO_SAMPLER)
 layout(binding = 3) uniform sampler2D albedoSampler;
@@ -27,13 +27,12 @@ layout(binding = 3) uniform sampler2D albedoSampler;
 layout(binding = 4) uniform sampler2D ormSampler;
 #endif
 
-layout(location = 0) in vec3 fragWorldPosition;
-layout(location = 1) in vec3 fragColor; // @todo Who really cares?
-layout(location = 2) in vec2 fragUv;
+layout(location = 0) in vec3 inTPosition;
+layout(location = 2) in vec2 inUv;
 
 // Lights
-layout(location = 3) in vec3 fragEyePosition;
-layout(location = 4) in vec3 fragLightPosition;
+layout(location = 3) in vec3 inTEyePosition;
+layout(location = 4) in vec3 inTLightPosition;
 
 layout(location = 0) out vec4 outColor;
 
@@ -42,7 +41,7 @@ struct PointLight {
     vec3 position;
     vec3 color;
 };
-PointLight pointLight = PointLight(fragLightPosition, vec3(1));
+PointLight pointLight = PointLight(inTLightPosition, vec3(1));
 
 const float PI = 3.1415926535897932384626433832795;
 
@@ -52,23 +51,23 @@ void main()
 {
     // Samplers
 #if defined(MAGMA_HAS_ALBEDO_SAMPLER)
-    vec4 albedo = texture(albedoSampler, fragUv);
+    vec4 albedo = texture(albedoSampler, inUv);
 #endif
 #if defined(MAGMA_HAS_ORM_SAMPLER)
-    vec4 orm = texture(ormSampler, fragUv);
+    vec4 orm = texture(ormSampler, inUv);
 #endif
 
     // @todo For each light
-    vec3 lightDirection = normalize(fragLightPosition - fragWorldPosition);
-	vec3 eyeDirection = normalize(fragEyePosition - fragWorldPosition);
-	vec3 normal = normalize(texture(normalSampler, fragUv).rgb * 2 - 1);
+    vec3 lightDirection = normalize(inTLightPosition - inTPosition);
+	vec3 eyeDirection = normalize(inTEyePosition - inTPosition);
+	vec3 normal = normalize(texture(tNormalSampler, inUv).rgb * 2 - 1);
 
     // @todo Inverse the TBN matrix in the vertex shader
 
     // PBR
     vec4 baseColor = vec4(1);
 #if defined(MAGMA_HAS_ALBEDO_SAMPLER)
-    baseColor *= vec4(fragColor * albedo.rgb, 1.0);
+    baseColor *= vec4(albedo.rgb, 1.0);
 #endif
 
     float roughness = 1;

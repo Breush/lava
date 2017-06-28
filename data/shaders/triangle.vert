@@ -5,22 +5,21 @@ layout(binding = 0) uniform TransformsUbo {
     mat4 model;
     mat4 view;
     mat4 projection;
-    vec3 cameraPosition;
+    vec3 wEyePosition;                            
 } transforms;
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inNormal;
+layout(location = 0) in vec3 inMPosition;           
+layout(location = 1) in vec3 inMNormal;              
 layout(location = 2) in vec3 inColor; // @todo Who cares?
 layout(location = 3) in vec2 inUv;
-layout(location = 4) in vec4 inTangent;
+layout(location = 4) in vec4 inMTangent;             
 
-layout(location = 0) out vec3 fragWorldPosition; // @fixme Remove, should be 0 once in TBN space
-layout(location = 1) out vec3 fragColor;
-layout(location = 2) out vec2 fragUv;
+layout(location = 0) out vec3 outTPosition;         
+layout(location = 2) out vec2 outUv;
 
 // Lights
-layout(location = 3) out vec3 fragEyePosition;
-layout(location = 4) out vec3 fragLightPosition;
+layout(location = 3) out vec3 outTEyePosition;      
+layout(location = 4) out vec3 outTLightPosition;  
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -30,23 +29,21 @@ out gl_PerVertex {
 vec3 lightPosition = vec3(5, 5, 0);
 
 void main() {
-    vec4 worldPosition = transforms.model * vec4(inPosition, 1);
+    mat4 VM4 = transforms.view * transforms.model;
+    mat3 VM3 = mat3(VM4);
 
-    gl_Position = transforms.projection * transforms.view * worldPosition;
-
-    fragColor = inColor;
-    fragUv = inUv;
+    vec4 vPosition = VM4 * vec4(inMPosition, 1);
+    gl_Position = transforms.projection * vPosition;
 
     // Lights
-    mat4 MV = transforms.view * transforms.model;
+    vec3 vNormal = normalize(VM3 * inMNormal);
+    vec3 vTangent = normalize(VM3 * inMTangent.xyz);
+    vTangent = normalize(vTangent - vNormal * dot(vNormal, vTangent)); // Orthogonalization
+    vec3 vBitangent = normalize(cross(vNormal, vTangent) * inMTangent.w);
+    mat3 tbn = transpose(mat3(vTangent, vBitangent, vNormal));
 
-    vec3 normal = normalize(MV * vec4(inNormal, 1)).xyz;
-    vec3 tangent = normalize(MV * vec4(inTangent.xyz, 1)).xyz;
-    tangent = normalize(tangent - normal * dot(normal, tangent)); // Orthogonalization
-    vec3 bitangent = cross(normal, tangent) * inTangent.w;
-
-    mat3 tbn = transpose(mat3(tangent, bitangent, normal));
-    fragWorldPosition = tbn * mat3(MV) * inPosition;
-    fragEyePosition = tbn * mat3(MV) * transforms.cameraPosition;
-    fragLightPosition = tbn * mat3(MV) * lightPosition;
+    outTPosition = tbn * vPosition.xyz;
+    outTEyePosition = tbn * (transforms.view * vec4(transforms.wEyePosition, 1)).xyz;
+    outTLightPosition = tbn * (transforms.view * vec4(lightPosition, 1)).xyz;
+    outUv = inUv;
 }
