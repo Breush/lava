@@ -1,4 +1,5 @@
 build/
+doc/html/
 external/.tmp/
 external/include/
 external/lib/
