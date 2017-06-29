@@ -25,6 +25,11 @@
 In order to select the configuration (debug or release):
 - `make config=release` for gmake.
 
+### Generating documentation
+
+- Have [doxygen](www.doxygen.org/) installed on your system ;
+- `cd doc && doxygen doxygen-config.xml` to generate documentation. 
+
 ## Dependencies
 
 Everthing **lava** needs is downloaded during *Premake* phase to `external/`. 
