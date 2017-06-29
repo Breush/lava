@@ -13,8 +13,14 @@ namespace lava {
         OrbitCamera(RenderEngine& engine);
         ~OrbitCamera();
 
+        // ICamera
+        const glm::vec3& position() const override final;
+        const glm::mat4& viewTransform() const override final;
+        const glm::mat4& projectionTransform() const override final;
+
         void position(const glm::vec3& position);
         void target(const glm::vec3& target);
+        void viewportRatio(float viewportRatio);
 
     public:
         class Impl;
