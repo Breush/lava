@@ -10,11 +10,11 @@ namespace {
 
 namespace lava {
     Window::Window() {}
-    Window::Window(VideoMode mode, const String& title, uint32_t style) { create(mode, title, style); }
+    Window::Window(VideoMode mode, const std::string& title, uint32_t style) { create(mode, title, style); }
 
     Window::~Window() { close(); }
 
-    void Window::create(VideoMode mode, const String& title, uint32_t style)
+    void Window::create(VideoMode mode, const std::string& title, uint32_t style)
     {
         // Destroy the previous window implementation
         close();

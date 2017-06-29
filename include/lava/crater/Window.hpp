@@ -1,13 +1,9 @@
 #pragma once
 
-#include <lava/chamber/NonCopyable.hpp>
-#include <lava/chamber/String.hpp>
-#include <lava/chamber/Vector2.hpp>
-
-#include <lava/crater/Export.hpp>
 #include <lava/crater/VideoMode.hpp>
 #include <lava/crater/WindowHandle.hpp>
 #include <lava/crater/WindowStyle.hpp>
+#include <string>
 
 namespace lava::priv {
     class WindowImpl;
@@ -17,7 +13,7 @@ namespace lava {
     class Event;
 
     /// \brief Window that serves as a target for OpenGL rendering
-    class Window : NonCopyable {
+    class Window {
     public:
         /// \brief Default constructor
         ///
@@ -38,7 +34,7 @@ namespace lava {
         /// \param mode     Video mode to use (defines the width, height and depth of the rendering area of the window)
         /// \param title    Title of the window
         /// \param style    %Window style, a bitwise OR combination of lava::Style enumerators
-        Window(VideoMode mode, const String& title, uint32_t style = Style::Default);
+        Window(VideoMode mode, const std::string& title, uint32_t style = Style::Default);
 
         /// Closes the window and frees all the resources attached to it.
         virtual ~Window();
@@ -56,7 +52,7 @@ namespace lava {
         /// \param mode     Video mode to use (defines the width, height and depth of the rendering area of the window)
         /// \param title    Title of the window
         /// \param style    %Window style, a bitwise OR combination of lava::Style enumerators
-        void create(VideoMode mode, const String& title, uint32_t style = Style::Default);
+        void create(VideoMode mode, const std::string& title, uint32_t style = Style::Default);
 
         /// \brief Close the window and destroy all the attached resources
         ///
@@ -127,7 +123,7 @@ namespace lava {
         /// The type of the returned handle is lava::WindowHandle,
         /// which is a typedef to the handle type defined by the OS.
         /// You shouldn't need to use this function, unless you have
-        /// very specific stuff to implement that SFML doesn't support,
+        /// very specific stuff to implement that lava doesn't support,
         /// or implement a temporary workaround until a bug is fixed.
         ///
         /// \return System handle of the window

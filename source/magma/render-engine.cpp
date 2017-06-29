@@ -1,6 +1,6 @@
 #include <lava/magma/render-engine.hpp>
 
-#include <lava/chamber/pimpl.hpp>
+#include <lava/chamber/macros.hpp>
 #include <lava/magma/interfaces/material.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
 

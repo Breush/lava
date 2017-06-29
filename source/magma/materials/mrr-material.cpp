@@ -1,6 +1,6 @@
 #include <lava/magma/materials/mrr-material.hpp>
 
-#include <lava/chamber/pimpl.hpp>
+#include <lava/chamber/macros.hpp>
 
 #include "../vulkan/materials/mrr-material-impl.hpp"
 

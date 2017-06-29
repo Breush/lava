@@ -56,6 +56,7 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "string": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "set": "cpp"
     }
 }

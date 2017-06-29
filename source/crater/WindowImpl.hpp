@@ -1,16 +1,11 @@
 #pragma once
 
-#include <lava/config.hpp>
-
-#include <lava/chamber/NonCopyable.hpp>
-#include <lava/chamber/String.hpp>
-#include <lava/chamber/Vector2.hpp>
 #include <lava/crater/Event.hpp>
 #include <lava/crater/VideoMode.hpp>
 #include <lava/crater/WindowHandle.hpp>
-
 #include <queue>
 #include <set>
+#include <string>
 
 namespace lava {
     class WindowListener;
@@ -19,7 +14,7 @@ namespace lava {
 namespace lava::priv {
 
     /// \brief Abstract base class for OS-specific window implementation
-    class WindowImpl : NonCopyable {
+    class WindowImpl {
     public:
         /// \brief Create a new window depending on the current OS
         ///
@@ -29,7 +24,7 @@ namespace lava::priv {
         /// \param settings Additional settings for the underlying OpenGL context
         ///
         /// \return Pointer to the created window (don't forget to delete it)
-        static WindowImpl* create(VideoMode mode, const String& title, uint32_t style);
+        static WindowImpl* create(VideoMode mode, const std::string& title, uint32_t style);
 
     public:
         WindowImpl(VideoMode mode);
@@ -62,7 +57,7 @@ namespace lava::priv {
         /// \brief Push a new event into the event queue
         ///
         /// This function is to be used by derived classes, to
-        /// notify the SFML window that a new event was triggered
+        /// notify the window that a new event was triggered
         /// by the system.
         ///
         /// \param event Event to push

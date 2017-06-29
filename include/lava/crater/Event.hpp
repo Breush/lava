@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/config.hpp>
+#include <cstdint>
 #include <lava/crater/keyboard.hpp>
 #include <lava/crater/mouse.hpp>
 

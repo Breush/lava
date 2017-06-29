@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/chamber/properties.hpp>
+#include <lava/chamber/macros.hpp>
 #include <lava/crater/Event.hpp>
 #include <lava/crater/VideoMode.hpp>
 #include <lava/crater/WindowHandle.hpp>

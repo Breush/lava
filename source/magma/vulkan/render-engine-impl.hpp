@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/mat4x4.hpp>
-#include <lava/chamber/properties.hpp>
+#include <lava/chamber/macros.hpp>
 #include <lava/crater/Window.hpp>
 #include <lava/magma/interfaces/camera.hpp>
 #include <lava/magma/interfaces/material.hpp>

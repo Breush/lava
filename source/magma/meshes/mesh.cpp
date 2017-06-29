@@ -1,7 +1,7 @@
 #include <lava/magma/meshes/mesh.hpp>
 
 #include <lava/chamber/logger.hpp>
-#include <lava/chamber/pimpl.hpp>
+#include <lava/chamber/macros.hpp>
 #include <lava/magma/materials/mrr-material.hpp>
 
 #include <stb/stb_image.h>

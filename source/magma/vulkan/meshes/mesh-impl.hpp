@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/chamber/properties.hpp>
+#include <lava/chamber/macros.hpp>
 #include <lava/magma/meshes/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
 

@@ -9,7 +9,7 @@ typedef lava::priv::WindowImplX11 WindowImplType;
 
 using namespace lava::priv;
 
-WindowImpl* WindowImpl::create(VideoMode mode, const String& title, uint32_t style)
+WindowImpl* WindowImpl::create(VideoMode mode, const std::string& title, uint32_t style)
 {
     return new WindowImplType(mode, title, style);
 }

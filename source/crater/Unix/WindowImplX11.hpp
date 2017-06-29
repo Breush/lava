@@ -3,8 +3,9 @@
 #include "../WindowImpl.hpp"
 
 #include <deque>
-#include <lava/chamber/String.hpp>
+#include <glm/vec2.hpp>
 #include <lava/crater/Event.hpp>
+#include <string>
 #include <xcb/xcb.h>
 
 namespace lava::priv {
@@ -20,7 +21,7 @@ namespace lava::priv {
         /// \param title Title of the window
         /// \param style Window style (resizable, fixed, or fullscren)
         /// \param settings Additional settings for the underlying OpenGL context
-        WindowImplX11(VideoMode mode, const String& title, unsigned long style);
+        WindowImplX11(VideoMode mode, const std::string& title, unsigned long style);
 
         ~WindowImplX11();
 
@@ -61,6 +62,6 @@ namespace lava::priv {
         xcb_screen_t* m_screen = nullptr;
         xcb_intern_atom_reply_t* m_atomWmDeleteWindow = nullptr;
 
-        lava::Vector2i m_previousSize;
+        glm::tvec2<int16_t> m_previousSize;
     };
 }

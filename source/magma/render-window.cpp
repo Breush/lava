@@ -1,6 +1,6 @@
 #include <lava/magma/render-window.hpp>
 
-#include <lava/chamber/pimpl.hpp>
+#include <lava/chamber/macros.hpp>
 
 #include "./vulkan/render-window-impl.hpp"
 

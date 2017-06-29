@@ -6,9 +6,6 @@
 #include <algorithm>
 #include <cstring>
 #include <fcntl.h>
-#include <lava/chamber/Lock.hpp>
-#include <lava/chamber/Mutex.hpp>
-#include <lava/chamber/Utf.hpp>
 #include <lava/chamber/logger.hpp>
 #include <libgen.h>
 #include <string>
@@ -85,7 +82,7 @@ namespace {
 using namespace lava;
 using namespace lava::priv;
 
-WindowImplX11::WindowImplX11(VideoMode mode, const String& title, unsigned long style)
+WindowImplX11::WindowImplX11(VideoMode mode, const std::string& title, unsigned long style)
     : WindowImpl(mode)
 {
     initXcbConnection();
