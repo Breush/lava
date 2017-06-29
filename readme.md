@@ -28,7 +28,7 @@ In order to select the configuration (debug or release):
 ### Generating documentation
 
 - Have [doxygen](www.doxygen.org/) installed on your system ;
-- `doxygen doc/doxygen-config.xml` to generate documentation. 
+- `cd doc && doxygen doxygen-config.xml` to generate documentation. 
 
 ## Dependencies
 
