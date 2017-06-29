@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lava/crater/VideoMode.hpp>
 #include <memory>
 
 namespace lava {

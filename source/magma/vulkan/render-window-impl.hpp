@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/crater/Window.hpp>
+#include <lava/crater/window.hpp>
 #include <lava/magma/render-engine.hpp>
 #include <lava/magma/render-window.hpp>
 #include <vulkan/vulkan.hpp>

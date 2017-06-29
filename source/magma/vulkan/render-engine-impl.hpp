@@ -2,7 +2,7 @@
 
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/macros.hpp>
-#include <lava/crater/Window.hpp>
+#include <lava/crater/window.hpp>
 #include <lava/magma/interfaces/camera.hpp>
 #include <lava/magma/interfaces/material.hpp>
 #include <lava/magma/interfaces/mesh.hpp>

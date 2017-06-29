@@ -13,7 +13,6 @@
 
 - Everything's left!
 - Have Win32 and Wayland support
-- Rename files to lower case
 - Remove comments \brief and such
 - Window -> Remove everything not used
 - Have a way to access keyboard/mouse state (isKeyPressed)
@@ -22,6 +21,7 @@
 - Use pimpl conventions (no priv namespace)
 - Clean warnings
 - Have complex event handling (dragging, double click)
+- Have crater.hpp
 
 ### Magma
 

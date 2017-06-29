@@ -1,8 +1,8 @@
 #pragma once
 
-#include <lava/crater/VideoMode.hpp>
-#include <lava/crater/WindowHandle.hpp>
-#include <lava/crater/WindowStyle.hpp>
+#include <lava/crater/video-mode.hpp>
+#include <lava/crater/window-handle.hpp>
+#include <lava/crater/window-style.hpp>
 #include <string>
 
 namespace lava::priv {

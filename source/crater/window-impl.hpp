@@ -1,8 +1,8 @@
 #pragma once
 
-#include <lava/crater/Event.hpp>
-#include <lava/crater/VideoMode.hpp>
-#include <lava/crater/WindowHandle.hpp>
+#include <lava/crater/event.hpp>
+#include <lava/crater/video-mode.hpp>
+#include <lava/crater/window-handle.hpp>
 #include <queue>
 #include <set>
 #include <string>

@@ -1,10 +1,10 @@
-#include "./WindowImpl.hpp"
+#include "./window-impl.hpp"
 
 #include <algorithm>
 #include <cmath>
-#include <lava/crater/Event.hpp>
+#include <lava/crater/event.hpp>
 
-#include "./Unix/WindowImplX11.hpp"
+#include "./xcb/window-impl.hpp"
 typedef lava::priv::WindowImplX11 WindowImplType;
 
 using namespace lava::priv;

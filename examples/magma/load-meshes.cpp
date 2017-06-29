@@ -3,7 +3,7 @@
  */
 
 #include <iostream>
-#include <lava/crater/Event.hpp>
+#include <lava/crater/event.hpp>
 #include <lava/magma.hpp>
 
 using namespace lava;

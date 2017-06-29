@@ -2,7 +2,7 @@
 
 #include "./capsule.hpp"
 
-#include <lava/crater/WindowHandle.hpp>
+#include <lava/crater/window-handle.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace lava::vulkan {

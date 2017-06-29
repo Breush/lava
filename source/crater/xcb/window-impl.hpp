@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../WindowImpl.hpp"
+#include "../window-impl.hpp"
 
 #include <deque>
 #include <glm/vec2.hpp>
-#include <lava/crater/Event.hpp>
+#include <lava/crater/event.hpp>
 #include <string>
 #include <xcb/xcb.h>
 

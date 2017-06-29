@@ -5,7 +5,6 @@
 #include <lava/crater/mouse.hpp>
 
 namespace lava {
-
     /**
      * An window or input event.
      */

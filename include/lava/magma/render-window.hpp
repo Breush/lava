@@ -1,9 +1,9 @@
 #pragma once
 
 #include <lava/chamber/macros.hpp>
-#include <lava/crater/Event.hpp>
-#include <lava/crater/VideoMode.hpp>
-#include <lava/crater/WindowHandle.hpp>
+#include <lava/crater/event.hpp>
+#include <lava/crater/video-mode.hpp>
+#include <lava/crater/window-handle.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
 
 #include <string>

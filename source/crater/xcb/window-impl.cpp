@@ -1,12 +1,12 @@
 
-#include <lava/crater/WindowStyle.hpp> // keep first
 
-#include "./WindowImplX11.hpp"
+#include "./window-impl.hpp"
 
 #include <algorithm>
 #include <cstring>
 #include <fcntl.h>
 #include <lava/chamber/logger.hpp>
+#include <lava/crater/window-style.hpp>
 #include <libgen.h>
 #include <string>
 #include <sys/stat.h>

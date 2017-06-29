@@ -1,8 +1,8 @@
-#include <lava/crater/Window.hpp>
+#include <lava/crater/window.hpp>
 
 #include <lava/chamber/logger.hpp>
 
-#include "./WindowImpl.hpp"
+#include "./window-impl.hpp"
 
 namespace {
     const lava::Window* fullscreenWindow = nullptr;
@@ -23,18 +23,11 @@ namespace lava {
         if (style & Style::Fullscreen) {
             // Make sure there's not already a fullscreen window (only one is allowed)
             if (fullscreenWindow) {
-                logger.warning("crater.window") << "Creating two fullscreen windows is not allowed, switching to windowed mode."
-                                                << std::endl;
+                logger.warning("crater.window")
+                    << "Creating two fullscreen windows is not allowed, switching to windowed mode." << std::endl;
                 style &= ~Style::Fullscreen;
             }
             else {
-                // Make sure that the chosen video mode is compatible
-                if (!mode.isValid()) {
-                    logger.warning("crater.window") << "The requested video mode is not available, switching to a valid mode."
-                                                    << std::endl;
-                    mode = VideoMode::getFullscreenModes()[0];
-                }
-
                 // Update the fullscreen window
                 fullscreenWindow = this;
             }
