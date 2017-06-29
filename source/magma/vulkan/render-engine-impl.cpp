@@ -1,7 +1,7 @@
 #include "./render-engine-impl.hpp"
 
+#include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/mat4x4.hpp>
 #include <glslang/Public/ShaderLang.h>
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
@@ -11,7 +11,7 @@
 
 #include "./buffer.hpp"
 #include "./image.hpp"
-#include "./mesh-impl.hpp"
+#include "./meshes/mesh-impl.hpp"
 #include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
@@ -88,32 +88,44 @@ void RenderEngine::Impl::draw()
 
 void RenderEngine::Impl::update()
 {
-    // @todo Get time!
+    // Get time elapsed
     static float time = 0.f;
-    const float dt = 0.001f;
+    static auto previousTimePoint = std::chrono::high_resolution_clock::now();
+    auto currentTimePoint = std::chrono::high_resolution_clock::now();
+    const float dt = std::chrono::duration<float>(currentTimePoint - previousTimePoint).count();
+    previousTimePoint = currentTimePoint;
+
+    const float rotationSpeed = 1.f;
+    time += dt * rotationSpeed;
+
+    // Animating the mesh
+    // @todo You know what to do - put that in the IMesh interface
+    const auto& modelTransform = glm::rotate(glm::mat4(), time * glm::radians(90.f), glm::vec3(0.f, 0.f, 1.f));
+
+    // The camera
+    const auto& cameraPosition = m_cameras[0]->position();
+    const auto& viewTransform = m_cameras[0]->viewTransform();
+    const auto& projectionTransform = m_cameras[0]->projectionTransform();
+
+    // Update UBOs
     const VkExtent2D viewExtent = m_swapchain.extent();
-
-    time += dt;
-
-    // This is basically our camera
-    UniformBufferObject ubo = {};
-    ubo.cameraPosition = glm::vec3(0.f, 2.f, 1.f);
-    ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.f), glm::vec3(0.f, 0.f, 1.f));
-    ubo.view = glm::lookAt(ubo.cameraPosition, glm::vec3(0.f, 0.f, 0.5f), glm::vec3(0.f, 0.f, 1.f));
-    ubo.projection = glm::perspective(glm::radians(45.f), viewExtent.width / (float)viewExtent.height, 0.1f, 10.f);
-    ubo.projection[1][1] *= -1; // Well, this is not OpenGL!
+    UniformBufferObject transforms = {};
+    transforms.cameraPosition = cameraPosition;
+    transforms.model = modelTransform;
+    transforms.view = viewTransform;
+    transforms.projection = projectionTransform;
 
     void* data;
-    vkMapMemory(m_device, m_uniformStagingBufferMemory, 0, sizeof(ubo), 0, &data);
-    memcpy(data, &ubo, sizeof(ubo));
+    vkMapMemory(m_device, m_uniformStagingBufferMemory, 0, sizeof(transforms), 0, &data);
+    memcpy(data, &transforms, sizeof(transforms));
     vkUnmapMemory(m_device, m_uniformStagingBufferMemory);
 
-    vulkan::copyBuffer(m_device, m_commandPool, m_uniformStagingBuffer, m_uniformBuffer, sizeof(ubo));
+    vulkan::copyBuffer(m_device, m_commandPool, m_uniformStagingBuffer, m_uniformBuffer, sizeof(transforms));
+}
 
-    // Other meshes
-    /* for (size_t i = 0; i < m_meshes.size(); ++i) {
-        m_meshes[i]->update();
-    }*/
+void RenderEngine::Impl::add(std::unique_ptr<ICamera>&& camera)
+{
+    m_cameras.emplace_back(std::move(camera));
 }
 
 void RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)

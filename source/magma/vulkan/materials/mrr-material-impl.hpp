@@ -1,11 +1,10 @@
 #pragma once
 
-#include <lava/magma/mrr-material.hpp>
+#include <lava/magma/materials/mrr-material.hpp>
 
 #include <lava/magma/render-engine.hpp>
 
-#include "./capsule.hpp"
-#include "./device.hpp"
+#include "../capsule.hpp"
 
 namespace lava {
     /**

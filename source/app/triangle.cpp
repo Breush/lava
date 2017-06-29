@@ -4,7 +4,7 @@
 
 using namespace lava;
 
-void handleEvent(Event& event, RenderWindow& window);
+void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera);
 
 int main(void)
 {
@@ -15,9 +15,13 @@ int main(void)
     RenderWindow window({800, 600}, "The best example");
     engine.add(window);
 
+    auto& camera = engine.make<OrbitCamera>();
+    camera.position({0.f, 2.f, 0.75f});
+    camera.target({0.f, 0.f, 0.5f});
+    camera.viewportRatio(800.f / 600.f);
+
     // Create a mesh
     // engine.make<Mesh>("./assets/models/duck.glb");
-
     engine.make<Mesh>("./assets/models/corset.glb");
 
     // auto& sphereMesh = engine.make(lava::makers::sphereMeshMaker(32, 0.5));
@@ -29,7 +33,7 @@ int main(void)
         // Treat all events since last frame
         Event event;
         while (window.pollEvent(event)) {
-            handleEvent(event, window);
+            handleEvent(event, window, camera);
         }
 
         engine.update(); // Update the logic
@@ -39,8 +43,11 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void handleEvent(Event& event, RenderWindow& window)
+void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera)
 {
+    static bool buttonPressed = false;
+    static glm::vec2 lastDragPosition;
+
     switch (event.type) {
     case Event::WindowClosed: {
         window.close();
@@ -56,6 +63,32 @@ void handleEvent(Event& event, RenderWindow& window)
 
     case Event::WindowResized: {
         window.refresh();
+        camera.viewportRatio(static_cast<float>(event.size.width) / static_cast<float>(event.size.height));
+        break;
+    }
+
+    case Event::MouseButtonPressed: {
+        buttonPressed = true;
+        lastDragPosition.x = event.mouseButton.x;
+        lastDragPosition.y = event.mouseButton.y;
+        break;
+    }
+
+    case Event::MouseButtonReleased: {
+        buttonPressed = false;
+        break;
+    }
+
+    case Event::MouseMoved: {
+        if (!buttonPressed) return;
+
+        glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
+        auto delta = position - lastDragPosition;
+
+        camera.latitudeAdd(-delta.y / 100.f);
+        camera.longitudeAdd(-delta.x / 100.f);
+
+        lastDragPosition = position;
         break;
     }
 

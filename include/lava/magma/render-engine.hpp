@@ -4,9 +4,10 @@
 #include <memory>
 
 namespace lava {
-    class IRenderTarget;
+    class ICamera;
     class IMaterial;
     class IMesh;
+    class IRenderTarget;
 }
 
 namespace lava {
@@ -28,7 +29,7 @@ namespace lava {
          * Make a new resource and add it to the engine.
          *
          * @example
-         *      auto& material = engine.make<MrrMaterial>();
+         *      auto& mesh = engine.make<Mesh>();
          */
         template <class T, class... Arguments>
         T& make(Arguments&&... arguments);
@@ -42,9 +43,10 @@ namespace lava {
         /**
          * Add resource that has already been created.
          */
-        void add(IRenderTarget& renderTarget);
-        void add(std::unique_ptr<IMesh>&& mesh);
+        void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<IMaterial>&& material);
+        void add(std::unique_ptr<IMesh>&& mesh);
+        void add(IRenderTarget& renderTarget);
 
     private:
         Impl* m_impl = nullptr;

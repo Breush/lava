@@ -4,8 +4,8 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
 
-#include "./buffer.hpp"
-#include "./render-engine-impl.hpp"
+#include "../buffer.hpp"
+#include "../render-engine-impl.hpp"
 
 using namespace lava;
 

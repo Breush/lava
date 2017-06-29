@@ -1,12 +1,12 @@
 #pragma once
 
 #include <lava/chamber/properties.hpp>
-#include <lava/magma/mesh.hpp>
+#include <lava/magma/meshes/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
 
-#include "./capsule.hpp"
-#include "./device.hpp"
-#include "./vertex.hpp"
+#include "../capsule.hpp"
+#include "../device.hpp"
+#include "../vertex.hpp"
 
 namespace lava {
     /**

@@ -3,6 +3,7 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/properties.hpp>
 #include <lava/crater/Window.hpp>
+#include <lava/magma/interfaces/camera.hpp>
 #include <lava/magma/interfaces/material.hpp>
 #include <lava/magma/interfaces/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
@@ -31,9 +32,10 @@ namespace lava {
         // Main interface
         void draw();
         void update();
-        void add(IRenderTarget& renderTarget);
+        void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<IMaterial>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
+        void add(IRenderTarget& renderTarget);
 
     protected:
         void createRenderPass();
@@ -109,5 +111,6 @@ namespace lava {
         std::vector<IRenderTarget*> m_renderTargets;
         std::vector<std::unique_ptr<IMaterial>> m_materials;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
+        std::vector<std::unique_ptr<ICamera>> m_cameras;
     };
 }
