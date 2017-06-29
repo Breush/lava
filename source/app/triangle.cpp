@@ -45,7 +45,7 @@ int main(void)
 
 void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera)
 {
-    static bool buttonPressed = false;
+    static auto buttonPressed = lava::Mouse::Unknown;
     static glm::vec2 lastDragPosition;
 
     switch (event.type) {
@@ -68,27 +68,37 @@ void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera)
     }
 
     case Event::MouseButtonPressed: {
-        buttonPressed = true;
+        buttonPressed = event.mouseButton.which;
         lastDragPosition.x = event.mouseButton.x;
         lastDragPosition.y = event.mouseButton.y;
         break;
     }
 
     case Event::MouseButtonReleased: {
-        buttonPressed = false;
+        buttonPressed = lava::Mouse::Unknown;
+        break;
+    }
+
+    case Event::MouseScrolled: {
+        camera.radiusAdd(-event.mouseScroll.delta / 10.f);
         break;
     }
 
     case Event::MouseMoved: {
-        if (!buttonPressed) return;
+        if (buttonPressed == lava::Mouse::Unknown) return;
 
         glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
-        auto delta = position - lastDragPosition;
-
-        camera.latitudeAdd(-delta.y / 100.f);
-        camera.longitudeAdd(-delta.x / 100.f);
-
+        auto delta = (position - lastDragPosition) / 100.f;
         lastDragPosition = position;
+
+        // Orbit with left button
+        if (buttonPressed == lava::Mouse::Left) {
+            camera.orbitAdd(-delta.x, -delta.y);
+        }
+        // Strafe with right button
+        else if (buttonPressed == lava::Mouse::Right) {
+            camera.strafe(delta.x / 10.f, delta.y / 10.f);
+        }
         break;
     }
 

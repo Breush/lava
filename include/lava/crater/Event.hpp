@@ -16,6 +16,7 @@ namespace lava {
             WindowResized,
             MouseButtonPressed,
             MouseButtonReleased,
+            MouseScrolled,
             MouseMoved,
             KeyPressed,
             KeyReleased,
@@ -27,14 +28,20 @@ namespace lava {
         };
 
         struct MouseButton {
-            Mouse::Button which;
             int16_t x;
             int16_t y;
+            Mouse::Button which;
         };
 
         struct MouseMove {
             int16_t x;
             int16_t y;
+        };
+
+        struct MouseScroll {
+            int16_t x;
+            int16_t y;
+            int16_t delta;
         };
 
         struct Key {
@@ -48,6 +55,7 @@ namespace lava {
             Size size;
             MouseButton mouseButton;
             MouseMove mouseMove;
+            MouseScroll mouseScroll;
             Key key;
         };
     };

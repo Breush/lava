@@ -22,8 +22,14 @@ namespace lava {
         void target(const glm::vec3& target);
         void viewportRatio(float viewportRatio);
 
-        void latitudeAdd(float latitudeDelta);
-        void longitudeAdd(float longitudeDelta);
+        void radius(float radius);
+
+        /**
+         * Relative motion.
+         */
+        void strafe(float x, float y);
+        void radiusAdd(float radiusDistance);
+        void orbitAdd(float longitudeAngle, float latitudeAngle);
 
     public:
         class Impl;

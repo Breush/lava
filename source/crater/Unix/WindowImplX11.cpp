@@ -235,12 +235,23 @@ bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
         auto buttonEvent = reinterpret_cast<xcb_button_press_event_t&>(windowEvent);
 
         Event event;
-        event.type = Event::MouseButtonPressed;
-        event.mouseButton.x = buttonEvent.event_x;
-        event.mouseButton.y = buttonEvent.event_y;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = Mouse::Left;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = Mouse::Middle;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = Mouse::Right;
+
+        // Classic buttons
+        if (buttonEvent.detail <= XCB_BUTTON_INDEX_3) {
+            event.type = Event::MouseButtonPressed;
+            event.mouseButton.x = buttonEvent.event_x;
+            event.mouseButton.y = buttonEvent.event_y;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = Mouse::Left;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = Mouse::Middle;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = Mouse::Right;
+        }
+        // Mouse wheel buttons
+        else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
+            event.type = Event::MouseScrolled;
+            event.mouseScroll.x = buttonEvent.event_x;
+            event.mouseScroll.y = buttonEvent.event_y;
+            event.mouseScroll.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1 : -1;
+        }
         pushEvent(event);
         break;
     }
