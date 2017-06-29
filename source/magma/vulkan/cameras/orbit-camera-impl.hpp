@@ -21,6 +21,9 @@ namespace lava {
         void target(const glm::vec3& target);
         void viewportRatio(float viewportRatio);
 
+        void latitudeAdd(float latitudeDelta);
+        void longitudeAdd(float longitudeDelta);
+
     protected:
         void updateViewTransform();
         void updateProjectionTransform();

@@ -45,6 +45,9 @@ int main(void)
 
 void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera)
 {
+    static bool buttonPressed = false;
+    static glm::vec2 lastDragPosition;
+
     switch (event.type) {
     case Event::WindowClosed: {
         window.close();
@@ -61,6 +64,31 @@ void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera)
     case Event::WindowResized: {
         window.refresh();
         camera.viewportRatio(static_cast<float>(event.size.width) / static_cast<float>(event.size.height));
+        break;
+    }
+
+    case Event::MouseButtonPressed: {
+        buttonPressed = true;
+        lastDragPosition.x = event.mouseButton.x;
+        lastDragPosition.y = event.mouseButton.y;
+        break;
+    }
+
+    case Event::MouseButtonReleased: {
+        buttonPressed = false;
+        break;
+    }
+
+    case Event::MouseMoved: {
+        if (!buttonPressed) return;
+
+        glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
+        auto delta = position - lastDragPosition;
+
+        camera.latitudeAdd(-delta.y / 100.f);
+        camera.longitudeAdd(-delta.x / 100.f);
+
+        lastDragPosition = position;
         break;
     }
 

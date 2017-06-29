@@ -1,6 +1,7 @@
 #include "./orbit-camera-impl.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 using namespace lava;
 
@@ -29,6 +30,21 @@ void OrbitCamera::Impl::viewportRatio(float viewportRatio)
 {
     m_viewportRatio = viewportRatio;
     updateProjectionTransform();
+}
+
+// @todo These could be implemented in OrbitCamera itself
+void OrbitCamera::Impl::latitudeAdd(float latitudeDelta)
+{
+    auto relativePosition = m_position - m_target;
+    auto axis = glm::vec3(-relativePosition.y, relativePosition.x, 0);
+    m_position = m_target + glm::rotate(relativePosition, latitudeDelta, axis);
+    updateViewTransform();
+}
+
+void OrbitCamera::Impl::longitudeAdd(float longitudeDelta)
+{
+    m_position = m_target + glm::rotateZ(m_position - m_target, longitudeDelta);
+    updateViewTransform();
 }
 
 void OrbitCamera::Impl::updateViewTransform()
