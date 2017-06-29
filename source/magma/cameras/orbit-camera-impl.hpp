@@ -18,11 +18,9 @@ namespace lava {
         const glm::mat4& projectionTransform() const { return m_projectionTransform; }
 
         void position(const glm::vec3& position);
+        const glm::vec3& target() const { return m_target; }
         void target(const glm::vec3& target);
         void viewportRatio(float viewportRatio);
-
-        void latitudeAdd(float latitudeDelta);
-        void longitudeAdd(float longitudeDelta);
 
     protected:
         void updateViewTransform();

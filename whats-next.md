@@ -35,9 +35,9 @@
 - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
 - Reflection probes
 - Engine update main command buffer every frame
-- OrbitCamera: nothing needs vulkan
 - OrbitCamera: radius controlled on scroll
 - OrbitCamera: controls in triangle.cpp should be a new lib (caldera?)
+- Shader: Is the light transformed by the model?
 
 ## Example app
 
