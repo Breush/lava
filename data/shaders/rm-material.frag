@@ -13,7 +13,7 @@
 #endif
 
 layout(binding = 1) uniform AttributesUbo {
-    // @todo Colors
+    // @todo Colors and factors
     bool dummy;
 } attributes;
 
@@ -61,8 +61,6 @@ void main()
     vec3 lightDirection = normalize(inTLightPosition - inTPosition);
 	vec3 eyeDirection = normalize(inTEyePosition - inTPosition);
 	vec3 normal = normalize(texture(tNormalSampler, inUv).rgb * 2 - 1);
-
-    // @todo Inverse the TBN matrix in the vertex shader
 
     // PBR
     vec4 baseColor = vec4(1);

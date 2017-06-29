@@ -1,3 +1,7 @@
+/**
+ * Shows how to load meshes using magma rendering-engine.
+ */
+
 #include <iostream>
 #include <lava/crater/Event.hpp>
 #include <lava/magma.hpp>

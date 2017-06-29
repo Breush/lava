@@ -1,6 +1,5 @@
 #pragma once
 
-// @fixme
 #include <SPIRV/GlslangToSpv.h>
 #include <glslang/MachineIndependent/localintermediate.h>
 

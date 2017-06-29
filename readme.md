@@ -1,13 +1,20 @@
 ## Project's composition
 
+The *lava* project is in fact a bundle of multiple projects.
+They stack up as layers, each one being built over the previous ones.
+
 | Layer | Project | Description                                             |
 | :---: | ---     | ---                                                     |
 | 0     | chamber | Cross-projects core tools like math utils and macros.   |
 | 1     | crater  | Cross-platforms windows and event interface.            |
 | 2     | magma   | Vulkan-based rendering engine.                          |
 | 3     | caldera | Interactions engine.                                    |
+| ∞     | ashes   | Example applications (in examples folder).              |
 
-... and there're more to come!
+The core principles of **lava** are:
+- Be *up-to-date* with C++ standard (currently set to C++14) to make your code-life easier ;
+- Keep your *APIs clean* (each project has a public interface with no more information than needed) ;
+- *Decouple* as much as you can, keeping different concepts encapsulated.
 
 ## Contributing guide
 
@@ -33,11 +40,15 @@ In order to select the configuration (debug or release):
 
 ## Dependencies
 
-Everthing **lava** needs is downloaded during *Premake* phase to `external/`. 
+Everything **lava** needs is downloaded during *Premake* phase to `external/`. 
 
 Current awesome dependencies are:
-- [VulkanSDK](https://vulkan.lunarg.com/)
-- [OpenGL Mathematics](http://glm.g-truc.net/)
+- [Nlohman's JSON](https://github.com/nlohmann/json)
 - [Nothings.org STB Fonts](https://nothings.org/stb/font/)
+- [OpenGL Mathematics](http://glm.g-truc.net/)
+- [VulkanSDK](https://vulkan.lunarg.com/)
 
-__NOTE__ The one guideline concerning dependencies is to not include within this repository any external source, keeping the project light-weight and up-to-date. The one drawback is that compiling this repository in the future could be impossible because of removed or changed projects. If so, a new repository should be created containing the no-longer-available sources of concerned project.
+__NOTE__ The one guideline concerning dependencies is to not include within this repository any external source,
+keeping the project light-weight and up-to-date. The one drawback is that compiling this repository in the future
+could be impossible because of removed or changed projects. If so, a new repository should be created containing
+the no-longer-available sources of concerned project.

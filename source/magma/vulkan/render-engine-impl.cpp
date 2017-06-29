@@ -263,8 +263,8 @@ void RenderEngine::Impl::createGraphicsPipeline()
 {
     logger.info("magma.vulkan.render-engine") << "Creating graphics pipeline." << std::endl;
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/triangle.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/triangle.frag");
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.frag");
 
     vulkan::Capsule<VkShaderModule> vertShaderModule{m_device.capsule(), vkDestroyShaderModule};
     vulkan::Capsule<VkShaderModule> fragShaderModule{m_device.capsule(), vkDestroyShaderModule};
@@ -497,7 +497,7 @@ void RenderEngine::Impl::createTextureSampler()
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = 16; // @todo Over 16 is useless, but lower that for better performances
+    samplerInfo.maxAnisotropy = 16; // Over 16 is useless, but lower that for better performances
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
     samplerInfo.compareEnable = VK_FALSE;

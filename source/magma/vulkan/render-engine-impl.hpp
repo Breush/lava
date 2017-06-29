@@ -56,7 +56,6 @@ namespace lava {
         void createDescriptorPool();
         void createDescriptorSet();
 
-        // @todo TBR Temporary setup
     public:
         WindowHandle m_windowHandle;
         VkExtent2D m_windowExtent;
