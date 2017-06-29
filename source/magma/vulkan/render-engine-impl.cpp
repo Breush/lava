@@ -108,7 +108,6 @@ void RenderEngine::Impl::update()
     const auto& projectionTransform = m_cameras[0]->projectionTransform();
 
     // Update UBOs
-    const VkExtent2D viewExtent = m_swapchain.extent();
     UniformBufferObject transforms = {};
     transforms.cameraPosition = cameraPosition;
     transforms.model = modelTransform;
