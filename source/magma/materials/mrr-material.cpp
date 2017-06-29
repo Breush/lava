@@ -8,17 +8,9 @@ using namespace lava;
 
 $pimpl_class(MrrMaterial, RenderEngine&, engine);
 
-void MrrMaterial::normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
-{
-    m_impl->normal(pixels, width, height, channels);
-}
-
-void MrrMaterial::baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
-{
-    m_impl->baseColor(pixels, width, height, channels);
-}
-
-void MrrMaterial::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
-{
-    m_impl->metallicRoughnessColor(pixels, width, height, channels);
-}
+$pimpl_method(MrrMaterial, void, normal, const std::vector<uint8_t>&, pixels, uint32_t, width, uint32_t, height, uint8_t,
+              channels);
+$pimpl_method(MrrMaterial, void, baseColor, const std::vector<uint8_t>&, pixels, uint32_t, width, uint32_t, height, uint8_t,
+              channels);
+$pimpl_method(MrrMaterial, void, metallicRoughnessColor, const std::vector<uint8_t>&, pixels, uint32_t, width, uint32_t, height,
+              uint8_t, channels);

@@ -5,7 +5,6 @@
 #include <lava/magma/render-engine.hpp>
 
 #include "../capsule.hpp"
-#include "../device.hpp"
 
 namespace lava {
     /**
