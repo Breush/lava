@@ -15,7 +15,7 @@ $pimpl_method(RenderWindow, void, refresh);
 $pimpl_method(RenderWindow, bool, pollEvent, Event&, event);
 $pimpl_method(RenderWindow, void, close);
 
-$pimpl_method_const(RenderWindow, WindowHandle, systemHandle);
+$pimpl_method_const(RenderWindow, WindowHandle, windowHandle);
 $pimpl_method_const(RenderWindow, bool, opened);
 
 // @todo Have pimpl property

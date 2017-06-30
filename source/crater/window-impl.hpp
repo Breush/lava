@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lava/crater/window.hpp>
+
 #include <lava/crater/event.hpp>
 #include <lava/crater/video-mode.hpp>
 #include <lava/crater/window-handle.hpp>
@@ -11,24 +13,19 @@ namespace lava {
     class WindowListener;
 }
 
-namespace lava::priv {
-
-    /// \brief Abstract base class for OS-specific window implementation
-    class WindowImpl {
+namespace lava {
+    /**
+     * Will be inherited by platform-specific implementations.
+     */
+    class Window::Impl {
     public:
-        /// \brief Create a new window depending on the current OS
-        ///
-        /// \param mode  Video mode to use
-        /// \param title Title of the window
-        /// \param style Window style
-        /// \param settings Additional settings for the underlying OpenGL context
-        ///
-        /// \return Pointer to the created window (don't forget to delete it)
-        static WindowImpl* create(VideoMode mode, const std::string& title, uint32_t style);
+        // @fixme Why a static?
+        static Impl* create(VideoMode mode, const std::string& title);
 
     public:
-        WindowImpl(VideoMode mode);
-        virtual ~WindowImpl();
+        Impl();
+        Impl(VideoMode mode);
+        virtual ~Impl();
 
         /// \brief Return the next window event available
         ///
@@ -47,13 +44,11 @@ namespace lava::priv {
         ///
         /// \return Handle of the window
 
-        virtual WindowHandle getSystemHandle() const = 0;
+        virtual WindowHandle windowHandle() const = 0;
 
         inline VideoMode videoMode() const { return m_videoMode; }
 
     protected:
-        WindowImpl();
-
         /// \brief Push a new event into the event queue
         ///
         /// This function is to be used by derived classes, to
@@ -67,7 +62,7 @@ namespace lava::priv {
         virtual void processEvents() = 0;
 
     private:
-        std::queue<Event> m_events; ///< Queue of available events
+        std::queue<Event> m_events;
 
         VideoMode m_videoMode;
     };

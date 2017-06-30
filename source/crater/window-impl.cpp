@@ -1,29 +1,28 @@
 #include "./window-impl.hpp"
 
-#include <algorithm>
-#include <cmath>
 #include <lava/crater/event.hpp>
 
+// @todo Should be #defined by platforms
 #include "./xcb/window-impl.hpp"
-typedef lava::priv::WindowImplX11 WindowImplType;
+using WindowImpl = lava::WindowImplXcb;
 
-using namespace lava::priv;
+using namespace lava;
 
-WindowImpl* WindowImpl::create(VideoMode mode, const std::string& title, uint32_t style)
+Window::Impl* Window::Impl::create(VideoMode mode, const std::string& title)
 {
-    return new WindowImplType(mode, title, style);
+    return new WindowImpl(mode, title);
 }
 
-WindowImpl::WindowImpl(VideoMode mode)
+Window::Impl::Impl(VideoMode mode)
     : m_videoMode(mode)
 {
 }
 
-WindowImpl::~WindowImpl()
+Window::Impl::~Impl()
 {
 }
 
-bool WindowImpl::popEvent(Event& event, bool block)
+bool Window::Impl::popEvent(Event& event, bool block)
 {
     // If the event queue is empty, let's first check if new events are available from the OS
     if (m_events.empty()) {
@@ -53,7 +52,7 @@ bool WindowImpl::popEvent(Event& event, bool block)
     return false;
 }
 
-void WindowImpl::pushEvent(const Event& event)
+void Window::Impl::pushEvent(const Event& event)
 {
     m_events.push(event);
 }

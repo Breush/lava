@@ -8,12 +8,11 @@
 #include <string>
 #include <xcb/xcb.h>
 
-namespace lava::priv {
+namespace lava {
 
-    /// \brief Linux (X11) implementation of WindowImpl
-    ///
+    class WindowImplXcb final : public Window::Impl {
+        using Super = Window::Impl;
 
-    class WindowImplX11 : public WindowImpl {
     public:
         /// \brief Create the window implementation
         ///
@@ -21,18 +20,18 @@ namespace lava::priv {
         /// \param title Title of the window
         /// \param style Window style (resizable, fixed, or fullscren)
         /// \param settings Additional settings for the underlying OpenGL context
-        WindowImplX11(VideoMode mode, const std::string& title, unsigned long style);
+        WindowImplXcb(VideoMode mode, const std::string& title);
 
-        ~WindowImplX11();
+        ~WindowImplXcb();
 
         /// \brief Get the OS-specific handle of the window
         ///
         /// \return Handle of the window
-        WindowHandle getSystemHandle() const override final;
+        WindowHandle windowHandle() const override final;
 
     protected:
         /// \brief Process incoming events from the operating system
-        virtual void processEvents() override;
+        virtual void processEvents() override final;
 
         void initXcbConnection();
 

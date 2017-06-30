@@ -25,7 +25,7 @@ namespace lava {
         bool pollEvent(Event& event);
         void close();
 
-        WindowHandle systemHandle() const;
+        WindowHandle windowHandle() const;
         VideoMode videoMode() const;
         void videoMode(const VideoMode& mode);
         bool opened() const;

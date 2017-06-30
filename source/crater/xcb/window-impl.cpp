@@ -1,12 +1,9 @@
-
-
 #include "./window-impl.hpp"
 
 #include <algorithm>
 #include <cstring>
 #include <fcntl.h>
 #include <lava/chamber/logger.hpp>
-#include <lava/crater/window-style.hpp>
 #include <libgen.h>
 #include <string>
 #include <sys/stat.h>
@@ -21,7 +18,7 @@ namespace {
     inline xcb_intern_atom_reply_t* internAtomHelper(xcb_connection_t* conn, bool only_if_exists, const char* str)
     {
         xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
-        return xcb_intern_atom_reply(conn, cookie, NULL);
+        return xcb_intern_atom_reply(conn, cookie, nullptr);
     }
 
     // Got list from https://github.com/substack/node-keysym/blob/master/data/keysyms.txt
@@ -80,10 +77,9 @@ namespace {
 }
 
 using namespace lava;
-using namespace lava::priv;
 
-WindowImplX11::WindowImplX11(VideoMode mode, const std::string& title, unsigned long style)
-    : WindowImpl(mode)
+WindowImplXcb::WindowImplXcb(VideoMode mode, const std::string& title)
+    : Super(mode)
 {
     initXcbConnection();
     setupWindow(mode);
@@ -93,11 +89,11 @@ WindowImplX11::WindowImplX11(VideoMode mode, const std::string& title, unsigned 
     g_keySymbols = xcb_key_symbols_alloc(m_connection);
 }
 
-WindowImplX11::~WindowImplX11()
+WindowImplXcb::~WindowImplXcb()
 {
 }
 
-void WindowImplX11::initXcbConnection()
+void WindowImplXcb::initXcbConnection()
 {
     const xcb_setup_t* setup;
     xcb_screen_iterator_t iter;
@@ -115,7 +111,7 @@ void WindowImplX11::initXcbConnection()
     m_screen = iter.data;
 }
 
-void WindowImplX11::setupWindow(VideoMode mode)
+void WindowImplXcb::setupWindow(VideoMode mode)
 {
     uint32_t value_mask, value_list[32];
 
@@ -164,12 +160,12 @@ void WindowImplX11::setupWindow(VideoMode mode)
     xcb_map_window(m_connection, m_window);
 }
 
-WindowHandle WindowImplX11::getSystemHandle() const
+WindowHandle WindowImplXcb::windowHandle() const
 {
     return {m_connection, m_window};
 }
 
-void WindowImplX11::processEvents()
+void WindowImplXcb::processEvents()
 {
     xcb_generic_event_t* event;
     while ((event = xcb_poll_for_event(m_connection))) {
@@ -178,22 +174,22 @@ void WindowImplX11::processEvents()
     }
 }
 
-void WindowImplX11::setVideoMode(const VideoMode& mode)
+void WindowImplXcb::setVideoMode(const VideoMode& mode)
 {
     // Not implemented yet
 }
 
-void WindowImplX11::resetVideoMode()
+void WindowImplXcb::resetVideoMode()
 {
     // Not implemented yet
 }
 
-void WindowImplX11::cleanup()
+void WindowImplXcb::cleanup()
 {
     resetVideoMode();
 }
 
-bool WindowImplX11::processEvent(xcb_generic_event_t& windowEvent)
+bool WindowImplXcb::processEvent(xcb_generic_event_t& windowEvent)
 {
     xcb_flush(m_connection);
 

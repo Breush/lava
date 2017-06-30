@@ -24,7 +24,7 @@ void RenderWindow::Impl::init(RenderEngine& engine)
 
     // @todo Add required extensions etc.
 
-    m_engine->m_windowHandle = systemHandle();
+    m_engine->m_windowHandle = windowHandle();
     m_engine->m_windowExtent = m_windowExtent;
 
     m_engine->initVulkan(); // @todo Wait what?
@@ -101,9 +101,9 @@ void RenderWindow::Impl::close()
     m_window.close();
 }
 
-WindowHandle RenderWindow::Impl::systemHandle() const
+WindowHandle RenderWindow::Impl::windowHandle() const
 {
-    return m_window.getSystemHandle();
+    return m_window.windowHandle();
 }
 
 VideoMode RenderWindow::Impl::videoMode() const
@@ -119,5 +119,5 @@ void RenderWindow::Impl::videoMode(const VideoMode& mode)
 
 bool RenderWindow::Impl::opened() const
 {
-    return m_window.isOpen();
+    return m_window.opened();
 }
