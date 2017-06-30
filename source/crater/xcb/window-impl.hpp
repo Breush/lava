@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../window-impl.hpp"
+#include "../interfaces/window-impl.hpp"
+#include <lava/crater/window.hpp>
 
 #include <deque>
 #include <glm/vec2.hpp>
@@ -9,50 +10,22 @@
 #include <xcb/xcb.h>
 
 namespace lava {
-
-    class WindowImplXcb final : public Window::Impl {
-        using Super = Window::Impl;
-
+    /**
+     * XCB-based lava::Window.
+     */
+    class Window::Impl final : public IWindowImpl {
     public:
-        /// \brief Create the window implementation
-        ///
-        /// \param mode  Video mode to use
-        /// \param title Title of the window
-        /// \param style Window style (resizable, fixed, or fullscren)
-        /// \param settings Additional settings for the underlying OpenGL context
-        WindowImplXcb(VideoMode mode, const std::string& title);
+        Impl(VideoMode mode, const std::string& title);
 
-        ~WindowImplXcb();
-
-        /// \brief Get the OS-specific handle of the window
-        ///
-        /// \return Handle of the window
+        // IWindowImpl
         WindowHandle windowHandle() const override final;
 
     protected:
-        /// \brief Process incoming events from the operating system
+        // IWindowImpl
         virtual void processEvents() override final;
 
         void initXcbConnection();
-
         void setupWindow(VideoMode mode);
-
-        /// \brief Set fullscreen video mode
-        ///
-        /// \param Mode video mode to switch to
-        void setVideoMode(const VideoMode& mode);
-
-        /// \brief Reset to desktop video mode
-        void resetVideoMode();
-
-        /// \brief Cleanup graphical resources attached to the window
-        void cleanup();
-
-        /// \brief Process an incoming event from the window
-        ///
-        /// \param windowEvent Event which has been received
-        ///
-        /// \return True if the event was processed, false if it was discarded
         bool processEvent(xcb_generic_event_t& windowEvent);
 
     private:

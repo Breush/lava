@@ -11,17 +11,12 @@
 
 ### Crater
 
-- Everything's left!
-- Have Win32 and Wayland support
-- Remove comments \brief and such
-- Window -> Remove everything not used
-- Have a way to access keyboard/mouse state (isKeyPressed)
-- Window fullscreen
-- Window title
-- Use pimpl conventions (no priv namespace)
-- Clean warnings
-- Have complex event handling (dragging, double click)
-- Have crater.hpp
+- **feature**
+    - Event: gave a way to access keyboard/mouse state (isKeyPressed)
+    - Event: complex event handling (dragging, double click)
+    - Window: fullscreen
+    - Window: title
+    - Window::Impl: have Win32 and Wayland support
 
 ### Magma
 

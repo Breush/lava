@@ -78,22 +78,18 @@ namespace {
 
 using namespace lava;
 
-WindowImplXcb::WindowImplXcb(VideoMode mode, const std::string& title)
-    : Super(mode)
+Window::Impl::Impl(VideoMode mode, const std::string& /*title*/)
+    : IWindowImpl(mode)
 {
     initXcbConnection();
     setupWindow(mode);
 
-    // TODO If not allocated!
+    // @todo If not allocated?
     // Probably more secure to put that as a class member for now.
     g_keySymbols = xcb_key_symbols_alloc(m_connection);
 }
 
-WindowImplXcb::~WindowImplXcb()
-{
-}
-
-void WindowImplXcb::initXcbConnection()
+void Window::Impl::initXcbConnection()
 {
     const xcb_setup_t* setup;
     xcb_screen_iterator_t iter;
@@ -111,7 +107,7 @@ void WindowImplXcb::initXcbConnection()
     m_screen = iter.data;
 }
 
-void WindowImplXcb::setupWindow(VideoMode mode)
+void Window::Impl::setupWindow(VideoMode mode)
 {
     uint32_t value_mask, value_list[32];
 
@@ -122,12 +118,6 @@ void WindowImplXcb::setupWindow(VideoMode mode)
     value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE
                     | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS
                     | XCB_EVENT_MASK_BUTTON_RELEASE;
-
-    /*if (settings.fullscreen)
-    {
-        width = destWidth = m_screen->width_in_pixels;
-        height = destHeight = m_screen->height_in_pixels;
-    }*/
 
     xcb_create_window(m_connection, XCB_COPY_FROM_PARENT, m_window, m_screen->root, 0, 0, mode.width, mode.height, 0,
                       XCB_WINDOW_CLASS_INPUT_OUTPUT, m_screen->root_visual, value_mask, value_list);
@@ -144,28 +134,15 @@ void WindowImplXcb::setupWindow(VideoMode mode)
 
     free(reply);
 
-    /*if (settings.fullscreen)
-    {
-        xcb_intern_atom_reply_t *atom_wm_state = internAtomHelper(m_connection, false, "_NET_WM_STATE");
-        xcb_intern_atom_reply_t *atom_wm_fullscreen = internAtomHelper(m_connection, false, "_NET_WM_STATE_FULLSCREEN");
-        xcb_change_property(m_connection,
-                XCB_PROP_MODE_REPLACE,
-                m_window, atom_wm_state->atom,
-                XCB_ATOM_ATOM, 32, 1,
-                &(atom_wm_fullscreen->atom));
-        free(atom_wm_fullscreen);
-        free(atom_wm_state);
-    }*/
-
     xcb_map_window(m_connection, m_window);
 }
 
-WindowHandle WindowImplXcb::windowHandle() const
+WindowHandle Window::Impl::windowHandle() const
 {
     return {m_connection, m_window};
 }
 
-void WindowImplXcb::processEvents()
+void Window::Impl::processEvents()
 {
     xcb_generic_event_t* event;
     while ((event = xcb_poll_for_event(m_connection))) {
@@ -174,28 +151,12 @@ void WindowImplXcb::processEvents()
     }
 }
 
-void WindowImplXcb::setVideoMode(const VideoMode& mode)
-{
-    // Not implemented yet
-}
-
-void WindowImplXcb::resetVideoMode()
-{
-    // Not implemented yet
-}
-
-void WindowImplXcb::cleanup()
-{
-    resetVideoMode();
-}
-
-bool WindowImplXcb::processEvent(xcb_generic_event_t& windowEvent)
+bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 {
     xcb_flush(m_connection);
 
     switch (windowEvent.response_type & 0x7f) {
     case XCB_DESTROY_NOTIFY: {
-        cleanup();
         break;
     }
 

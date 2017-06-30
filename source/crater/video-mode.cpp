@@ -1,22 +1,10 @@
 #include <lava/crater/video-mode.hpp>
 
-#include <algorithm>
-#include <functional>
+using namespace lava;
 
-namespace lava {
-    ////////////////////////////////////////////////////////////
-    VideoMode::VideoMode()
-        : width(0)
-        , height(0)
-        , bitsPerPixel(0)
-    {
-    }
-
-    ////////////////////////////////////////////////////////////
-    VideoMode::VideoMode(unsigned int modeWidth, unsigned int modeHeight, unsigned int modeBitsPerPixel)
-        : width(modeWidth)
-        , height(modeHeight)
-        , bitsPerPixel(modeBitsPerPixel)
-    {
-    }
+VideoMode::VideoMode(uint16_t width, uint16_t height, uint16_t bitsPerPixel)
+    : width(width)
+    , height(height)
+    , bitsPerPixel(bitsPerPixel)
+{
 }
