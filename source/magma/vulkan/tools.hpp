@@ -3,7 +3,7 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
 
     inline std::string toString(vk::DebugReportObjectTypeEXT objType)
     {

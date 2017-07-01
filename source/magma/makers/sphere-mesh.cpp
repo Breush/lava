@@ -50,7 +50,7 @@ namespace {
     }
 }
 
-using namespace lava;
+using namespace lava::magma;
 using namespace lava::chamber;
 
 std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, float radius)

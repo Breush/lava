@@ -56,7 +56,7 @@ namespace {
     }
 }
 
-using namespace lava::vulkan;
+using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
 Swapchain::Swapchain(Device& device)

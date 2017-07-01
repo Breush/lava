@@ -7,7 +7,7 @@
 #include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
 
-using namespace lava;
+using namespace lava::magma;
 
 Mesh::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())

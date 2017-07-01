@@ -2,7 +2,7 @@
 
 #include "./tools.hpp"
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     /**
      * Holds Vulkan queue family indices.
      */

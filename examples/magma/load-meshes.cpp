@@ -7,29 +7,29 @@
 
 using namespace lava;
 
-void handleEvent(crater::Event& event, RenderWindow& window, OrbitCamera& camera);
+void handleEvent(crater::Event& event, magma::RenderWindow& window, magma::OrbitCamera& camera);
 
 int main(void)
 {
     // A render engine is the global manager.
-    RenderEngine engine;
+    magma::RenderEngine engine;
 
     // Create a window we can draw to
-    RenderWindow window({800, 600}, "ashe - magma | load meshes");
+    magma::RenderWindow window({800, 600}, "ashe - magma | load meshes");
     engine.add(window);
 
-    auto& camera = engine.make<OrbitCamera>();
+    auto& camera = engine.make<magma::OrbitCamera>();
     camera.position({0.f, 2.f, 0.75f});
     camera.target({0.f, 0.f, 0.5f});
     camera.viewportRatio(800.f / 600.f);
 
     // Create a mesh
-    // engine.make<Mesh>("./assets/models/duck.glb");
-    engine.make<Mesh>("./assets/models/corset.glb");
+    // engine.make<magma::Mesh>("./assets/models/duck.glb");
+    engine.make<magma::Mesh>("./assets/models/corset.glb");
 
-    // auto& sphereMesh = engine.make(lava::makers::sphereMeshMaker(32, 0.5));
+    // auto& sphereMesh = engine.make(magma::makers::sphereMeshMaker(32, 0.5));
     // @fixme Allow it to have no material
-    // sphereMesh.material(engine.make<MrrMaterial>());
+    // sphereMesh.material(engine.make<magma::MrrMaterial>());
 
     // Keep running while the window is open
     while (window.opened()) {
@@ -46,7 +46,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void handleEvent(crater::Event& event, RenderWindow& window, OrbitCamera& camera)
+void handleEvent(crater::Event& event, magma::RenderWindow& window, magma::OrbitCamera& camera)
 {
     static auto buttonPressed = crater::input::Button::Unknown;
     static glm::vec2 lastDragPosition;

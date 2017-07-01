@@ -12,7 +12,7 @@ namespace {
      */
     inline bool deviceExtensionsSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions)
     {
-        auto extensions = lava::vulkan::availableExtensions(device);
+        auto extensions = lava::magma::vulkan::availableExtensions(device);
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
         for (const auto& extension : extensions) {
@@ -27,13 +27,13 @@ namespace {
      */
     inline bool deviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface)
     {
-        auto indices = lava::vulkan::findQueueFamilies(device, surface);
+        auto indices = lava::magma::vulkan::findQueueFamilies(device, surface);
         if (!indices.valid()) return false;
 
         auto extensionsSupported = deviceExtensionsSupported(device, deviceExtensions);
         if (!extensionsSupported) return false;
 
-        auto swapChainSupport = lava::vulkan::swapchainSupportDetails(device, surface);
+        auto swapChainSupport = lava::magma::vulkan::swapchainSupportDetails(device, surface);
         if (!swapChainSupport.valid()) return false;
 
         VkPhysicalDeviceFeatures supportedFeatures;
@@ -44,7 +44,7 @@ namespace {
     }
 }
 
-using namespace lava::vulkan;
+using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
 void Device::init(VkInstance instance, VkSurfaceKHR surface)

@@ -7,11 +7,11 @@
 #include <string>
 #include <vector>
 
-namespace lava {
+namespace lava::magma {
     class MrrMaterial;
 }
 
-namespace lava {
+namespace lava::magma {
     /**
      * A mesh, holding geometry and transform.
      */

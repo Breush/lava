@@ -2,7 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-using namespace lava;
+using namespace lava::magma;
 
 OrbitCamera::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())

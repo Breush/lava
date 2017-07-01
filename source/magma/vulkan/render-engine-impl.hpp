@@ -20,7 +20,7 @@ struct UniformBufferObject {
     glm::vec3 cameraPosition;
 };
 
-namespace lava {
+namespace lava::magma {
     /**
      * Vulkan-based implementation of the lava::RenderEngine.
      */

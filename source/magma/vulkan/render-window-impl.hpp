@@ -5,11 +5,11 @@
 #include <lava/magma/render-window.hpp>
 #include <vulkan/vulkan.hpp>
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     class Swapchain;
 }
 
-namespace lava {
+namespace lava::magma {
     class RenderWindow::Impl {
     public:
         Impl(crater::VideoMode mode, const std::string& title);

@@ -18,7 +18,7 @@
 #include "./tools.hpp"
 #include "./vertex.hpp"
 
-using namespace lava;
+using namespace lava::magma;
 using namespace lava::chamber;
 
 RenderEngine::Impl::Impl()

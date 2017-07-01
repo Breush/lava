@@ -4,7 +4,8 @@
 
 #include "./instance.hpp"
 
-using namespace lava::vulkan;
+using namespace lava::magma::vulkan;
+using namespace lava::crater;
 using namespace lava::chamber;
 
 Surface::Surface(Instance& instance)
@@ -13,12 +14,12 @@ Surface::Surface(Instance& instance)
 {
 }
 
-void Surface::init(crater::WindowHandle& windowHandle)
+void Surface::init(WindowHandle& windowHandle)
 {
     createSurface(windowHandle);
 }
 
-void Surface::createSurface(crater::WindowHandle& windowHandle)
+void Surface::createSurface(WindowHandle& windowHandle)
 {
     // @todo This is platform-specific!
     VkXcbSurfaceCreateInfoKHR createInfo = {};

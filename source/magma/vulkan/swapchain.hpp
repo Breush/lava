@@ -4,11 +4,11 @@
 
 #include "./capsule.hpp"
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     class Device;
 }
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     /**
      * An abstraction over a VkSwapchainKHR.
      */

@@ -6,7 +6,7 @@
 
 #include "../capsule.hpp"
 
-namespace lava {
+namespace lava::magma {
     /**
      * Vulkan-based implementation of lava::MrrMaterial.
      */

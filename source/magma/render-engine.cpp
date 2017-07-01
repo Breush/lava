@@ -6,7 +6,7 @@
 
 #include "./vulkan/render-engine-impl.hpp"
 
-using namespace lava;
+using namespace lava::magma;
 
 $pimpl_class(RenderEngine);
 

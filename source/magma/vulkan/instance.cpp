@@ -8,7 +8,7 @@ namespace {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t,
                                                         size_t, int32_t, const char*, const char* msg, void*)
     {
-        auto category = lava::vulkan::toString(vk::DebugReportObjectTypeEXT(objType));
+        auto category = lava::magma::vulkan::toString(vk::DebugReportObjectTypeEXT(objType));
 
         if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
             lava::chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
@@ -22,7 +22,7 @@ namespace {
     }
 }
 
-using namespace lava::vulkan;
+using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
 void Instance::init(bool debugEnabled)

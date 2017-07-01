@@ -3,11 +3,11 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
-namespace lava {
+namespace lava::magma {
     class RenderEngine;
 }
 
-namespace lava {
+namespace lava::magma {
     /**
      * Interface for cameras.
      */

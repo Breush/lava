@@ -8,7 +8,7 @@
 #include "../device.hpp"
 #include "../vertex.hpp"
 
-namespace lava {
+namespace lava::magma {
     /**
      * Vulkan-based implementation of a mesh.
      */

@@ -1,10 +1,10 @@
 #pragma once
 
-namespace lava {
+namespace lava::magma {
     class RenderEngine;
 }
 
-namespace lava {
+namespace lava::magma {
     /**
      * Interface for materials.
      */

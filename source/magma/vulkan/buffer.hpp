@@ -3,7 +3,7 @@
 #include "./device.hpp"
 #include "./tools.hpp"
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     // @todo Move to cpp
     inline void createBuffer(Device& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
                              Capsule<VkBuffer>& buffer, Capsule<VkDeviceMemory>& bufferMemory)

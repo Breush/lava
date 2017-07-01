@@ -3,7 +3,7 @@
 #include <lava/magma/cameras/orbit-camera.hpp>
 #include <lava/magma/render-engine.hpp>
 
-namespace lava {
+namespace lava::magma {
     /**
      * Vulkan-based implementation of lava::OrbitCamera.
      */

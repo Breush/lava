@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     class Vertex {
     public:
         glm::vec3 pos;

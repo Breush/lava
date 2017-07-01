@@ -6,7 +6,7 @@
 
 #include "./proxy.hpp"
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     /**
      * An abstraction over a VkInstance.
      */

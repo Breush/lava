@@ -4,7 +4,7 @@
  * Intermediate functions to call Vulkan extensions functions
  * as these are not loaded by default.
  */
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     inline VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
                                                  const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
     {

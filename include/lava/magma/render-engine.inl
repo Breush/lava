@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lava {
+namespace lava::magma {
     template <class T, class... Arguments>
     inline T& RenderEngine::make(Arguments&&... arguments)
     {

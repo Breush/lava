@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace lava {
+namespace lava::magma {
     /**
      * Metallic-roughness rendered material.
      */

@@ -2,10 +2,10 @@
 
 #include <functional>
 
-namespace lava {
+namespace lava::magma {
     class Mesh;
 }
 
-namespace lava::makers {
+namespace lava::magma::makers {
     std::function<void(Mesh& mesh)> sphereMeshMaker(uint32_t tessellation, float radius);
 }

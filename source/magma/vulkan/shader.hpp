@@ -12,7 +12,7 @@
 // @todo This is going to be so complicated, it needs its own library
 // (as it might help other people too).
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     // @todo Move to cpp
     EShLanguage findShaderLanguage(const std::string& filename)
     {

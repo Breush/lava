@@ -4,7 +4,7 @@
 
 #include "../vulkan/materials/mrr-material-impl.hpp"
 
-using namespace lava;
+using namespace lava::magma;
 
 $pimpl_class(MrrMaterial, RenderEngine&, engine);
 

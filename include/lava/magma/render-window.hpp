@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace lava {
+namespace lava::magma {
     /**
      * A window that can be rendered to.
      */

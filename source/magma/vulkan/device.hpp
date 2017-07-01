@@ -5,7 +5,7 @@
 
 #include "./capsule.hpp"
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     /**
      * An abstraction over a VkDevice.
      */

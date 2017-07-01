@@ -3,7 +3,7 @@
 #include <functional>
 #include <vulkan/vulkan.hpp>
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     /**
      * Encapsulate destructor behavior for Vulkan types.
      * This provides an RAII lifetime.

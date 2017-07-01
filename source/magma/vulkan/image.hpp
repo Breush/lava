@@ -7,7 +7,7 @@
 #include "./command-buffer.hpp"
 #include "./device.hpp"
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     inline void createImage(Device& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                             VkImageUsageFlags usage, VkMemoryPropertyFlags properties, Capsule<VkImage>& image,
                             Capsule<VkDeviceMemory>& imageMemory)

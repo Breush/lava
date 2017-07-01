@@ -9,7 +9,7 @@
 #include "../glb/loader.hpp"
 #include "../vulkan/meshes/mesh-impl.hpp"
 
-using namespace lava;
+using namespace lava::magma;
 using namespace lava::chamber;
 
 Mesh::Mesh(RenderEngine& engine)

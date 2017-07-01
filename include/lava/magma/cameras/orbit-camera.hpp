@@ -4,7 +4,7 @@
 
 #include <glm/glm.hpp>
 
-namespace lava {
+namespace lava::magma {
     /**
      * Orbiting camera.
      */

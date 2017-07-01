@@ -2,14 +2,14 @@
 
 #include <memory>
 
-namespace lava {
+namespace lava::magma {
     class ICamera;
     class IMaterial;
     class IMesh;
     class IRenderTarget;
 }
 
-namespace lava {
+namespace lava::magma {
     /**
      * An engine that manages everything that need to be drawn.
      */

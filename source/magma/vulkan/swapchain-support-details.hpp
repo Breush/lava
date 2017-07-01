@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     class SwapchainSupportDetails {
     public:
         VkSurfaceCapabilitiesKHR capabilities;

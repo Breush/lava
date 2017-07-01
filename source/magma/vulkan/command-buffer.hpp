@@ -4,7 +4,7 @@
 
 #include "./device.hpp"
 
-namespace lava::vulkan {
+namespace lava::magma::vulkan {
     inline vk::CommandBuffer beginSingleTimeCommands(Device& device, vk::CommandPool commandPool)
     {
         vk::CommandBufferAllocateInfo bufferAllocateInfo{commandPool};

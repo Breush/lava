@@ -5,7 +5,7 @@
 
 #include "./orbit-camera-impl.hpp"
 
-using namespace lava;
+using namespace lava::magma;
 
 $pimpl_class(OrbitCamera, RenderEngine&, engine);
 
