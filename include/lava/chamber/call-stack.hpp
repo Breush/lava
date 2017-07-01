@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace lava {
+namespace lava::chamber {
     /**
      * To retrieve the current call-stack.
      */

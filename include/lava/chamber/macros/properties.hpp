@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lava {
+namespace lava::chamber::macros {
 #define $property_declaration(type, name, ...)                                                                                   \
 private:                                                                                                                         \
     type m_##name __VA_ARGS__;

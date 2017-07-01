@@ -5,6 +5,7 @@
 #include "./instance.hpp"
 
 using namespace lava::vulkan;
+using namespace lava::chamber;
 
 Surface::Surface(Instance& instance)
     : m_surface(instance.capsule(), vkDestroySurfaceKHR)
@@ -27,8 +28,7 @@ void Surface::createSurface(WindowHandle& windowHandle)
 
     auto CreateXcbSurfaceKHR = (PFN_vkCreateXcbSurfaceKHR)vkGetInstanceProcAddr(m_instance.capsule(), "vkCreateXcbSurfaceKHR");
     auto err = CreateXcbSurfaceKHR(m_instance, &createInfo, nullptr, m_surface.replace());
-    if (!err) return;
-
-    logger.error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
-    exit(1);
+    if (err) {
+        logger.error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
+    }
 }

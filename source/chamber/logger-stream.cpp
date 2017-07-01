@@ -2,7 +2,7 @@
 
 #include <lava/chamber/string-tools.hpp>
 
-using namespace lava;
+using namespace lava::chamber;
 
 LoggerStream::LoggerStream(std::ostream& stream, const std::string& resetString)
     : std::ostream(this)

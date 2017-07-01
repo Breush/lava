@@ -5,7 +5,7 @@
 
 #include <lava/chamber/logger-stream.hpp>
 
-namespace lava {
+namespace lava::chamber {
     /**
      * Logger with different messages levels.
      */

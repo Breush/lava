@@ -15,7 +15,7 @@
 
 #include <sstream>
 
-using namespace lava;
+using namespace lava::chamber;
 
 void CallStack::refresh(const uint32_t numDiscard)
 {
@@ -89,7 +89,7 @@ std::string CallStack::toString() const
     return os.str();
 }
 
-std::ostream& lava::operator<<(std::ostream& stream, CallStack& callStack)
+std::ostream& lava::chamber::operator<<(std::ostream& stream, CallStack& callStack)
 {
     stream << callStack.toString();
     return stream;

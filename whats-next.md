@@ -1,17 +1,15 @@
 # What's next
 
-- Change setter/getter to unique syntax
-- Each lib has its own namespace
 - Convert to C++17 (string_view, UTF8, filesystem, ...)
 
-### Chamber
+## Chamber
 
 - **refacto**
     - Have user documentation
 - **feature**
     - Macros: `$pimpl_property` and `$pimpl_attribute`
 
-### Crater
+## Crater
 
 - **feature**
     - Event: gave a way to access keyboard/mouse state (isKeyPressed)
@@ -19,7 +17,7 @@
     - Window: fullscreen
     - Window::Impl: have Win32 and Wayland support
 
-### Magma
+## Magma
 
 - **refacto**
     - Use vulkan.hpp 
@@ -50,7 +48,7 @@
     - GLB: should that loader really be in magma? That's not rendering *per se*. (Same goes for MeshMakers) - It should be another layer
     - Think about inlining in code data (shaders mainly, but debug texture too).
 
-### Caldera
+## Caldera
 
 - Everything's left!
 - OrbitCameraController

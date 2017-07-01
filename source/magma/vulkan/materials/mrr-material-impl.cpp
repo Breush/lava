@@ -25,7 +25,7 @@ namespace {
         texture.channels = channels;
 
         if (pixels.size() != width * height * channels) {
-            lava::logger.error("magma.vulkan.mrr-material")
+            lava::chamber::logger.error("magma.vulkan.mrr-material")
                 << "Image dimension for texture does not match provided data length."
                 << " Data: " << pixels.size() << " Dimensions: " << width << "x" << height << " ("
                 << static_cast<uint32_t>(channels) << ")" << std::endl;
@@ -40,7 +40,7 @@ namespace {
                            lava::vulkan::Capsule<VkDeviceMemory>& imageMemory, lava::vulkan::Capsule<VkImageView>& imageView)
     {
         if (texture.channels != 4u) {
-            lava::logger.error("magma.vulkan.mrr-material")
+            lava::chamber::logger.error("magma.vulkan.mrr-material")
                 << "Cannot handle texture with " << static_cast<uint32_t>(texture.channels)
                 << " channels. Only 4 is currently supported." << std::endl;
         }

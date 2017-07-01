@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace lava {
+namespace lava::chamber {
     inline std::string operator*(const std::string& word, uint32_t times)
     {
         std::string result;

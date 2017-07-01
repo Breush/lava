@@ -7,9 +7,9 @@
 namespace {
     void addCirclePoints(std::vector<glm::vec3>& points, const uint32_t tessellation, const float radius, const float height)
     {
-        const auto step = lava::math::TWO_PI / tessellation;
-        const auto cStep = lava::math::cos(step);
-        const auto sStep = lava::math::sin(step);
+        const auto step = lava::chamber::math::TWO_PI / tessellation;
+        const auto cStep = lava::chamber::math::cos(step);
+        const auto sStep = lava::chamber::math::sin(step);
 
         glm::vec3 point{radius, 0.f, height};
         for (auto j = 0u; j < tessellation; ++j) {
@@ -51,6 +51,7 @@ namespace {
 }
 
 using namespace lava;
+using namespace lava::chamber;
 
 std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, float radius)
 {

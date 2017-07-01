@@ -77,6 +77,7 @@ namespace {
 }
 
 using namespace lava;
+using namespace lava::chamber;
 
 Window::Impl::Impl(VideoMode mode, const std::string& title)
     : IWindowImpl(mode)

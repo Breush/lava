@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lava {
+namespace lava::chamber::macros {
 #define $cat(a, ...) $cat_(a, __VA_ARGS__)
 #define $cat_(a, ...) a##__VA_ARGS__
 

@@ -57,6 +57,7 @@ namespace {
 }
 
 using namespace lava::vulkan;
+using namespace lava::chamber;
 
 Swapchain::Swapchain(Device& device)
     : m_swapchain{device.capsule(), vkDestroySwapchainKHR}
@@ -109,7 +110,6 @@ void Swapchain::createSwapchain(VkSurfaceKHR surface, VkExtent2D& windowExtent)
     VkSwapchainKHR swapchain;
     if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &swapchain) != VK_SUCCESS) {
         logger.error("magma.vulkan.swap-chain") << "Failed to create swap chain." << std::endl;
-        exit(1);
     }
     m_swapchain = swapchain;
 

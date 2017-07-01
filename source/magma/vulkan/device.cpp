@@ -45,6 +45,7 @@ namespace {
 }
 
 using namespace lava::vulkan;
+using namespace lava::chamber;
 
 void Device::init(VkInstance instance, VkSurfaceKHR surface)
 {

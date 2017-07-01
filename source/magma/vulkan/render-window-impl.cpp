@@ -7,6 +7,7 @@
 #include "./swapchain.hpp"
 
 using namespace lava;
+using namespace lava::chamber;
 
 RenderWindow::Impl::Impl(VideoMode mode, const std::string& title)
     : m_window(mode, title)
@@ -36,54 +37,6 @@ void RenderWindow::Impl::draw() const
         logger.warning("magma.render-window") << "Attempt to draw without an engine binded." << std::endl;
         return;
     }
-
-    /*uint32_t imageIndex;
-    const auto MAX = std::numeric_limits<uint64_t>::max();
-    auto result =
-        vkAcquireNextImageKHR(m_engine->device(), *m_swapchain, MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        m_engine->recreateSwapchain();
-        return;
-    }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        logger.error("magma.vulkan.draw") << "Failed to acquire swapchain image." << std::endl;
-    }
-
-    // Submit to the queue
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-    VkSemaphore waitSemaphores[] = {m_imageAvailableSemaphore};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
-
-    VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphore};
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
-
-    if (vkQueueSubmit(m_device.graphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
-        logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
-        exit(1);
-    }
-
-    // Submitting the image back to the swap chain
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-
-    VkSwapchainKHR swapChains[] = {m_swapchain};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-    presentInfo.pImageIndices = &imageIndex;
-    presentInfo.pResults = nullptr;
-
-    vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);*/
 }
 
 void RenderWindow::Impl::refresh()

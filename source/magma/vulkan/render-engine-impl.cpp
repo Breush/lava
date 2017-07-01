@@ -19,6 +19,7 @@
 #include "./vertex.hpp"
 
 using namespace lava;
+using namespace lava::chamber;
 
 RenderEngine::Impl::Impl()
 {

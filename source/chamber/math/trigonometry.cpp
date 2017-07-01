@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-using namespace lava;
+using namespace lava::chamber;
 
 float math::cos(float t)
 {

@@ -10,6 +10,7 @@
 #include "../vulkan/meshes/mesh-impl.hpp"
 
 using namespace lava;
+using namespace lava::chamber;
 
 Mesh::Mesh(RenderEngine& engine)
     : m_engine(engine)

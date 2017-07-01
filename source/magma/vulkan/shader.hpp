@@ -13,6 +13,7 @@
 // (as it might help other people too).
 
 namespace lava::vulkan {
+    // @todo Move to cpp
     EShLanguage findShaderLanguage(const std::string& filename)
     {
         auto extension = filename.substr(filename.find_last_of(".") + 1u);
@@ -140,7 +141,7 @@ namespace lava::vulkan {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
-            logger.warning("magma.vulkan.shader") << "Unable to find shader file " << filename << "." << std::endl;
+            chamber::logger.warning("magma.vulkan.shader") << "Unable to find shader file " << filename << "." << std::endl;
             return std::vector<uint8_t>();
         }
 
@@ -153,7 +154,8 @@ namespace lava::vulkan {
         // Null-terminated string
         buffer.emplace_back(0);
 
-        logger.info("magma.vulkan.shader") << "Reading GLSL shader file '" << filename << "' (" << fileSize << "B)." << std::endl;
+        chamber::logger.info("magma.vulkan.shader")
+            << "Reading GLSL shader file '" << filename << "' (" << fileSize << "B)." << std::endl;
 
         glslang::InitializeProcess();
 
@@ -167,24 +169,24 @@ namespace lava::vulkan {
         glslang::TShader shader(stage);
         shader.setStrings(&shaderString, 1);
         if (!shader.parse(&resources, 450, false, messages)) {
-            logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
-            logger.error("magma.vulkan.shader").tab(-1) << "Unable to parse shader." << std::endl;
+            chamber::logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+            chamber::logger.error("magma.vulkan.shader").tab(-1) << "Unable to parse shader." << std::endl;
         }
 
         // Create program
         glslang::TProgram program;
         program.addShader(&shader);
         if (!program.link(messages)) {
-            logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
-            logger.error("magma.vulkan.shader") << "Unable to link shader." << std::endl;
+            chamber::logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+            chamber::logger.error("magma.vulkan.shader") << "Unable to link shader." << std::endl;
         }
 
         // Compile to SPIR-V
         std::vector<unsigned int> spirv;
         glslang::GlslangToSpv(*program.getIntermediate(stage), spirv);
         if (spirv.size() == 0u) {
-            logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
-            logger.error("magma.vulkan.shader") << "Unable to compile shader." << std::endl;
+            chamber::logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+            chamber::logger.error("magma.vulkan.shader") << "Unable to compile shader." << std::endl;
         }
 
         // Copy to real buffer
@@ -201,7 +203,7 @@ namespace lava::vulkan {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
-            logger.warning("magma.vulkan.shader") << "Unable to shader file " << filename << std::endl;
+            chamber::logger.warning("magma.vulkan.shader") << "Unable to shader file " << filename << std::endl;
         }
 
         size_t fileSize = file.tellg();
@@ -210,7 +212,8 @@ namespace lava::vulkan {
         file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
         file.close();
 
-        logger.info("magma.vulkan.shader") << "Reading shader file '" << filename << "' (" << fileSize << "B)" << std::endl;
+        chamber::logger.info("magma.vulkan.shader") << "Reading shader file '" << filename << "' (" << fileSize << "B)" <<
+    std::endl;
 
         return buffer;
     }*/
@@ -227,7 +230,7 @@ namespace lava::vulkan {
         createInfo.pCode = codeAligned.data();
 
         if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
-            logger.error("magma.vulkan.shader") << "Failed to create shader module" << std::endl;
+            chamber::logger.error("magma.vulkan.shader") << "Failed to create shader module" << std::endl;
         }
     }
 }

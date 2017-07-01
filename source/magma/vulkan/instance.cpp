@@ -11,10 +11,10 @@ namespace {
         auto category = lava::vulkan::toString(vk::DebugReportObjectTypeEXT(objType));
 
         if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
-            lava::logger.warning("magma.vulkan." + category) << msg << std::endl;
+            lava::chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
         }
         else if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
-            lava::logger.error("magma.vulkan." + category) << msg << std::endl;
+            lava::chamber::logger.error("magma.vulkan." + category) << msg << std::endl;
             exit(1);
         }
 
@@ -23,6 +23,7 @@ namespace {
 }
 
 using namespace lava::vulkan;
+using namespace lava::chamber;
 
 void Instance::init(bool debugEnabled)
 {
@@ -52,11 +53,9 @@ void Instance::createInstance()
 
     // Really create the instance
     auto err = vkCreateInstance(&instanceCreateInfo, nullptr, m_instance.replace());
-    if (!err) return;
-
-    // @todo Have a way to have this exit(1) included! And debug trace?
-    logger.error("magma.vulkan") << "Could not create Vulkan instance. " << toString(err) << std::endl;
-    exit(1);
+    if (err) {
+        logger.error("magma.vulkan") << "Could not create Vulkan instance. " << toString(err) << std::endl;
+    }
 }
 
 void Instance::setupDebug()

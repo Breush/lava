@@ -5,7 +5,7 @@
 #include <lava/chamber/call-stack.hpp>
 #include <lava/chamber/macros.hpp>
 
-namespace lava {
+namespace lava::chamber {
     /**
      * Stream managing colors and reset upon line end.
      */

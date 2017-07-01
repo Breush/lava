@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lava::math {
+namespace lava::chamber::math {
     float cos(float t);
     float sin(float t);
 }
