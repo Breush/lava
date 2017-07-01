@@ -1,6 +1,8 @@
+# lava - layered api for vulkan awesomeness
+
 ## Project's composition
 
-The *lava* project is in fact a bundle of multiple projects.
+The **lava** project is in fact a bundle of multiple projects.
 They stack up as layers, each one being built over the previous ones.
 
 | Layer | Project | Description                                             |

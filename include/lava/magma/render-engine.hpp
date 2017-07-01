@@ -18,34 +18,49 @@ namespace lava::magma {
         RenderEngine();
         ~RenderEngine();
 
-        class Impl;
-        Impl& impl() const { return *m_impl; }
-
+        /// Render the current state to all the targets.
         void draw();
+
+        /// Update the internal state, mainly animations.
         void update();
 
         /**
+         * @name Makers
          * Make a new resource and add it to the engine.
+
+         * Arguments will be forwarded to the constructor.
+         * Any resource that match an adder (see below) can be made.
          *
-         * @example
-         *      auto& mesh = engine.make<Mesh>();
+         * ```
+         * auto& mesh = engine.make<Mesh>(); // Its lifetime is now managed by the engine.
+         * ```
          */
+        /// @{
+        /// Make a new resource directly.
         template <class T, class... Arguments>
         T& make(Arguments&&... arguments);
-
-        /**
-         * Make a new resource using a custom maker.
-         */
+        /// Make a new resource using a custom maker.
         template <class T, class... Arguments>
         T& make(std::function<void(T&)> maker, Arguments&&... arguments);
+        /// @}
 
         /**
-         * Add resource that has already been created.
+         * @name Adders
+         * Add a resource that has already been created.
+         *
+         * Its ownership goes to the engine.
+         * For convenience, you usually want to use makers (see above).
          */
+        /// @{
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<IMaterial>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
         void add(IRenderTarget& renderTarget);
+        /// @}
+
+    public:
+        class Impl;
+        Impl& impl() { return *m_impl; }
 
     private:
         Impl* m_impl = nullptr;

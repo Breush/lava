@@ -25,6 +25,7 @@
     - Use vulkan.hpp 
     - Have interfaces.hpp
     - Have user documentation
+    - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
 - **improvement** 
     - Engine: update main command buffer every frame
     - Engine: remove mesh animation from the engine - have timeElapsed passed (thanks to caldera)?

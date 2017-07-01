@@ -1,0 +1,44 @@
+/* Members */
+
+.memtitle {
+    display: none;
+}
+
+.memproto {
+    background: none;
+    text-shadow: none;
+    box-shadow: none;
+    border: none;
+    margin-bottom: 0;
+    border-radius: 0;
+    padding: 0;
+    background-color: #FFB799;
+    color: #441400;
+}
+
+.memproto .memname {
+    font-weight: bold;
+}
+
+.memproto .memname .paramtype {
+    font-weight: normal;
+}
+
+.memdoc {    
+    box-shadow: none;
+    border-radius: 0;
+    background: #FFF4F0;
+    margin: 0 6px;
+    padding: 1px 6px;
+    border: 1px solid #FFB799;
+}
+
+.memdoc .definition {
+    display: none;
+}
+
+/* Code color */
+
+div.fragment {
+    padding: 6px;
+}

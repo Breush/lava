@@ -4,6 +4,7 @@
         "**/*.make": true,
         "**/*.spv": true,
         "build/": true,
+        "doc/html": true,
         "external/lib": true,
         "external/bin": true,
         "external/etc": true
