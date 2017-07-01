@@ -5,7 +5,7 @@
 
 namespace lava::magma {
     /**
-     * Vulkan-based implementation of lava::OrbitCamera.
+     * Implementation of lava::OrbitCamera.
      */
     class OrbitCamera::Impl {
     public:

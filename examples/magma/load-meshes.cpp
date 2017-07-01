@@ -7,7 +7,7 @@
 
 using namespace lava;
 
-void handleEvent(crater::Event& event, magma::RenderWindow& window, magma::OrbitCamera& camera);
+void handleEvent(crater::Event& event, magma::RenderWindow& window, magma::OrbitCamera& camera, magma::PointLight& light);
 
 int main(void)
 {
@@ -18,10 +18,15 @@ int main(void)
     magma::RenderWindow window({800, 600}, "ashe - magma | load meshes");
     engine.add(window);
 
+    // A camera
     auto& camera = engine.make<magma::OrbitCamera>();
     camera.position({0.f, 2.f, 0.75f});
     camera.target({0.f, 0.f, 0.5f});
     camera.viewportRatio(800.f / 600.f);
+
+    // A light
+    auto& light = engine.make<magma::PointLight>();
+    light.position({5.f, 5.f, 0.f});
 
     // Create a mesh
     // engine.make<magma::Mesh>("./assets/models/duck.glb");
@@ -36,7 +41,7 @@ int main(void)
         // Treat all events since last frame
         crater::Event event;
         while (window.pollEvent(event)) {
-            handleEvent(event, window, camera);
+            handleEvent(event, window, camera, light);
         }
 
         engine.update(); // Update the logic
@@ -46,7 +51,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void handleEvent(crater::Event& event, magma::RenderWindow& window, magma::OrbitCamera& camera)
+void handleEvent(crater::Event& event, magma::RenderWindow& window, magma::OrbitCamera& camera, magma::PointLight& light)
 {
     static auto buttonPressed = crater::input::Button::Unknown;
     static glm::vec2 lastDragPosition;
@@ -60,8 +65,21 @@ void handleEvent(crater::Event& event, magma::RenderWindow& window, magma::Orbit
     case crater::Event::KeyPressed: {
         if (event.key.which == crater::input::Key::Escape) {
             window.close();
-            break;
         }
+        // @todo Write better controls for the light
+        else if (event.key.which == crater::input::Key::Right) {
+            light.position(light.position() - glm::vec3{0.1f, 0.f, 0.f});
+        }
+        else if (event.key.which == crater::input::Key::Left) {
+            light.position(light.position() + glm::vec3{0.1f, 0.f, 0.f});
+        }
+        else if (event.key.which == crater::input::Key::Up) {
+            light.position(light.position() - glm::vec3{0.f, 0.1f, 0.f});
+        }
+        else if (event.key.which == crater::input::Key::Down) {
+            light.position(light.position() + glm::vec3{0.f, 0.1f, 0.f});
+        }
+        break;
     }
 
     case crater::Event::WindowResized: {

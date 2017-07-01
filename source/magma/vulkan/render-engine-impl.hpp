@@ -6,6 +6,7 @@
 #include <lava/magma/interfaces/camera.hpp>
 #include <lava/magma/interfaces/material.hpp>
 #include <lava/magma/interfaces/mesh.hpp>
+#include <lava/magma/interfaces/point-light.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "./device.hpp"
@@ -17,7 +18,8 @@ struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 projection;
-    glm::vec3 cameraPosition;
+    glm::vec4 cameraPosition;
+    glm::vec4 pointLightPosition;
 };
 
 namespace lava::magma {
@@ -32,10 +34,17 @@ namespace lava::magma {
         // Main interface
         void draw();
         void update();
-        void add(std::unique_ptr<ICamera>&& camera);
-        void add(std::unique_ptr<IMaterial>&& material);
-        void add(std::unique_ptr<IMesh>&& mesh);
+
+        /**
+         * @name Adders
+         */
+        /// @{
+        void add(std::unique_ptr<ICamera>&& camera) { m_cameras.emplace_back(std::move(camera)); }
+        void add(std::unique_ptr<IMaterial>&& material) { m_materials.emplace_back(std::move(material)); }
+        void add(std::unique_ptr<IMesh>&& mesh) { m_meshes.emplace_back(std::move(mesh)); }
+        void add(std::unique_ptr<IPointLight>&& pointLight) { m_pointLights.emplace_back(std::move(pointLight)); }
         void add(IRenderTarget& renderTarget);
+        /// @}
 
     protected:
         void createRenderPass();
@@ -107,9 +116,10 @@ namespace lava::magma {
         vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory{m_device.capsule(), vkFreeMemory};
 
         // Data
-        std::vector<IRenderTarget*> m_renderTargets;
+        std::vector<std::unique_ptr<ICamera>> m_cameras;
         std::vector<std::unique_ptr<IMaterial>> m_materials;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
-        std::vector<std::unique_ptr<ICamera>> m_cameras;
+        std::vector<std::unique_ptr<IPointLight>> m_pointLights;
+        std::vector<IRenderTarget*> m_renderTargets;
     };
 }

@@ -97,7 +97,8 @@ void RenderEngine::Impl::update()
     previousTimePoint = currentTimePoint;
 
     const float rotationSpeed = 1.f;
-    time += dt * rotationSpeed;
+    // @todo Better update the light, and somewhere else
+    // time += dt * rotationSpeed;
 
     // Animating the mesh
     // @todo You know what to do - put that in the IMesh interface
@@ -108,12 +109,17 @@ void RenderEngine::Impl::update()
     const auto& viewTransform = m_cameras[0]->viewTransform();
     const auto& projectionTransform = m_cameras[0]->projectionTransform();
 
+    // The lights
+    // @todo How to have multiple?
+    const auto& pointLightPosition = m_pointLights[0]->position();
+
     // Update UBOs
     UniformBufferObject transforms = {};
-    transforms.cameraPosition = cameraPosition;
     transforms.model = modelTransform;
     transforms.view = viewTransform;
     transforms.projection = projectionTransform;
+    transforms.cameraPosition = glm::vec4(cameraPosition, 1.f);
+    transforms.pointLightPosition = glm::vec4(pointLightPosition, 1.f);
 
     void* data;
     vkMapMemory(m_device, m_uniformStagingBufferMemory, 0, sizeof(transforms), 0, &data);
@@ -121,21 +127,6 @@ void RenderEngine::Impl::update()
     vkUnmapMemory(m_device, m_uniformStagingBufferMemory);
 
     vulkan::copyBuffer(m_device, m_commandPool, m_uniformStagingBuffer, m_uniformBuffer, sizeof(transforms));
-}
-
-void RenderEngine::Impl::add(std::unique_ptr<ICamera>&& camera)
-{
-    m_cameras.emplace_back(std::move(camera));
-}
-
-void RenderEngine::Impl::add(std::unique_ptr<IMaterial>&& material)
-{
-    m_materials.emplace_back(std::move(material));
-}
-
-void RenderEngine::Impl::add(std::unique_ptr<IMesh>&& mesh)
-{
-    m_meshes.emplace_back(std::move(mesh));
 }
 
 void RenderEngine::Impl::createRenderPass()

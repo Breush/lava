@@ -5,7 +5,8 @@ layout(binding = 0) uniform TransformsUbo {
     mat4 model;
     mat4 view;
     mat4 projection;
-    vec3 wEyePosition;                            
+    vec4 wEyePosition;
+    vec4 wPointLightPosition;
 } transforms;
 
 layout(location = 0) in vec3 inMPosition;           
@@ -25,9 +26,6 @@ out gl_PerVertex {
     vec4 gl_Position;
 };
 
-// @todo Pass this through
-vec3 lightPosition = vec3(5, 5, 0);
-
 void main() {
     mat4 VM4 = transforms.view * transforms.model;
     mat3 VM3 = mat3(VM4);
@@ -43,7 +41,7 @@ void main() {
     mat3 tbn = transpose(mat3(vTangent, vBitangent, vNormal));
 
     outTPosition = tbn * vPosition.xyz;
-    outTEyePosition = tbn * (transforms.view * vec4(transforms.wEyePosition, 1)).xyz;
-    outTLightPosition = tbn * (transforms.view * vec4(lightPosition, 1)).xyz;
+    outTEyePosition = tbn * (transforms.view * transforms.wEyePosition).xyz;
+    outTLightPosition = tbn * (transforms.view * transforms.wPointLightPosition).xyz;
     outUv = inUv;
 }

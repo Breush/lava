@@ -1,6 +1,7 @@
 # What's next
 
 - Convert to C++17 (string_view, UTF8, filesystem, ...)
+- Removed useless folder when no namespace (and clean useless namespaces)
 
 ## Chamber
 
@@ -37,7 +38,8 @@
     - PBR: Use define to know whether there is a texture (compile shaders within the engine)
     - PBR: Remove Vertex Color attribute
 - **feature**
-    - Light: In engine, and forwarded to the shaders
+    - Light: Allow multiple lights (how many? how to optimize stationary ones?)
+    - Light: Shadows
     - Mesh: Compute tangents if not provided
     - Mesh: Transform
     - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
@@ -49,7 +51,7 @@
 - **faroff**
     - Shader: have own wrapper around glslang...
     - GLB: should that loader really be in magma? That's not rendering *per se*. (Same goes for MeshMakers) - It should be another layer
-    - Think about inlining in code data (shaders mainly, but debug texture too).
+    - Think about inlining in code data (shaders mainly, but debug texture too)
 
 ## Caldera
 
@@ -59,5 +61,9 @@
 
 ## Ashes
 
+- **bug**
+    - Track artefact in corset-back (magma-related)
+- **feature**
+    - Light: improve controls
 - **faroff**
     - A feature, an example

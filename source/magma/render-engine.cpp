@@ -28,6 +28,11 @@ void RenderEngine::add(std::unique_ptr<IMesh>&& mesh)
     m_impl->add(std::move(mesh));
 }
 
+void RenderEngine::add(std::unique_ptr<IPointLight>&& pointLight)
+{
+    m_impl->add(std::move(pointLight));
+}
+
 void RenderEngine::add(IRenderTarget& renderTarget)
 {
     renderTarget.init(*this);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/magma/cameras.hpp>
+#include <lava/magma/lights.hpp>
 #include <lava/magma/makers.hpp>
 #include <lava/magma/materials.hpp>
 #include <lava/magma/meshes.hpp>
