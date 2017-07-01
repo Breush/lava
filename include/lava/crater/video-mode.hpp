@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace lava {
+namespace lava::crater {
     struct VideoMode {
     public:
         uint16_t width = 0u;

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <lava/crater/keyboard.hpp>
-#include <lava/crater/mouse.hpp>
+#include <lava/crater/input/button.hpp>
+#include <lava/crater/input/key.hpp>
 
-namespace lava {
+namespace lava::crater {
     /**
      * An window or input event.
      */
@@ -29,7 +29,7 @@ namespace lava {
         struct MouseButton {
             int16_t x;
             int16_t y;
-            Mouse::Button which;
+            input::Button which;
         };
 
         struct MouseMove {
@@ -44,7 +44,7 @@ namespace lava {
         };
 
         struct Key {
-            Keyboard::Key which;
+            input::Key which;
         };
 
         // -----

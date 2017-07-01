@@ -9,7 +9,7 @@
 using namespace lava;
 using namespace lava::chamber;
 
-RenderWindow::Impl::Impl(VideoMode mode, const std::string& title)
+RenderWindow::Impl::Impl(crater::VideoMode mode, const std::string& title)
     : m_window(mode, title)
     , m_windowExtent({mode.width, mode.height})
 {
@@ -44,7 +44,7 @@ void RenderWindow::Impl::refresh()
     m_engine->recreateSwapchain();
 }
 
-bool RenderWindow::Impl::pollEvent(Event& event)
+bool RenderWindow::Impl::pollEvent(crater::Event& event)
 {
     return m_window.pollEvent(event);
 }
@@ -54,17 +54,17 @@ void RenderWindow::Impl::close()
     m_window.close();
 }
 
-WindowHandle RenderWindow::Impl::windowHandle() const
+crater::WindowHandle RenderWindow::Impl::windowHandle() const
 {
     return m_window.windowHandle();
 }
 
-VideoMode RenderWindow::Impl::videoMode() const
+crater::VideoMode RenderWindow::Impl::videoMode() const
 {
     return m_window.videoMode();
 }
 
-void RenderWindow::Impl::videoMode(const VideoMode& mode)
+void RenderWindow::Impl::videoMode(const crater::VideoMode& mode)
 {
     m_windowExtent = {mode.width, mode.height};
     m_engine->recreateSwapchain();

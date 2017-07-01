@@ -7,7 +7,7 @@
 
 using namespace lava;
 
-void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera);
+void handleEvent(crater::Event& event, RenderWindow& window, OrbitCamera& camera);
 
 int main(void)
 {
@@ -34,7 +34,7 @@ int main(void)
     // Keep running while the window is open
     while (window.opened()) {
         // Treat all events since last frame
-        Event event;
+        crater::Event event;
         while (window.pollEvent(event)) {
             handleEvent(event, window, camera);
         }
@@ -46,60 +46,60 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void handleEvent(Event& event, RenderWindow& window, OrbitCamera& camera)
+void handleEvent(crater::Event& event, RenderWindow& window, OrbitCamera& camera)
 {
-    static auto buttonPressed = lava::Mouse::Unknown;
+    static auto buttonPressed = crater::input::Button::Unknown;
     static glm::vec2 lastDragPosition;
 
     switch (event.type) {
-    case Event::WindowClosed: {
+    case crater::Event::WindowClosed: {
         window.close();
         break;
     }
 
-    case Event::KeyPressed: {
-        if (event.key.which == Keyboard::Escape) {
+    case crater::Event::KeyPressed: {
+        if (event.key.which == crater::input::Key::Escape) {
             window.close();
             break;
         }
     }
 
-    case Event::WindowResized: {
+    case crater::Event::WindowResized: {
         window.refresh();
         camera.viewportRatio(static_cast<float>(event.size.width) / static_cast<float>(event.size.height));
         break;
     }
 
-    case Event::MouseButtonPressed: {
+    case crater::Event::MouseButtonPressed: {
         buttonPressed = event.mouseButton.which;
         lastDragPosition.x = event.mouseButton.x;
         lastDragPosition.y = event.mouseButton.y;
         break;
     }
 
-    case Event::MouseButtonReleased: {
-        buttonPressed = lava::Mouse::Unknown;
+    case crater::Event::MouseButtonReleased: {
+        buttonPressed = crater::input::Button::Unknown;
         break;
     }
 
-    case Event::MouseScrolled: {
+    case crater::Event::MouseScrolled: {
         camera.radiusAdd(-event.mouseScroll.delta / 10.f);
         break;
     }
 
-    case Event::MouseMoved: {
-        if (buttonPressed == lava::Mouse::Unknown) return;
+    case crater::Event::MouseMoved: {
+        if (buttonPressed == crater::input::Button::Unknown) return;
 
         glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
         auto delta = (position - lastDragPosition) / 100.f;
         lastDragPosition = position;
 
         // Orbit with left button
-        if (buttonPressed == lava::Mouse::Left) {
+        if (buttonPressed == crater::input::Button::Left) {
             camera.orbitAdd(-delta.x, -delta.y);
         }
         // Strafe with right button
-        else if (buttonPressed == lava::Mouse::Right) {
+        else if (buttonPressed == crater::input::Button::Right) {
             camera.strafe(delta.x / 10.f, delta.y / 10.f);
         }
         break;

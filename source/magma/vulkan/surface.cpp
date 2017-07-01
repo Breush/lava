@@ -13,12 +13,12 @@ Surface::Surface(Instance& instance)
 {
 }
 
-void Surface::init(WindowHandle& windowHandle)
+void Surface::init(crater::WindowHandle& windowHandle)
 {
     createSurface(windowHandle);
 }
 
-void Surface::createSurface(WindowHandle& windowHandle)
+void Surface::createSurface(crater::WindowHandle& windowHandle)
 {
     // @todo This is platform-specific!
     VkXcbSurfaceCreateInfoKHR createInfo = {};

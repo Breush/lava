@@ -1,9 +1,9 @@
 #pragma once
 
-#include "./capsule.hpp"
-
 #include <lava/crater/window-handle.hpp>
 #include <vulkan/vulkan.hpp>
+
+#include "./capsule.hpp"
 
 namespace lava::vulkan {
     class Instance;
@@ -17,7 +17,7 @@ namespace lava::vulkan {
     public:
         Surface(Instance& instance);
 
-        void init(WindowHandle& windowHandle);
+        void init(crater::WindowHandle& windowHandle);
 
         // ----- Getters
 
@@ -26,7 +26,7 @@ namespace lava::vulkan {
         operator VkSurfaceKHR() const { return m_surface; }
 
     protected:
-        void createSurface(WindowHandle& windowHandle);
+        void createSurface(crater::WindowHandle& windowHandle);
 
     private:
         Capsule<VkSurfaceKHR> m_surface;

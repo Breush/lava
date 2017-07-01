@@ -22,61 +22,61 @@ namespace {
     }
 
     // Got list from https://github.com/substack/node-keysym/blob/master/data/keysyms.txt
-    lava::Keyboard::Key keyEventToKey(xcb_key_press_event_t& keyEvent)
+    lava::crater::input::Key keyEventToKey(xcb_key_press_event_t& keyEvent)
     {
         xcb_keysym_t keySym = xcb_key_press_lookup_keysym(g_keySymbols, &keyEvent, 0);
 
         switch (keySym) {
-        case 'a': return lava::Keyboard::A;
-        case 'b': return lava::Keyboard::B;
-        case 'c': return lava::Keyboard::C;
-        case 'd': return lava::Keyboard::D;
-        case 'e': return lava::Keyboard::E;
-        case 'f': return lava::Keyboard::F;
-        case 'g': return lava::Keyboard::G;
-        case 'h': return lava::Keyboard::H;
-        case 'i': return lava::Keyboard::I;
-        case 'j': return lava::Keyboard::J;
-        case 'k': return lava::Keyboard::K;
-        case 'l': return lava::Keyboard::L;
-        case 'm': return lava::Keyboard::M;
-        case 'n': return lava::Keyboard::N;
-        case 'o': return lava::Keyboard::O;
-        case 'p': return lava::Keyboard::P;
-        case 'q': return lava::Keyboard::Q;
-        case 'r': return lava::Keyboard::R;
-        case 's': return lava::Keyboard::S;
-        case 't': return lava::Keyboard::T;
-        case 'u': return lava::Keyboard::U;
-        case 'v': return lava::Keyboard::V;
-        case 'w': return lava::Keyboard::W;
-        case 'x': return lava::Keyboard::X;
-        case 'y': return lava::Keyboard::Y;
-        case 'z': return lava::Keyboard::Z;
-        case 0xff1b: return lava::Keyboard::Escape;
-        case 0xffbe: return lava::Keyboard::F1;
-        case 0xffbf: return lava::Keyboard::F2;
-        case 0xffc0: return lava::Keyboard::F3;
-        case 0xffc1: return lava::Keyboard::F4;
-        case 0xffc2: return lava::Keyboard::F5;
-        case 0xffc3: return lava::Keyboard::F6;
-        case 0xffc4: return lava::Keyboard::F7;
-        case 0xffc5: return lava::Keyboard::F8;
-        case 0xffc6: return lava::Keyboard::F9;
-        case 0xffc7: return lava::Keyboard::F10;
-        case 0xffc8: return lava::Keyboard::F11;
-        case 0xffc9: return lava::Keyboard::F12;
-        case 0xff51: return lava::Keyboard::Left;
-        case 0xff52: return lava::Keyboard::Up;
-        case 0xff53: return lava::Keyboard::Right;
-        case 0xff54: return lava::Keyboard::Down;
+        case 'a': return lava::crater::input::Key::A;
+        case 'b': return lava::crater::input::Key::B;
+        case 'c': return lava::crater::input::Key::C;
+        case 'd': return lava::crater::input::Key::D;
+        case 'e': return lava::crater::input::Key::E;
+        case 'f': return lava::crater::input::Key::F;
+        case 'g': return lava::crater::input::Key::G;
+        case 'h': return lava::crater::input::Key::H;
+        case 'i': return lava::crater::input::Key::I;
+        case 'j': return lava::crater::input::Key::J;
+        case 'k': return lava::crater::input::Key::K;
+        case 'l': return lava::crater::input::Key::L;
+        case 'm': return lava::crater::input::Key::M;
+        case 'n': return lava::crater::input::Key::N;
+        case 'o': return lava::crater::input::Key::O;
+        case 'p': return lava::crater::input::Key::P;
+        case 'q': return lava::crater::input::Key::Q;
+        case 'r': return lava::crater::input::Key::R;
+        case 's': return lava::crater::input::Key::S;
+        case 't': return lava::crater::input::Key::T;
+        case 'u': return lava::crater::input::Key::U;
+        case 'v': return lava::crater::input::Key::V;
+        case 'w': return lava::crater::input::Key::W;
+        case 'x': return lava::crater::input::Key::X;
+        case 'y': return lava::crater::input::Key::Y;
+        case 'z': return lava::crater::input::Key::Z;
+        case 0xff1b: return lava::crater::input::Key::Escape;
+        case 0xffbe: return lava::crater::input::Key::F1;
+        case 0xffbf: return lava::crater::input::Key::F2;
+        case 0xffc0: return lava::crater::input::Key::F3;
+        case 0xffc1: return lava::crater::input::Key::F4;
+        case 0xffc2: return lava::crater::input::Key::F5;
+        case 0xffc3: return lava::crater::input::Key::F6;
+        case 0xffc4: return lava::crater::input::Key::F7;
+        case 0xffc5: return lava::crater::input::Key::F8;
+        case 0xffc6: return lava::crater::input::Key::F9;
+        case 0xffc7: return lava::crater::input::Key::F10;
+        case 0xffc8: return lava::crater::input::Key::F11;
+        case 0xffc9: return lava::crater::input::Key::F12;
+        case 0xff51: return lava::crater::input::Key::Left;
+        case 0xff52: return lava::crater::input::Key::Up;
+        case 0xff53: return lava::crater::input::Key::Right;
+        case 0xff54: return lava::crater::input::Key::Down;
         }
 
-        return lava::Keyboard::Unknown;
+        return lava::crater::input::Key::Unknown;
     }
 }
 
-using namespace lava;
+using namespace lava::crater;
 using namespace lava::chamber;
 
 Window::Impl::Impl(VideoMode mode, const std::string& title)
@@ -195,9 +195,9 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
             event.type = Event::MouseButtonPressed;
             event.mouseButton.x = buttonEvent.event_x;
             event.mouseButton.y = buttonEvent.event_y;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = Mouse::Left;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = Mouse::Middle;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = Mouse::Right;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = input::Button::Left;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = input::Button::Middle;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = input::Button::Right;
         }
         // Mouse wheel buttons
         else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
@@ -217,9 +217,9 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         event.type = Event::MouseButtonReleased;
         event.mouseButton.x = buttonEvent.event_x;
         event.mouseButton.y = buttonEvent.event_y;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = Mouse::Left;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = Mouse::Middle;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = Mouse::Right;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = input::Button::Left;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = input::Button::Middle;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = input::Button::Right;
         pushEvent(event);
         break;
     }

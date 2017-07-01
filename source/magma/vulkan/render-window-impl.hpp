@@ -12,23 +12,23 @@ namespace lava::vulkan {
 namespace lava {
     class RenderWindow::Impl {
     public:
-        Impl(VideoMode mode, const std::string& title);
+        Impl(crater::VideoMode mode, const std::string& title);
 
         // IRenderTarget
         void init(RenderEngine& engine);
         void draw() const;
         void refresh();
 
-        bool pollEvent(Event& event);
+        bool pollEvent(crater::Event& event);
         void close();
 
-        WindowHandle windowHandle() const;
-        VideoMode videoMode() const;
-        void videoMode(const VideoMode& mode);
+        crater::WindowHandle windowHandle() const;
+        crater::VideoMode videoMode() const;
+        void videoMode(const crater::VideoMode& mode);
         bool opened() const;
 
     private:
-        Window m_window;
+        crater::Window m_window;
         VkExtent2D m_windowExtent;
 
         RenderEngine::Impl* m_engine = nullptr;

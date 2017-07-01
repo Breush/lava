@@ -2,7 +2,7 @@
 
 #include <lava/crater/event.hpp>
 
-using namespace lava;
+using namespace lava::crater;
 
 IWindowImpl::IWindowImpl(VideoMode videoMode)
     : m_videoMode(videoMode)

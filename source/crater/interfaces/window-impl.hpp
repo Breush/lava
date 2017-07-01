@@ -6,7 +6,7 @@
 #include <queue>
 #include <string>
 
-namespace lava {
+namespace lava::crater {
     /**
      * Will be inherited by platform-specific implementations.
      */

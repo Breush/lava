@@ -9,7 +9,7 @@
 // Forward declaration
 struct xcb_connection_t;
 
-namespace lava {
+namespace lava::crater {
 
     // XCB handle
     typedef struct {

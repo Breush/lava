@@ -57,7 +57,7 @@ namespace lava {
         void createDescriptorSet();
 
     public:
-        WindowHandle m_windowHandle;
+        crater::WindowHandle m_windowHandle;
         VkExtent2D m_windowExtent;
 
         void initVulkan(); // @todo That is a really really bad idea

@@ -11,6 +11,8 @@
 
 ## Crater
 
+- **refacto**
+    - See if that crater::input::* namespace is a bit too much (remove input?)
 - **feature**
     - Event: gave a way to access keyboard/mouse state (isKeyPressed)
     - Event: complex event handling (dragging, double click)

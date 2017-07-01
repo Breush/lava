@@ -1,7 +1,7 @@
 #pragma once
 
-namespace lava::Keyboard {
-    enum Key {
+namespace lava::crater::input {
+    enum class Key {
         Unknown,
         A,
         B,

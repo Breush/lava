@@ -14,7 +14,7 @@ namespace lava {
      */
     class RenderWindow final : public IRenderTarget {
     public:
-        RenderWindow(VideoMode mode, const std::string& title);
+        RenderWindow(crater::VideoMode mode, const std::string& title);
         ~RenderWindow();
 
         // IRenderTarget
@@ -22,12 +22,12 @@ namespace lava {
         void draw() const override final;
         void refresh() override final;
 
-        bool pollEvent(Event& event);
+        bool pollEvent(crater::Event& event);
         void close();
 
-        WindowHandle windowHandle() const;
-        VideoMode videoMode() const;
-        void videoMode(const VideoMode& mode);
+        crater::WindowHandle windowHandle() const;
+        crater::VideoMode videoMode() const;
+        void videoMode(const crater::VideoMode& mode);
         bool opened() const;
 
     private:

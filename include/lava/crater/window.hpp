@@ -4,11 +4,11 @@
 #include <lava/crater/window-handle.hpp>
 #include <string>
 
-namespace lava {
+namespace lava::crater {
     class Event;
 }
 
-namespace lava {
+namespace lava::crater {
     class Window {
     public:
         Window();

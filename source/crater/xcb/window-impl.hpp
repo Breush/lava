@@ -3,13 +3,10 @@
 #include "../interfaces/window-impl.hpp"
 #include <lava/crater/window.hpp>
 
-#include <deque>
 #include <glm/vec2.hpp>
-#include <lava/crater/event.hpp>
-#include <string>
 #include <xcb/xcb.h>
 
-namespace lava {
+namespace lava::crater {
     /**
      * XCB-based lava::Window.
      */

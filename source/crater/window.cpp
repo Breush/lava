@@ -5,7 +5,7 @@
 // @todo Should be #defined by platforms
 #include "./xcb/window-impl.hpp"
 
-using namespace lava;
+using namespace lava::crater;
 
 Window::Window()
 {
