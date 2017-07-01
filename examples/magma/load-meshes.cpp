@@ -3,7 +3,6 @@
  */
 
 #include <iostream>
-#include <lava/crater/event.hpp>
 #include <lava/magma.hpp>
 
 using namespace lava;
@@ -16,7 +15,7 @@ int main(void)
     RenderEngine engine;
 
     // Create a window we can draw to
-    RenderWindow window({800, 600}, "The best example");
+    RenderWindow window({800, 600}, "ashe - magma | load meshes");
     engine.add(window);
 
     auto& camera = engine.make<OrbitCamera>();

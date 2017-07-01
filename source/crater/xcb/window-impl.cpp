@@ -78,11 +78,11 @@ namespace {
 
 using namespace lava;
 
-Window::Impl::Impl(VideoMode mode, const std::string& /*title*/)
+Window::Impl::Impl(VideoMode mode, const std::string& title)
     : IWindowImpl(mode)
 {
     initXcbConnection();
-    setupWindow(mode);
+    setupWindow(mode, title);
 
     // @todo If not allocated?
     // Probably more secure to put that as a class member for now.
@@ -107,7 +107,7 @@ void Window::Impl::initXcbConnection()
     m_screen = iter.data;
 }
 
-void Window::Impl::setupWindow(VideoMode mode)
+void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
 {
     uint32_t value_mask, value_list[32];
 
@@ -128,9 +128,8 @@ void Window::Impl::setupWindow(VideoMode mode)
 
     xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, reply->atom, 4, 32, 1, &m_atomWmDeleteWindow->atom);
 
-    std::string windowTitle = "What a nice title!";
-    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, windowTitle.size(),
-                        windowTitle.c_str());
+    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, title.size(),
+                        title.c_str());
 
     free(reply);
 

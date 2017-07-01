@@ -25,7 +25,7 @@ namespace lava {
         virtual void processEvents() override final;
 
         void initXcbConnection();
-        void setupWindow(VideoMode mode);
+        void setupWindow(VideoMode mode, const std::string& title);
         bool processEvent(xcb_generic_event_t& windowEvent);
 
     private:

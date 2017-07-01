@@ -1,6 +1,8 @@
 # What's next
 
 - Change setter/getter to unique syntax
+- Each lib has its own namespace
+- Convert to C++17 (string_view, UTF8, filesystem, ...)
 
 ### Chamber
 
@@ -15,7 +17,6 @@
     - Event: gave a way to access keyboard/mouse state (isKeyPressed)
     - Event: complex event handling (dragging, double click)
     - Window: fullscreen
-    - Window: title
     - Window::Impl: have Win32 and Wayland support
 
 ### Magma
@@ -37,6 +38,7 @@
 - **feature**
     - Light: In engine, and forwarded to the shaders
     - Mesh: Compute tangents if not provided
+    - Mesh: Transform
     - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
@@ -56,4 +58,5 @@
 
 ## Ashes
 
-- Move them from source to example folder (or ashes?)
+- **faroff**
+    - A feature, an example
