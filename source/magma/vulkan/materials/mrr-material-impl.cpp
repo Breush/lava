@@ -27,7 +27,7 @@ namespace {
         texture.channels = channels;
 
         if (pixels.size() != width * height * channels) {
-            lava::chamber::logger.error("magma.vulkan.mrr-material")
+            chamber::logger.error("magma.vulkan.mrr-material")
                 << "Image dimension for texture does not match provided data length."
                 << " Data: " << pixels.size() << " Dimensions: " << width << "x" << height << " ("
                 << static_cast<uint32_t>(channels) << ")" << std::endl;
@@ -37,24 +37,24 @@ namespace {
         memcpy(texture.pixels, pixels.data(), pixels.size());
     }
 
-    void setupTextureImage(magma::MrrMaterial::Impl::Attribute::Texture& texture, lava::magma::vulkan::Device& device,
-                           VkCommandPool commandPool, lava::magma::vulkan::Capsule<VkImage>& image,
-                           lava::magma::vulkan::Capsule<VkDeviceMemory>& imageMemory, lava::magma::vulkan::Capsule<VkImageView>& imageView)
+    void setupTextureImage(magma::MrrMaterial::Impl::Attribute::Texture& texture, magma::vulkan::Device& device,
+                           VkCommandPool commandPool, magma::vulkan::Capsule<VkImage>& image,
+                           magma::vulkan::Capsule<VkDeviceMemory>& imageMemory, magma::vulkan::Capsule<VkImageView>& imageView)
     {
         if (texture.channels != 4u) {
-            lava::chamber::logger.error("magma.vulkan.mrr-material")
+            chamber::logger.error("magma.vulkan.mrr-material")
                 << "Cannot handle texture with " << static_cast<uint32_t>(texture.channels)
                 << " channels. Only 4 is currently supported." << std::endl;
         }
 
-        lava::magma::vulkan::Capsule<VkImage> stagingImage{device.capsule(), vkDestroyImage};
-        lava::magma::vulkan::Capsule<VkDeviceMemory> stagingImageMemory{device.capsule(), vkFreeMemory};
-        lava::magma::vulkan::Capsule<VkImageView> stagingImageView{device.capsule(), vkDestroyImageView};
+        magma::vulkan::Capsule<VkImage> stagingImage{device.capsule(), vkDestroyImage};
+        magma::vulkan::Capsule<VkDeviceMemory> stagingImageMemory{device.capsule(), vkFreeMemory};
+        magma::vulkan::Capsule<VkImageView> stagingImageView{device.capsule(), vkDestroyImageView};
 
-        lava::magma::vulkan::createImage(device, texture.width, texture.height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR,
-                                  VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage,
-                                  stagingImageMemory);
+        magma::vulkan::createImage(device, texture.width, texture.height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR,
+                                   VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage,
+                                   stagingImageMemory);
 
         VkImageSubresource subresource = {};
         subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -65,13 +65,13 @@ namespace {
         vkGetImageSubresourceLayout(device, stagingImage, &subresource, &stagingImageLayout);
 
         // Staging buffer
-        lava::magma::vulkan::Capsule<VkBuffer> stagingBuffer{device.capsule(), vkDestroyBuffer};
-        lava::magma::vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{device.capsule(), vkFreeMemory};
+        magma::vulkan::Capsule<VkBuffer> stagingBuffer{device.capsule(), vkDestroyBuffer};
+        magma::vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{device.capsule(), vkFreeMemory};
 
         VkDeviceSize imageSize = texture.width * texture.height * 4;
-        lava::magma::vulkan::createBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-                                   stagingBufferMemory);
+        magma::vulkan::createBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                                    stagingBufferMemory);
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
@@ -79,21 +79,21 @@ namespace {
         vkUnmapMemory(device, stagingBufferMemory);
 
         // The real image
-        lava::magma::vulkan::createImage(device, texture.width, texture.height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-                                  VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, imageMemory);
+        magma::vulkan::createImage(device, texture.width, texture.height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+                                   VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, imageMemory);
 
-        lava::magma::vulkan::transitionImageLayout(device, commandPool, image, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        magma::vulkan::transitionImageLayout(device, commandPool, image, VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-        lava::magma::vulkan::copyBufferToImage(device, commandPool, stagingBuffer, image, texture.width, texture.height);
+        magma::vulkan::copyBufferToImage(device, commandPool, stagingBuffer, image, texture.width, texture.height);
 
         // Update image view
-        lava::magma::vulkan::createImageView(device, image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, imageView);
+        magma::vulkan::createImageView(device, image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, imageView);
     }
 
-    void bindTextureDescriptorSet(VkDescriptorSet& descriptorSet, uint32_t dstBinding, lava::magma::vulkan::Device& device,
-                                  lava::magma::vulkan::Capsule<VkSampler>& sampler, lava::magma::vulkan::Capsule<VkImageView>& imageView)
+    void bindTextureDescriptorSet(VkDescriptorSet& descriptorSet, uint32_t dstBinding, magma::vulkan::Device& device,
+                                  magma::vulkan::Capsule<VkSampler>& sampler, magma::vulkan::Capsule<VkImageView>& imageView)
     {
         // Update descriptor set
         // @todo Have descriptor set per material type (e.g. 1 for MrrMaterial)

@@ -15,6 +15,14 @@
 
 #include <sstream>
 
+using namespace lava;
+
+std::ostream& chamber::operator<<(std::ostream& stream, chamber::CallStack& callStack)
+{
+    stream << callStack.toString();
+    return stream;
+}
+
 using namespace lava::chamber;
 
 void CallStack::refresh(const uint32_t numDiscard)
@@ -87,10 +95,4 @@ std::string CallStack::toString() const
         os << entry.file << ":" << entry.line << " [" << entry.function << "]" << std::endl;
     }
     return os.str();
-}
-
-std::ostream& lava::chamber::operator<<(std::ostream& stream, CallStack& callStack)
-{
-    stream << callStack.toString();
-    return stream;
 }

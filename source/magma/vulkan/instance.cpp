@@ -4,17 +4,19 @@
 
 #include "./tools.hpp"
 
+using namespace lava;
+
 namespace {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t,
                                                         size_t, int32_t, const char*, const char* msg, void*)
     {
-        auto category = lava::magma::vulkan::toString(vk::DebugReportObjectTypeEXT(objType));
+        auto category = magma::vulkan::toString(vk::DebugReportObjectTypeEXT(objType));
 
         if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
-            lava::chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
+            chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
         }
         else if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
-            lava::chamber::logger.error("magma.vulkan." + category) << msg << std::endl;
+            chamber::logger.error("magma.vulkan." + category) << msg << std::endl;
             exit(1);
         }
 

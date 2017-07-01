@@ -1,8 +1,10 @@
 #include <lava/chamber/logger.hpp>
 
-using namespace lava::chamber;
+using namespace lava;
 
-Logger lava::chamber::logger;
+chamber::Logger chamber::logger;
+
+using namespace lava::chamber;
 
 Logger::Logger()
     : m_stream(std::cout, "\e[21m\e[39m")

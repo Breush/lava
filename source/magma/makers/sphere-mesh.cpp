@@ -4,12 +4,14 @@
 #include <lava/chamber/math.hpp>
 #include <lava/magma/meshes/mesh.hpp>
 
+using namespace lava;
+
 namespace {
     void addCirclePoints(std::vector<glm::vec3>& points, const uint32_t tessellation, const float radius, const float height)
     {
-        const auto step = lava::chamber::math::TWO_PI / tessellation;
-        const auto cStep = lava::chamber::math::cos(step);
-        const auto sStep = lava::chamber::math::sin(step);
+        const auto step = chamber::math::TWO_PI / tessellation;
+        const auto cStep = chamber::math::cos(step);
+        const auto sStep = chamber::math::sin(step);
 
         glm::vec3 point{radius, 0.f, height};
         for (auto j = 0u; j < tessellation; ++j) {

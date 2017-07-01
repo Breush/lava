@@ -6,13 +6,15 @@
 #include "./swapchain-support-details.hpp"
 #include "./tools.hpp"
 
+using namespace lava;
+
 namespace {
     /**
      * Checks if a device supports the extensions.
      */
     inline bool deviceExtensionsSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions)
     {
-        auto extensions = lava::magma::vulkan::availableExtensions(device);
+        auto extensions = magma::vulkan::availableExtensions(device);
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
         for (const auto& extension : extensions) {
@@ -27,13 +29,13 @@ namespace {
      */
     inline bool deviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface)
     {
-        auto indices = lava::magma::vulkan::findQueueFamilies(device, surface);
+        auto indices = magma::vulkan::findQueueFamilies(device, surface);
         if (!indices.valid()) return false;
 
         auto extensionsSupported = deviceExtensionsSupported(device, deviceExtensions);
         if (!extensionsSupported) return false;
 
-        auto swapChainSupport = lava::magma::vulkan::swapchainSupportDetails(device, surface);
+        auto swapChainSupport = magma::vulkan::swapchainSupportDetails(device, surface);
         if (!swapChainSupport.valid()) return false;
 
         VkPhysicalDeviceFeatures supportedFeatures;
