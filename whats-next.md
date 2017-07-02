@@ -35,7 +35,6 @@
     - Mesh: have own secondary buffers
     - Mesh: allow not to have to specify a material (defaults to RmMaterial?)
     - OrbitCamera: FOV and up-vector configurable
-    - PBR: Rename MrrMaterial to RmMaterial
     - PBR: Use define to know whether there is a texture (compile shaders within the engine)
     - PBR: Remove Vertex Color attribute
 - **feature**

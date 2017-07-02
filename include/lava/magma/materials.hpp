@@ -1,3 +1,3 @@
 #pragma once
 
-#include <lava/magma/materials/mrr-material.hpp>
+#include <lava/magma/materials/rm-material.hpp>

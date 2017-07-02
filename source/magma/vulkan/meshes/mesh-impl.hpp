@@ -30,7 +30,7 @@ namespace lava::magma {
         void verticesColors(const glm::vec3& color);
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
-        void material(const MrrMaterial& material);
+        void material(const RmMaterial& material);
 
     private:
         void createDescriptorSet();
@@ -45,7 +45,7 @@ namespace lava::magma {
         // Data
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
-        const MrrMaterial* m_material = nullptr;
+        const RmMaterial* m_material = nullptr;
 
         // Buffers
         vulkan::Capsule<VkBuffer> m_vertexBuffer;

@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace lava::magma {
-    class MrrMaterial;
+    class RmMaterial;
 }
 
 namespace lava::magma {
@@ -33,7 +33,7 @@ namespace lava::magma {
         void verticesColors(const std::vector<glm::vec3>& colors);
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
-        void material(const MrrMaterial& material);
+        void material(const RmMaterial& material);
 
     private:
         Impl* m_impl = nullptr;

@@ -1,4 +1,4 @@
-#include "./mrr-material-impl.hpp"
+#include "./rm-material-impl.hpp"
 
 #include <lava/chamber/logger.hpp>
 #include <vulkan/vulkan.h>
@@ -11,15 +11,15 @@
 using namespace lava;
 
 namespace {
-    void cleanAttribute(magma::MrrMaterial::Impl::Attribute& attribute)
+    void cleanAttribute(magma::RmMaterial::Impl::Attribute& attribute)
     {
-        if (attribute.type == magma::MrrMaterial::Impl::Attribute::Type::TEXTURE) {
+        if (attribute.type == magma::RmMaterial::Impl::Attribute::Type::TEXTURE) {
             delete[] attribute.texture.pixels;
         }
-        attribute.type = magma::MrrMaterial::Impl::Attribute::Type::NONE;
+        attribute.type = magma::RmMaterial::Impl::Attribute::Type::NONE;
     }
 
-    void setupTexture(magma::MrrMaterial::Impl::Attribute::Texture& texture, const std::vector<uint8_t>& pixels, uint32_t width,
+    void setupTexture(magma::RmMaterial::Impl::Attribute::Texture& texture, const std::vector<uint8_t>& pixels, uint32_t width,
                       uint32_t height, uint8_t channels)
     {
         texture.width = width;
@@ -27,7 +27,7 @@ namespace {
         texture.channels = channels;
 
         if (pixels.size() != width * height * channels) {
-            chamber::logger.error("magma.vulkan.mrr-material")
+            chamber::logger.error("magma.vulkan.rm-material")
                 << "Image dimension for texture does not match provided data length."
                 << " Data: " << pixels.size() << " Dimensions: " << width << "x" << height << " ("
                 << static_cast<uint32_t>(channels) << ")" << std::endl;
@@ -37,12 +37,12 @@ namespace {
         memcpy(texture.pixels, pixels.data(), pixels.size());
     }
 
-    void setupTextureImage(magma::MrrMaterial::Impl::Attribute::Texture& texture, magma::vulkan::Device& device,
+    void setupTextureImage(magma::RmMaterial::Impl::Attribute::Texture& texture, magma::vulkan::Device& device,
                            VkCommandPool commandPool, magma::vulkan::Capsule<VkImage>& image,
                            magma::vulkan::Capsule<VkDeviceMemory>& imageMemory, magma::vulkan::Capsule<VkImageView>& imageView)
     {
         if (texture.channels != 4u) {
-            chamber::logger.error("magma.vulkan.mrr-material")
+            chamber::logger.error("magma.vulkan.rm-material")
                 << "Cannot handle texture with " << static_cast<uint32_t>(texture.channels)
                 << " channels. Only 4 is currently supported." << std::endl;
         }
@@ -96,7 +96,7 @@ namespace {
                                   magma::vulkan::Capsule<VkSampler>& sampler, magma::vulkan::Capsule<VkImageView>& imageView)
     {
         // Update descriptor set
-        // @todo Have descriptor set per material type (e.g. 1 for MrrMaterial)
+        // @todo Have descriptor set per material type (e.g. 1 for RmMaterial)
         // and find a way to bind the image by instance of material (during addCommands?)
         VkWriteDescriptorSet descriptorWrite = {};
 
@@ -121,7 +121,7 @@ namespace {
 
 using namespace lava::magma;
 
-MrrMaterial::Impl::Impl(RenderEngine& engine)
+RmMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
     , m_uniformStagingBuffer{m_engine.device().capsule(), vkDestroyBuffer}
     , m_uniformStagingBufferMemory{m_engine.device().capsule(), vkFreeMemory}
@@ -142,14 +142,14 @@ MrrMaterial::Impl::Impl(RenderEngine& engine)
     init();
 }
 
-MrrMaterial::Impl::~Impl()
+RmMaterial::Impl::~Impl()
 {
     cleanAttribute(m_baseColor);
     cleanAttribute(m_normal);
     cleanAttribute(m_metallicRoughness);
 }
 
-void MrrMaterial::Impl::init()
+void RmMaterial::Impl::init()
 {
     // Create uniform buffer
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
@@ -192,7 +192,7 @@ void MrrMaterial::Impl::init()
                              m_engine.dummyImageView());
 }
 
-void MrrMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
+void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
     cleanAttribute(m_normal);
 
@@ -204,7 +204,7 @@ void MrrMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t widt
 }
 
 // @todo This should be a reference to a texture, so that it can be shared between materials
-void MrrMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
+void RmMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
     cleanAttribute(m_baseColor);
 
@@ -215,8 +215,8 @@ void MrrMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t w
     bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
 }
 
-void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
-                                               uint8_t channels)
+void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
+                                              uint8_t channels)
 {
     cleanAttribute(m_metallicRoughness);
 
@@ -228,7 +228,7 @@ void MrrMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixel
                              m_metallicRoughnessImageView);
 }
 
-void MrrMaterial::Impl::addCommands(VkCommandBuffer /*commandBuffer*/)
+void RmMaterial::Impl::addCommands(VkCommandBuffer /*commandBuffer*/)
 {
     // @todo Bind whatever is needed!
 }

@@ -2,7 +2,7 @@
 
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/macros.hpp>
-#include <lava/magma/materials/mrr-material.hpp>
+#include <lava/magma/materials/rm-material.hpp>
 
 #include <stb/stb_image.h>
 
@@ -37,7 +37,7 @@ $pimpl_method(Mesh, void, verticesNormals, const std::vector<glm::vec3>&, normal
 $pimpl_method(Mesh, void, verticesColors, const std::vector<glm::vec3>&, colors);
 $pimpl_method(Mesh, void, verticesUvs, const std::vector<glm::vec2>&, uvs);
 $pimpl_method(Mesh, void, indices, const std::vector<uint16_t>&, indices);
-$pimpl_method(Mesh, void, material, const MrrMaterial&, material);
+$pimpl_method(Mesh, void, material, const RmMaterial&, material);
 
 void Mesh::load(const std::string& fileName)
 {
@@ -124,7 +124,7 @@ void Mesh::load(const std::string& fileName)
     // Material
     uint32_t materialIndex = primitive["material"];
     glb::PbrMetallicRoughnessMaterial material(materials[materialIndex]);
-    auto& mrrMaterial = m_engine.make<MrrMaterial>();
+    auto& rmMaterial = m_engine.make<RmMaterial>();
 
     // Material textures
     if (material.baseColorTextureIndex != -1u) {
@@ -140,7 +140,7 @@ void Mesh::load(const std::string& fileName)
         auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
         std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
         memmove(pixelsVector.data(), pixels, pixelsVector.size());
-        mrrMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
+        rmMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
         stbi_image_free(pixels);
     }
     if (material.normalTextureIndex != -1u) {
@@ -156,7 +156,7 @@ void Mesh::load(const std::string& fileName)
         auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
         std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
         memmove(pixelsVector.data(), pixels, pixelsVector.size());
-        mrrMaterial.normal(pixelsVector, texWidth, texHeight, 4);
+        rmMaterial.normal(pixelsVector, texWidth, texHeight, 4);
         stbi_image_free(pixels);
     }
     if (material.metallicRoughnessTextureIndex != -1u) {
@@ -172,7 +172,7 @@ void Mesh::load(const std::string& fileName)
         auto pixels = stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
         std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
         memmove(pixelsVector.data(), pixels, pixelsVector.size());
-        mrrMaterial.metallicRoughnessColor(pixelsVector, texWidth, texHeight, 4);
+        rmMaterial.metallicRoughnessColor(pixelsVector, texWidth, texHeight, 4);
         stbi_image_free(pixels);
     }
 
@@ -188,5 +188,5 @@ void Mesh::load(const std::string& fileName)
     m_impl->verticesTangents(tangents);
     m_impl->verticesUvs(uv1s);
     m_impl->indices(indices);
-    m_impl->material(mrrMaterial);
+    m_impl->material(rmMaterial);
 }

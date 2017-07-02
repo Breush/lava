@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/materials/mrr-material.hpp>
+#include <lava/magma/materials/rm-material.hpp>
 
 #include <lava/magma/render-engine.hpp>
 
@@ -8,9 +8,9 @@
 
 namespace lava::magma {
     /**
-     * Vulkan-based implementation of lava::MrrMaterial.
+     * Vulkan-based implementation of lava::RmMaterial.
      */
-    class MrrMaterial::Impl {
+    class RmMaterial::Impl {
     public:
         Impl(RenderEngine& engine);
         ~Impl();
