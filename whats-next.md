@@ -14,6 +14,7 @@
 
 - **refacto**
     - See if that crater::input::* namespace is a bit too much (remove input?)
+    - Change pollEvent() to return a reference_wrapper instead 
 - **feature**
     - Event: gave a way to access keyboard/mouse state (isKeyPressed)
     - Event: complex event handling (dragging, double click)
