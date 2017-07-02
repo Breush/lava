@@ -25,7 +25,7 @@ std::ostream& chamber::operator<<(std::ostream& stream, chamber::CallStack& call
 
 using namespace lava::chamber;
 
-void CallStack::refresh(const uint32_t numDiscard)
+void CallStack::refresh(const uint32_t discardCount)
 {
     m_entries.clear();
 
@@ -39,7 +39,7 @@ void CallStack::refresh(const uint32_t numDiscard)
     char** messages = backtrace_symbols(trace, stackDepth);
 
     // We discard this function for sure.
-    for (int i = numDiscard + 1; i < stackDepth; i++) {
+    for (int i = discardCount + 1; i < stackDepth; i++) {
         // Find first occurence of '(' or ' ' in message[i]
         int p = 0;
         while (messages[i][p] != '(' && messages[i][p] != ' ' && messages[i][p] != 0) ++p;

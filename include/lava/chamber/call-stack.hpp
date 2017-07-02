@@ -11,25 +11,30 @@
 
 namespace lava::chamber {
     /**
-     * To retrieve the current call-stack.
+     * A class able to extract the current callstack.
      */
     class CallStack {
     public:
         /**
          * Recompute the current callstack.
+         *
+         * Specify how many fonctions in the stack to ignore.
          */
-        void refresh(const uint32_t numDiscard = 0);
+        void refresh(const uint32_t discardCount = 0);
 
+        /// Write the callstack at the last refresh.
         std::string toString() const;
 
     protected:
+        /// Holds a stack information.
         struct Entry {
-            uint32_t line = 0;
+            uint32_t line = 0u;
             std::string file;
             std::string function;
         };
 
     private:
+        /// Holds all the stack information.
         std::vector<Entry> m_entries;
     };
 

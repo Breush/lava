@@ -1,6 +1,7 @@
 #pragma once
 
 namespace lava::chamber::macros {
+/// Concatenate two words.
 #define $cat(a, ...) $cat_(a, __VA_ARGS__)
 #define $cat_(a, ...) a##__VA_ARGS__
 
