@@ -90,6 +90,8 @@ void RenderEngine::Impl::draw()
 void RenderEngine::Impl::update()
 {
     // Get time elapsed
+    // @todo We shouldn't have to compute dt by ourself
+    /*
     static float time = 0.f;
     static auto previousTimePoint = std::chrono::high_resolution_clock::now();
     auto currentTimePoint = std::chrono::high_resolution_clock::now();
@@ -99,10 +101,11 @@ void RenderEngine::Impl::update()
     const float rotationSpeed = 1.f;
     // @todo Better update the light, and somewhere else
     // time += dt * rotationSpeed;
+    */
 
     // Animating the mesh
-    // @todo You know what to do - put that in the IMesh interface
-    const auto& modelTransform = glm::rotate(glm::mat4(), time * glm::radians(90.f), glm::vec3(0.f, 0.f, 1.f));
+    // @todo Have this in the draw() to rebind correct UBOs each time.
+    const auto& modelTransform = m_meshes[0]->worldTransform();
 
     // The camera
     const auto& cameraPosition = m_cameras[0]->position();

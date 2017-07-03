@@ -24,6 +24,12 @@ Mesh::Impl::~Impl()
     vkDeviceWaitIdle(m_device);
 }
 
+void Mesh::Impl::positionAdd(const glm::vec3& delta)
+{
+    // @todo Should use local one and dirtify the world one
+    m_worldTransform = glm::translate(m_worldTransform, delta);
+}
+
 void Mesh::Impl::verticesCount(const uint32_t count)
 {
     m_vertices.resize(count);

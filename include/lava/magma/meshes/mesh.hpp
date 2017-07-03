@@ -15,16 +15,17 @@ namespace lava::magma {
     /**
      * A mesh, holding geometry and transform.
      */
-    class Mesh : public IMesh {
+    class Mesh final : public IMesh {
     public:
         Mesh(RenderEngine& engine);
         Mesh(RenderEngine& engine, const std::string& fileName);
         ~Mesh();
 
-        void* render(void* data) override final;
+        // IMesh
+        const glm::mat4& worldTransform() const override final;
+        UserData render(UserData data) override final;
 
-        class Impl;
-        Impl& impl() { return *m_impl; }
+        void positionAdd(const glm::vec3& delta);
 
         void load(const std::string& fileName);
         void verticesCount(const uint32_t count);
@@ -34,6 +35,10 @@ namespace lava::magma {
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
         void material(const RmMaterial& material);
+
+    public:
+        class Impl;
+        Impl& impl() { return *m_impl; }
 
     private:
         Impl* m_impl = nullptr;

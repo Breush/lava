@@ -24,7 +24,6 @@
 ## Magma
 
 - **up**
-    - Mesh: transform
     - Mesh: compute tangents if not provided
     - Mesh: use factors for constant multiplier (and have white dummy texture)
     - Mesh: have own secondary buffers and rebind UBOs on render

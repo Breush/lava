@@ -18,10 +18,12 @@ namespace lava::magma {
         ~Impl();
 
         // IMesh
-        // void update();
-        void* render(void* data);
+        const glm::mat4& worldTransform() const { return m_worldTransform; }
+        IMesh::UserData render(IMesh::UserData data);
 
         // Main interface
+        void positionAdd(const glm::vec3& delta);
+
         void verticesCount(const uint32_t count);
         void verticesPositions(const std::vector<glm::vec3>& positions);
         void verticesNormals(const std::vector<glm::vec3>& normals);
@@ -46,6 +48,9 @@ namespace lava::magma {
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
         const RmMaterial* m_material = nullptr;
+
+        // Node
+        glm::mat4 m_worldTransform;
 
         // Buffers
         vulkan::Capsule<VkBuffer> m_vertexBuffer;
