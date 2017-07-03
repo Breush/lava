@@ -23,6 +23,12 @@
 
 ## Magma
 
+- **up**
+    - Mesh: transform
+    - Mesh: compute tangents if not provided
+    - Mesh: use factors for constant multiplier (and have white dummy texture)
+    - Mesh: have own secondary buffers and rebind UBOs on render
+    - Ashes: multiple spheres with different roughness/metallic
 - **refacto**
     - Use vulkan.hpp 
     - Have interfaces.hpp
@@ -32,7 +38,6 @@
     - Engine: update main command buffer every frame
     - Engine: remove mesh animation from the engine - have timeElapsed passed (thanks to caldera)?
     - GLB: pass factors and colors (with textures)
-    - Mesh: have own secondary buffers
     - Mesh: allow not to have to specify a material (defaults to RmMaterial?)
     - OrbitCamera: FOV and up-vector configurable
     - PBR: Use define to know whether there is a texture (compile shaders within the engine)
@@ -40,8 +45,6 @@
 - **feature**
     - Light: Allow multiple lights (how many? how to optimize stationary ones?)
     - Light: Shadows
-    - Mesh: Compute tangents if not provided
-    - Mesh: Transform
     - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
