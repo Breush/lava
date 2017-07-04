@@ -103,10 +103,6 @@ void RenderEngine::Impl::update()
     // time += dt * rotationSpeed;
     */
 
-    // Animating the mesh
-    // @todo Have this in the draw() to rebind correct UBOs each time.
-    const auto& modelTransform = m_meshes[0]->worldTransform();
-
     // The camera
     const auto& cameraPosition = m_cameras[0]->position();
     const auto& viewTransform = m_cameras[0]->viewTransform();
@@ -118,7 +114,6 @@ void RenderEngine::Impl::update()
 
     // Update UBOs
     UniformBufferObject transforms = {};
-    transforms.model = modelTransform;
     transforms.view = viewTransform;
     transforms.projection = projectionTransform;
     transforms.cameraPosition = glm::vec4(cameraPosition, 1.f);
@@ -201,17 +196,25 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor set layout." << std::endl;
 
+    // Model UBO
+    VkDescriptorSetLayoutBinding modelLayoutBinding = {};
+    modelLayoutBinding.binding = 0;
+    modelLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    modelLayoutBinding.descriptorCount = 1;
+    modelLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    modelLayoutBinding.pImmutableSamplers = nullptr;
+
     // Transforms UBO
     VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
-    transformsLayoutBinding.binding = 0;
+    transformsLayoutBinding.binding = 1;
     transformsLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     transformsLayoutBinding.descriptorCount = 1;
-    transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     transformsLayoutBinding.pImmutableSamplers = nullptr;
 
     // Attributes UBO
     VkDescriptorSetLayoutBinding attributesLayoutBinding = {};
-    attributesLayoutBinding.binding = 1;
+    attributesLayoutBinding.binding = 2;
     attributesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     attributesLayoutBinding.descriptorCount = 1;
     attributesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -219,7 +222,7 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
     // Sampler
     VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
-    normalMapLayoutBinding.binding = 2;
+    normalMapLayoutBinding.binding = 3;
     normalMapLayoutBinding.descriptorCount = 1;
     normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     normalMapLayoutBinding.pImmutableSamplers = nullptr;
@@ -227,7 +230,7 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
     // Sampler
     VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
-    baseColorLayoutBinding.binding = 3;
+    baseColorLayoutBinding.binding = 4;
     baseColorLayoutBinding.descriptorCount = 1;
     baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     baseColorLayoutBinding.pImmutableSamplers = nullptr;
@@ -235,15 +238,15 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
     // Sampler
     VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};
-    metallicRoughnessLayoutBinding.binding = 4;
+    metallicRoughnessLayoutBinding.binding = 5;
     metallicRoughnessLayoutBinding.descriptorCount = 1;
     metallicRoughnessLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
     metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    std::array<VkDescriptorSetLayoutBinding, 5> bindings = {transformsLayoutBinding, attributesLayoutBinding,
-                                                            baseColorLayoutBinding, normalMapLayoutBinding,
-                                                            metallicRoughnessLayoutBinding};
+    std::array<VkDescriptorSetLayoutBinding, 6> bindings = {modelLayoutBinding,      transformsLayoutBinding,
+                                                            attributesLayoutBinding, baseColorLayoutBinding,
+                                                            normalMapLayoutBinding,  metallicRoughnessLayoutBinding};
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -582,26 +585,30 @@ void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
-    std::array<VkDescriptorPoolSize, 5> poolSizes = {};
-    // Transforms UBO
+    std::array<VkDescriptorPoolSize, 6> poolSizes = {};
+    // Model UBO
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = 1;
 
-    // Attributes UBO
+    // Transforms UBO
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[1].descriptorCount = 1;
 
-    // Base color
-    poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    // Attributes UBO
+    poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[2].descriptorCount = 1;
 
-    // Normal map
+    // Base color
     poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[3].descriptorCount = 1;
 
-    // Metallic roughness
+    // Normal map
     poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[4].descriptorCount = 1;
+
+    // ORM map
+    poolSizes[5].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[5].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -632,25 +639,24 @@ void RenderEngine::Impl::createDescriptorSet()
         exit(1);
     }
 
-    std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
-
     // Transforms UBO
     VkDescriptorBufferInfo bufferInfo = {};
     bufferInfo.buffer = m_uniformBuffer;
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
 
-    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[0].dstSet = m_descriptorSet;
-    descriptorWrites[0].dstBinding = 0;
-    descriptorWrites[0].dstArrayElement = 0;
-    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrites[0].descriptorCount = 1;
-    descriptorWrites[0].pBufferInfo = &bufferInfo;
-    descriptorWrites[0].pImageInfo = nullptr;
-    descriptorWrites[0].pTexelBufferView = nullptr;
+    VkWriteDescriptorSet descriptorWrite = {};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_descriptorSet;
+    descriptorWrite.dstBinding = 1u;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+    descriptorWrite.pImageInfo = nullptr;
+    descriptorWrite.pTexelBufferView = nullptr;
 
-    vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_device, 1u, &descriptorWrite, 0, nullptr);
 }
 
 void RenderEngine::Impl::createCommandBuffers()

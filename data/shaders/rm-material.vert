@@ -1,21 +1,24 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform TransformsUbo {
-    mat4 model;
+layout(binding = 0) uniform ModelUbo {
+    mat4 transform;
+} model;
+
+layout(binding = 1) uniform TransformsUbo {
     mat4 view;
     mat4 projection;
     vec4 wEyePosition;
     vec4 wPointLightPosition;
 } transforms;
 
-layout(location = 0) in vec3 inMPosition;           
-layout(location = 1) in vec3 inMNormal;              
+layout(location = 0) in vec3 inMPosition;
+layout(location = 1) in vec3 inMNormal;
 layout(location = 2) in vec3 inColor; // @todo Who cares?
 layout(location = 3) in vec2 inUv;
-layout(location = 4) in vec4 inMTangent;             
+layout(location = 4) in vec4 inMTangent;
 
-layout(location = 0) out vec3 outTPosition;         
+layout(location = 0) out vec3 outTPosition;
 layout(location = 2) out vec2 outUv;
 
 // Lights
@@ -27,7 +30,7 @@ out gl_PerVertex {
 };
 
 void main() {
-    mat4 VM4 = transforms.view * transforms.model;
+    mat4 VM4 = transforms.view * model.transform;
     mat3 VM3 = mat3(VM4);
 
     vec4 vPosition = VM4 * vec4(inMPosition, 1);

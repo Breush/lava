@@ -12,19 +12,19 @@
     #define MAGMA_USE_ORM_METALLIC
 #endif
 
-layout(binding = 1) uniform AttributesUbo {
+layout(binding = 2) uniform AttributesUbo {
     // @todo Colors and factors
     bool dummy;
 } attributes;
 
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
-layout(binding = 2) uniform sampler2D tNormalSampler;
+layout(binding = 3) uniform sampler2D tNormalSampler;
 #endif
 #if defined(MAGMA_HAS_ALBEDO_SAMPLER)
-layout(binding = 3) uniform sampler2D albedoSampler;
+layout(binding = 4) uniform sampler2D albedoSampler;
 #endif
 #if defined(MAGMA_HAS_ORM_SAMPLER)
-layout(binding = 4) uniform sampler2D ormSampler;
+layout(binding = 5) uniform sampler2D ormSampler;
 #endif
 
 layout(location = 0) in vec3 inTPosition;

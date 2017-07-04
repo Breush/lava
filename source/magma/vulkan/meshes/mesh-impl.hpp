@@ -13,6 +13,10 @@ namespace lava::magma {
      * Vulkan-based implementation of a mesh.
      */
     class Mesh::Impl {
+        struct MeshUbo {
+            glm::mat4 transform;
+        };
+
     public:
         Impl(RenderEngine& engine);
         ~Impl();
@@ -35,7 +39,7 @@ namespace lava::magma {
         void material(const RmMaterial& material);
 
     private:
-        void createDescriptorSet();
+        void updateDescriptorSet();
         void createVertexBuffer();
         void createIndexBuffer();
 
@@ -51,6 +55,12 @@ namespace lava::magma {
 
         // Node
         glm::mat4 m_worldTransform;
+
+        // UBO
+        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
+        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
+        vulkan::Capsule<VkBuffer> m_uniformBuffer;
+        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
 
         // Buffers
         vulkan::Capsule<VkBuffer> m_vertexBuffer;

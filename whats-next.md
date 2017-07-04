@@ -24,8 +24,9 @@
 ## Magma
 
 - **up**
+    - Mesh: UNDERSTAND how to rebind UBOs on render -> Should bind another descriptor set?
     - Mesh: use factors for constant multiplier
-    - Mesh: have own secondary buffers and rebind UBOs on render
+    - Mesh: have own secondary buffers
     - Ashes: multiple spheres with different roughness/metallic
 - **refacto**
     - Use vulkan.hpp 
@@ -36,6 +37,7 @@
     - Engine: update main command buffer every frame
     - Engine: remove mesh animation from the engine - have timeElapsed passed (thanks to caldera)?
     - GLB: pass factors and colors (with textures)
+    - IMesh: `worldTransform` is no more required as the buffer is binded during `render`
     - Mesh: compute tangents if not provided
     - Mesh: allow not to have to specify a material (defaults to RmMaterial?)
     - OrbitCamera: FOV and up-vector configurable

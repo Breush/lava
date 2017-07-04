@@ -115,7 +115,7 @@ namespace {
         descriptorWrite.pImageInfo = &imageInfo;
         descriptorWrite.pTexelBufferView = nullptr;
 
-        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+        vkUpdateDescriptorSets(device, 1u, &descriptorWrite, 0, nullptr);
     }
 }
 
@@ -173,7 +173,7 @@ void RmMaterial::Impl::init()
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = m_engine.descriptorSet();
-    descriptorWrite.dstBinding = 1;
+    descriptorWrite.dstBinding = 2u;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrite.descriptorCount = 1;
@@ -184,11 +184,11 @@ void RmMaterial::Impl::init()
     vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
 
     // Bind empty textures to materials @fixme Should be removed afterwards
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(),
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 3u, m_engine.device(), m_engine.textureSampler(),
                              m_engine.dummyImageView());
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(),
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 4u, m_engine.device(), m_engine.textureSampler(),
                              m_engine.dummyImageView());
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 4, m_engine.device(), m_engine.textureSampler(),
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 5u, m_engine.device(), m_engine.textureSampler(),
                              m_engine.dummyImageView());
 }
 
@@ -200,7 +200,7 @@ void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width
     setupTexture(m_normal.texture, pixels, width, height, channels);
     setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool(), m_normalImage, m_normalImageMemory,
                       m_normalImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 2, m_engine.device(), m_engine.textureSampler(), m_normalImageView);
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 3u, m_engine.device(), m_engine.textureSampler(), m_normalImageView);
 }
 
 // @todo This should be a reference to a texture, so that it can be shared between materials
@@ -212,7 +212,7 @@ void RmMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t wi
     setupTexture(m_baseColor.texture, pixels, width, height, channels);
     setupTextureImage(m_baseColor.texture, m_engine.device(), m_engine.commandPool(), m_baseColorImage, m_baseColorImageMemory,
                       m_baseColorImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 3, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 4u, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
 }
 
 void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
@@ -224,7 +224,7 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
     setupTexture(m_metallicRoughness.texture, pixels, width, height, channels);
     setupTextureImage(m_metallicRoughness.texture, m_engine.device(), m_engine.commandPool(), m_metallicRoughnessImage,
                       m_metallicRoughnessImageMemory, m_metallicRoughnessImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 4, m_engine.device(), m_engine.textureSampler(),
+    bindTextureDescriptorSet(m_engine.descriptorSet(), 5u, m_engine.device(), m_engine.textureSampler(),
                              m_metallicRoughnessImageView);
 }
 
