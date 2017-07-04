@@ -473,9 +473,47 @@ void RenderEngine::Impl::createDummyTexture()
 {
     logger.info("magma.vulkan.render-engine") << "Creating dummy texture." << std::endl;
 
+    // @todo This should be refactored with what's in RmMaterial
+
+    magma::vulkan::Capsule<VkImage> stagingImage{m_device.capsule(), vkDestroyImage};
+    magma::vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_device.capsule(), vkFreeMemory};
+    magma::vulkan::Capsule<VkImageView> stagingImageView{m_device.capsule(), vkDestroyImageView};
+
+    magma::vulkan::createImage(
+        m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
+
+    VkImageSubresource subresource = {};
+    subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresource.mipLevel = 0;
+    subresource.arrayLayer = 0;
+
+    VkSubresourceLayout stagingImageLayout;
+    vkGetImageSubresourceLayout(m_device, stagingImage, &subresource, &stagingImageLayout);
+
+    // Staging buffer
+    magma::vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
+    magma::vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_device.capsule(), vkFreeMemory};
+
+    VkDeviceSize imageSize = 4u;
+    magma::vulkan::createBuffer(m_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                                stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
+    memset(data, 0xFF, static_cast<size_t>(imageSize));
+    vkUnmapMemory(m_device, stagingBufferMemory);
+
+    // The real image
     vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         m_dummyImage, m_dummyImageMemory);
+
+    vulkan::transitionImageLayout(m_device, m_commandPool, m_dummyImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_dummyImage, 1u, 1u);
 
     vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
 }

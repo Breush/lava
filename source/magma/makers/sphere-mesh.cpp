@@ -91,6 +91,8 @@ std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, f
         addPoleStrip(indices, tessellation, indexStart, northPoleIndex, false);
         positions.emplace_back(glm::vec3{0.f, 0.f, radius});
 
+        // @todo Optimize: alloc vertex data buffer directly and bind the whole thing
+
         // Normals
         std::vector<glm::vec3> normals;
         normals.reserve(positions.size());
