@@ -37,14 +37,21 @@ namespace lava::ashe {
             m_light->position({5.f, 5.f, 0.f});
         }
 
-        // @todo Allow custom eventHandler
+        /// Simply run the main loop.
         inline void run()
+        {
+            run([](const crater::Event& /*event*/) {});
+        }
+
+        /// Running with a custom event handler.
+        inline void run(std::function<void(const crater::Event&)> eventHandler)
         {
             // Keep running while the window is open.
             while (m_window->opened()) {
                 // Treat all events since last frame.
                 crater::Event event;
                 while (m_window->pollEvent(event)) {
+                    eventHandler(event);
                     handleEvent(event);
                 }
 

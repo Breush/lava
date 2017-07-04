@@ -25,9 +25,10 @@
 
 - **up**
     - Mesh: UNDERSTAND how to rebind UBOs on render -> Should bind another descriptor set?
-    - Mesh: use factors for constant multiplier
     - Mesh: have own secondary buffers
     - Ashes: multiple spheres with different roughness/metallic
+- **bug**
+    - roughness/metallicFactor seems to be inverted - can UBOs take float without alignment problems?
 - **refacto**
     - Use vulkan.hpp 
     - Have interfaces.hpp
@@ -40,9 +41,13 @@
     - IMesh: `worldTransform` is no more required as the buffer is binded during `render`
     - Mesh: compute tangents if not provided
     - Mesh: allow not to have to specify a material (defaults to RmMaterial?)
+    - Node: Hierarchy and update transforms
     - OrbitCamera: FOV and up-vector configurable
+    - PBR: albedo color factors and such
     - PBR: Use define to know whether there is a texture (compile shaders within the engine)
     - PBR: Remove Vertex Color attribute
+    - PBR: what is the meaning of the 0.5 * ambientColor?
+    - RmMaterial: Clarify albedo/normalMap usage
     - SphereMesh: tangents
     - SphereMesh: uv mapping
 - **feature**

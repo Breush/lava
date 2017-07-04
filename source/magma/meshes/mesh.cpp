@@ -41,7 +41,9 @@ $pimpl_method(Mesh, void, verticesTangents, const std::vector<glm::vec4>&, tange
 $pimpl_method(Mesh, void, verticesColors, const std::vector<glm::vec3>&, colors);
 $pimpl_method(Mesh, void, verticesUvs, const std::vector<glm::vec2>&, uvs);
 $pimpl_method(Mesh, void, indices, const std::vector<uint16_t>&, indices);
-$pimpl_method(Mesh, void, material, const RmMaterial&, material);
+
+$pimpl_method(Mesh, RmMaterial&, material);
+$pimpl_method(Mesh, void, material, RmMaterial&, material);
 
 void Mesh::load(const std::string& fileName)
 {
@@ -49,6 +51,10 @@ void Mesh::load(const std::string& fileName)
     logger.log().tab(1);
 
     std::ifstream file(fileName, std::ifstream::binary);
+
+    if (!file.is_open()) {
+        logger.error("magma.mesh.glb-loader") << "Unable to read file " << fileName << std::endl;
+    }
 
     glb::Header header;
     glb::Chunk jsonChunk;

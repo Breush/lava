@@ -25,7 +25,7 @@ namespace lava::magma {
         const glm::mat4& worldTransform() const { return m_worldTransform; }
         IMesh::UserData render(IMesh::UserData data);
 
-        // Main interface
+        // Mesh
         void positionAdd(const glm::vec3& delta);
 
         void verticesCount(const uint32_t count);
@@ -36,7 +36,9 @@ namespace lava::magma {
         void verticesColors(const glm::vec3& color);
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
-        void material(const RmMaterial& material);
+
+        RmMaterial& material() { return *m_material; }
+        void material(RmMaterial& material);
 
     private:
         void updateDescriptorSet();
@@ -51,7 +53,7 @@ namespace lava::magma {
         // Data
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
-        const RmMaterial* m_material = nullptr;
+        RmMaterial* m_material = nullptr;
 
         // Node
         glm::mat4 m_worldTransform;

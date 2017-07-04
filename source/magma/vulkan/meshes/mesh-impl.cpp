@@ -138,7 +138,7 @@ void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
     // while we update our secondary command buffer right here
 }
 
-void Mesh::Impl::material(const RmMaterial& material)
+void Mesh::Impl::material(RmMaterial& material)
 {
     m_material = &material;
 }

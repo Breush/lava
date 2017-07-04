@@ -35,7 +35,10 @@ namespace lava::magma {
         void verticesColors(const std::vector<glm::vec3>& colors);
         void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
-        void material(const RmMaterial& material);
+
+        // @todo Why isn't that a IMaterial?
+        RmMaterial& material();
+        void material(RmMaterial& material);
 
     public:
         class Impl;

@@ -152,7 +152,7 @@ RmMaterial::Impl::~Impl()
 void RmMaterial::Impl::init()
 {
     // Create uniform buffer
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+    VkDeviceSize bufferSize = sizeof(MaterialUbo);
 
     int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -168,7 +168,7 @@ void RmMaterial::Impl::init()
     VkDescriptorBufferInfo bufferInfo = {};
     bufferInfo.buffer = m_uniformBuffer;
     bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
+    bufferInfo.range = sizeof(MaterialUbo);
 
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -190,6 +190,18 @@ void RmMaterial::Impl::init()
                              m_engine.dummyImageView());
     bindTextureDescriptorSet(m_engine.descriptorSet(), 5u, m_engine.device(), m_engine.textureSampler(),
                              m_engine.dummyImageView());
+}
+
+void RmMaterial::Impl::roughness(float factor)
+{
+    m_roughnessFactor = factor;
+    updateMaterialUbo();
+}
+
+void RmMaterial::Impl::metallic(float factor)
+{
+    m_metallicFactor = factor;
+    updateMaterialUbo();
 }
 
 void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
@@ -228,7 +240,25 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
                              m_metallicRoughnessImageView);
 }
 
+//----- Internal interface -----
+
 void RmMaterial::Impl::addCommands(VkCommandBuffer /*commandBuffer*/)
 {
     // @todo Bind whatever is needed!
+}
+
+//----- Private -----
+
+void RmMaterial::Impl::updateMaterialUbo()
+{
+    MaterialUbo materialUbo = {};
+    materialUbo.roughnessFactor = m_roughnessFactor;
+    materialUbo.metallicFactor = m_metallicFactor;
+
+    void* data;
+    vkMapMemory(m_engine.device(), m_uniformStagingBufferMemory, 0, sizeof(MaterialUbo), 0, &data);
+    memcpy(data, &materialUbo, sizeof(MaterialUbo));
+    vkUnmapMemory(m_engine.device(), m_uniformStagingBufferMemory);
+
+    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(MaterialUbo));
 }

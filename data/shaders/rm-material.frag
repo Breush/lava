@@ -12,10 +12,11 @@
     #define MAGMA_USE_ORM_METALLIC
 #endif
 
-layout(binding = 2) uniform AttributesUbo {
+layout(binding = 2) uniform MaterialUbo {
     // @todo Colors and factors
-    bool dummy;
-} attributes;
+    float roughnessFactor;
+    float metallicFactor;
+} material;
 
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
 layout(binding = 3) uniform sampler2D tNormalSampler;
@@ -68,8 +69,8 @@ void main()
     baseColor *= vec4(albedo.rgb, 1.0);
 #endif
 
-    float roughness = 1;
-    float metallic = 1;
+    float roughness = material.roughnessFactor;
+    float metallic = material.metallicFactor;
 
 #if defined(MAGMA_USE_ORM_ROUGHNESS)
     roughness *= orm.g;

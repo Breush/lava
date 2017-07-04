@@ -11,11 +11,22 @@ namespace lava::magma {
      * Vulkan-based implementation of lava::RmMaterial.
      */
     class RmMaterial::Impl {
+        struct MaterialUbo {
+            float roughnessFactor;
+            float metallicFactor;
+        };
+
     public:
         Impl(RenderEngine& engine);
         ~Impl();
 
-        // Main interface
+        // RmMaterial
+        inline float roughness() const { return m_roughnessFactor; }
+        void roughness(float factor);
+
+        inline float metallic() const { return m_metallicFactor; }
+        void metallic(float factor);
+
         void normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
@@ -26,11 +37,9 @@ namespace lava::magma {
     protected:
         void init();
 
-    public:
-        struct UniformBufferObject {
-            bool dummy;
-        };
+        void updateMaterialUbo();
 
+    public:
         struct Attribute {
             enum class Type {
                 NONE,
@@ -74,6 +83,8 @@ namespace lava::magma {
         vulkan::Capsule<VkImageView> m_metallicRoughnessImageView;
 
         // Data
+        float m_roughnessFactor = 1.f;
+        float m_metallicFactor = 1.f;
         Attribute m_baseColor;
         Attribute m_normal;
         Attribute m_metallicRoughness;
