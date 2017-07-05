@@ -26,13 +26,13 @@
 ## Magma
 
 - **up**
-    - Camera bind they're own UBOs
+    - **bug**: broken rendering for the corset demo
+    - UBOs: Make lights push_constants (and provide light-count)
 - **refacto**
     - Use vulkan.hpp 
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
-    - UBOs: Make lights push_constants (and provide light-count)
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame

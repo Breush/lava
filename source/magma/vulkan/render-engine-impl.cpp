@@ -89,6 +89,10 @@ void RenderEngine::Impl::draw()
 
 void RenderEngine::Impl::update()
 {
+    // Recreate command buffer each frame
+    vkDeviceWaitIdle(m_device);
+    createCommandBuffers();
+
     // Get time elapsed
     // @todo We shouldn't have to compute dt by ourself
     /*
@@ -103,28 +107,10 @@ void RenderEngine::Impl::update()
     // time += dt * rotationSpeed;
     */
 
-    // The camera
-    const auto& cameraPosition = m_cameras[0]->position();
-    const auto& viewTransform = m_cameras[0]->viewTransform();
-    const auto& projectionTransform = m_cameras[0]->projectionTransform();
-
     // The lights
     // @todo How to have multiple?
-    const auto& pointLightPosition = m_pointLights[0]->position();
-
-    // Update UBOs
-    CameraUbo transforms = {};
-    transforms.view = viewTransform;
-    transforms.projection = projectionTransform;
-    transforms.cameraPosition = glm::vec4(cameraPosition, 1.f);
-    transforms.pointLightPosition = glm::vec4(pointLightPosition, 1.f);
-
-    void* data;
-    vkMapMemory(m_device, m_uniformStagingBufferMemory, 0, sizeof(transforms), 0, &data);
-    memcpy(data, &transforms, sizeof(transforms));
-    vkUnmapMemory(m_device, m_uniformStagingBufferMemory);
-
-    vulkan::copyBuffer(m_device, m_commandPool, m_uniformStagingBuffer, m_uniformBuffer, sizeof(transforms));
+    // @todo Probably should not do that in update...
+    // const auto& pointLightPosition = m_pointLights[0]->position();
 }
 
 void RenderEngine::Impl::createRenderPass()
@@ -196,22 +182,24 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor set layout." << std::endl;
 
-    // Transforms UBO
-    VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
-    transformsLayoutBinding.binding = 0;
-    transformsLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    transformsLayoutBinding.descriptorCount = 1;
-    transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    transformsLayoutBinding.pImmutableSamplers = nullptr;
+    {
+        // Camera UBO
+        VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
+        transformsLayoutBinding.binding = 0;
+        transformsLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        transformsLayoutBinding.descriptorCount = 1;
+        transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        transformsLayoutBinding.pImmutableSamplers = nullptr;
 
-    std::array<VkDescriptorSetLayoutBinding, 1> bindings = {transformsLayoutBinding};
-    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-    layoutInfo.pBindings = bindings.data();
+        std::array<VkDescriptorSetLayoutBinding, 1> bindings = {transformsLayoutBinding};
+        VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_descriptorSetLayout.replace()) != VK_SUCCESS) {
-        logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
+        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_cameraDescriptorSetLayout.replace()) != VK_SUCCESS) {
+            logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
+        }
     }
 
     // @todo Move ?
@@ -414,7 +402,7 @@ void RenderEngine::Impl::createGraphicsPipeline()
 
     // Pipeline layout
     // __Note__: Order IS important, as sets numbers in shader correspond to order of appearance in this list
-    std::array<VkDescriptorSetLayout, 3> setLayouts = {m_descriptorSetLayout, m_materialDescriptorSetLayout,
+    std::array<VkDescriptorSetLayout, 3> setLayouts = {m_cameraDescriptorSetLayout, m_materialDescriptorSetLayout,
                                                        m_meshDescriptorSetLayout};
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -611,42 +599,28 @@ void RenderEngine::Impl::createDepthResources()
                                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
-void RenderEngine::Impl::createUniformBuffer()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating uniform buffer." << std::endl;
-
-    VkDeviceSize bufferSize = sizeof(CameraUbo);
-
-    int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformStagingBuffer,
-                         m_uniformStagingBufferMemory);
-
-    bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer, m_uniformBufferMemory);
-}
-
 void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
     std::array<VkDescriptorPoolSize, 1> poolSizes = {};
 
-    // Transforms UBO
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = 1;
+    {
+        // Camera UBO
+        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes[0].descriptorCount = 1;
 
-    VkDescriptorPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-    poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = 1;
-    poolInfo.flags = 0;
+        VkDescriptorPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
+        poolInfo.maxSets = 1;
+        poolInfo.flags = 0;
 
-    if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_descriptorPool.replace()) != VK_SUCCESS) {
-        logger.error("magma.vulkan.descriptor-pool") << "Failed to create descriptor pool." << std::endl;
-        exit(1);
+        if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_cameraDescriptorPool.replace()) != VK_SUCCESS) {
+            logger.error("magma.vulkan.descriptor-pool") << "Failed to create descriptor pool." << std::endl;
+            exit(1);
+        }
     }
 
     // @todo Should be somewhere else?
@@ -703,46 +677,8 @@ void RenderEngine::Impl::createDescriptorPool()
     }
 }
 
-void RenderEngine::Impl::createDescriptorSet()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating descriptor set." << std::endl;
-
-    VkDescriptorSetLayout layouts[] = {m_descriptorSetLayout};
-    VkDescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = m_descriptorPool;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = layouts;
-
-    if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
-        logger.error("magma.vulkan.descriptor-sets") << "Failed to create descriptor sets." << std::endl;
-        exit(1);
-    }
-
-    // Transforms UBO
-    VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBuffer;
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(CameraUbo);
-
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 0u;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-    descriptorWrite.pImageInfo = nullptr;
-    descriptorWrite.pTexelBufferView = nullptr;
-
-    vkUpdateDescriptorSets(m_device, 1u, &descriptorWrite, 0, nullptr);
-}
-
 void RenderEngine::Impl::createCommandBuffers()
 {
-    logger.info("magma.vulkan.render-engine") << "Creating command buffers." << std::endl;
-
     // Free previous command buffers if any
     if (m_commandBuffers.size() > 0) {
         vkFreeCommandBuffers(m_device, m_commandPool, m_commandBuffers.size(), m_commandBuffers.data());
@@ -763,12 +699,14 @@ void RenderEngine::Impl::createCommandBuffers()
 
     // Start recording
     for (size_t i = 0; i < m_commandBuffers.size(); i++) {
+        auto& commandBuffer = m_commandBuffers[i];
+
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
         beginInfo.pInheritanceInfo = nullptr;
 
-        vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo);
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -784,21 +722,24 @@ void RenderEngine::Impl::createCommandBuffers()
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        // Add uniform buffers
-        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, VIEW_DESCRIPTOR_SET_INDEX,
-                                1, &m_descriptorSet, 0, nullptr);
+        // Shader pipeline
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+
+        // Camera
+        if (!m_cameras.empty()) {
+            m_cameras[0]->render(&commandBuffer);
+        }
 
         // Other meshes
         for (size_t j = 0; j < m_meshes.size(); ++j) {
-            m_meshes[j]->render(&m_commandBuffers[i]);
+            m_meshes[j]->render(&commandBuffer);
         }
 
-        vkCmdEndRenderPass(m_commandBuffers[i]);
+        vkCmdEndRenderPass(commandBuffer);
 
-        if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS) {
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             logger.error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
             exit(1);
         }
@@ -849,9 +790,7 @@ void RenderEngine::Impl::initVulkan()
     createTextureSampler();
     createDepthResources();
     createFramebuffers();
-    createUniformBuffer();
     createDescriptorPool();
-    createDescriptorSet();
     createCommandBuffers();
     createSemaphores();
 }

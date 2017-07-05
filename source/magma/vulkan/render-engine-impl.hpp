@@ -19,15 +19,6 @@ namespace lava::magma {
      * Vulkan-based implementation of the lava::RenderEngine.
      */
     class RenderEngine::Impl {
-        // @todo Let the camera do that by itself
-        constexpr static const auto VIEW_DESCRIPTOR_SET_INDEX = 0u;
-        struct CameraUbo {
-            glm::mat4 view;
-            glm::mat4 projection;
-            glm::vec4 cameraPosition;
-            glm::vec4 pointLightPosition;
-        };
-
     public:
         Impl();
         ~Impl();
@@ -61,10 +52,8 @@ namespace lava::magma {
         void createSemaphores();
 
         // Transform UBOs
-        void createUniformBuffer();
         void createDescriptorSetLayout();
         void createDescriptorPool();
-        void createDescriptorSet();
 
     public:
         crater::WindowHandle m_windowHandle;
@@ -79,13 +68,10 @@ namespace lava::magma {
         $attribute(vulkan::Device, device);
         $attribute(vulkan::Swapchain, swapchain, {m_device}); // @todo TBR
 
-        // UBO
-        $attribute(vulkan::Capsule<VkDescriptorSetLayout>, descriptorSetLayout,
+        // Descriptor layouts and pools
+        $attribute(vulkan::Capsule<VkDescriptorSetLayout>, cameraDescriptorSetLayout,
                    {m_device.capsule(), vkDestroyDescriptorSetLayout});
-        $attribute(vulkan::Capsule<VkDescriptorPool>, descriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
-        $attribute(VkDescriptorSet, descriptorSet);
-
-        // Descriptor pools
+        $attribute(vulkan::Capsule<VkDescriptorPool>, cameraDescriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
         $attribute(vulkan::Capsule<VkDescriptorSetLayout>, meshDescriptorSetLayout,
                    {m_device.capsule(), vkDestroyDescriptorSetLayout});
         $attribute(vulkan::Capsule<VkDescriptorPool>, meshDescriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});

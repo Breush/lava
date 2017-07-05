@@ -13,10 +13,12 @@ namespace lava::magma {
      */
     class ICamera {
     public:
+        using UserData = void*;
+
+    public:
         virtual ~ICamera() = default;
 
-        virtual const glm::vec3& position() const = 0;
-        virtual const glm::mat4& viewTransform() const = 0;
-        virtual const glm::mat4& projectionTransform() const = 0;
+        /// Render the camera (bind it).
+        virtual UserData render(UserData data) = 0;
     };
 }

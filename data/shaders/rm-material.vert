@@ -1,13 +1,17 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+//----- Lights
+
+// @todo This should be a push_constant thing
+vec4 wPointLightPosition = vec4(-2, -2, 5, 1);
+
 //----- Set 0 - View
 
 layout(set = 0, binding = 0) uniform CameraUbo {
     mat4 viewTransform;
     mat4 projectionTransform;
     vec4 wPosition;
-    vec4 wPointLightPosition; // @todo This should be a push_constant thing
 } camera;
 
 //----- Set 1 - Material
@@ -56,6 +60,6 @@ void main() {
 
     outTPosition = tbn * vPosition.xyz;
     outTEyePosition = tbn * (camera.viewTransform * camera.wPosition).xyz;
-    outTLightPosition = tbn * (camera.viewTransform * camera.wPointLightPosition).xyz;
+    outTLightPosition = tbn * (camera.viewTransform * wPointLightPosition).xyz;
     outUv = inUv;
 }

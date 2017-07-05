@@ -24,7 +24,6 @@ Mesh::Impl::Impl(RenderEngine& engine)
     , m_indexBufferMemory({m_device.capsule(), vkFreeMemory})
 {
     // Create descriptor set
-    // @todo Seems like this should be reallocated each time we change the layout (= our material)
     VkDescriptorSetLayout layouts[] = {m_engine.meshDescriptorSetLayout()};
     VkDescriptorSetAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
