@@ -204,41 +204,7 @@ void RenderEngine::Impl::createDescriptorSetLayout()
     transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     transformsLayoutBinding.pImmutableSamplers = nullptr;
 
-    // Attributes UBO
-    VkDescriptorSetLayoutBinding attributesLayoutBinding = {};
-    attributesLayoutBinding.binding = 2;
-    attributesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    attributesLayoutBinding.descriptorCount = 1;
-    attributesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    attributesLayoutBinding.pImmutableSamplers = nullptr;
-
-    // Sampler
-    VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
-    normalMapLayoutBinding.binding = 3;
-    normalMapLayoutBinding.descriptorCount = 1;
-    normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    normalMapLayoutBinding.pImmutableSamplers = nullptr;
-    normalMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-    // Sampler
-    VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
-    baseColorLayoutBinding.binding = 4;
-    baseColorLayoutBinding.descriptorCount = 1;
-    baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    baseColorLayoutBinding.pImmutableSamplers = nullptr;
-    baseColorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-    // Sampler
-    VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};
-    metallicRoughnessLayoutBinding.binding = 5;
-    metallicRoughnessLayoutBinding.descriptorCount = 1;
-    metallicRoughnessLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
-    metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-    std::array<VkDescriptorSetLayoutBinding, 5> bindings = {transformsLayoutBinding, attributesLayoutBinding,
-                                                            baseColorLayoutBinding, normalMapLayoutBinding,
-                                                            metallicRoughnessLayoutBinding};
+    std::array<VkDescriptorSetLayoutBinding, 1> bindings = {transformsLayoutBinding};
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -266,6 +232,52 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
         if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_meshDescriptorSetLayout.replace()) != VK_SUCCESS) {
             logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create mesh descriptor set layout." << std::endl;
+        }
+    }
+
+    // @todo Move, this is very individual shader-related
+    {
+        // Attributes UBO
+        VkDescriptorSetLayoutBinding attributesLayoutBinding = {};
+        attributesLayoutBinding.binding = 2;
+        attributesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        attributesLayoutBinding.descriptorCount = 1;
+        attributesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        attributesLayoutBinding.pImmutableSamplers = nullptr;
+
+        // Sampler
+        VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
+        normalMapLayoutBinding.binding = 3;
+        normalMapLayoutBinding.descriptorCount = 1;
+        normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        normalMapLayoutBinding.pImmutableSamplers = nullptr;
+        normalMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        // Sampler
+        VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
+        baseColorLayoutBinding.binding = 4;
+        baseColorLayoutBinding.descriptorCount = 1;
+        baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        baseColorLayoutBinding.pImmutableSamplers = nullptr;
+        baseColorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        // Sampler
+        VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};
+        metallicRoughnessLayoutBinding.binding = 5;
+        metallicRoughnessLayoutBinding.descriptorCount = 1;
+        metallicRoughnessLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
+        metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 4> bindings = {attributesLayoutBinding, baseColorLayoutBinding,
+                                                                normalMapLayoutBinding, metallicRoughnessLayoutBinding};
+        VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
+
+        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_materialDescriptorSetLayout.replace()) != VK_SUCCESS) {
+            logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create material descriptor set layout." << std::endl;
         }
     }
 }
@@ -401,7 +413,10 @@ void RenderEngine::Impl::createGraphicsPipeline()
     // @todo Not used yet VkDynamicState
 
     // Pipeline layout
-    std::array<VkDescriptorSetLayout, 2> setLayouts = {m_meshDescriptorSetLayout, m_descriptorSetLayout};
+    // @note Order IS important, as sets numbers in shader correspond to order of appearance in this list
+    // @todo Mesh be in set 2, as it the most frequently updated thing, we should organize things like that
+    std::array<VkDescriptorSetLayout, 3> setLayouts = {m_meshDescriptorSetLayout, m_descriptorSetLayout,
+                                                       m_materialDescriptorSetLayout};
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
@@ -598,15 +613,11 @@ void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
-    std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+    std::array<VkDescriptorPoolSize, 1> poolSizes = {};
 
-    // Transforms UBO and Materials UBO
+    // Transforms UBO
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = 2;
-
-    // Albedo, normal map and ORM map
-    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = 3;
+    poolSizes[0].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -637,10 +648,38 @@ void RenderEngine::Impl::createDescriptorPool()
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = maxSets;
-        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        poolInfo.flags = 0;
 
         if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_meshDescriptorPool.replace()) != VK_SUCCESS) {
             logger.error("magma.vulkan.descriptor-pool") << "Failed to create mesh descriptor pool." << std::endl;
+            exit(1);
+        }
+    }
+
+    // @todo Should be somewhere else - this closely related to current shader
+    {
+        std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+
+        const uint32_t maxSets = 128u;
+        // @todo How to choose? (= max number of materials)
+
+        // Materials UBO
+        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes[0].descriptorCount = 1 * maxSets;
+
+        // Albedo, normal map and ORM map
+        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].descriptorCount = 3 * maxSets;
+
+        VkDescriptorPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
+        poolInfo.maxSets = maxSets;
+        poolInfo.flags = 0;
+
+        if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_materialDescriptorPool.replace()) != VK_SUCCESS) {
+            logger.error("magma.vulkan.descriptor-pool") << "Failed to create material descriptor pool." << std::endl;
             exit(1);
         }
     }

@@ -96,8 +96,6 @@ namespace {
                                   magma::vulkan::Capsule<VkSampler>& sampler, magma::vulkan::Capsule<VkImageView>& imageView)
     {
         // Update descriptor set
-        // @todo Have descriptor set per material type (e.g. 1 for RmMaterial)
-        // and find a way to bind the image by instance of material (during addCommands?)
         VkWriteDescriptorSet descriptorWrite = {};
 
         VkDescriptorImageInfo imageInfo = {};
@@ -120,6 +118,7 @@ namespace {
 }
 
 using namespace lava::magma;
+using namespace lava::chamber;
 
 RmMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
@@ -138,6 +137,8 @@ RmMaterial::Impl::Impl(RenderEngine& engine)
     , m_metallicRoughnessImageView{m_engine.device().capsule(), vkDestroyImageView}
 {
     m_baseColor.type = Attribute::Type::NONE;
+    m_normal.type = Attribute::Type::NONE;
+    m_metallicRoughness.type = Attribute::Type::NONE;
 
     init();
 }
@@ -151,6 +152,19 @@ RmMaterial::Impl::~Impl()
 
 void RmMaterial::Impl::init()
 {
+    // Create descriptor set
+    // @todo The linked shader should provide the layout
+    VkDescriptorSetLayout layouts[] = {m_engine.materialDescriptorSetLayout()};
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = m_engine.materialDescriptorPool();
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = layouts;
+
+    if (vkAllocateDescriptorSets(m_engine.device(), &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
+        logger.error("magma.vulkan.rm-material") << "Failed to create descriptor set." << std::endl;
+    }
+
     // Create uniform buffer
     VkDeviceSize bufferSize = sizeof(MaterialUbo);
 
@@ -172,7 +186,7 @@ void RmMaterial::Impl::init()
 
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_engine.descriptorSet();
+    descriptorWrite.dstSet = m_descriptorSet;
     descriptorWrite.dstBinding = 2u;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -184,12 +198,9 @@ void RmMaterial::Impl::init()
     vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
 
     // Bind empty textures to materials @fixme Should be removed afterwards
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 3u, m_engine.device(), m_engine.textureSampler(),
-                             m_engine.dummyImageView());
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 4u, m_engine.device(), m_engine.textureSampler(),
-                             m_engine.dummyImageView());
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 5u, m_engine.device(), m_engine.textureSampler(),
-                             m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_descriptorSet, 4u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_descriptorSet, 5u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
 }
 
 void RmMaterial::Impl::roughness(float factor)
@@ -212,7 +223,7 @@ void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width
     setupTexture(m_normal.texture, pixels, width, height, channels);
     setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool(), m_normalImage, m_normalImageMemory,
                       m_normalImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 3u, m_engine.device(), m_engine.textureSampler(), m_normalImageView);
+    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(), m_normalImageView);
 }
 
 // @todo This should be a reference to a texture, so that it can be shared between materials
@@ -224,7 +235,7 @@ void RmMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t wi
     setupTexture(m_baseColor.texture, pixels, width, height, channels);
     setupTextureImage(m_baseColor.texture, m_engine.device(), m_engine.commandPool(), m_baseColorImage, m_baseColorImageMemory,
                       m_baseColorImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 4u, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
+    bindTextureDescriptorSet(m_descriptorSet, 4u, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
 }
 
 void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
@@ -236,15 +247,22 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
     setupTexture(m_metallicRoughness.texture, pixels, width, height, channels);
     setupTextureImage(m_metallicRoughness.texture, m_engine.device(), m_engine.commandPool(), m_metallicRoughnessImage,
                       m_metallicRoughnessImageMemory, m_metallicRoughnessImageView);
-    bindTextureDescriptorSet(m_engine.descriptorSet(), 5u, m_engine.device(), m_engine.textureSampler(),
-                             m_metallicRoughnessImageView);
+    bindTextureDescriptorSet(m_descriptorSet, 5u, m_engine.device(), m_engine.textureSampler(), m_metallicRoughnessImageView);
 }
 
-//----- Internal interface -----
+//----- IMaterial -----
 
-void RmMaterial::Impl::addCommands(VkCommandBuffer /*commandBuffer*/)
+IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
 {
-    // @todo Bind whatever is needed!
+    auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
+
+    // @note This presuppose that the correct shader is binded
+
+    // Bind with the material descriptor set
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), DESCRIPTOR_SET_INDEX, 1,
+                            &m_descriptorSet, 0, nullptr);
+
+    return nullptr;
 }
 
 //----- Private -----

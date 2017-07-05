@@ -88,6 +88,9 @@ namespace lava::magma {
         $attribute(vulkan::Capsule<VkDescriptorSetLayout>, meshDescriptorSetLayout,
                    {m_device.capsule(), vkDestroyDescriptorSetLayout});
         $attribute(vulkan::Capsule<VkDescriptorPool>, meshDescriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
+        $attribute(vulkan::Capsule<VkDescriptorSetLayout>, materialDescriptorSetLayout,
+                   {m_device.capsule(), vkDestroyDescriptorSetLayout});
+        $attribute(vulkan::Capsule<VkDescriptorPool>, materialDescriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
 
         // Graphics pipeline
         $attribute(vulkan::Capsule<VkPipelineLayout>, pipelineLayout, {m_device.capsule(), vkDestroyPipelineLayout});

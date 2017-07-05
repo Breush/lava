@@ -14,6 +14,9 @@ namespace lava::magma {
         RmMaterial(RenderEngine& engine);
         ~RmMaterial();
 
+        // IMaterial
+        UserData render(UserData data) override final;
+
         /// Roughness factor that will be multiplied to the roughness map value.
         float roughness() const;
         void roughness(float factor);

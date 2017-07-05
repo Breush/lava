@@ -11,6 +11,8 @@ namespace lava::magma {
      * Vulkan-based implementation of lava::RmMaterial.
      */
     class RmMaterial::Impl {
+        constexpr static const auto DESCRIPTOR_SET_INDEX = 2u;
+
         struct MaterialUbo {
             float roughnessFactor;
             float metallicFactor;
@@ -19,6 +21,9 @@ namespace lava::magma {
     public:
         Impl(RenderEngine& engine);
         ~Impl();
+
+        // IMaterial
+        IMaterial::UserData render(IMaterial::UserData data);
 
         // RmMaterial
         inline float roughness() const { return m_roughnessFactor; }
@@ -30,9 +35,6 @@ namespace lava::magma {
         void normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
-
-        // Internal interface
-        void addCommands(VkCommandBuffer commandBuffer);
 
     protected:
         void init();
@@ -63,7 +65,8 @@ namespace lava::magma {
         // References
         RenderEngine::Impl& m_engine;
 
-        // UBO for attributes
+        // Descriptor
+        VkDescriptorSet m_descriptorSet;
         vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
         vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
         vulkan::Capsule<VkBuffer> m_uniformBuffer;

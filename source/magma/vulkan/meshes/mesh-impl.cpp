@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
+#include <lava/magma/materials/rm-material.hpp>
 
 #include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
@@ -33,7 +34,6 @@ Mesh::Impl::Impl(RenderEngine& engine)
 
     if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
         logger.error("magma.vulkan.mesh") << "Failed to create descriptor set." << std::endl;
-        exit(1);
     }
 
     // Create uniform buffer
@@ -227,13 +227,17 @@ void Mesh::Impl::createIndexBuffer()
 
 // ----- IMesh -----
 
-void* Mesh::Impl::render(void* data)
+IMesh::UserData Mesh::Impl::render(IMesh::UserData data)
 {
     auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
 
-    // Bind with the model UBOs
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), 0, 1, &m_descriptorSet, 0,
-                            nullptr);
+    // Bind the material
+    // @todo Have this in a more clever render loop, and not called by this mesh
+    if (m_material != nullptr) m_material->render(data);
+
+    // Bind with the mesh descriptor set
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), DESCRIPTOR_SET_INDEX, 1,
+                            &m_descriptorSet, 0, nullptr);
 
     // Add the vertex buffer
     VkBuffer vertexBuffers[] = {m_vertexBuffer};

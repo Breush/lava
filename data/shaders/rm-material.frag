@@ -12,20 +12,20 @@
     #define MAGMA_USE_ORM_METALLIC
 #endif
 
-layout(set = 1, binding = 2) uniform MaterialUbo {
+layout(set = 2, binding = 2) uniform MaterialUbo {
     // @todo Colors factor (albedo)
     float roughnessFactor;
     float metallicFactor;
 } material;
 
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
-layout(set = 1, binding = 3) uniform sampler2D tNormalSampler;
+layout(set = 2, binding = 3) uniform sampler2D tNormalSampler;
 #endif
 #if defined(MAGMA_HAS_ALBEDO_SAMPLER)
-layout(set = 1, binding = 4) uniform sampler2D albedoSampler;
+layout(set = 2, binding = 4) uniform sampler2D albedoSampler;
 #endif
 #if defined(MAGMA_HAS_ORM_SAMPLER)
-layout(set = 1, binding = 5) uniform sampler2D ormSampler;
+layout(set = 2, binding = 5) uniform sampler2D ormSampler;
 #endif
 
 layout(location = 0) in vec3 inTPosition;

@@ -10,6 +10,12 @@ namespace lava::magma {
      */
     class IMaterial {
     public:
+        using UserData = void*;
+
+    public:
         virtual ~IMaterial() = default;
+
+        /// Render the material (bind it).
+        virtual UserData render(UserData data) = 0;
     };
 }
