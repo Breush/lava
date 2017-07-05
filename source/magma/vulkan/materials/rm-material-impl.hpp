@@ -39,7 +39,7 @@ namespace lava::magma {
     protected:
         void init();
 
-        void updateMaterialUbo();
+        void updateBindings();
 
     public:
         struct Attribute {
@@ -77,19 +77,19 @@ namespace lava::magma {
         vulkan::Capsule<VkDeviceMemory> m_normalImageMemory;
         vulkan::Capsule<VkImageView> m_normalImageView;
 
-        vulkan::Capsule<VkImage> m_baseColorImage;
-        vulkan::Capsule<VkDeviceMemory> m_baseColorImageMemory;
-        vulkan::Capsule<VkImageView> m_baseColorImageView;
+        vulkan::Capsule<VkImage> m_albedoImage;
+        vulkan::Capsule<VkDeviceMemory> m_albedoImageMemory;
+        vulkan::Capsule<VkImageView> m_albedoImageView;
 
-        vulkan::Capsule<VkImage> m_metallicRoughnessImage;
-        vulkan::Capsule<VkDeviceMemory> m_metallicRoughnessImageMemory;
-        vulkan::Capsule<VkImageView> m_metallicRoughnessImageView;
+        vulkan::Capsule<VkImage> m_ormImage;
+        vulkan::Capsule<VkDeviceMemory> m_ormImageMemory;
+        vulkan::Capsule<VkImageView> m_ormImageView;
 
         // Data
         float m_roughnessFactor = 1.f;
         float m_metallicFactor = 1.f;
-        Attribute m_baseColor;
         Attribute m_normal;
-        Attribute m_metallicRoughness;
+        Attribute m_albedo;
+        Attribute m_orm;
     };
 }

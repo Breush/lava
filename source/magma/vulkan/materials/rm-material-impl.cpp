@@ -129,25 +129,26 @@ RmMaterial::Impl::Impl(RenderEngine& engine)
     , m_normalImage{m_engine.device().capsule(), vkDestroyImage}
     , m_normalImageMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_normalImageView{m_engine.device().capsule(), vkDestroyImageView}
-    , m_baseColorImage{m_engine.device().capsule(), vkDestroyImage}
-    , m_baseColorImageMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_baseColorImageView{m_engine.device().capsule(), vkDestroyImageView}
-    , m_metallicRoughnessImage{m_engine.device().capsule(), vkDestroyImage}
-    , m_metallicRoughnessImageMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_metallicRoughnessImageView{m_engine.device().capsule(), vkDestroyImageView}
+    , m_albedoImage{m_engine.device().capsule(), vkDestroyImage}
+    , m_albedoImageMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_albedoImageView{m_engine.device().capsule(), vkDestroyImageView}
+    , m_ormImage{m_engine.device().capsule(), vkDestroyImage}
+    , m_ormImageMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_ormImageView{m_engine.device().capsule(), vkDestroyImageView}
 {
-    m_baseColor.type = Attribute::Type::NONE;
+    m_albedo.type = Attribute::Type::NONE;
     m_normal.type = Attribute::Type::NONE;
-    m_metallicRoughness.type = Attribute::Type::NONE;
+    m_orm.type = Attribute::Type::NONE;
 
     init();
+    updateBindings();
 }
 
 RmMaterial::Impl::~Impl()
 {
-    cleanAttribute(m_baseColor);
+    cleanAttribute(m_albedo);
     cleanAttribute(m_normal);
-    cleanAttribute(m_metallicRoughness);
+    cleanAttribute(m_orm);
 }
 
 void RmMaterial::Impl::init()
@@ -196,23 +197,18 @@ void RmMaterial::Impl::init()
     descriptorWrite.pTexelBufferView = nullptr;
 
     vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
-
-    // Bind empty textures to materials @fixme Should be removed afterwards
-    bindTextureDescriptorSet(m_descriptorSet, 1u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyNormalImageView());
-    bindTextureDescriptorSet(m_descriptorSet, 2u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
-    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
 }
 
 void RmMaterial::Impl::roughness(float factor)
 {
     m_roughnessFactor = factor;
-    updateMaterialUbo();
+    updateBindings();
 }
 
 void RmMaterial::Impl::metallic(float factor)
 {
     m_metallicFactor = factor;
-    updateMaterialUbo();
+    updateBindings();
 }
 
 void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
@@ -223,40 +219,39 @@ void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width
     setupTexture(m_normal.texture, pixels, width, height, channels);
     setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool(), m_normalImage, m_normalImageMemory,
                       m_normalImageView);
-    bindTextureDescriptorSet(m_descriptorSet, 1u, m_engine.device(), m_engine.textureSampler(), m_normalImageView);
+    updateBindings();
 }
 
 // @todo This should be a reference to a texture, so that it can be shared between materials
 void RmMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
-    cleanAttribute(m_baseColor);
+    cleanAttribute(m_albedo);
 
-    m_baseColor.type = Attribute::Type::TEXTURE;
-    setupTexture(m_baseColor.texture, pixels, width, height, channels);
-    setupTextureImage(m_baseColor.texture, m_engine.device(), m_engine.commandPool(), m_baseColorImage, m_baseColorImageMemory,
-                      m_baseColorImageView);
-    bindTextureDescriptorSet(m_descriptorSet, 2u, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
+    m_albedo.type = Attribute::Type::TEXTURE;
+    setupTexture(m_albedo.texture, pixels, width, height, channels);
+    setupTextureImage(m_albedo.texture, m_engine.device(), m_engine.commandPool(), m_albedoImage, m_albedoImageMemory,
+                      m_albedoImageView);
+    updateBindings();
 }
 
 void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
                                               uint8_t channels)
 {
-    cleanAttribute(m_metallicRoughness);
+    cleanAttribute(m_orm);
 
-    m_metallicRoughness.type = Attribute::Type::TEXTURE;
-    setupTexture(m_metallicRoughness.texture, pixels, width, height, channels);
-    setupTextureImage(m_metallicRoughness.texture, m_engine.device(), m_engine.commandPool(), m_metallicRoughnessImage,
-                      m_metallicRoughnessImageMemory, m_metallicRoughnessImageView);
-    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(), m_metallicRoughnessImageView);
+    m_orm.type = Attribute::Type::TEXTURE;
+    setupTexture(m_orm.texture, pixels, width, height, channels);
+    setupTextureImage(m_orm.texture, m_engine.device(), m_engine.commandPool(), m_ormImage, m_ormImageMemory, m_ormImageView);
+    updateBindings();
 }
 
-//----- IMaterial -----
+//----- IMaterial
 
 IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
 {
     auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
 
-    // @note This presuppose that the correct shader is binded
+    // __NOTE__: This presuppose that the correct shader is binded
 
     // Bind with the material descriptor set
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), DESCRIPTOR_SET_INDEX, 1,
@@ -265,10 +260,11 @@ IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
     return nullptr;
 }
 
-//----- Private -----
+//----- Private
 
-void RmMaterial::Impl::updateMaterialUbo()
+void RmMaterial::Impl::updateBindings()
 {
+    // MaterialUbo
     MaterialUbo materialUbo = {};
     materialUbo.roughnessFactor = m_roughnessFactor;
     materialUbo.metallicFactor = m_metallicFactor;
@@ -279,4 +275,12 @@ void RmMaterial::Impl::updateMaterialUbo()
     vkUnmapMemory(m_engine.device(), m_uniformStagingBufferMemory);
 
     vulkan::copyBuffer(m_engine.device(), m_engine.commandPool(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(MaterialUbo));
+
+    // Samplers
+    bindTextureDescriptorSet(m_descriptorSet, 1u, m_engine.device(), m_engine.textureSampler(),
+                             (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageView : m_engine.dummyNormalImageView());
+    bindTextureDescriptorSet(m_descriptorSet, 2u, m_engine.device(), m_engine.textureSampler(),
+                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageView : m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(),
+                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageView : m_engine.dummyImageView());
 }

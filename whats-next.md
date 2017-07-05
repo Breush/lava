@@ -26,7 +26,7 @@
 ## Magma
 
 - **up**
-    - **bug**: broken rendering for the corset demo
+    - **bug**: broken rendering for the corset demo (because of the light placement?)
     - UBOs: Make lights push_constants (and provide light-count)
 - **refacto**
     - Use vulkan.hpp 

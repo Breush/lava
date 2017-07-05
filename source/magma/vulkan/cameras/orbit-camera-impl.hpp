@@ -17,7 +17,7 @@ namespace lava::magma {
         struct CameraUbo {
             glm::mat4 view;
             glm::mat4 projection;
-            glm::vec4 cameraPosition;
+            glm::vec4 wPosition;
         };
 
     public:

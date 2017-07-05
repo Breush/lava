@@ -124,7 +124,7 @@ void OrbitCamera::Impl::updateBindings()
     CameraUbo ubo = {};
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;
-    ubo.cameraPosition = glm::vec4(m_position, 1.f);
+    ubo.wPosition = glm::vec4(m_position, 1.f);
 
     void* data;
     vkMapMemory(m_engine.device(), m_uniformStagingBufferMemory, 0, sizeof(CameraUbo), 0, &data);
