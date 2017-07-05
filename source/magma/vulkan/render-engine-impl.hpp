@@ -102,10 +102,16 @@ namespace lava::magma {
         $attribute(vulkan::Capsule<VkCommandPool>, commandPool, {m_device.capsule(), vkDestroyCommandPool});
         $attribute(std::vector<VkCommandBuffer>, commandBuffers);
 
-        // Dummy texture
+        /// Dummy texture for colors. 1x1 pixel of rgba(255, 255, 255, 255)
         vulkan::Capsule<VkImage> m_dummyImage{m_device.capsule(), vkDestroyImage};
         vulkan::Capsule<VkDeviceMemory> m_dummyImageMemory{m_device.capsule(), vkFreeMemory};
         $attribute(vulkan::Capsule<VkImageView>, dummyImageView, {m_device.capsule(), vkDestroyImageView});
+
+        /// Dummy texture for normal mapping. 1x1 pixel of rgba(128, 128, 255, 255)
+        vulkan::Capsule<VkImage> m_dummyNormalImage{m_device.capsule(), vkDestroyImage};
+        vulkan::Capsule<VkDeviceMemory> m_dummyNormalImageMemory{m_device.capsule(), vkFreeMemory};
+        $attribute(vulkan::Capsule<VkImageView>, dummyNormalImageView, {m_device.capsule(), vkDestroyImageView});
+
         $attribute(vulkan::Capsule<VkSampler>, textureSampler, {m_device.capsule(), vkDestroySampler});
 
         // Depth

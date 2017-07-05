@@ -24,9 +24,6 @@
 ## Magma
 
 - **up**
-    - Engine: dummy texture for normal map - purplish thingy
-    - Mesh: have own secondary buffers
-    - Ashes: multiple spheres with different roughness/metallic
     - UBOs: renames each layout more cleverly (transform -> view) and fix their set bindings
 - **refacto**
     - Use vulkan.hpp 
@@ -42,6 +39,7 @@
     - GLB: pass factors and colors (with textures)
     - IMesh: `worldTransform` is no more required as the buffer is binded during `render`
     - Mesh: compute tangents if not provided
+    - Mesh: have own secondary buffers
     - Mesh: allow not to have to specify a material (defaults to RmMaterial?)
     - Node: Hierarchy and update transforms
     - OrbitCamera: FOV and up-vector configurable
@@ -50,9 +48,10 @@
     - PBR: Remove Vertex Color attribute
     - PBR: what is the meaning of the 0.5 * ambientColor?
     - RmMaterial: Clarify albedo/normalMap usage
-    - SphereMesh: tangents
+    - SphereMesh: fix poles tangents
     - SphereMesh: uv mapping
 - **feature**
+    - DirectionalLight
     - Light: Allow multiple lights (how many? how to optimize stationary ones?)
     - Light: Shadows
     - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)

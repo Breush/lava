@@ -100,9 +100,17 @@ std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, f
             normals.emplace_back(position / radius);
         }
 
+        // Tangents
+        std::vector<glm::vec4> tangents;
+        tangents.reserve(positions.size());
+        for (const auto& position : positions) {
+            tangents.emplace_back(glm::normalize(glm::vec3(-position.y, position.x, 0.f)), 1.f);
+        }
+
         mesh.verticesCount(positions.size());
         mesh.verticesPositions(positions);
         mesh.verticesNormals(normals);
+        mesh.verticesTangents(tangents);
         mesh.indices(indices);
     };
 }

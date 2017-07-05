@@ -198,7 +198,7 @@ void RmMaterial::Impl::init()
     vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
 
     // Bind empty textures to materials @fixme Should be removed afterwards
-    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
+    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyNormalImageView());
     bindTextureDescriptorSet(m_descriptorSet, 4u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
     bindTextureDescriptorSet(m_descriptorSet, 5u, m_engine.device(), m_engine.textureSampler(), m_engine.dummyImageView());
 }
@@ -235,7 +235,6 @@ void RmMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t wi
     setupTexture(m_baseColor.texture, pixels, width, height, channels);
     setupTextureImage(m_baseColor.texture, m_engine.device(), m_engine.commandPool(), m_baseColorImage, m_baseColorImageMemory,
                       m_baseColorImageView);
-    bindTextureDescriptorSet(m_descriptorSet, 4u, m_engine.device(), m_engine.textureSampler(), m_baseColorImageView);
 }
 
 void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,

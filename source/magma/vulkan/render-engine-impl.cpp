@@ -532,11 +532,12 @@ void RenderEngine::Impl::createDummyTexture()
                                 stagingBufferMemory);
 
     void* data;
+
+    // The real image - plain white
     vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memset(data, 0xFF, static_cast<size_t>(imageSize));
+    memset(data, 0xFF, 4u);
     vkUnmapMemory(m_device, stagingBufferMemory);
 
-    // The real image
     vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         m_dummyImage, m_dummyImageMemory);
@@ -547,6 +548,24 @@ void RenderEngine::Impl::createDummyTexture()
     vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_dummyImage, 1u, 1u);
 
     vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
+
+    // The real normal image - plain flat blue
+    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
+    memset(data, 0x80, 2u);
+    memset(reinterpret_cast<uint8_t*>(data) + 2, 0xFF, 2u);
+    vkUnmapMemory(m_device, stagingBufferMemory);
+
+    vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        m_dummyNormalImage, m_dummyNormalImageMemory);
+
+    vulkan::transitionImageLayout(m_device, m_commandPool, m_dummyNormalImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_dummyNormalImage, 1u, 1u);
+
+    vulkan::createImageView(m_device, m_dummyNormalImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
+                            m_dummyNormalImageView);
 }
 
 void RenderEngine::Impl::createTextureSampler()
