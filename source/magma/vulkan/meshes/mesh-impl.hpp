@@ -41,7 +41,7 @@ namespace lava::magma {
         void material(RmMaterial& material);
 
     private:
-        void updateDescriptorSet();
+        void updateBindings();
         void createVertexBuffer();
         void createIndexBuffer();
 
@@ -58,7 +58,8 @@ namespace lava::magma {
         // Node
         glm::mat4 m_worldTransform;
 
-        // UBO
+        // Descriptor
+        VkDescriptorSet m_descriptorSet;
         vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
         vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
         vulkan::Capsule<VkBuffer> m_uniformBuffer;

@@ -24,7 +24,8 @@
 ## Magma
 
 - **up**
-    - Mesh: UNDERSTAND how to rebind UBOs on render -> Should bind another descriptor set?
+    - RmMaterial: have own descriptor set
+    - Engine: dummy texture for normal map - purplish thingy
     - Mesh: have own secondary buffers
     - Ashes: multiple spheres with different roughness/metallic
 - **bug**
@@ -35,7 +36,9 @@
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
 - **improvement** 
+    - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame
+    - Engine: allow to free descriptor set (and do it in mesh, etc) - see descriptor pool flags
     - Engine: remove mesh animation from the engine - have timeElapsed passed (thanks to caldera)?
     - GLB: pass factors and colors (with textures)
     - IMesh: `worldTransform` is no more required as the buffer is binded during `render`

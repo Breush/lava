@@ -40,6 +40,8 @@ void OrbitCamera::Impl::updateViewTransform()
 void OrbitCamera::Impl::updateProjectionTransform()
 {
     // @todo FOV configurable?
-    m_projectionTransform = glm::perspective(glm::radians(45.f), m_viewportRatio, 0.1f, 10.f);
+    const auto nearClipping = 0.1f;
+    const auto farClipping = 100.f;
+    m_projectionTransform = glm::perspective(glm::radians(45.f), m_viewportRatio, nearClipping, farClipping);
     m_projectionTransform[1][1] *= -1;
 }

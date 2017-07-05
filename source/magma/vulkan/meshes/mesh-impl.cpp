@@ -7,6 +7,7 @@
 #include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
 
+using namespace lava::chamber;
 using namespace lava::magma;
 
 Mesh::Impl::Impl(RenderEngine& engine)
@@ -21,6 +22,20 @@ Mesh::Impl::Impl(RenderEngine& engine)
     , m_indexBuffer({m_device.capsule(), vkDestroyBuffer})
     , m_indexBufferMemory({m_device.capsule(), vkFreeMemory})
 {
+    // Create descriptor set
+    // @todo Seems like this should be reallocated each time we change the layout (= our material)
+    VkDescriptorSetLayout layouts[] = {m_engine.meshDescriptorSetLayout()};
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = m_engine.meshDescriptorPool();
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = layouts;
+
+    if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
+        logger.error("magma.vulkan.mesh") << "Failed to create descriptor set." << std::endl;
+        exit(1);
+    }
+
     // Create uniform buffer
     VkDeviceSize bufferSize = sizeof(MeshUbo);
 
@@ -41,7 +56,7 @@ Mesh::Impl::Impl(RenderEngine& engine)
 
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_engine.descriptorSet();
+    descriptorWrite.dstSet = m_descriptorSet;
     descriptorWrite.dstBinding = 0u;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -51,6 +66,8 @@ Mesh::Impl::Impl(RenderEngine& engine)
     descriptorWrite.pTexelBufferView = nullptr;
 
     vkUpdateDescriptorSets(m_device, 1u, &descriptorWrite, 0, nullptr);
+
+    updateBindings();
 }
 
 Mesh::Impl::~Impl()
@@ -62,6 +79,7 @@ void Mesh::Impl::positionAdd(const glm::vec3& delta)
 {
     // @todo Should use local one and dirtify the world one
     m_worldTransform = glm::translate(m_worldTransform, delta);
+    updateBindings();
 }
 
 void Mesh::Impl::verticesCount(const uint32_t count)
@@ -143,10 +161,8 @@ void Mesh::Impl::material(RmMaterial& material)
     m_material = &material;
 }
 
-void Mesh::Impl::updateDescriptorSet()
+void Mesh::Impl::updateBindings()
 {
-    // @todo Do that only if dirty
-
     // Update UBOs
     MeshUbo meshUbo = {};
     meshUbo.transform = m_worldTransform;
@@ -215,8 +231,9 @@ void* Mesh::Impl::render(void* data)
 {
     auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
 
-    // Update with the model UBOs
-    updateDescriptorSet();
+    // Bind with the model UBOs
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), 0, 1, &m_descriptorSet, 0,
+                            nullptr);
 
     // Add the vertex buffer
     VkBuffer vertexBuffers[] = {m_vertexBuffer};

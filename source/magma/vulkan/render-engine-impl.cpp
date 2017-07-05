@@ -196,14 +196,6 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor set layout." << std::endl;
 
-    // Model UBO
-    VkDescriptorSetLayoutBinding modelLayoutBinding = {};
-    modelLayoutBinding.binding = 0;
-    modelLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    modelLayoutBinding.descriptorCount = 1;
-    modelLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    modelLayoutBinding.pImmutableSamplers = nullptr;
-
     // Transforms UBO
     VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
     transformsLayoutBinding.binding = 1;
@@ -244,9 +236,9 @@ void RenderEngine::Impl::createDescriptorSetLayout()
     metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
     metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    std::array<VkDescriptorSetLayoutBinding, 6> bindings = {modelLayoutBinding,      transformsLayoutBinding,
-                                                            attributesLayoutBinding, baseColorLayoutBinding,
-                                                            normalMapLayoutBinding,  metallicRoughnessLayoutBinding};
+    std::array<VkDescriptorSetLayoutBinding, 5> bindings = {transformsLayoutBinding, attributesLayoutBinding,
+                                                            baseColorLayoutBinding, normalMapLayoutBinding,
+                                                            metallicRoughnessLayoutBinding};
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -254,6 +246,27 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
     if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_descriptorSetLayout.replace()) != VK_SUCCESS) {
         logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
+    }
+
+    // @todo Move ?
+    {
+        // Model UBO
+        VkDescriptorSetLayoutBinding modelLayoutBinding = {};
+        modelLayoutBinding.binding = 0;
+        modelLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        modelLayoutBinding.descriptorCount = 1;
+        modelLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        modelLayoutBinding.pImmutableSamplers = nullptr;
+
+        std::array<VkDescriptorSetLayoutBinding, 1> bindings = {modelLayoutBinding};
+        VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
+
+        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_meshDescriptorSetLayout.replace()) != VK_SUCCESS) {
+            logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create mesh descriptor set layout." << std::endl;
+        }
     }
 }
 
@@ -388,11 +401,11 @@ void RenderEngine::Impl::createGraphicsPipeline()
     // @todo Not used yet VkDynamicState
 
     // Pipeline layout
-    VkDescriptorSetLayout setLayouts[] = {m_descriptorSetLayout};
+    std::array<VkDescriptorSetLayout, 2> setLayouts = {m_meshDescriptorSetLayout, m_descriptorSetLayout};
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = setLayouts;
+    pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+    pipelineLayoutInfo.pSetLayouts = setLayouts.data();
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = 0;
 
@@ -585,30 +598,15 @@ void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
-    std::array<VkDescriptorPoolSize, 6> poolSizes = {};
-    // Model UBO
+    std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+
+    // Transforms UBO and Materials UBO
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = 1;
+    poolSizes[0].descriptorCount = 2;
 
-    // Transforms UBO
-    poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[1].descriptorCount = 1;
-
-    // Attributes UBO
-    poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[2].descriptorCount = 1;
-
-    // Base color
-    poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[3].descriptorCount = 1;
-
-    // Normal map
-    poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[4].descriptorCount = 1;
-
-    // ORM map
-    poolSizes[5].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[5].descriptorCount = 1;
+    // Albedo, normal map and ORM map
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[1].descriptorCount = 3;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -620,6 +618,31 @@ void RenderEngine::Impl::createDescriptorPool()
     if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_descriptorPool.replace()) != VK_SUCCESS) {
         logger.error("magma.vulkan.descriptor-pool") << "Failed to create descriptor pool." << std::endl;
         exit(1);
+    }
+
+    // @todo Should be somewhere else?
+    {
+        std::array<VkDescriptorPoolSize, 1> poolSizes = {};
+
+        const uint32_t maxSets = 128u;
+        // @todo How to choose? (= max number of meshes)
+        // @fixme Understand why we need to multiply all the descriptor counts.
+
+        // Models UBO
+        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes[0].descriptorCount = 1 * maxSets;
+
+        VkDescriptorPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
+        poolInfo.maxSets = maxSets;
+        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+        if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_meshDescriptorPool.replace()) != VK_SUCCESS) {
+            logger.error("magma.vulkan.descriptor-pool") << "Failed to create mesh descriptor pool." << std::endl;
+            exit(1);
+        }
     }
 }
 
@@ -708,7 +731,7 @@ void RenderEngine::Impl::createCommandBuffers()
         vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
         // Add uniform buffers
-        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0,
+        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1, &m_descriptorSet, 0,
                                 nullptr);
 
         // Other meshes

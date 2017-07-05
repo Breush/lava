@@ -1,11 +1,11 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform ModelUbo {
+layout(set = 0, binding = 0) uniform ModelUbo {
     mat4 transform;
 } model;
 
-layout(binding = 1) uniform TransformsUbo {
+layout(set = 1, binding = 1) uniform TransformsUbo {
     mat4 view;
     mat4 projection;
     vec4 wEyePosition;
