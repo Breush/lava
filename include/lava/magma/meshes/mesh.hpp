@@ -22,9 +22,9 @@ namespace lava::magma {
         ~Mesh();
 
         // IMesh
-        const glm::mat4& worldTransform() const override final;
         UserData render(UserData data) override final;
 
+        const glm::mat4& worldTransform() const;
         void positionAdd(const glm::vec3& delta);
 
         void load(const std::string& fileName);

@@ -12,30 +12,38 @@
     #define MAGMA_USE_ORM_METALLIC
 #endif
 
-layout(set = 2, binding = 2) uniform MaterialUbo {
+//----- Set 1 - Material
+
+layout(set = 1, binding = 0) uniform MaterialUbo {
     // @todo Colors factor (albedo)
     float roughnessFactor;
     float metallicFactor;
 } material;
 
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
-layout(set = 2, binding = 3) uniform sampler2D tNormalSampler;
+layout(set = 1, binding = 1) uniform sampler2D tNormalSampler;
 #endif
 #if defined(MAGMA_HAS_ALBEDO_SAMPLER)
-layout(set = 2, binding = 4) uniform sampler2D albedoSampler;
+layout(set = 1, binding = 2) uniform sampler2D albedoSampler;
 #endif
 #if defined(MAGMA_HAS_ORM_SAMPLER)
-layout(set = 2, binding = 5) uniform sampler2D ormSampler;
+layout(set = 1, binding = 3) uniform sampler2D ormSampler;
 #endif
+
+//----- Fragment in
 
 layout(location = 0) in vec3 inTPosition;
 layout(location = 1) in vec2 inUv;
 layout(location = 2) in vec3 inTEyePosition;
 layout(location = 3) in vec3 inTLightPosition;
 
+//----- Out data
+
 layout(location = 0) out vec4 outColor;
 
-// Pass this through
+//----- Definitions
+
+// @todo Pass this through
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -44,7 +52,11 @@ PointLight pointLight = PointLight(inTLightPosition, vec3(1));
 
 const float PI = 3.1415926535897932384626433832795;
 
+//----- Headers
+
 vec3 bdrf(vec3 cdiff, vec3 F0, float alpha, vec3 lightDirection, vec3 eyeDirection, vec3 normal);
+
+//----- Program
 
 void main()
 {
@@ -95,6 +107,8 @@ void main()
 
     outColor = vec4((ambientColor + reflectedColor) * occlusion, albedo.a);
 }
+
+//----- Implementations
 
 // D = Normal distribution (Distribution of the microfacets)
 float D_GGX(float dotNH, float alpha)

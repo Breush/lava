@@ -113,7 +113,7 @@ void RenderEngine::Impl::update()
     const auto& pointLightPosition = m_pointLights[0]->position();
 
     // Update UBOs
-    UniformBufferObject transforms = {};
+    CameraUbo transforms = {};
     transforms.view = viewTransform;
     transforms.projection = projectionTransform;
     transforms.cameraPosition = glm::vec4(cameraPosition, 1.f);
@@ -198,7 +198,7 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
     // Transforms UBO
     VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
-    transformsLayoutBinding.binding = 1;
+    transformsLayoutBinding.binding = 0;
     transformsLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     transformsLayoutBinding.descriptorCount = 1;
     transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
@@ -239,7 +239,7 @@ void RenderEngine::Impl::createDescriptorSetLayout()
     {
         // Attributes UBO
         VkDescriptorSetLayoutBinding attributesLayoutBinding = {};
-        attributesLayoutBinding.binding = 2;
+        attributesLayoutBinding.binding = 0;
         attributesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         attributesLayoutBinding.descriptorCount = 1;
         attributesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -247,7 +247,7 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
         // Sampler
         VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
-        normalMapLayoutBinding.binding = 3;
+        normalMapLayoutBinding.binding = 1;
         normalMapLayoutBinding.descriptorCount = 1;
         normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         normalMapLayoutBinding.pImmutableSamplers = nullptr;
@@ -255,22 +255,22 @@ void RenderEngine::Impl::createDescriptorSetLayout()
 
         // Sampler
         VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
-        baseColorLayoutBinding.binding = 4;
+        baseColorLayoutBinding.binding = 2;
         baseColorLayoutBinding.descriptorCount = 1;
         baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         baseColorLayoutBinding.pImmutableSamplers = nullptr;
         baseColorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         // Sampler
-        VkDescriptorSetLayoutBinding metallicRoughnessLayoutBinding = {};
-        metallicRoughnessLayoutBinding.binding = 5;
-        metallicRoughnessLayoutBinding.descriptorCount = 1;
-        metallicRoughnessLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        metallicRoughnessLayoutBinding.pImmutableSamplers = nullptr;
-        metallicRoughnessLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        VkDescriptorSetLayoutBinding ormLayoutBinding = {};
+        ormLayoutBinding.binding = 3;
+        ormLayoutBinding.descriptorCount = 1;
+        ormLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        ormLayoutBinding.pImmutableSamplers = nullptr;
+        ormLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         std::array<VkDescriptorSetLayoutBinding, 4> bindings = {attributesLayoutBinding, baseColorLayoutBinding,
-                                                                normalMapLayoutBinding, metallicRoughnessLayoutBinding};
+                                                                normalMapLayoutBinding, ormLayoutBinding};
         VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -413,10 +413,9 @@ void RenderEngine::Impl::createGraphicsPipeline()
     // @todo Not used yet VkDynamicState
 
     // Pipeline layout
-    // @note Order IS important, as sets numbers in shader correspond to order of appearance in this list
-    // @todo Mesh be in set 2, as it the most frequently updated thing, we should organize things like that
-    std::array<VkDescriptorSetLayout, 3> setLayouts = {m_meshDescriptorSetLayout, m_descriptorSetLayout,
-                                                       m_materialDescriptorSetLayout};
+    // __Note__: Order IS important, as sets numbers in shader correspond to order of appearance in this list
+    std::array<VkDescriptorSetLayout, 3> setLayouts = {m_descriptorSetLayout, m_materialDescriptorSetLayout,
+                                                       m_meshDescriptorSetLayout};
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
@@ -616,7 +615,7 @@ void RenderEngine::Impl::createUniformBuffer()
 {
     logger.info("magma.vulkan.render-engine") << "Creating uniform buffer." << std::endl;
 
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+    VkDeviceSize bufferSize = sizeof(CameraUbo);
 
     int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -724,12 +723,12 @@ void RenderEngine::Impl::createDescriptorSet()
     VkDescriptorBufferInfo bufferInfo = {};
     bufferInfo.buffer = m_uniformBuffer;
     bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
+    bufferInfo.range = sizeof(CameraUbo);
 
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 1u;
+    descriptorWrite.dstBinding = 0u;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrite.descriptorCount = 1;
@@ -789,8 +788,8 @@ void RenderEngine::Impl::createCommandBuffers()
         vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
         // Add uniform buffers
-        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1, &m_descriptorSet, 0,
-                                nullptr);
+        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, VIEW_DESCRIPTOR_SET_INDEX,
+                                1, &m_descriptorSet, 0, nullptr);
 
         // Other meshes
         for (size_t j = 0; j < m_meshes.size(); ++j) {

@@ -17,9 +17,6 @@ namespace lava::magma {
     public:
         virtual ~IMesh() = default;
 
-        /// Get the current world transform of the mesh.
-        virtual const glm::mat4& worldTransform() const = 0; // @todo Is this a magma::Node thingy?
-
         /// Render the mesh.
         virtual UserData render(UserData data) = 0;
     };

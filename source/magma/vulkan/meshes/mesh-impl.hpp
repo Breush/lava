@@ -13,7 +13,7 @@ namespace lava::magma {
      * Vulkan-based implementation of a mesh.
      */
     class Mesh::Impl {
-        constexpr static const auto DESCRIPTOR_SET_INDEX = 0u;
+        constexpr static const auto DESCRIPTOR_SET_INDEX = 2u;
 
         struct MeshUbo {
             glm::mat4 transform;
@@ -24,10 +24,10 @@ namespace lava::magma {
         ~Impl();
 
         // IMesh
-        const glm::mat4& worldTransform() const { return m_worldTransform; }
         IMesh::UserData render(IMesh::UserData data);
 
         // Mesh
+        const glm::mat4& worldTransform() const { return m_worldTransform; }
         void positionAdd(const glm::vec3& delta);
 
         void verticesCount(const uint32_t count);

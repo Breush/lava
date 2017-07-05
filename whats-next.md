@@ -1,5 +1,7 @@
 # What's next
 
+## Cross-projects
+
 - Convert to C++17 (string_view, UTF8, filesystem, ...)
 - Removed useless folder when no namespace (and clean useless namespaces)
 
@@ -24,7 +26,7 @@
 ## Magma
 
 - **up**
-    - UBOs: renames each layout more cleverly (transform -> view) and fix their set bindings
+    - Camera bind they're own UBOs
 - **refacto**
     - Use vulkan.hpp 
     - Have interfaces.hpp
@@ -37,7 +39,6 @@
     - Engine: allow to free descriptor set (and do it in mesh, etc) - see descriptor pool flags
     - Engine: remove mesh animation from the engine - have timeElapsed passed (thanks to caldera)?
     - GLB: pass factors and colors (with textures)
-    - IMesh: `worldTransform` is no more required as the buffer is binded during `render`
     - Mesh: compute tangents if not provided
     - Mesh: have own secondary buffers
     - Mesh: allow not to have to specify a material (defaults to RmMaterial?)

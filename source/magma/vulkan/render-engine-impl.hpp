@@ -14,19 +14,20 @@
 #include "./surface.hpp"
 #include "./swapchain.hpp"
 
-// @todo Move inside RenderEngine::Impl and rename accordingly
-struct UniformBufferObject {
-    glm::mat4 view;
-    glm::mat4 projection;
-    glm::vec4 cameraPosition;
-    glm::vec4 pointLightPosition;
-};
-
 namespace lava::magma {
     /**
      * Vulkan-based implementation of the lava::RenderEngine.
      */
     class RenderEngine::Impl {
+        // @todo Let the camera do that by itself
+        constexpr static const auto VIEW_DESCRIPTOR_SET_INDEX = 0u;
+        struct CameraUbo {
+            glm::mat4 view;
+            glm::mat4 projection;
+            glm::vec4 cameraPosition;
+            glm::vec4 pointLightPosition;
+        };
+
     public:
         Impl();
         ~Impl();
