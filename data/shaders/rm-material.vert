@@ -13,17 +13,14 @@ layout(set = 1, binding = 1) uniform TransformsUbo {
 } transforms;
 
 layout(location = 0) in vec3 inMPosition;
-layout(location = 1) in vec3 inMNormal;
-layout(location = 2) in vec3 inColor; // @todo Who cares?
-layout(location = 3) in vec2 inUv;
-layout(location = 4) in vec4 inMTangent;
+layout(location = 1) in vec2 inUv;
+layout(location = 2) in vec3 inMNormal;
+layout(location = 3) in vec4 inMTangent;
 
 layout(location = 0) out vec3 outTPosition;
-layout(location = 2) out vec2 outUv;
-
-// Lights
-layout(location = 3) out vec3 outTEyePosition;      
-layout(location = 4) out vec3 outTLightPosition;  
+layout(location = 1) out vec2 outUv;
+layout(location = 2) out vec3 outTEyePosition;      
+layout(location = 3) out vec3 outTLightPosition;  
 
 out gl_PerVertex {
     vec4 gl_Position;

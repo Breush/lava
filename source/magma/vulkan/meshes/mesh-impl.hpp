@@ -32,11 +32,9 @@ namespace lava::magma {
 
         void verticesCount(const uint32_t count);
         void verticesPositions(const std::vector<glm::vec3>& positions);
+        void verticesUvs(const std::vector<glm::vec2>& uvs);
         void verticesNormals(const std::vector<glm::vec3>& normals);
         void verticesTangents(const std::vector<glm::vec4>& tangents);
-        void verticesColors(const std::vector<glm::vec3>& colors);
-        void verticesColors(const glm::vec3& color);
-        void verticesUvs(const std::vector<glm::vec2>& uvs);
         void indices(const std::vector<uint16_t>& indices);
 
         RmMaterial& material() { return *m_material; }

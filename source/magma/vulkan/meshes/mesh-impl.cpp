@@ -97,41 +97,21 @@ void Mesh::Impl::verticesPositions(const std::vector<glm::vec3>& positions)
     createVertexBuffer();
 }
 
-void Mesh::Impl::verticesNormals(const std::vector<glm::vec3>& normals)
-{
-    auto length = std::min(m_vertices.size(), normals.size());
-    for (uint32_t i = 0u; i < length; ++i) {
-        m_vertices[i].normal = normals[i];
-    }
-
-    createVertexBuffer();
-}
-
-void Mesh::Impl::verticesColors(const std::vector<glm::vec3>& colors)
-{
-    auto length = std::min(m_vertices.size(), colors.size());
-    for (uint32_t i = 0u; i < length; ++i) {
-        m_vertices[i].color = colors[i];
-    }
-
-    createVertexBuffer();
-}
-
-void Mesh::Impl::verticesColors(const glm::vec3& color)
-{
-    auto length = m_vertices.size();
-    for (uint32_t i = 0u; i < length; ++i) {
-        m_vertices[i].color = color;
-    }
-
-    createVertexBuffer();
-}
-
 void Mesh::Impl::verticesUvs(const std::vector<glm::vec2>& uvs)
 {
     auto length = std::min(m_vertices.size(), uvs.size());
     for (uint32_t i = 0u; i < length; ++i) {
         m_vertices[i].uv = uvs[i];
+    }
+
+    createVertexBuffer();
+}
+
+void Mesh::Impl::verticesNormals(const std::vector<glm::vec3>& normals)
+{
+    auto length = std::min(m_vertices.size(), normals.size());
+    for (uint32_t i = 0u; i < length; ++i) {
+        m_vertices[i].normal = normals[i];
     }
 
     createVertexBuffer();

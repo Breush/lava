@@ -29,11 +29,9 @@ layout(set = 2, binding = 5) uniform sampler2D ormSampler;
 #endif
 
 layout(location = 0) in vec3 inTPosition;
-layout(location = 2) in vec2 inUv;
-
-// Lights
-layout(location = 3) in vec3 inTEyePosition;
-layout(location = 4) in vec3 inTLightPosition;
+layout(location = 1) in vec2 inUv;
+layout(location = 2) in vec3 inTEyePosition;
+layout(location = 3) in vec3 inTLightPosition;
 
 layout(location = 0) out vec4 outColor;
 
