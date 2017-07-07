@@ -26,8 +26,18 @@
 ## Magma
 
 - **up**
-    - **bug**: broken rendering for the corset demo (because of the light placement?)
-    - UBOs: Make lights push_constants (and provide light-count)
+    - Light Linked List Renderer
+        - G-Buffer 
+        - Fill linked list
+            - Software depth test
+            - Min/max depths
+            - Allocate LLL fragment
+        - Lighting G-buffer
+            - Fullscreen quad
+            - Access LLL
+            - Apply light
+        - ---Custom Materials---
+        - Alpha
 - **refacto**
     - Use vulkan.hpp 
     - Have interfaces.hpp

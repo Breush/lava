@@ -46,6 +46,9 @@ namespace lava::magma {
         void createCommandPool();
         void createDummyTexture();
         void createTextureSampler();
+
+        // Command buffers
+        VkCommandBuffer& recordCommandBuffer(uint32_t index);
         void createCommandBuffers();
 
         void createDepthResources();

@@ -39,9 +39,9 @@ void RenderEngine::Impl::draw()
 {
     m_renderTargets[0]->draw();
 
-    uint32_t imageIndex;
+    uint32_t index;
     const auto MAX = std::numeric_limits<uint64_t>::max();
-    auto result = vkAcquireNextImageKHR(m_device, m_swapchain, MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    auto result = vkAcquireNextImageKHR(m_device, m_swapchain, MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &index);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         recreateSwapchain();
@@ -51,7 +51,11 @@ void RenderEngine::Impl::draw()
         logger.error("magma.vulkan.draw") << "Failed to acquire swapchain image." << std::endl;
     }
 
-    // Submit to the queue
+    // Record command buffer each frame
+    vkDeviceWaitIdle(m_device); // @todo Better wait for a fence on the queue
+    auto& commandBuffer = recordCommandBuffer(index);
+
+    // Submit it to the queue
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -61,7 +65,7 @@ void RenderEngine::Impl::draw()
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
+    submitInfo.pCommandBuffers = &commandBuffer;
 
     VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphore};
     submitInfo.signalSemaphoreCount = 1;
@@ -69,7 +73,6 @@ void RenderEngine::Impl::draw()
 
     if (vkQueueSubmit(m_device.graphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
         logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
-        exit(1);
     }
 
     // Submitting the image back to the swap chain
@@ -81,7 +84,7 @@ void RenderEngine::Impl::draw()
     VkSwapchainKHR swapChains[] = {m_swapchain};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
-    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pImageIndices = &index;
     presentInfo.pResults = nullptr;
 
     vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
@@ -89,10 +92,6 @@ void RenderEngine::Impl::draw()
 
 void RenderEngine::Impl::update()
 {
-    // Recreate command buffer each frame
-    vkDeviceWaitIdle(m_device);
-    createCommandBuffers();
-
     // Get time elapsed
     // @todo We shouldn't have to compute dt by ourself
     /*
@@ -479,7 +478,7 @@ void RenderEngine::Impl::createCommandPool()
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
-    poolInfo.flags = 0;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(m_device, &poolInfo, nullptr, m_commandPool.replace()) != VK_SUCCESS) {
         logger.error("magma.vulkan.command-pool") << "Failed to create command pool." << std::endl;
@@ -677,6 +676,55 @@ void RenderEngine::Impl::createDescriptorPool()
     }
 }
 
+VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
+{
+    auto& commandBuffer = m_commandBuffers[index];
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    beginInfo.pInheritanceInfo = nullptr;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkRenderPassBeginInfo renderPassInfo = {};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = m_renderPass;
+    renderPassInfo.framebuffer = m_swapchainFramebuffers[index];
+
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = m_swapchain.extent();
+
+    std::array<VkClearValue, 2> clearValues = {};
+    clearValues[0].color = {0.f, 0.f, 0.f, 1.f};
+    clearValues[1].depthStencil = {1.f, 0};
+    renderPassInfo.clearValueCount = clearValues.size();
+    renderPassInfo.pClearValues = clearValues.data();
+
+    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    // Shader pipeline
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+
+    // Camera
+    if (!m_cameras.empty()) {
+        m_cameras[0]->render(&commandBuffer);
+    }
+
+    // Other meshes
+    for (size_t j = 0; j < m_meshes.size(); ++j) {
+        m_meshes[j]->render(&commandBuffer);
+    }
+
+    vkCmdEndRenderPass(commandBuffer);
+
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+        logger.error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
+    }
+
+    return commandBuffer;
+}
+
 void RenderEngine::Impl::createCommandBuffers()
 {
     // Free previous command buffers if any
@@ -694,55 +742,11 @@ void RenderEngine::Impl::createCommandBuffers()
 
     if (vkAllocateCommandBuffers(m_device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS) {
         logger.error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
-        exit(1);
     }
 
     // Start recording
-    for (size_t i = 0; i < m_commandBuffers.size(); i++) {
-        auto& commandBuffer = m_commandBuffers[i];
-
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        beginInfo.pInheritanceInfo = nullptr;
-
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-        VkRenderPassBeginInfo renderPassInfo = {};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = m_renderPass;
-        renderPassInfo.framebuffer = m_swapchainFramebuffers[i];
-
-        renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = m_swapchain.extent();
-
-        std::array<VkClearValue, 2> clearValues = {};
-        clearValues[0].color = {0.f, 0.f, 0.f, 1.f};
-        clearValues[1].depthStencil = {1.f, 0};
-        renderPassInfo.clearValueCount = clearValues.size();
-        renderPassInfo.pClearValues = clearValues.data();
-
-        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        // Shader pipeline
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-
-        // Camera
-        if (!m_cameras.empty()) {
-            m_cameras[0]->render(&commandBuffer);
-        }
-
-        // Other meshes
-        for (size_t j = 0; j < m_meshes.size(); ++j) {
-            m_meshes[j]->render(&commandBuffer);
-        }
-
-        vkCmdEndRenderPass(commandBuffer);
-
-        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-            logger.error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
-            exit(1);
-        }
+    for (auto i = 0u; i < m_commandBuffers.size(); i++) {
+        recordCommandBuffer(i);
     }
 }
 
