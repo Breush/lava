@@ -23,8 +23,8 @@ namespace lava::magma::vulkan {
 
         operator VkDevice() const { return m_device; }
 
-        // @todo Should make a cast
-        vk::Device vk() const { return vk::Device(m_device); }
+        // @todo Should make a cast operator
+        const vk::Device& vk() const { return reinterpret_cast<const vk::Device&>(m_device); }
 
     protected:
         void pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);

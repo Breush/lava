@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../capsule.hpp"
+#include "../wrappers.hpp"
 
 namespace lava::magma {
     /**
@@ -13,17 +14,15 @@ namespace lava::magma {
     public:
         GBuffer(RenderEngine::Impl& engine);
 
-        void init();
-
-    protected:
+        void createRenderPass();
         void createGraphicsPipeline();
 
     private:
         RenderEngine::Impl& m_engine;
 
         // Graphics pipeline
-        vulkan::CapsulePP<vk::PipelineLayout> m_pipelineLayout;
-        vulkan::CapsulePP<vk::RenderPass> m_renderPass;
-        vulkan::CapsulePP<vk::Pipeline> m_graphicsPipeline;
+        vulkan::RenderPass m_renderPass;
+        vulkan::PipelineLayout m_pipelineLayout;
+        vulkan::Pipeline m_graphicsPipeline;
     };
 }

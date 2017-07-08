@@ -2,6 +2,7 @@
 
 #include <lava/chamber/logger.hpp>
 
+#include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
 #include "../shader.hpp"
 #include "../vertex.hpp"
@@ -11,16 +12,70 @@ using namespace lava::chamber;
 
 GBuffer::GBuffer(RenderEngine::Impl& engine)
     : m_engine(engine)
-    , m_pipelineLayout{m_engine.device().vk(), &vk::Device::destroyPipelineLayout}
-    , m_renderPass{m_engine.device().vk(), &vk::Device::destroyRenderPass}
-    , m_graphicsPipeline{m_engine.device().vk(), &vk::Device::destroyPipeline}
+    , m_renderPass{m_engine.device().vk()}
+    , m_pipelineLayout{m_engine.device().vk()}
+    , m_graphicsPipeline{m_engine.device().vk()}
 {
 }
 
-void GBuffer::init()
+void GBuffer::createRenderPass()
 {
-    // @todo createRenderPass
-    // createGraphicsPipeline();
+    logger.info("magma.vulkan.g-buffer") << "Creating render pass." << std::endl;
+
+    // @cleanup HPP
+    auto& device = m_engine.device();
+    const auto& vk_device = device.vk();
+
+    // Color attachement
+    vk::Format colorAttachmentFormat = static_cast<vk::Format>(m_engine.swapchain().imageFormat()); // @cleanup HPP
+    vk::AttachmentReference colorAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
+
+    vk::AttachmentDescription colorAttachment;
+    colorAttachment.setFormat(colorAttachmentFormat);
+    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR); // @todo This decides what's shown
+
+    // Depth attachement
+    vk::Format depthAttachmentFormat =
+        static_cast<vk::Format>(vulkan::findDepthBufferFormat(device.physicalDevice())); // @cleanup HPP
+    vk::AttachmentReference depthAttachmentRef{1, vk::ImageLayout::eDepthStencilAttachmentOptimal};
+
+    vk::AttachmentDescription depthAttachment;
+    depthAttachment.setFormat(depthAttachmentFormat);
+    depthAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+    std::array<vk::AttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+
+    // Subpass
+    vk::SubpassDescription subpass;
+    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
+    subpass.setColorAttachmentCount(1).setPColorAttachments(&colorAttachmentRef);
+    subpass.setPDepthStencilAttachment(&depthAttachmentRef);
+
+    vk::SubpassDependency dependency;
+    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
+    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+
+    // The render pass indeed
+    vk::RenderPassCreateInfo renderPassInfo;
+    renderPassInfo.setAttachmentCount(attachments.size()).setPAttachments(attachments.data());
+    renderPassInfo.setSubpassCount(1).setPSubpasses(&subpass);
+    renderPassInfo.setDependencyCount(1).setPDependencies(&dependency);
+
+    if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.g-buffer") << "Failed to create render pass." << std::endl;
+    }
 }
 
 void GBuffer::createGraphicsPipeline()
@@ -126,7 +181,7 @@ void GBuffer::createGraphicsPipeline()
     pipelineLayoutInfo.setSetLayoutCount(setLayouts.size()).setPSetLayouts(setLayouts.data());
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.pipeline-layout") << "Failed to create pipeline layout." << std::endl;
+        logger.error("magma.vulkan.g-buffer") << "Failed to create pipeline layout." << std::endl;
     }
 
     // Graphics pipeline indeed
@@ -142,12 +197,12 @@ void GBuffer::createGraphicsPipeline()
     pipelineInfo.setLayout(m_pipelineLayout);
     pipelineInfo.setRenderPass(m_renderPass);
 
-    if (vk_device.createGraphicsPipelines(vk::PipelineCache(), 1, &pipelineInfo, nullptr, m_graphicsPipeline.replace())
+    if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_graphicsPipeline.replace())
         != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.graphics-pipeline") << "Failed to create graphics pipeline." << std::endl;
+        logger.error("magma.vulkan.g-buffer") << "Failed to create graphics pipeline." << std::endl;
     }
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.graphics-pipeline") << "Failed to create graphics pipeline layout." << std::endl;
+        logger.error("magma.vulkan.g-bufferpipeline") << "Failed to create graphics pipeline layout." << std::endl;
     }
 }

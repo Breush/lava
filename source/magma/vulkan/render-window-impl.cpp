@@ -29,7 +29,7 @@ void RenderWindow::Impl::init(RenderEngine& engine)
     m_engine->m_windowHandle = windowHandle();
     m_engine->m_windowExtent = m_windowExtent;
 
-    m_engine->initVulkan(); // @todo Wait what?
+    m_engine->initVulkan(); // @fixme Wait what?
 }
 
 void RenderWindow::Impl::draw() const

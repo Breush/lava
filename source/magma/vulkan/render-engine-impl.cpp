@@ -116,6 +116,9 @@ void RenderEngine::Impl::createRenderPass()
 {
     logger.info("magma.vulkan.render-engine") << "Creating render pass." << std::endl;
 
+    // G-Buffer
+    m_gBuffer.createRenderPass();
+
     // @todo This is the G-Buffer thingy
     // @todo Missing attachments
     // @todo How to select the one to render?
@@ -278,7 +281,7 @@ void RenderEngine::Impl::createGraphicsPipeline()
     logger.info("magma.vulkan.render-engine") << "Creating graphics pipeline." << std::endl;
 
     // G-Buffer
-    m_gBuffer.init();
+    m_gBuffer.createGraphicsPipeline();
 
     // @rm-material
     // auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.vert");
