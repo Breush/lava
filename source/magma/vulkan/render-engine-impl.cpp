@@ -289,8 +289,8 @@ void RenderEngine::Impl::createGraphicsPipeline()
 
     // @todo This creates the G-Buffer pipeline
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/gbuffer.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/gbuffer.frag");
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.frag");
 
     vulkan::Capsule<VkShaderModule> vertShaderModule{m_device.capsule(), vkDestroyShaderModule};
     vulkan::Capsule<VkShaderModule> fragShaderModule{m_device.capsule(), vkDestroyShaderModule};
@@ -694,51 +694,39 @@ void RenderEngine::Impl::createDescriptorPool()
 
 VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
 {
-    auto& commandBuffer = m_commandBuffers[index];
+    vk::CommandBuffer commandBuffer{m_commandBuffers[index]}; // @cleanup HPP
+    const auto& framebuffer = swapchainFramebuffer(index);
 
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-    beginInfo.pInheritanceInfo = nullptr;
+    //----- Prologue
 
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eSimultaneousUse};
+    commandBuffer.begin(&beginInfo);
 
-    VkRenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = m_renderPass;
-    renderPassInfo.framebuffer = m_swapchainFramebuffers[index];
+    //----- G-Buffer
 
-    renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = m_swapchain.extent();
+    m_gBuffer.beginRender(commandBuffer, framebuffer);
 
-    std::array<VkClearValue, 2> clearValues = {};
-    clearValues[0].color = {0.f, 0.f, 0.f, 1.f};
-    clearValues[1].depthStencil = {1.f, 0};
-    renderPassInfo.clearValueCount = clearValues.size();
-    renderPassInfo.pClearValues = clearValues.data();
+    // Draw all opaque meshes
+    for (auto& camera : m_cameras) {
+        camera->render(&commandBuffer);
+        for (auto& mesh : m_meshes) {
+            mesh->render(&commandBuffer);
+        }
 
-    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    // Shader pipeline
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-
-    // Camera
-    if (!m_cameras.empty()) {
-        m_cameras[0]->render(&commandBuffer);
+        // @todo Handle multiple cameras?
+        // -> Probably not
+        break;
     }
 
-    // Other meshes
-    for (size_t j = 0; j < m_meshes.size(); ++j) {
-        m_meshes[j]->render(&commandBuffer);
-    }
+    m_gBuffer.endRender(commandBuffer);
 
-    vkCmdEndRenderPass(commandBuffer);
+    //----- Epilogue
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         logger.error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
     }
 
-    return commandBuffer;
+    return m_commandBuffers[index]; // @cleanup HPP
 }
 
 void RenderEngine::Impl::createCommandBuffers()

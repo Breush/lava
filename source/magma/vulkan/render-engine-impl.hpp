@@ -39,6 +39,12 @@ namespace lava::magma {
         void add(IRenderTarget& renderTarget);
         /// @}
 
+        // @cleanup HPP
+        const vk::Framebuffer& swapchainFramebuffer(uint32_t index) const
+        {
+            return reinterpret_cast<const vk::Framebuffer&>(m_swapchainFramebuffers[index]);
+        }
+
     protected:
         void createRenderPass();
         void createGraphicsPipeline();

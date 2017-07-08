@@ -14,6 +14,9 @@ namespace lava::magma {
     public:
         GBuffer(RenderEngine::Impl& engine);
 
+        void beginRender(const vk::CommandBuffer& commandBuffer, const vk::Framebuffer& framebuffer);
+        void endRender(const vk::CommandBuffer& commandBuffer);
+
         void createRenderPass();
         void createGraphicsPipeline();
 

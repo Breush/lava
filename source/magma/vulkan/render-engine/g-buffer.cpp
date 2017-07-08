@@ -18,6 +18,31 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
 {
 }
 
+void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer, const vk::Framebuffer& framebuffer)
+{
+    // Set render pass
+    std::array<vk::ClearValue, 2> clearValues;
+    clearValues[0].setColor(std::array<float, 4>{0.f, 0.f, 0.f, 1.f});
+    clearValues[1].setDepthStencil({1.f, 0u});
+
+    vk::RenderPassBeginInfo renderPassInfo;
+    renderPassInfo.setRenderPass(m_renderPass);
+    renderPassInfo.setFramebuffer(framebuffer);
+    renderPassInfo.renderArea.setOffset({0, 0});
+    renderPassInfo.renderArea.setExtent(m_engine.swapchain().extent());
+    renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
+
+    commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
+
+    // Bind pipeline
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_graphicsPipeline);
+}
+
+void GBuffer::endRender(const vk::CommandBuffer& commandBuffer)
+{
+    commandBuffer.endRenderPass();
+}
+
 void GBuffer::createRenderPass()
 {
     logger.info("magma.vulkan.g-buffer") << "Creating render pass." << std::endl;
@@ -87,8 +112,8 @@ void GBuffer::createGraphicsPipeline()
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/gbuffer.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/gbuffer.frag");
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/g-buffer.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/g-buffer.frag");
 
     vulkan::Capsule<VkShaderModule> vertShaderModule{device.capsule(), vkDestroyShaderModule};
     vulkan::Capsule<VkShaderModule> fragShaderModule{device.capsule(), vkDestroyShaderModule};
