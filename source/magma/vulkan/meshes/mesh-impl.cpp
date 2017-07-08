@@ -7,6 +7,7 @@
 
 #include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
+#include "../user-data-render.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
@@ -208,14 +209,16 @@ void Mesh::Impl::createIndexBuffer()
 
 IMesh::UserData Mesh::Impl::render(IMesh::UserData data)
 {
-    auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
+    auto& userData = *reinterpret_cast<UserDataRenderIn*>(data);
+    const auto& commandBuffer = *userData.commandBuffer;
+    const auto& pipelineLayout = *userData.pipelineLayout;
 
     // Bind the material
     // @todo Have this in a more clever render loop, and not called by this mesh
     if (m_material != nullptr) m_material->render(data);
 
     // Bind with the mesh descriptor set
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), DESCRIPTOR_SET_INDEX, 1,
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, DESCRIPTOR_SET_INDEX, 1,
                             &m_descriptorSet, 0, nullptr);
 
     // Add the vertex buffer

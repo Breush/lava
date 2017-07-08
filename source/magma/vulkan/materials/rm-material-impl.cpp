@@ -5,6 +5,7 @@
 
 #include "../image.hpp"
 #include "../render-engine-impl.hpp"
+#include "../user-data-render.hpp"
 
 #include <cstring>
 
@@ -249,12 +250,14 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
 
 IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
 {
-    auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
+    auto& userData = *reinterpret_cast<UserDataRenderIn*>(data);
+    const auto& commandBuffer = *userData.commandBuffer;
+    const auto& pipelineLayout = *userData.pipelineLayout;
 
     // __NOTE__: This presuppose that the correct shader is binded
 
     // Bind with the material descriptor set
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), DESCRIPTOR_SET_INDEX, 1,
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, DESCRIPTOR_SET_INDEX, 1,
                             &m_descriptorSet, 0, nullptr);
 
     return nullptr;

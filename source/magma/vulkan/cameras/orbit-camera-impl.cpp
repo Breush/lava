@@ -5,6 +5,7 @@
 
 #include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
+#include "../user-data-render.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -71,10 +72,12 @@ OrbitCamera::Impl::~Impl()
 
 ICamera::UserData OrbitCamera::Impl::render(ICamera::UserData data)
 {
-    auto& commandBuffer = *reinterpret_cast<VkCommandBuffer*>(data);
+    auto& userData = *reinterpret_cast<UserDataRenderIn*>(data);
+    const auto& commandBuffer = *userData.commandBuffer;
+    const auto& pipelineLayout = *userData.pipelineLayout;
 
     // Bind with the camera descriptor set
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_engine.pipelineLayout(), DESCRIPTOR_SET_INDEX, 1,
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, DESCRIPTOR_SET_INDEX, 1,
                             &m_descriptorSet, 0, nullptr);
 
     return nullptr;

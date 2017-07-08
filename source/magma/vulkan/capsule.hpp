@@ -102,7 +102,8 @@ namespace lava::magma::vulkan {
     }
 
 #define $_capsule_casts()                                                                                                        \
-    operator WrappedClass() const { return m_object; }                                                                           \
+    operator WrappedClass&() { return m_object; }                                                                                \
+    operator const WrappedClass&() const { return m_object; }                                                                    \
     const WrappedClass* operator&() const { return &m_object; }                                                                  \
     WrappedClass* replace()                                                                                                      \
     {                                                                                                                            \

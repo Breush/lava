@@ -46,23 +46,23 @@ namespace lava::magma {
         }
 
     protected:
-        void createRenderPass();
-        void createGraphicsPipeline();
-
+        // Pipelines
+        void createPipelines();
+        void createDepthResources();
         void createFramebuffers();
-        void createCommandPool();
+        void createSemaphores();
+
+        // Textures
         void createDummyTexture();
         void createTextureSampler();
 
         // Command buffers
         VkCommandBuffer& recordCommandBuffer(uint32_t index);
+        void createCommandPool();
         void createCommandBuffers();
 
-        void createDepthResources();
-        void createSemaphores();
-
         // Transform UBOs
-        void createDescriptorSetLayout();
+        void createDescriptorSetLayouts();
         void createDescriptorPool();
 
     public:
@@ -88,11 +88,6 @@ namespace lava::magma {
         $attribute(vulkan::Capsule<VkDescriptorSetLayout>, materialDescriptorSetLayout,
                    {m_device.capsule(), vkDestroyDescriptorSetLayout});
         $attribute(vulkan::Capsule<VkDescriptorPool>, materialDescriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
-
-        // Graphics pipeline
-        $attribute(vulkan::Capsule<VkPipelineLayout>, pipelineLayout, {m_device.capsule(), vkDestroyPipelineLayout});
-        $attribute(vulkan::Capsule<VkRenderPass>, renderPass, {m_device.capsule(), vkDestroyRenderPass});
-        $attribute(vulkan::Capsule<VkPipeline>, graphicsPipeline, {m_device.capsule(), vkDestroyPipeline});
 
         // Rendering
         GBuffer m_gBuffer{*this};

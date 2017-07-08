@@ -107,8 +107,7 @@ void GBuffer::createGraphicsPipeline()
 {
     logger.info("magma.vulkan.g-buffer") << "Creating graphics pipeline." << std::endl;
 
-    // @todo Transform everything to vulkan hpp
-    // @todo Remove this second device, as it will be casted automatically
+    // @cleanup HPP Remove this second device, as it will be casted automatically
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
 
@@ -197,7 +196,7 @@ void GBuffer::createGraphicsPipeline()
 
     // Pipeline layout
     // __Note__: Order IS important, as sets numbers in shader correspond to order of appearance in this list
-    // @cleanup vk::DescriptorSetLayout Should be returned directly
+    // @cleanup HPP vk::DescriptorSetLayout Should be returned directly
     std::array<vk::DescriptorSetLayout, 3> setLayouts = {vk::DescriptorSetLayout(m_engine.cameraDescriptorSetLayout()),
                                                          vk::DescriptorSetLayout(m_engine.materialDescriptorSetLayout()),
                                                          vk::DescriptorSetLayout(m_engine.meshDescriptorSetLayout())};
@@ -228,6 +227,6 @@ void GBuffer::createGraphicsPipeline()
     }
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.g-bufferpipeline") << "Failed to create graphics pipeline layout." << std::endl;
+        logger.error("magma.vulkan.g-buffer") << "Failed to create graphics pipeline layout." << std::endl;
     }
 }
