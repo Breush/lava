@@ -14,7 +14,7 @@
 
 namespace lava::magma::vulkan {
     // @todo Move to cpp
-    EShLanguage findShaderLanguage(const std::string& filename)
+    inline EShLanguage findShaderLanguage(const std::string& filename)
     {
         auto extension = filename.substr(filename.find_last_of(".") + 1u);
 
@@ -35,7 +35,7 @@ namespace lava::magma::vulkan {
         return EShLangVertex;
     }
 
-    TBuiltInResource& glslangResources()
+    inline TBuiltInResource& glslangResources()
     {
         static std::unique_ptr<TBuiltInResource> resources = nullptr;
         if (resources == nullptr) {
@@ -136,7 +136,7 @@ namespace lava::magma::vulkan {
         return *resources;
     }
 
-    static std::vector<uint8_t> readGlslShaderFile(const std::string& filename)
+    static inline std::vector<uint8_t> readGlslShaderFile(const std::string& filename)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -198,27 +198,7 @@ namespace lava::magma::vulkan {
         return buffer;
     }
 
-    /*static std::vector<uint8_t> readShaderFile(const std::string& filename)
-    {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-        if (!file.is_open()) {
-            chamber::logger.warning("magma.vulkan.shader") << "Unable to shader file " << filename << std::endl;
-        }
-
-        size_t fileSize = file.tellg();
-        std::vector<uint8_t> buffer(fileSize);
-        file.seekg(0);
-        file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
-        file.close();
-
-        chamber::logger.info("magma.vulkan.shader") << "Reading shader file '" << filename << "' (" << fileSize << "B)" <<
-    std::endl;
-
-        return buffer;
-    }*/
-
-    void createShaderModule(VkDevice device, const std::vector<uint8_t>& code, Capsule<VkShaderModule>& shaderModule)
+    inline void createShaderModule(VkDevice device, const std::vector<uint8_t>& code, Capsule<VkShaderModule>& shaderModule)
     {
         VkShaderModuleCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

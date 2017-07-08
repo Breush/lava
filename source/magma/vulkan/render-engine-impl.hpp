@@ -11,6 +11,7 @@
 
 #include "./device.hpp"
 #include "./instance.hpp"
+#include "./render-engine/g-buffer.hpp"
 #include "./surface.hpp"
 #include "./swapchain.hpp"
 
@@ -86,6 +87,9 @@ namespace lava::magma {
         $attribute(vulkan::Capsule<VkPipelineLayout>, pipelineLayout, {m_device.capsule(), vkDestroyPipelineLayout});
         $attribute(vulkan::Capsule<VkRenderPass>, renderPass, {m_device.capsule(), vkDestroyRenderPass});
         $attribute(vulkan::Capsule<VkPipeline>, graphicsPipeline, {m_device.capsule(), vkDestroyPipeline});
+
+        // Rendering
+        GBuffer m_gBuffer{*this};
 
         // Drawing
         $attribute(std::vector<vulkan::Capsule<VkFramebuffer>>, swapchainFramebuffers);

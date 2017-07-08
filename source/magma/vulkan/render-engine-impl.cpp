@@ -116,6 +116,10 @@ void RenderEngine::Impl::createRenderPass()
 {
     logger.info("magma.vulkan.render-engine") << "Creating render pass." << std::endl;
 
+    // @todo This is the G-Buffer thingy
+    // @todo Missing attachments
+    // @todo How to select the one to render?
+
     // Color attachement
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = m_swapchain.imageFormat();
@@ -273,8 +277,17 @@ void RenderEngine::Impl::createGraphicsPipeline()
 {
     logger.info("magma.vulkan.render-engine") << "Creating graphics pipeline." << std::endl;
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.frag");
+    // G-Buffer
+    m_gBuffer.init();
+
+    // @rm-material
+    // auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.vert");
+    // auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/rm-material.frag");
+
+    // @todo This creates the G-Buffer pipeline
+
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/gbuffer.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/gbuffer.frag");
 
     vulkan::Capsule<VkShaderModule> vertShaderModule{m_device.capsule(), vkDestroyShaderModule};
     vulkan::Capsule<VkShaderModule> fragShaderModule{m_device.capsule(), vkDestroyShaderModule};
