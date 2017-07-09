@@ -26,6 +26,8 @@
 ## Magma
 
 - **up**
+    - Remove swapchain from GBuffer
+        - Have our own presentation pass 
     - Light Linked List Renderer
         - G-Buffer 
         - Fill linked list
@@ -40,9 +42,14 @@
         - Alpha
 - **refacto**
     - Use vulkan.hpp 
+        - Clean @cleanup HPP
+        - Remove useless setXXX made because of vulkan-hpp conventions
+        - Remove Capsule castOld() thingy
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
+    - Use ImageHolder whenever possible
+    - Device -> DeviceHolder (holding Device and PhysicalDevice)
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame

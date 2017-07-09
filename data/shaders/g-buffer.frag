@@ -37,10 +37,9 @@ layout(location = 2) in vec3 inTEyePosition;
 
 //----- Out data
 
-layout(location = 0) out float outDepth;
-layout(location = 1) out vec3 outNormal;
-layout(location = 2) out vec3 outAlbedo;
-layout(location = 3) out vec3 outOrm;
+layout(location = 0) out vec3 outNormal;
+layout(location = 1) out vec3 outAlbedo;
+layout(location = 2) out vec3 outOrm;
 
 //----- Program
 
@@ -50,7 +49,6 @@ void main()
     vec3 normal = vec3(0, 0, 1);
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
 	normal = texture(tNormalSampler, inUv).rgb;
-    normal = normalize(normal * 2 - 1);
 #endif
 
     // Albedo
@@ -84,7 +82,6 @@ void main()
     float depth = length(inTEyePosition - inTPosition);
     
     // Out
-    outDepth = depth;
     outNormal = normal;
     outAlbedo = albedo;
     outOrm = vec3(occlusion, roughness, metallic);

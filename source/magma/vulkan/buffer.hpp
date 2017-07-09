@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lava/chamber/logger.hpp>
+
 #include "./device.hpp"
 #include "./tools.hpp"
 
@@ -16,7 +18,6 @@ namespace lava::magma::vulkan {
 
         if (vkCreateBuffer(device, &bufferInfo, nullptr, buffer.replace()) != VK_SUCCESS) {
             chamber::logger.error("magma.vulkan.buffer") << "Failed to create buffer." << std::endl;
-            exit(1);
         }
 
         VkMemoryRequirements memRequirements;
@@ -29,7 +30,6 @@ namespace lava::magma::vulkan {
 
         if (vkAllocateMemory(device, &allocInfo, nullptr, bufferMemory.replace()) != VK_SUCCESS) {
             chamber::logger.error("magma.vulkan.buffer") << "Failed to allocate buffer memory." << std::endl;
-            exit(1);
         }
 
         vkBindBufferMemory(device, buffer, bufferMemory, 0);
@@ -90,7 +90,7 @@ namespace lava::magma::vulkan {
         }
 
         chamber::logger.error("magma.vulkan.buffer") << "Unable to find valid format." << std::endl;
-        exit(1);
+        return VK_FORMAT_UNDEFINED;
     }
 
     inline VkFormat findDepthBufferFormat(VkPhysicalDevice physicalDevice)

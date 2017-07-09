@@ -197,31 +197,12 @@ void RenderEngine::Impl::createPipelines()
 
     // Pipelines
     m_gBuffer.createGraphicsPipeline();
-}
 
-void RenderEngine::Impl::createFramebuffers()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating frame buffers." << std::endl;
+    // Resources
+    m_gBuffer.createResources();
 
-    m_swapchainFramebuffers.resize(m_swapchain.imageViews().size(),
-                                   vulkan::Capsule<VkFramebuffer>{m_device.capsule(), vkDestroyFramebuffer});
-
-    for (size_t i = 0; i < m_swapchain.imageViews().size(); i++) {
-        std::array<VkImageView, 2> attachments = {m_swapchain.imageViews()[i], m_depthImageView};
-
-        VkFramebufferCreateInfo framebufferInfo = {};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = m_gBuffer.renderPass(); // @fixme Should be in the g-buffer!
-        framebufferInfo.attachmentCount = attachments.size();
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = m_swapchain.extent().width;
-        framebufferInfo.height = m_swapchain.extent().height;
-        framebufferInfo.layers = 1;
-
-        if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, m_swapchainFramebuffers[i].replace()) != VK_SUCCESS) {
-            logger.error("magma.vulkan.framebuffer") << "Failed to create framebuffers." << std::endl;
-        }
-    }
+    // Framebuffers
+    m_gBuffer.createFramebuffers();
 }
 
 void RenderEngine::Impl::createCommandPool()
@@ -237,7 +218,6 @@ void RenderEngine::Impl::createCommandPool()
 
     if (vkCreateCommandPool(m_device, &poolInfo, nullptr, m_commandPool.replace()) != VK_SUCCESS) {
         logger.error("magma.vulkan.command-pool") << "Failed to create command pool." << std::endl;
-        exit(1);
     }
 }
 
@@ -336,23 +316,6 @@ void RenderEngine::Impl::createTextureSampler()
     }
 }
 
-void RenderEngine::Impl::createDepthResources()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating depth resources." << std::endl;
-
-    auto format = vulkan::findDepthBufferFormat(m_device.physicalDevice());
-    auto extent = m_swapchain.extent();
-
-    vulkan::createImage(m_device, extent.width, extent.height, format, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage,
-                        m_depthImageMemory);
-
-    vulkan::createImageView(m_device, m_depthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT, m_depthImageView);
-
-    vulkan::transitionImageLayout(m_device, m_commandPool, m_depthImage, VK_IMAGE_LAYOUT_UNDEFINED,
-                                  VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-}
-
 void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
@@ -434,19 +397,19 @@ void RenderEngine::Impl::createDescriptorPool()
 VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
 {
     vk::CommandBuffer commandBuffer{m_commandBuffers[index]}; // @cleanup HPP
-    const auto& framebuffer = swapchainFramebuffer(index);
 
     //----- Prologue
 
     vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eSimultaneousUse};
     commandBuffer.begin(&beginInfo);
 
-    //----- G-Buffer
-
-    m_gBuffer.beginRender(commandBuffer, framebuffer);
-
     UserDataRenderIn userData;
     userData.commandBuffer = &commandBuffer;
+
+    //----- G-Buffer
+
+    // @todo We should not need to pass index, this is oonly needed because GBuffer presents to swapchain image views
+    m_gBuffer.beginRender(commandBuffer, index);
     userData.pipelineLayout = &m_gBuffer.pipelineLayout();
 
     // Draw all opaque meshes
@@ -462,6 +425,10 @@ VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
     }
 
     m_gBuffer.endRender(commandBuffer);
+
+    //----- Custom materials
+
+    // @todo userData.pipelineLayout = -> current shader
 
     //----- Epilogue
 
@@ -479,7 +446,7 @@ void RenderEngine::Impl::createCommandBuffers()
         vkFreeCommandBuffers(m_device, m_commandPool, m_commandBuffers.size(), m_commandBuffers.data());
     }
 
-    m_commandBuffers.resize(m_swapchainFramebuffers.size());
+    m_commandBuffers.resize(m_swapchain.imageViews().size());
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -507,21 +474,18 @@ void RenderEngine::Impl::createSemaphores()
     if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != VK_SUCCESS
         || vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != VK_SUCCESS) {
         logger.error("magma.vulkan.command-buffer") << "Failed to create semaphores." << std::endl;
-        exit(1);
     }
 }
 
 void RenderEngine::Impl::recreateSwapchain()
 {
-    logger.info("magma.vulkan.swapchain") << "Recreating swapchain." << std::endl;
+    logger.info("magma.vulkan.render-engine") << "Recreating swapchain." << std::endl;
 
     vkDeviceWaitIdle(m_device);
 
     m_swapchain.init(m_surface, m_windowExtent);
 
     createPipelines();
-    createDepthResources();
-    createFramebuffers();
     createCommandBuffers();
 }
 
@@ -532,13 +496,11 @@ void RenderEngine::Impl::initVulkan()
     m_device.init(m_instance.capsule(), m_surface);
     m_swapchain.init(m_surface, m_windowExtent);
 
+    createCommandPool();
     createDescriptorSetLayouts();
     createPipelines();
-    createCommandPool();
     createDummyTexture();
     createTextureSampler();
-    createDepthResources();
-    createFramebuffers();
     createDescriptorPool();
     createCommandBuffers();
     createSemaphores();

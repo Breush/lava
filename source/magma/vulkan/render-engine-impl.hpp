@@ -39,17 +39,9 @@ namespace lava::magma {
         void add(IRenderTarget& renderTarget);
         /// @}
 
-        // @cleanup HPP
-        const vk::Framebuffer& swapchainFramebuffer(uint32_t index) const
-        {
-            return reinterpret_cast<const vk::Framebuffer&>(m_swapchainFramebuffers[index]);
-        }
-
     protected:
         // Pipelines
         void createPipelines();
-        void createDepthResources();
-        void createFramebuffers();
         void createSemaphores();
 
         // Textures
@@ -92,8 +84,7 @@ namespace lava::magma {
         // Rendering
         GBuffer m_gBuffer{*this};
 
-        // Drawing
-        $attribute(std::vector<vulkan::Capsule<VkFramebuffer>>, swapchainFramebuffers);
+        // Commands
         $attribute(vulkan::Capsule<VkCommandPool>, commandPool, {m_device.capsule(), vkDestroyCommandPool});
         $attribute(std::vector<VkCommandBuffer>, commandBuffers);
 
@@ -108,11 +99,6 @@ namespace lava::magma {
         $attribute(vulkan::Capsule<VkImageView>, dummyNormalImageView, {m_device.capsule(), vkDestroyImageView});
 
         $attribute(vulkan::Capsule<VkSampler>, textureSampler, {m_device.capsule(), vkDestroySampler});
-
-        // Depth
-        vulkan::Capsule<VkImage> m_depthImage{m_device.capsule(), vkDestroyImage};
-        vulkan::Capsule<VkDeviceMemory> m_depthImageMemory{m_device.capsule(), vkFreeMemory};
-        vulkan::Capsule<VkImageView> m_depthImageView{m_device.capsule(), vkDestroyImageView};
 
         // Rendering
         vulkan::Capsule<VkSemaphore> m_imageAvailableSemaphore{m_device.capsule(), vkDestroySemaphore};
