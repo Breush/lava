@@ -15,7 +15,7 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
     : m_engine(engine)
     , m_renderPass{m_engine.device().vk()}
     , m_pipelineLayout{m_engine.device().vk()}
-    , m_graphicsPipeline{m_engine.device().vk()}
+    , m_pipeline{m_engine.device().vk()}
     , m_albedoImageHolder{m_engine.device()}
     , m_depthImageHolder{m_engine.device()}
 {
@@ -42,7 +42,7 @@ void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer, uint32_t index
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
 
     // Bind pipeline
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_graphicsPipeline);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
 }
 
 void GBuffer::endRender(const vk::CommandBuffer& commandBuffer)
@@ -248,8 +248,7 @@ void GBuffer::createGraphicsPipeline()
     pipelineInfo.setLayout(m_pipelineLayout);
     pipelineInfo.setRenderPass(m_renderPass);
 
-    if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_graphicsPipeline.replace())
-        != vk::Result::eSuccess) {
+    if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.g-buffer") << "Failed to create graphics pipeline." << std::endl;
     }
 

@@ -192,17 +192,23 @@ void RenderEngine::Impl::createPipelines()
 {
     logger.info("magma.vulkan.render-engine") << "Creating render pipelines." << std::endl;
 
+    // @todo Could be just one step 'create()' for each pass
+
     // Render passes
     m_gBuffer.createRenderPass();
+    m_present.createRenderPass();
 
     // Pipelines
     m_gBuffer.createGraphicsPipeline();
+    m_present.createGraphicsPipeline();
 
     // Resources
     m_gBuffer.createResources();
+    m_present.createResources();
 
     // Framebuffers
     m_gBuffer.createFramebuffers();
+    m_present.createFramebuffers();
 }
 
 void RenderEngine::Impl::createCommandPool()
@@ -429,6 +435,10 @@ VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
     //----- Custom materials
 
     // @todo userData.pipelineLayout = -> current shader
+
+    //----- Present
+
+    m_present.render(commandBuffer, index);
 
     //----- Epilogue
 

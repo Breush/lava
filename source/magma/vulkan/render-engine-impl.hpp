@@ -12,6 +12,7 @@
 #include "./device.hpp"
 #include "./instance.hpp"
 #include "./render-engine/g-buffer.hpp"
+#include "./render-engine/present.hpp"
 #include "./surface.hpp"
 #include "./swapchain.hpp"
 
@@ -83,6 +84,7 @@ namespace lava::magma {
 
         // Rendering
         GBuffer m_gBuffer{*this};
+        Present m_present{*this};
 
         // Commands
         $attribute(vulkan::Capsule<VkCommandPool>, commandPool, {m_device.capsule(), vkDestroyCommandPool});

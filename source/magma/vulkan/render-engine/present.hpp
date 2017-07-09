@@ -9,17 +9,13 @@
 
 namespace lava::magma {
     /**
-     * Pipeline layout for the G-Buffer construction.
+     * Pipeline layout for the final step of presenting to the screen.
      */
-    class GBuffer {
+    class Present {
     public:
-        GBuffer(RenderEngine::Impl& engine);
+        Present(RenderEngine::Impl& engine);
 
-        inline const vk::PipelineLayout& pipelineLayout() const { return m_pipelineLayout; }
-
-        // @todo Useless index once only one framebuffer (= no more presenting to swapchain in this pass)
-        void beginRender(const vk::CommandBuffer& commandBuffer, uint32_t index);
-        void endRender(const vk::CommandBuffer& commandBuffer);
+        void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
         void createRenderPass();
         void createGraphicsPipeline();
@@ -35,9 +31,6 @@ namespace lava::magma {
         vulkan::Pipeline m_pipeline;
 
         // Resources
-        // @todo Normal image view - currently using swapchain image views
-        vulkan::ImageHolder m_albedoImageHolder;
-        vulkan::ImageHolder m_depthImageHolder;
         std::vector<vulkan::Framebuffer> m_framebuffers;
     };
 }
