@@ -88,6 +88,7 @@ namespace lava::magma::vulkan {
         using WrappedClass = vk::Class;                                                                                          \
                                                                                                                                  \
     public:                                                                                                                      \
+        Class() = delete;                                                                                                        \
         Class(const vk::Device& device)                                                                                          \
             : m_device(device)                                                                                                   \
         {                                                                                                                        \

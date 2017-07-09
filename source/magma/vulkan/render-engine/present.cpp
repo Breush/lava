@@ -8,6 +8,12 @@
 #include "../shader.hpp"
 #include "../vertex.hpp"
 
+namespace {
+    struct Vertex {
+        glm::vec2 position;
+    };
+}
+
 using namespace lava::magma;
 using namespace lava::chamber;
 
@@ -16,6 +22,8 @@ Present::Present(RenderEngine::Impl& engine)
     , m_renderPass{m_engine.device().vk()}
     , m_pipelineLayout{m_engine.device().vk()}
     , m_pipeline{m_engine.device().vk()}
+    , m_vertexBuffer{m_engine.device().vk()}
+    , m_vertexBufferMemory{m_engine.device().vk()}
 {
 }
 
@@ -42,7 +50,13 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
     // Bind pipeline
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
 
-    // @todo Do something
+    // Add the vertex buffer
+    vk::Buffer vertexBuffers[] = {m_vertexBuffer};
+    vk::DeviceSize offsets[] = {0};
+    commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets);
+
+    // Draw
+    commandBuffer.draw(1, 1, 0, 0);
 
     // Epilogue
     commandBuffer.endRenderPass();
@@ -220,7 +234,42 @@ void Present::createResources()
 {
     logger.info("magma.vulkan.present") << "Creating resources." << std::endl;
 
-    // Nothing to create as our target image view is held by the swapchain.
+    // @cleanup HPP
+    auto& device = m_engine.device();
+    const auto& vk_device = device.vk();
+
+    //----- Our vertex buffer
+
+    // Describing a simple quad, not indexed
+    std::vector<Vertex> vertices = {{{0.f, 0.f}}, {{0.f, 1.f}}, {{1.f, 1.f}}, {{1.f, 1.f}}, {{1.f, 0.f}}, {{0.f, 0.f}}};
+
+    // @todo Would be great to have a BufferHolder to help us set up all that
+
+    vk::DeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+
+    // Staging buffer
+    vulkan::Buffer stagingBuffer{vk_device};
+    vulkan::DeviceMemory stagingBufferMemory{vk_device};
+    vk::BufferUsageFlags bufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
+    vk::MemoryPropertyFlags memoryPropertyFlags =
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    vulkan::createBuffer(device, bufferSize, bufferUsageFlags, memoryPropertyFlags, stagingBuffer, stagingBufferMemory);
+
+    // Store the data to the staging buffer
+    void* data;
+    vk_device.mapMemory(stagingBufferMemory, 0, bufferSize, {}, &data);
+    memcpy(data, vertices.data(), (size_t)bufferSize);
+    vk_device.unmapMemory(stagingBufferMemory);
+
+    // Actual vertex buffer
+    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+    memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+    vulkan::createBuffer(device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_vertexBuffer, m_vertexBufferMemory);
+
+    // Copy
+    // @cleanup HPP
+    vulkan::copyBuffer(device, reinterpret_cast<vk::CommandPool&>(m_engine.commandPool()), stagingBuffer, m_vertexBuffer,
+                       bufferSize);
 }
 
 void Present::createFramebuffers()

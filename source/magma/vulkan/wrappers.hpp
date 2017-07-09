@@ -10,7 +10,9 @@ namespace lava::magma::vulkan {
     $capsule_device(Pipeline);
 
     $capsule_device(Image);
+    $capsule_device(Buffer);
     $capsule_device(ImageView);
+    $capsule_device(BufferView);
     $capsule_device(Framebuffer);
 
     $capsule_device(DeviceMemory, freeMemory);

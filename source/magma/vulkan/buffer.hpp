@@ -4,6 +4,80 @@
 
 #include "./device.hpp"
 #include "./tools.hpp"
+#include "./wrappers.hpp"
+
+// @cleanup HPP Remove unused old fashion functions
+
+namespace lava::magma::vulkan {
+    inline void createBuffer(Device& device, vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+                             Buffer& buffer, DeviceMemory& bufferMemory)
+    {
+        const auto& vk_device = device.vk(); // @cleanup HPP
+
+        vk::BufferCreateInfo bufferInfo;
+        bufferInfo.size = size;
+        bufferInfo.usage = usage;
+        bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+
+        if (vk_device.createBuffer(&bufferInfo, nullptr, buffer.replace()) != vk::Result::eSuccess) {
+            chamber::logger.error("magma.vulkan.buffer") << "Failed to create buffer." << std::endl;
+        }
+
+        vk::MemoryRequirements memRequirements;
+        vk_device.getBufferMemoryRequirements(buffer, &memRequirements);
+
+        vk::MemoryAllocateInfo allocInfo;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(device.physicalDevice(), memRequirements.memoryTypeBits,
+                                                   reinterpret_cast<VkMemoryPropertyFlags&>(properties));
+
+        if (vk_device.allocateMemory(&allocInfo, nullptr, bufferMemory.replace()) != vk::Result::eSuccess) {
+            chamber::logger.error("magma.vulkan.buffer") << "Failed to allocate buffer memory." << std::endl;
+        }
+
+        vk_device.bindBufferMemory(buffer, bufferMemory, 0);
+    }
+
+    inline void copyBuffer(Device& device, const vk::CommandPool& commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer,
+                           vk::DeviceSize size)
+    {
+        const auto& vk_device = device.vk(); // @cleanup HPP
+
+        // Temporary command buffer
+        vk::CommandBufferAllocateInfo allocInfo;
+        allocInfo.level = vk::CommandBufferLevel::ePrimary;
+        allocInfo.commandPool = commandPool;
+        allocInfo.commandBufferCount = 1;
+
+        vk::CommandBuffer commandBuffer;
+        vk_device.allocateCommandBuffers(&allocInfo, &commandBuffer);
+
+        // Record
+        vk::CommandBufferBeginInfo beginInfo;
+        beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+        commandBuffer.begin(&beginInfo);
+
+        vk::BufferCopy copyRegion;
+        copyRegion.srcOffset = 0;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = size;
+        commandBuffer.copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
+
+        commandBuffer.end();
+
+        // Execute it
+        vk::SubmitInfo submitInfo;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        // @cleanup HPP graphicsQueue is old API
+        vkQueueSubmit(device.graphicsQueue(), 1, &reinterpret_cast<VkSubmitInfo&>(submitInfo), VK_NULL_HANDLE);
+        vkQueueWaitIdle(device.graphicsQueue());
+
+        vk_device.freeCommandBuffers(commandPool, 1, &commandBuffer);
+    }
+}
 
 namespace lava::magma::vulkan {
     // @todo Move to cpp

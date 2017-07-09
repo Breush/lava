@@ -31,6 +31,8 @@ namespace lava::magma {
         vulkan::Pipeline m_pipeline;
 
         // Resources
+        vulkan::Buffer m_vertexBuffer;
+        vulkan::DeviceMemory m_vertexBufferMemory;
         std::vector<vulkan::Framebuffer> m_framebuffers;
     };
 }
