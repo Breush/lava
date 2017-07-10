@@ -15,6 +15,7 @@ namespace lava::magma::vulkan {
      */
     class ImageHolder {
     public:
+        ImageHolder() = delete;
         ImageHolder(Device& device);
 
         /**

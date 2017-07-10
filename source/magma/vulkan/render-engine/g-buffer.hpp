@@ -17,8 +17,7 @@ namespace lava::magma {
 
         inline const vk::PipelineLayout& pipelineLayout() const { return m_pipelineLayout; }
 
-        // @todo Useless index once only one framebuffer (= no more presenting to swapchain in this pass)
-        void beginRender(const vk::CommandBuffer& commandBuffer, uint32_t index);
+        void beginRender(const vk::CommandBuffer& commandBuffer);
         void endRender(const vk::CommandBuffer& commandBuffer);
 
         void createRenderPass();
@@ -35,9 +34,9 @@ namespace lava::magma {
         vulkan::Pipeline m_pipeline;
 
         // Resources
-        // @todo Normal image view - currently using swapchain image views
+        vulkan::ImageHolder m_normalImageHolder;
         vulkan::ImageHolder m_albedoImageHolder;
         vulkan::ImageHolder m_depthImageHolder;
-        std::vector<vulkan::Framebuffer> m_framebuffers;
+        vulkan::Framebuffer m_framebuffer;
     };
 }

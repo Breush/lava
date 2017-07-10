@@ -415,7 +415,9 @@ VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
     //----- G-Buffer
 
     // @todo We should not need to pass index, this is oonly needed because GBuffer presents to swapchain image views
-    m_gBuffer.beginRender(commandBuffer, index);
+    m_gBuffer.beginRender(commandBuffer);
+
+    // @todo This definitly should be in the GBuffer render()
     userData.pipelineLayout = &m_gBuffer.pipelineLayout();
 
     // Draw all opaque meshes

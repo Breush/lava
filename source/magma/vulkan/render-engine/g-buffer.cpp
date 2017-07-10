@@ -16,16 +16,15 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
     , m_renderPass{m_engine.device().vk()}
     , m_pipelineLayout{m_engine.device().vk()}
     , m_pipeline{m_engine.device().vk()}
+    , m_normalImageHolder{m_engine.device()}
     , m_albedoImageHolder{m_engine.device()}
     , m_depthImageHolder{m_engine.device()}
+    , m_framebuffer{m_engine.device().vk()}
 {
 }
 
-// @todo Should not take an index, when only one framebuffer
-void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer, uint32_t index)
+void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer)
 {
-    const auto& framebuffer = m_framebuffers[index];
-
     // Set render pass
     std::array<vk::ClearValue, 3> clearValues;
     clearValues[0].setColor(std::array<float, 4>{0.f, 0.f, 0.f, 1.f});
@@ -34,7 +33,7 @@ void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer, uint32_t index
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.setRenderPass(m_renderPass);
-    renderPassInfo.setFramebuffer(framebuffer);
+    renderPassInfo.setFramebuffer(m_framebuffer);
     renderPassInfo.renderArea.setOffset({0, 0});
     renderPassInfo.renderArea.setExtent(m_engine.swapchain().extent());
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
@@ -263,6 +262,16 @@ void GBuffer::createResources()
 
     auto extent = m_engine.swapchain().extent();
 
+    // Normal
+    auto normalFormat = vk::Format::eB8G8R8A8Unorm;
+    // @cleanup HPP
+    m_normalImageHolder.create(normalFormat, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
+    vk::ImageLayout normalOldLayout = vk::ImageLayout::ePreinitialized;
+    vk::ImageLayout normalNewLayout = vk::ImageLayout::eTransferDstOptimal;
+    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool(), m_normalImageHolder.image().castOld(),
+                                  reinterpret_cast<VkImageLayout&>(normalOldLayout),
+                                  reinterpret_cast<VkImageLayout&>(normalNewLayout));
+
     // Albedo
     auto albedoFormat = vk::Format::eB8G8R8A8Unorm;
     // @cleanup HPP
@@ -289,30 +298,25 @@ void GBuffer::createFramebuffers()
     logger.info("magma.vulkan.g-buffer") << "Creating frame buffers." << std::endl;
 
     // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
+    const auto& vk_device = m_engine.device().vk();
 
     // @fixme We are still presenting something to the screen at this render pass,
     // but it should not be here, and so swapchain info neither.
     auto& swapchain = m_engine.swapchain();
 
-    // @fixme If we're not using swapchain image view, this can be a single framebuffer!
-    m_framebuffers.resize(swapchain.imageViews().size(), vulkan::Framebuffer{m_engine.device().vk()});
+    // Framebuffer
+    std::array<vk::ImageView, 3> attachments = {m_normalImageHolder.view(), m_albedoImageHolder.view(),
+                                                m_depthImageHolder.view()};
 
-    for (size_t i = 0; i < swapchain.imageViews().size(); i++) {
-        std::array<vk::ImageView, 3> attachments = {vk::ImageView(swapchain.imageViews()[i]), m_albedoImageHolder.view(),
-                                                    m_depthImageHolder.view()};
+    vk::FramebufferCreateInfo framebufferInfo;
+    framebufferInfo.renderPass = m_renderPass;
+    framebufferInfo.attachmentCount = attachments.size();
+    framebufferInfo.pAttachments = attachments.data();
+    framebufferInfo.width = swapchain.extent().width;
+    framebufferInfo.height = swapchain.extent().height;
+    framebufferInfo.layers = 1;
 
-        vk::FramebufferCreateInfo framebufferInfo;
-        framebufferInfo.renderPass = m_renderPass;
-        framebufferInfo.attachmentCount = attachments.size();
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = swapchain.extent().width;
-        framebufferInfo.height = swapchain.extent().height;
-        framebufferInfo.layers = 1;
-
-        if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.g-buffer") << "Failed to create framebuffers." << std::endl;
-        }
+    if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.g-buffer") << "Failed to create framebuffers." << std::endl;
     }
 }
