@@ -3,6 +3,10 @@
 
 layout(set = 0, binding = 0) uniform sampler2D sourceSampler;
 
+//----- Fragment in
+
+layout(location = 0) in vec2 inUv;
+
 //----- Out data
 
 layout(location = 0) out vec3 outPresent;
@@ -12,5 +16,5 @@ layout(location = 0) out vec3 outPresent;
 void main()
 {
     // @todo Use sampler
-    outPresent = vec3(gl_FragCoord.xy, 1);
+    outPresent = vec3(inUv, 0);
 }

@@ -22,8 +22,6 @@ Present::Present(RenderEngine::Impl& engine)
     , m_renderPass{m_engine.device().vk()}
     , m_pipelineLayout{m_engine.device().vk()}
     , m_pipeline{m_engine.device().vk()}
-    , m_vertexBuffer{m_engine.device().vk()}
-    , m_vertexBufferMemory{m_engine.device().vk()}
 {
 }
 
@@ -50,13 +48,8 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
     // Bind pipeline
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
 
-    // Add the vertex buffer
-    vk::Buffer vertexBuffers[] = {m_vertexBuffer};
-    vk::DeviceSize offsets[] = {0};
-    commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets);
-
     // Draw
-    commandBuffer.draw(1, 1, 0, 0);
+    commandBuffer.draw(6, 1, 0, 0);
 
     // Epilogue
     commandBuffer.endRenderPass();
@@ -139,21 +132,7 @@ void Present::createGraphicsPipeline()
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
     // Vertex input
-    // @fixme Not that at all
-    auto bindingDescription = vulkan::Vertex::bindingDescription();
-    auto attributeDescriptions = vulkan::Vertex::attributeDescriptions();
-
-    // @cleanup HPP
-    vk::VertexInputBindingDescription vk_bindingDescription(bindingDescription);
-    std::vector<vk::VertexInputAttributeDescription> vk_attributeDescriptions;
-    for (auto& attribute : attributeDescriptions) {
-        vk_attributeDescriptions.emplace_back(attribute);
-    }
-
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-    vertexInputInfo.setVertexBindingDescriptionCount(1).setPVertexBindingDescriptions(&vk_bindingDescription);
-    vertexInputInfo.setVertexAttributeDescriptionCount(vk_attributeDescriptions.size())
-        .setPVertexAttributeDescriptions(vk_attributeDescriptions.data());
 
     // Input assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
@@ -234,42 +213,8 @@ void Present::createResources()
 {
     logger.info("magma.vulkan.present") << "Creating resources." << std::endl;
 
-    // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
-    //----- Our vertex buffer
-
-    // Describing a simple quad, not indexed
-    std::vector<Vertex> vertices = {{{0.f, 0.f}}, {{0.f, 1.f}}, {{1.f, 1.f}}, {{1.f, 1.f}}, {{1.f, 0.f}}, {{0.f, 0.f}}};
-
-    // @todo Would be great to have a BufferHolder to help us set up all that
-
-    vk::DeviceSize bufferSize = sizeof(Vertex) * vertices.size();
-
-    // Staging buffer
-    vulkan::Buffer stagingBuffer{vk_device};
-    vulkan::DeviceMemory stagingBufferMemory{vk_device};
-    vk::BufferUsageFlags bufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-    vk::MemoryPropertyFlags memoryPropertyFlags =
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-    vulkan::createBuffer(device, bufferSize, bufferUsageFlags, memoryPropertyFlags, stagingBuffer, stagingBufferMemory);
-
-    // Store the data to the staging buffer
-    void* data;
-    vk_device.mapMemory(stagingBufferMemory, 0, bufferSize, {}, &data);
-    memcpy(data, vertices.data(), (size_t)bufferSize);
-    vk_device.unmapMemory(stagingBufferMemory);
-
-    // Actual vertex buffer
-    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
-    memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-    vulkan::createBuffer(device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_vertexBuffer, m_vertexBufferMemory);
-
-    // Copy
-    // @cleanup HPP
-    vulkan::copyBuffer(device, reinterpret_cast<vk::CommandPool&>(m_engine.commandPool()), stagingBuffer, m_vertexBuffer,
-                       bufferSize);
+    // Nothing to do.
+    // __Note__: No vertex buffers - as this is a fixed thing, it is put in the vertex shader directly.
 }
 
 void Present::createFramebuffers()
