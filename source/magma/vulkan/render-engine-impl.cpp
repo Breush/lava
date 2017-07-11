@@ -510,9 +510,18 @@ void RenderEngine::Impl::initVulkan()
 
     createCommandPool();
     createDescriptorSetLayouts();
+
+    // @todo Should be initPipelines()
+    m_present.init();
+
     createPipelines();
     createDummyTexture();
     createTextureSampler();
+
+    // @todo Pipelines set-up
+    // @cleanup HPP
+    m_present.shownImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
+
     createDescriptorPool();
     createCommandBuffers();
     createSemaphores();

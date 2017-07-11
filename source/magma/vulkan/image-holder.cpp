@@ -32,6 +32,8 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
     else if (imageAspect == vk::ImageAspectFlagBits::eColor) {
         imageAspectFlags = vk::ImageAspectFlagBits::eColor;
         imageUsageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
+        // @todo Following is useful because present uses an image. Try removing it, and see.
+        imageUsageFlags |= vk::ImageUsageFlagBits::eSampled;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
     }
     else {

@@ -14,6 +14,8 @@ namespace lava::magma::vulkan {
     $capsule_device(ImageView);
     $capsule_device(BufferView);
     $capsule_device(Framebuffer);
-
     $capsule_device(DeviceMemory, freeMemory);
+
+    $capsule_device(DescriptorSetLayout);
+    $capsule_device(DescriptorPool);
 }

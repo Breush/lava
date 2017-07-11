@@ -16,5 +16,5 @@ layout(location = 0) out vec3 outPresent;
 void main()
 {
     // @todo Use sampler
-    outPresent = vec3(inUv, 0);
+    outPresent = texture(sourceSampler, inUv).xyz;
 }

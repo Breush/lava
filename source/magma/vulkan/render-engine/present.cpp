@@ -22,7 +22,60 @@ Present::Present(RenderEngine::Impl& engine)
     , m_renderPass{m_engine.device().vk()}
     , m_pipelineLayout{m_engine.device().vk()}
     , m_pipeline{m_engine.device().vk()}
+    , m_descriptorPool{m_engine.device().vk()}
+    , m_descriptorSetLayout{m_engine.device().vk()}
 {
+}
+
+void Present::init()
+{
+    // @cleanup HPP
+    const auto& vk_device = m_engine.device().vk();
+
+    //----- Descriptor pool
+
+    // @todo Should we really have so many pools?
+    // Maybe just one in a central place.
+
+    vk::DescriptorPoolSize poolSize;
+    poolSize.type = vk::DescriptorType::eCombinedImageSampler;
+    poolSize.descriptorCount = 1u;
+
+    vk::DescriptorPoolCreateInfo poolInfo;
+    poolInfo.poolSizeCount = 1u;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = 1u;
+
+    if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.present") << "Failed to create descriptor pool." << std::endl;
+    }
+
+    //----- Descriptor set layout
+
+    vk::DescriptorSetLayoutBinding layoutBinding;
+    layoutBinding.binding = 0;
+    layoutBinding.descriptorCount = 1;
+    layoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    layoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+    vk::DescriptorSetLayoutCreateInfo layoutInfo;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &layoutBinding;
+
+    if (vk_device.createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.present") << "Failed to create material descriptor set layout." << std::endl;
+    }
+
+    //----- Descriptor set
+
+    vk::DescriptorSetAllocateInfo allocInfo;
+    allocInfo.descriptorPool = m_descriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &m_descriptorSetLayout;
+
+    if (vk_device.allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.present") << "Failed to create descriptor set." << std::endl;
+    }
 }
 
 // @fixme Still should be a beginRender and endRender,
@@ -49,6 +102,8 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
 
     // Draw
+    // @todo BIND VALID DESCRIPTOR
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
     commandBuffer.draw(6, 1, 0, 0);
 
     // Epilogue
@@ -178,11 +233,9 @@ void Present::createGraphicsPipeline()
 
     // Pipeline layout
     // __Note__: Order IS important, as sets numbers in shader correspond to order of appearance in this list
-    std::array<vk::DescriptorSetLayout, 1> setLayouts = {vk::DescriptorSetLayout(m_engine.meshDescriptorSetLayout())};
-
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-    // @todo Have own descriptor set layouts
-    pipelineLayoutInfo.setSetLayoutCount(setLayouts.size()).setPSetLayouts(setLayouts.data());
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.present") << "Failed to create pipeline layout." << std::endl;
@@ -213,7 +266,6 @@ void Present::createResources()
 {
     logger.info("magma.vulkan.present") << "Creating resources." << std::endl;
 
-    // Nothing to do.
     // __Note__: No vertex buffers - as this is a fixed thing, it is put in the vertex shader directly.
 }
 
@@ -243,4 +295,25 @@ void Present::createFramebuffers()
             logger.error("magma.vulkan.present") << "Failed to create framebuffers." << std::endl;
         }
     }
+}
+
+void Present::shownImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
+{
+    // @cleanup HPP
+    const auto& vk_device = m_engine.device().vk();
+
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal; // @fixme Why not eShaderReadOnlyOptimal ?
+    imageInfo.imageView = imageView;
+    imageInfo.sampler = sampler;
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = m_descriptorSet;
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }

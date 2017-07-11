@@ -25,6 +25,10 @@ namespace lava::magma {
         void createResources();
         void createFramebuffers();
 
+        const vulkan::ImageView& normalImageView() const { return m_normalImageHolder.view(); }
+        const vulkan::ImageView& albedoImageView() const { return m_albedoImageHolder.view(); }
+        const vulkan::ImageView& depthImageView() const { return m_depthImageHolder.view(); }
+
     private:
         RenderEngine::Impl& m_engine;
 

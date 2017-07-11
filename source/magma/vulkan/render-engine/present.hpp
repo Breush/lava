@@ -17,10 +17,15 @@ namespace lava::magma {
 
         void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
+        void init();
+
+        // @todo Should be only recreate()
         void createRenderPass();
         void createGraphicsPipeline();
         void createResources();
         void createFramebuffers();
+
+        void shownImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
 
     private:
         RenderEngine::Impl& m_engine;
@@ -31,6 +36,9 @@ namespace lava::magma {
         vulkan::Pipeline m_pipeline;
 
         // Resources
+        vulkan::DescriptorPool m_descriptorPool;
+        vulkan::DescriptorSetLayout m_descriptorSetLayout;
+        vk::DescriptorSet m_descriptorSet;
         std::vector<vulkan::Framebuffer> m_framebuffers;
     };
 }
