@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # $1 A part of the name of a generated executable, to be run
+# $2 == "debug" to enable gdb
 
 cd $(dirname "$0")/..
 
@@ -14,6 +15,12 @@ if [ $? -eq 0 ]; then
     # Find a file that match the name
     EXECUTABLE=$(find ./build/debug/ -type f -executable -name "*$1*" ! -name "*.*")
     echo "Running ${EXECUTABLE}..."
+
+    if [ "$2" == "debug" ]; then
+        echo "... in debug mode."
+        EXECUTABLE="gdb ${EXECUTABLE} --quiet"
+    fi
+
     ${EXECUTABLE}
 else
     echo "Error during setup or build..."
