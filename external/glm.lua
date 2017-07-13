@@ -28,7 +28,7 @@ end
 
 if not fileExists("./include/glm") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
-    os.execute("cd ./.tmp && unzip -o ./glm.zip && cp -r glm/glm ../include")
+    os.execute("cd ./.tmp && unzip -o glm_" .. VERSION .. ".zip && cp -r glm/glm ../include")
 end
 
 -- Use hook

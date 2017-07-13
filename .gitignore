@@ -2,6 +2,7 @@ build/
 doc/html/
 external/.tmp/
 external/include/
+external/source/
 external/lib/
 external/bin/
 external/etc/

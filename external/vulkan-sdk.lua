@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Vulkan SDK"
-local VERSION = "1.0.51.0"
+local VERSION = "1.0.54.0"
 
 -- Download
 
@@ -34,9 +34,16 @@ if not fileExists("./include/vulkan") then
     local folder = "VulkanSDK/" .. VERSION .. "/x86_64"
     os.execute("cd ./.tmp && bash ./vulkan-sdk_" .. VERSION .. ".run &&" ..
                "cp -R " .. folder .. "/include/vulkan ../include &&" ..
-               "cp -R " .. folder .. "/lib/* ../lib &&" ..
                "cp -R " .. folder .. "/bin/* ../bin &&" ..
                "cp -R " .. folder .. "/etc/* ../etc")
+
+    -- @todo We're using libs from source folder for debugging,
+    -- but we should use the ones in x84_64/lib for release.
+    os.mkdir("source/vulkan")
+    local folder = "VulkanSDK/" .. VERSION .. "/source"
+    os.execute("cd ./.tmp &&" ..
+               "cp -R " .. folder .. "/lib/* ../lib &&" ..
+               "cp -R " .. folder .. "/layers ../source/vulkan")
 
     -- glslang
     folder = "VulkanSDK/" .. VERSION .. "/source/glslang"
