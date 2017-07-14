@@ -2,12 +2,9 @@
 
 #include "./i-stage.hpp"
 
-#include <lava/magma/render-engine.hpp>
 #include <vector>
-#include <vulkan/vulkan.hpp>
 
 #include "../image-holder.hpp"
-#include "../wrappers.hpp"
 
 namespace lava::magma {
     /**

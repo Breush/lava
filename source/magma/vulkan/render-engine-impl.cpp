@@ -193,6 +193,7 @@ void RenderEngine::Impl::initStages()
     logger.log().tab(1);
 
     m_gBuffer.init();
+    m_epiphany.init();
     m_present.init();
 
     logger.log().tab(-1);
@@ -204,11 +205,14 @@ void RenderEngine::Impl::updateStages()
     logger.log().tab(1);
 
     m_gBuffer.update();
+    m_epiphany.update();
     m_present.update();
 
     // Set-up
     // @cleanup HPP
-    m_present.shownImageView(m_gBuffer.normalImageView(), vk::Sampler(m_textureSampler));
+    m_epiphany.normalImageView(m_gBuffer.normalImageView(), vk::Sampler(m_textureSampler));
+    m_epiphany.albedoImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
+    m_present.shownImageView(m_epiphany.imageView(), vk::Sampler(m_textureSampler));
 
     logger.log().tab(-1);
 }
@@ -414,6 +418,7 @@ VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
     //----- Render
 
     m_gBuffer.render(commandBuffer, index);
+    m_epiphany.render(commandBuffer, index);
     m_present.render(commandBuffer, index);
 
     //----- Epilogue

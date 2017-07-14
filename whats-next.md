@@ -29,15 +29,13 @@
     - Remove swapchain from GBuffer
         - Set extent at creation (remove swapchain info from there)
     - Light Linked List Renderer
-        - G-Buffer 
         - Fill linked list
             - Software depth test
             - Min/max depths
             - Allocate LLL fragment
-        - Lighting G-buffer
-            - Fullscreen quad
+        - Lighting G-buffer (Epiphany)
             - Access LLL
-            - Apply light
+            - PBR Epiphany (keep for last step)
         - ---Custom Materials---
         - Alpha
 - **refacto**

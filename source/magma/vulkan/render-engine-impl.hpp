@@ -11,6 +11,7 @@
 
 #include "./device.hpp"
 #include "./instance.hpp"
+#include "./render-engine/epiphany.hpp"
 #include "./render-engine/g-buffer.hpp"
 #include "./render-engine/present.hpp"
 #include "./surface.hpp"
@@ -91,8 +92,9 @@ namespace lava::magma {
                    {m_device.capsule(), vkDestroyDescriptorSetLayout});
         $attribute(vulkan::Capsule<VkDescriptorPool>, materialDescriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
 
-        // Rendering
+        // Rendering stages
         GBuffer m_gBuffer{*this};
+        Epiphany m_epiphany{*this};
         Present m_present{*this};
 
         // Commands

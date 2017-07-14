@@ -1,4 +1,4 @@
-#include "./present.hpp"
+#include "./epiphany.hpp"
 
 #include <lava/chamber/logger.hpp>
 
@@ -17,20 +17,22 @@ namespace {
 using namespace lava::magma;
 using namespace lava::chamber;
 
-Present::Present(RenderEngine::Impl& engine)
+Epiphany::Epiphany(RenderEngine::Impl& engine)
     : IStage(engine)
     , m_vertShaderModule{m_engine.device().vk()}
     , m_fragShaderModule{m_engine.device().vk()}
     , m_descriptorPool{m_engine.device().vk()}
     , m_descriptorSetLayout{m_engine.device().vk()}
+    , m_imageHolder{m_engine.device()}
+    , m_framebuffer{m_engine.device().vk()}
 {
 }
 
 //----- IStage
 
-void Present::init()
+void Epiphany::init()
 {
-    logger.log() << "Initializing Present Stage." << std::endl;
+    logger.log() << "Initializing Epiphany Stage." << std::endl;
     logger.log().tab(1);
 
     // @cleanup HPP
@@ -38,8 +40,8 @@ void Present::init()
 
     //----- Shaders
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.frag");
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany-phong.frag");
 
     vulkan::createShaderModule(vk_device, vertShaderCode, m_vertShaderModule);
     vulkan::createShaderModule(vk_device, fragShaderCode, m_fragShaderModule);
@@ -51,12 +53,12 @@ void Present::init()
 
     vk::DescriptorPoolSize poolSize;
     poolSize.type = vk::DescriptorType::eCombinedImageSampler;
-    poolSize.descriptorCount = 1u;
+    poolSize.descriptorCount = 2u;
 
     vk::DescriptorPoolCreateInfo poolInfo;
     poolInfo.poolSizeCount = 1u;
     poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 1u;
+    poolInfo.maxSets = 2u;
 
     if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor pool." << std::endl;
@@ -64,15 +66,22 @@ void Present::init()
 
     //----- Descriptor set layout
 
-    vk::DescriptorSetLayoutBinding layoutBinding;
-    layoutBinding.binding = 0;
-    layoutBinding.descriptorCount = 1;
-    layoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    layoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+    vk::DescriptorSetLayoutBinding normallayoutBinding;
+    normallayoutBinding.binding = 0;
+    normallayoutBinding.descriptorCount = 1;
+    normallayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    normallayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
+    vk::DescriptorSetLayoutBinding albedoLayoutBinding;
+    albedoLayoutBinding.binding = 1;
+    albedoLayoutBinding.descriptorCount = 1;
+    albedoLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    albedoLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+    std::array<vk::DescriptorSetLayoutBinding, 2> bindings = {normallayoutBinding, albedoLayoutBinding};
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &layoutBinding;
+    layoutInfo.bindingCount = bindings.size();
+    layoutInfo.pBindings = bindings.data();
 
     if (vk_device.createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create material descriptor set layout." << std::endl;
@@ -92,9 +101,9 @@ void Present::init()
     logger.log().tab(-1);
 }
 
-void Present::update()
+void Epiphany::update()
 {
-    logger.log() << "Updating Present stage." << std::endl;
+    logger.log() << "Updating Epiphany stage." << std::endl;
     logger.log().tab(1);
 
     createRenderPass();
@@ -105,7 +114,7 @@ void Present::update()
     logger.log().tab(-1);
 }
 
-void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex)
+void Epiphany::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIndex*/)
 {
     //----- Prologue
 
@@ -115,7 +124,7 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPass;
-    renderPassInfo.framebuffer = m_framebuffers[frameIndex];
+    renderPassInfo.framebuffer = m_framebuffer;
     renderPassInfo.renderArea.setOffset({0, 0});
     renderPassInfo.renderArea.setExtent(m_engine.swapchain().extent());
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
@@ -138,13 +147,13 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
 
 //----- Internal
 
-void Present::createRenderPass()
+void Epiphany::createRenderPass()
 {
     // @cleanup HPP
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
 
-    // Present attachement
+    // Epiphany attachement
     vk::Format presentAttachmentFormat = vk::Format(m_engine.swapchain().imageFormat()); // @cleanup HPP
     vk::AttachmentReference presentAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
 
@@ -155,7 +164,7 @@ void Present::createRenderPass()
     presentAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
     presentAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
     presentAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    presentAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+    presentAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     std::array<vk::AttachmentReference, 1> colorAttachmentsRefs = {presentAttachmentRef};
     std::array<vk::AttachmentDescription, 1> attachments = {presentAttachment};
@@ -182,7 +191,7 @@ void Present::createRenderPass()
     }
 }
 
-void Present::createGraphicsPipeline()
+void Epiphany::createGraphicsPipeline()
 {
     // @cleanup HPP Remove this second device, as it will be casted automatically
     auto& device = m_engine.device();
@@ -277,38 +286,45 @@ void Present::createGraphicsPipeline()
     }
 }
 
-void Present::createResources()
+void Epiphany::createResources()
 {
-    // __Note__: Nothing.
+    auto extent = m_engine.swapchain().extent();
+
+    // Target
+    auto format = vk::Format::eB8G8R8A8Unorm;
+    // @cleanup HPP
+    m_imageHolder.create(format, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
+    vk::ImageLayout oldLayout = vk::ImageLayout::ePreinitialized;
+    vk::ImageLayout newLayout = vk::ImageLayout::eTransferDstOptimal;
+    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool(), m_imageHolder.image().castOld(),
+                                  reinterpret_cast<VkImageLayout&>(oldLayout), reinterpret_cast<VkImageLayout&>(newLayout));
 }
 
-void Present::createFramebuffers()
+void Epiphany::createFramebuffers()
 {
     // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
+    const auto& vk_device = m_engine.device().vk();
+
+    // @fixme We are still presenting something to the screen at this render pass,
+    // but it should not be here, and so swapchain info neither.
     auto& swapchain = m_engine.swapchain();
 
-    m_framebuffers.resize(swapchain.imageViews().size(), vulkan::Framebuffer{m_engine.device().vk()});
+    // Framebuffer
+    vk::FramebufferCreateInfo framebufferInfo;
+    framebufferInfo.renderPass = m_renderPass;
+    framebufferInfo.attachmentCount = 1;
+    framebufferInfo.pAttachments = &m_imageHolder.view();
+    framebufferInfo.width = swapchain.extent().width;
+    framebufferInfo.height = swapchain.extent().height;
+    framebufferInfo.layers = 1;
 
-    for (size_t i = 0; i < swapchain.imageViews().size(); i++) {
-        std::array<vk::ImageView, 1> attachments = {vk::ImageView(swapchain.imageViews()[i])};
-
-        vk::FramebufferCreateInfo framebufferInfo;
-        framebufferInfo.renderPass = m_renderPass;
-        framebufferInfo.attachmentCount = attachments.size();
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = swapchain.extent().width;
-        framebufferInfo.height = swapchain.extent().height;
-        framebufferInfo.layers = 1;
-
-        if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.render-engine.present") << "Failed to create framebuffers." << std::endl;
-        }
+    if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create framebuffers." << std::endl;
     }
 }
 
-void Present::shownImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
+// @todo Use helper function (merge with RmMaterial ones)
+void Epiphany::normalImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
     // @cleanup HPP
     const auto& vk_device = m_engine.device().vk();
@@ -322,6 +338,28 @@ void Present::shownImageView(const vk::ImageView& imageView, const vk::Sampler& 
     vk::WriteDescriptorSet descriptorWrite;
     descriptorWrite.dstSet = m_descriptorSet;
     descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+}
+
+void Epiphany::albedoImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
+{
+    // @cleanup HPP
+    const auto& vk_device = m_engine.device().vk();
+
+    vk::DescriptorImageInfo imageInfo;
+    // @note Correspond to the final layout specified at previous pass
+    imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    imageInfo.imageView = imageView;
+    imageInfo.sampler = sampler;
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = m_descriptorSet;
+    descriptorWrite.dstBinding = 1;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     descriptorWrite.descriptorCount = 1;
