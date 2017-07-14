@@ -18,19 +18,31 @@ using namespace lava::magma;
 using namespace lava::chamber;
 
 Present::Present(RenderEngine::Impl& engine)
-    : m_engine(engine)
-    , m_renderPass{m_engine.device().vk()}
-    , m_pipelineLayout{m_engine.device().vk()}
-    , m_pipeline{m_engine.device().vk()}
+    : IStage(engine)
+    , m_vertShaderModule{m_engine.device().vk()}
+    , m_fragShaderModule{m_engine.device().vk()}
     , m_descriptorPool{m_engine.device().vk()}
     , m_descriptorSetLayout{m_engine.device().vk()}
 {
 }
 
+//----- IStage
+
 void Present::init()
 {
+    logger.log() << "Initializing Present Stage." << std::endl;
+    logger.log().tab(1);
+
     // @cleanup HPP
     const auto& vk_device = m_engine.device().vk();
+
+    //----- Shaders
+
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.frag");
+
+    vulkan::createShaderModule(vk_device, vertShaderCode, m_vertShaderModule);
+    vulkan::createShaderModule(vk_device, fragShaderCode, m_fragShaderModule);
 
     //----- Descriptor pool
 
@@ -47,7 +59,7 @@ void Present::init()
     poolInfo.maxSets = 1u;
 
     if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.present") << "Failed to create descriptor pool." << std::endl;
+        logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor pool." << std::endl;
     }
 
     //----- Descriptor set layout
@@ -63,7 +75,7 @@ void Present::init()
     layoutInfo.pBindings = &layoutBinding;
 
     if (vk_device.createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.present") << "Failed to create material descriptor set layout." << std::endl;
+        logger.error("magma.vulkan.render-engine.present") << "Failed to create material descriptor set layout." << std::endl;
     }
 
     //----- Descriptor set
@@ -74,16 +86,28 @@ void Present::init()
     allocInfo.pSetLayouts = &m_descriptorSetLayout;
 
     if (vk_device.allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.present") << "Failed to create descriptor set." << std::endl;
+        logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor set." << std::endl;
     }
+
+    logger.log().tab(-1);
 }
 
-// @fixme Still should be a beginRender and endRender,
-// as we're going to bind the right image view to the descriptor
-// Or should we hold a descriptor? (Probably as that very specific to this step)
+void Present::update()
+{
+    logger.log() << "Updating Present stage." << std::endl;
+    logger.log().tab(1);
+
+    createRenderPass();
+    createGraphicsPipeline();
+    createResources();
+    createFramebuffers();
+
+    logger.log().tab(-1);
+}
+
 void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex)
 {
-    const auto& framebuffer = m_framebuffers[frameIndex];
+    //----- Prologue
 
     // Set render pass
     std::array<vk::ClearValue, 1> clearValues;
@@ -91,29 +115,31 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPass;
-    renderPassInfo.framebuffer = framebuffer;
+    renderPassInfo.framebuffer = m_framebuffers[frameIndex];
     renderPassInfo.renderArea.setOffset({0, 0});
     renderPassInfo.renderArea.setExtent(m_engine.swapchain().extent());
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
 
+    //----- Render
+
     // Bind pipeline
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
 
     // Draw
-    // @todo BIND VALID DESCRIPTOR
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
     commandBuffer.draw(6, 1, 0, 0);
 
-    // Epilogue
+    //----- Epilogue
+
     commandBuffer.endRenderPass();
 }
 
+//----- Internal
+
 void Present::createRenderPass()
 {
-    logger.info("magma.vulkan.present") << "Creating render pass." << std::endl;
-
     // @cleanup HPP
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
@@ -152,38 +178,25 @@ void Present::createRenderPass()
     renderPassInfo.setDependencyCount(1).setPDependencies(&dependency);
 
     if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.present") << "Failed to create render pass." << std::endl;
+        logger.error("magma.vulkan.render-engine.present") << "Failed to create render pass." << std::endl;
     }
 }
 
 void Present::createGraphicsPipeline()
 {
-    logger.info("magma.vulkan.present") << "Creating graphics pipeline." << std::endl;
-
-    // @todo Should not need to recreate the full pipeline each time (like shaders are already loaded)
-
     // @cleanup HPP Remove this second device, as it will be casted automatically
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/present.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/present.frag");
-
-    vulkan::Capsule<VkShaderModule> vertShaderModule{device.capsule(), vkDestroyShaderModule};
-    vulkan::Capsule<VkShaderModule> fragShaderModule{device.capsule(), vkDestroyShaderModule};
-
-    vulkan::createShaderModule(device, vertShaderCode, vertShaderModule);
-    vulkan::createShaderModule(device, fragShaderCode, fragShaderModule);
-
     // Shader stages
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(vk::ShaderModule(vertShaderModule)); // @cleanup HPP
+    vertShaderStageInfo.setModule(m_vertShaderModule);
     vertShaderStageInfo.setPName("main");
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    fragShaderStageInfo.setModule(vk::ShaderModule(fragShaderModule)); // @cleanup HPP
+    fragShaderStageInfo.setModule(m_fragShaderModule);
     fragShaderStageInfo.setPName("main");
 
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
@@ -240,7 +253,7 @@ void Present::createGraphicsPipeline()
     pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.present") << "Failed to create pipeline layout." << std::endl;
+        logger.error("magma.vulkan.render-engine.present") << "Failed to create pipeline layout." << std::endl;
     }
 
     // Graphics pipeline indeed
@@ -256,25 +269,21 @@ void Present::createGraphicsPipeline()
     pipelineInfo.setRenderPass(m_renderPass);
 
     if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.present") << "Failed to create graphics pipeline." << std::endl;
+        logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline." << std::endl;
     }
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.present") << "Failed to create graphics pipeline layout." << std::endl;
+        logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline layout." << std::endl;
     }
 }
 
 void Present::createResources()
 {
-    logger.info("magma.vulkan.present") << "Creating resources." << std::endl;
-
-    // __Note__: No vertex buffers - as this is a fixed thing, it is put in the vertex shader directly.
+    // __Note__: Nothing.
 }
 
 void Present::createFramebuffers()
 {
-    logger.info("magma.vulkan.present") << "Creating frame buffers." << std::endl;
-
     // @cleanup HPP
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
@@ -294,7 +303,7 @@ void Present::createFramebuffers()
         framebufferInfo.layers = 1;
 
         if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.present") << "Failed to create framebuffers." << std::endl;
+            logger.error("magma.vulkan.render-engine.present") << "Failed to create framebuffers." << std::endl;
         }
     }
 }

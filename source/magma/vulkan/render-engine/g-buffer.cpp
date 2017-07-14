@@ -6,16 +6,16 @@
 #include "../image.hpp"
 #include "../render-engine-impl.hpp"
 #include "../shader.hpp"
+#include "../user-data-render.hpp"
 #include "../vertex.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
 GBuffer::GBuffer(RenderEngine::Impl& engine)
-    : m_engine(engine)
-    , m_renderPass{m_engine.device().vk()}
-    , m_pipelineLayout{m_engine.device().vk()}
-    , m_pipeline{m_engine.device().vk()}
+    : IStage(engine)
+    , m_vertShaderModule{m_engine.device().vk()}
+    , m_fragShaderModule{m_engine.device().vk()}
     , m_normalImageHolder{m_engine.device()}
     , m_albedoImageHolder{m_engine.device()}
     , m_ormImageHolder{m_engine.device()}
@@ -24,8 +24,45 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
 {
 }
 
-void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer)
+//----- IStage
+
+void GBuffer::init()
 {
+    logger.log() << "Initializing G-Buffer stage." << std::endl;
+    logger.log().tab(1);
+
+    // @cleanup HPP
+    auto& device = m_engine.device();
+    const auto& vk_device = device.vk();
+
+    //----- Shaders
+
+    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/g-buffer.vert");
+    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/g-buffer.frag");
+
+    vulkan::createShaderModule(vk_device, vertShaderCode, m_vertShaderModule);
+    vulkan::createShaderModule(vk_device, fragShaderCode, m_fragShaderModule);
+
+    logger.log().tab(-1);
+}
+
+void GBuffer::update()
+{
+    logger.log() << "Updating G-Buffer stage." << std::endl;
+    logger.log().tab(1);
+
+    createRenderPass();
+    createGraphicsPipeline();
+    createResources();
+    createFramebuffers();
+
+    logger.log().tab(-1);
+}
+
+void GBuffer::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIndex*/)
+{
+    //----- Prologue
+
     // Set render pass
     std::array<vk::ClearValue, 4> clearValues;
     clearValues[0].setColor(std::array<float, 4>{0.f, 0.f, 0.f, 1.f});
@@ -44,17 +81,34 @@ void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer)
 
     // Bind pipeline
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
-}
 
-void GBuffer::endRender(const vk::CommandBuffer& commandBuffer)
-{
+    //----- Render
+
+    UserDataRenderIn userData;
+    userData.commandBuffer = &commandBuffer;
+    userData.pipelineLayout = &m_pipelineLayout;
+
+    // Draw all opaque meshes
+    for (auto& camera : m_engine.cameras()) {
+        camera->render(&userData);
+        for (auto& mesh : m_engine.meshes()) {
+            mesh->render(&userData);
+        }
+
+        // @todo Handle multiple cameras?
+        // -> Probably not
+        break;
+    }
+
+    //----- Epilogue
+
     commandBuffer.endRenderPass();
 }
 
+//----- Internal
+
 void GBuffer::createRenderPass()
 {
-    logger.info("magma.vulkan.g-buffer") << "Creating render pass." << std::endl;
-
     // @cleanup HPP
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
@@ -134,36 +188,25 @@ void GBuffer::createRenderPass()
     renderPassInfo.setDependencyCount(1).setPDependencies(&dependency);
 
     if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.g-buffer") << "Failed to create render pass." << std::endl;
+        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create render pass." << std::endl;
     }
 }
 
 void GBuffer::createGraphicsPipeline()
 {
-    logger.info("magma.vulkan.g-buffer") << "Creating graphics pipeline." << std::endl;
-
     // @cleanup HPP Remove this second device, as it will be casted automatically
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/g-buffer.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/g-buffer.frag");
-
-    vulkan::Capsule<VkShaderModule> vertShaderModule{device.capsule(), vkDestroyShaderModule};
-    vulkan::Capsule<VkShaderModule> fragShaderModule{device.capsule(), vkDestroyShaderModule};
-
-    vulkan::createShaderModule(device, vertShaderCode, vertShaderModule);
-    vulkan::createShaderModule(device, fragShaderCode, fragShaderModule);
-
     // Shader stages
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(vk::ShaderModule(vertShaderModule)); // @cleanup HPP
+    vertShaderStageInfo.setModule(m_vertShaderModule);
     vertShaderStageInfo.setPName("main");
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    fragShaderStageInfo.setModule(vk::ShaderModule(fragShaderModule)); // @cleanup HPP
+    fragShaderStageInfo.setModule(m_fragShaderModule);
     fragShaderStageInfo.setPName("main");
 
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
@@ -251,7 +294,7 @@ void GBuffer::createGraphicsPipeline()
     pipelineLayoutInfo.setSetLayoutCount(setLayouts.size()).setPSetLayouts(setLayouts.data());
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.g-buffer") << "Failed to create pipeline layout." << std::endl;
+        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create pipeline layout." << std::endl;
     }
 
     // Graphics pipeline indeed
@@ -268,18 +311,16 @@ void GBuffer::createGraphicsPipeline()
     pipelineInfo.setRenderPass(m_renderPass);
 
     if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.g-buffer") << "Failed to create graphics pipeline." << std::endl;
+        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create graphics pipeline." << std::endl;
     }
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.g-buffer") << "Failed to create graphics pipeline layout." << std::endl;
+        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create graphics pipeline layout." << std::endl;
     }
 }
 
 void GBuffer::createResources()
 {
-    logger.info("magma.vulkan.g-buffer") << "Creating resources." << std::endl;
-
     auto extent = m_engine.swapchain().extent();
 
     // Normal
@@ -324,8 +365,6 @@ void GBuffer::createResources()
 
 void GBuffer::createFramebuffers()
 {
-    logger.info("magma.vulkan.g-buffer") << "Creating frame buffers." << std::endl;
-
     // @cleanup HPP
     const auto& vk_device = m_engine.device().vk();
 
@@ -346,6 +385,6 @@ void GBuffer::createFramebuffers()
     framebufferInfo.layers = 1;
 
     if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.g-buffer") << "Failed to create framebuffers." << std::endl;
+        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create framebuffers." << std::endl;
     }
 }

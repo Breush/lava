@@ -16,7 +16,6 @@
 #include "./queue.hpp"
 #include "./shader.hpp"
 #include "./tools.hpp"
-#include "./user-data-render.hpp"
 #include "./vertex.hpp"
 
 using namespace lava::magma;
@@ -188,31 +187,30 @@ void RenderEngine::Impl::createDescriptorSetLayouts()
     }
 }
 
-void RenderEngine::Impl::createPipelines()
+void RenderEngine::Impl::initStages()
 {
-    logger.info("magma.vulkan.render-engine") << "Creating render pipelines." << std::endl;
+    logger.info("magma.vulkan.render-engine") << "Initializing render stages." << std::endl;
+    logger.log().tab(1);
 
-    // @todo Could be just one step 'create()' for each pass
+    m_gBuffer.init();
+    m_present.init();
 
-    // Render passes
-    m_gBuffer.createRenderPass();
-    m_present.createRenderPass();
+    logger.log().tab(-1);
+}
 
-    // Pipelines
-    m_gBuffer.createGraphicsPipeline();
-    m_present.createGraphicsPipeline();
+void RenderEngine::Impl::updateStages()
+{
+    logger.info("magma.vulkan.render-engine") << "Updating render stages." << std::endl;
+    logger.log().tab(1);
 
-    // Resources
-    m_gBuffer.createResources();
-    m_present.createResources();
+    m_gBuffer.update();
+    m_present.update();
 
-    // Framebuffers
-    m_gBuffer.createFramebuffers();
-    m_present.createFramebuffers();
-
-    //----- Pipelines set-up
+    // Set-up
     // @cleanup HPP
     m_present.shownImageView(m_gBuffer.ormImageView(), vk::Sampler(m_textureSampler));
+
+    logger.log().tab(-1);
 }
 
 void RenderEngine::Impl::createCommandPool()
@@ -413,44 +411,14 @@ VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
     vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eSimultaneousUse};
     commandBuffer.begin(&beginInfo);
 
-    UserDataRenderIn userData;
-    userData.commandBuffer = &commandBuffer;
+    //----- Render
 
-    //----- G-Buffer
-
-    // @todo We should not need to pass index, this is oonly needed because GBuffer presents to swapchain image views
-    m_gBuffer.beginRender(commandBuffer);
-
-    // @todo This definitly should be in the GBuffer render()
-    userData.pipelineLayout = &m_gBuffer.pipelineLayout();
-
-    // Draw all opaque meshes
-    for (auto& camera : m_cameras) {
-        camera->render(&userData);
-        for (auto& mesh : m_meshes) {
-            mesh->render(&userData);
-        }
-
-        // @todo Handle multiple cameras?
-        // -> Probably not
-        break;
-    }
-
-    m_gBuffer.endRender(commandBuffer);
-
-    //----- Custom materials
-
-    // @todo userData.pipelineLayout = -> current shader
-
-    //----- Present
-
+    m_gBuffer.render(commandBuffer, index);
     m_present.render(commandBuffer, index);
 
     //----- Epilogue
 
-    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-        logger.error("magma.vulkan.command-buffer") << "Failed to record command buffer." << std::endl;
-    }
+    commandBuffer.end();
 
     return m_commandBuffers[index]; // @cleanup HPP
 }
@@ -501,7 +469,7 @@ void RenderEngine::Impl::recreateSwapchain()
 
     m_swapchain.init(m_surface, m_windowExtent);
 
-    createPipelines();
+    updateStages();
     createCommandBuffers();
 }
 
@@ -516,11 +484,8 @@ void RenderEngine::Impl::initVulkan()
     createDescriptorSetLayouts();
     createDummyTexture();
     createTextureSampler();
-
-    // @todo Should be initPipelines()
-    m_present.init();
-    createPipelines();
-
+    initStages();
+    updateStages();
     createDescriptorPool();
     createCommandBuffers();
     createSemaphores();

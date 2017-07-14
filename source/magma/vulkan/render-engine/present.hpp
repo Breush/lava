@@ -1,5 +1,7 @@
 #pragma once
 
+#include "./i-stage.hpp"
+
 #include <lava/magma/render-engine.hpp>
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -11,31 +13,27 @@ namespace lava::magma {
     /**
      * Pipeline layout for the final step of presenting to the screen.
      */
-    class Present {
+    class Present final : public IStage {
     public:
         Present(RenderEngine::Impl& engine);
 
-        void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
+        // IStage
+        void init() override final;
+        void update() override final;
+        void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) override final;
 
-        void init();
+        void shownImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
 
-        // @todo Should be only recreate()
+    protected:
         void createRenderPass();
         void createGraphicsPipeline();
         void createResources();
         void createFramebuffers();
 
-        void shownImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
-
     private:
-        RenderEngine::Impl& m_engine;
-
-        // Render pipeline
-        vulkan::RenderPass m_renderPass;
-        vulkan::PipelineLayout m_pipelineLayout;
-        vulkan::Pipeline m_pipeline;
-
         // Resources
+        vulkan::ShaderModule m_vertShaderModule;
+        vulkan::ShaderModule m_fragShaderModule;
         vulkan::DescriptorPool m_descriptorPool;
         vulkan::DescriptorSetLayout m_descriptorSetLayout;
         vk::DescriptorSet m_descriptorSet;

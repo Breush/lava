@@ -58,6 +58,9 @@
         "typeinfo": "cpp",
         "string": "cpp",
         "vector": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "atomic": "cpp",
+        "bitset": "cpp",
+        "cinttypes": "cpp"
     }
 }

@@ -9,6 +9,23 @@
 
 #include "./capsule.hpp"
 
+namespace lava::magma::vulkan {
+    inline void createShaderModule(vk::Device device, const std::vector<uint8_t>& code, vulkan::ShaderModule& shaderModule)
+    {
+        vk::ShaderModuleCreateInfo createInfo;
+        createInfo.codeSize = code.size();
+
+        // We need to realigned the data as the shader module require an uint32_t array
+        std::vector<uint32_t> codeAligned(code.size() / sizeof(uint32_t) + 1);
+        memcpy(codeAligned.data(), code.data(), code.size());
+        createInfo.pCode = codeAligned.data();
+
+        if (device.createShaderModule(&createInfo, nullptr, shaderModule.replace()) != vk::Result::eSuccess) {
+            chamber::logger.error("magma.vulkan.shader") << "Failed to create shader module" << std::endl;
+        }
+    }
+}
+
 // @todo This is going to be so complicated, it needs its own library
 // (as it might help other people too).
 
@@ -154,8 +171,7 @@ namespace lava::magma::vulkan {
         // Null-terminated string
         buffer.emplace_back(0);
 
-        chamber::logger.info("magma.vulkan.shader")
-            << "Reading GLSL shader file '" << filename << "' (" << fileSize << "B)." << std::endl;
+        chamber::logger.log() << "Reading GLSL shader file '" << filename << "' (" << fileSize << "B)." << std::endl;
 
         glslang::InitializeProcess();
 

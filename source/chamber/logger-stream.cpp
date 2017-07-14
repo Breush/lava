@@ -20,7 +20,7 @@ LoggerStream& LoggerStream::operator[](uint8_t i)
 
 LoggerStream& LoggerStream::tab(int8_t i)
 {
-    const std::string tab("    ");
+    const std::string tab("| ");
     if (i > 0) {
         m_prefixString += tab * i;
     }

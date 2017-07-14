@@ -40,9 +40,18 @@ namespace lava::magma {
         void add(IRenderTarget& renderTarget);
         /// @}
 
+        /**
+         * @name Internal interface
+         */
+        /// @{
+        const std::vector<std::unique_ptr<ICamera>>& cameras() const { return m_cameras; }
+        const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
+        /// @}
+
     protected:
         // Pipelines
-        void createPipelines();
+        void initStages();
+        void updateStages();
         void createSemaphores();
 
         // Textures
