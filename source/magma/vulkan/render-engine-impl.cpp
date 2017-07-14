@@ -208,7 +208,7 @@ void RenderEngine::Impl::updateStages()
 
     // Set-up
     // @cleanup HPP
-    m_present.shownImageView(m_gBuffer.ormImageView(), vk::Sampler(m_textureSampler));
+    m_present.shownImageView(m_gBuffer.normalImageView(), vk::Sampler(m_textureSampler));
 
     logger.log().tab(-1);
 }

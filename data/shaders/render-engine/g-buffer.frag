@@ -29,11 +29,10 @@ layout(set = 1, binding = 2) uniform sampler2D albedoSampler;
 layout(set = 1, binding = 3) uniform sampler2D ormSampler;
 #endif
 
-//----- Fragment in
+//----- Fragment forwarded in
 
-layout(location = 0) in vec3 inTPosition;
-layout(location = 1) in vec2 inUv;
-layout(location = 2) in vec3 inTEyePosition;
+layout(location = 0) in mat3 inTbn;
+layout(location = 3) in vec2 inUv;
 
 //----- Out data
 
@@ -48,7 +47,7 @@ void main()
     // Normal
     vec3 normal = vec3(0, 0, 1);
 #if defined(MAGMA_HAS_NORMAL_SAMPLER)
-	normal = texture(tNormalSampler, inUv).rgb;
+	normal = 2 * texture(tNormalSampler, inUv).rgb - 1;
 #endif
 
     // Albedo
@@ -78,11 +77,8 @@ void main()
     occlusion *= orm.r;
 #endif
 
-    // Depth
-    float depth = length(inTEyePosition - inTPosition);
-    
     // Out
-    outNormal = normal;
+    outNormal = ((inTbn * normal) + 1) / 2;
     outAlbedo = albedo;
     outOrm = vec3(occlusion, roughness, metallic);
 }

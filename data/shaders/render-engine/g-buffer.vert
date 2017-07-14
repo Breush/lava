@@ -6,7 +6,6 @@
 layout(set = 0, binding = 0) uniform CameraUbo {
     mat4 viewTransform;
     mat4 projectionTransform;
-    vec4 wPosition; // @todo Redundant wih viewTransform
 } camera;
 
 //----- Set 1 - Material
@@ -26,9 +25,8 @@ layout(location = 3) in vec4 inMTangent;
 
 //----- Fragment forwarded out
 
-layout(location = 0) out vec3 outTPosition;
-layout(location = 1) out vec2 outUv;
-layout(location = 2) out vec3 outTEyePosition;
+layout(location = 0) out mat3 outTbn;
+layout(location = 3) out vec2 outUv;
 
 //----- Out
 
@@ -39,20 +37,17 @@ out gl_PerVertex {
 //----- Program
 
 void main() {
-    mat4 VM4 = camera.viewTransform * mesh.transform;
-    mat3 VM3 = mat3(VM4);
+    mat3 M3 = mat3(mesh.transform);
 
-    vec4 vPosition = VM4 * vec4(inMPosition, 1);
+    vec4 vPosition = camera.viewTransform * mesh.transform * vec4(inMPosition, 1);
     gl_Position = camera.projectionTransform * vPosition;
 
-    // Lights
-    vec3 vNormal = normalize(VM3 * inMNormal);
-    vec3 vTangent = normalize(VM3 * inMTangent.xyz);
+    // Tangent-space
+    vec3 vNormal = normalize(M3 * inMNormal);
+    vec3 vTangent = normalize(M3 * inMTangent.xyz);
     vTangent = normalize(vTangent - vNormal * dot(vNormal, vTangent)); // Orthogonalization
     vec3 vBitangent = normalize(cross(vNormal, vTangent) * inMTangent.w);
-    mat3 tbn = transpose(mat3(vTangent, vBitangent, vNormal));
 
-    outTPosition = tbn * vPosition.xyz;
-    outTEyePosition = tbn * (camera.viewTransform * camera.wPosition).xyz;
+    outTbn = mat3(vTangent, vBitangent, vNormal);
     outUv = inUv;
 }
