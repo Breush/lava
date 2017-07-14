@@ -209,6 +209,10 @@ void RenderEngine::Impl::createPipelines()
     // Framebuffers
     m_gBuffer.createFramebuffers();
     m_present.createFramebuffers();
+
+    //----- Pipelines set-up
+    // @cleanup HPP
+    m_present.shownImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
 }
 
 void RenderEngine::Impl::createCommandPool()
@@ -510,17 +514,12 @@ void RenderEngine::Impl::initVulkan()
 
     createCommandPool();
     createDescriptorSetLayouts();
-
-    // @todo Should be initPipelines()
-    m_present.init();
-
-    createPipelines();
     createDummyTexture();
     createTextureSampler();
 
-    // @todo Pipelines set-up
-    // @cleanup HPP
-    m_present.shownImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
+    // @todo Should be initPipelines()
+    m_present.init();
+    createPipelines();
 
     createDescriptorPool();
     createCommandBuffers();

@@ -18,7 +18,7 @@ if [ $? -eq 0 ]; then
 
     if [ "$2" == "debug" ]; then
         echo "... in debug mode."
-        EXECUTABLE="gdb ${EXECUTABLE} --quiet --directory=./external/source/vulkan/layers"
+        EXECUTABLE="gdb --quiet --directory=./external/source/vulkan/layers -ex run ${EXECUTABLE}"
     fi
 
     ${EXECUTABLE}
