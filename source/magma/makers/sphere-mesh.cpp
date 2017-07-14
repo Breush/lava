@@ -103,9 +103,12 @@ std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, f
         // Tangents
         std::vector<glm::vec4> tangents;
         tangents.reserve(positions.size());
-        for (const auto& position : positions) {
+        tangents.emplace_back(1.f, 0.f, 0.f, 1.f);
+        for (auto i = 1u; i < positions.size() - 1u; ++i) {
+            const auto& position = positions[i];
             tangents.emplace_back(glm::normalize(glm::vec3(-position.y, position.x, 0.f)), 1.f);
         }
+        tangents.emplace_back(1.f, 0.f, 0.f, 1.f);
 
         mesh.verticesCount(positions.size());
         mesh.verticesPositions(positions);

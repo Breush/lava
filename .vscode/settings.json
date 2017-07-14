@@ -4,10 +4,12 @@
         "**/*.make": true,
         "**/*.spv": true,
         "build/": true,
-        "doc/html": true,
+        "doc/technical/html": true,
         "external/lib": true,
         "external/bin": true,
-        "external/etc": true
+        "external/etc": true,
+        "external/source": true,
+        "assets": true
     },
 
     "C_Cpp.clang_format_sortIncludes": true,
