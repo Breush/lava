@@ -27,6 +27,7 @@ namespace lava::magma {
 
         const vulkan::ImageView& normalImageView() const { return m_normalImageHolder.view(); }
         const vulkan::ImageView& albedoImageView() const { return m_albedoImageHolder.view(); }
+        const vulkan::ImageView& ormImageView() const { return m_ormImageHolder.view(); }
         const vulkan::ImageView& depthImageView() const { return m_depthImageHolder.view(); }
 
     private:
@@ -40,6 +41,7 @@ namespace lava::magma {
         // Resources
         vulkan::ImageHolder m_normalImageHolder;
         vulkan::ImageHolder m_albedoImageHolder;
+        vulkan::ImageHolder m_ormImageHolder;
         vulkan::ImageHolder m_depthImageHolder;
         vulkan::Framebuffer m_framebuffer;
     };

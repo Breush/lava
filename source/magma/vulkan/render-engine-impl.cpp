@@ -212,7 +212,7 @@ void RenderEngine::Impl::createPipelines()
 
     //----- Pipelines set-up
     // @cleanup HPP
-    m_present.shownImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
+    m_present.shownImageView(m_gBuffer.ormImageView(), vk::Sampler(m_textureSampler));
 }
 
 void RenderEngine::Impl::createCommandPool()

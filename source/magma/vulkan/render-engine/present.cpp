@@ -160,6 +160,8 @@ void Present::createGraphicsPipeline()
 {
     logger.info("magma.vulkan.present") << "Creating graphics pipeline." << std::endl;
 
+    // @todo Should not need to recreate the full pipeline each time (like shaders are already loaded)
+
     // @cleanup HPP Remove this second device, as it will be casted automatically
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
@@ -303,7 +305,8 @@ void Present::shownImageView(const vk::ImageView& imageView, const vk::Sampler& 
     const auto& vk_device = m_engine.device().vk();
 
     vk::DescriptorImageInfo imageInfo;
-    imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal; // @fixme Why not eShaderReadOnlyOptimal ?
+    // @note Correspond to the final layout specified at previous pass
+    imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
     imageInfo.imageView = imageView;
     imageInfo.sampler = sampler;
 

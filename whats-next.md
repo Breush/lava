@@ -28,7 +28,6 @@
 - **up**
     - Remove swapchain from GBuffer
         - Set extent at creation (remove swapchain info from there)
-        - Have our own presentation pass 
     - Light Linked List Renderer
         - G-Buffer 
         - Fill linked list

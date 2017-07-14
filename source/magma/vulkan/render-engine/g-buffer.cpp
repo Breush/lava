@@ -18,6 +18,7 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
     , m_pipeline{m_engine.device().vk()}
     , m_normalImageHolder{m_engine.device()}
     , m_albedoImageHolder{m_engine.device()}
+    , m_ormImageHolder{m_engine.device()}
     , m_depthImageHolder{m_engine.device()}
     , m_framebuffer{m_engine.device().vk()}
 {
@@ -26,10 +27,11 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
 void GBuffer::beginRender(const vk::CommandBuffer& commandBuffer)
 {
     // Set render pass
-    std::array<vk::ClearValue, 3> clearValues;
+    std::array<vk::ClearValue, 4> clearValues;
     clearValues[0].setColor(std::array<float, 4>{0.f, 0.f, 0.f, 1.f});
     clearValues[1].setColor(std::array<float, 4>{0.f, 0.f, 0.f, 1.f});
-    clearValues[2].setDepthStencil({1.f, 0u});
+    clearValues[2].setColor(std::array<float, 4>{1.f, 0.f, 0.f, 1.f});
+    clearValues[3].setDepthStencil({1.f, 0u});
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.setRenderPass(m_renderPass);
@@ -68,7 +70,7 @@ void GBuffer::createRenderPass()
     normalAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
     normalAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
     normalAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    normalAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR); // @todo This decides what's shown
+    normalAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     // Albedo attachement
     vk::Format albedoAttachmentFormat = vk::Format::eB8G8R8A8Unorm;
@@ -81,12 +83,25 @@ void GBuffer::createRenderPass()
     albedoAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
     albedoAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
     albedoAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    albedoAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal); // @todo what does this really mean?
+    albedoAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+    // ORM attachement
+    vk::Format ormAttachmentFormat = vk::Format::eB8G8R8A8Unorm;
+    vk::AttachmentReference ormAttachmentRef{2, vk::ImageLayout::eColorAttachmentOptimal};
+
+    vk::AttachmentDescription ormAttachment;
+    ormAttachment.setFormat(ormAttachmentFormat);
+    ormAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    ormAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    ormAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    ormAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    ormAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    ormAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     // Depth attachement
     vk::Format depthAttachmentFormat =
         static_cast<vk::Format>(vulkan::findDepthBufferFormat(device.physicalDevice())); // @cleanup HPP
-    vk::AttachmentReference depthAttachmentRef{2, vk::ImageLayout::eDepthStencilAttachmentOptimal};
+    vk::AttachmentReference depthAttachmentRef{3, vk::ImageLayout::eDepthStencilAttachmentOptimal};
 
     vk::AttachmentDescription depthAttachment;
     depthAttachment.setFormat(depthAttachmentFormat);
@@ -97,8 +112,8 @@ void GBuffer::createRenderPass()
     depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
     depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-    std::array<vk::AttachmentReference, 2> colorAttachmentsRefs = {normalAttachmentRef, albedoAttachmentRef};
-    std::array<vk::AttachmentDescription, 3> attachments = {normalAttachment, albedoAttachment, depthAttachment};
+    std::array<vk::AttachmentReference, 3> colorAttachmentsRefs = {normalAttachmentRef, albedoAttachmentRef, ormAttachmentRef};
+    std::array<vk::AttachmentDescription, 4> attachments = {normalAttachment, albedoAttachment, ormAttachment, depthAttachment};
 
     // Subpass
     vk::SubpassDescription subpass;
@@ -211,7 +226,12 @@ void GBuffer::createGraphicsPipeline()
     albedoBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
                                             | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
-    std::array<vk::PipelineColorBlendAttachmentState, 2> colorBlendAttachments = {normalBlendAttachment, albedoBlendAttachment};
+    vk::PipelineColorBlendAttachmentState ormBlendAttachment;
+    ormBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
+                                         | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+
+    std::array<vk::PipelineColorBlendAttachmentState, 3> colorBlendAttachments = {normalBlendAttachment, albedoBlendAttachment,
+                                                                                  ormBlendAttachment};
 
     vk::PipelineColorBlendStateCreateInfo colorBlending;
     colorBlending.setLogicOp(vk::LogicOp::eCopy);
@@ -282,6 +302,15 @@ void GBuffer::createResources()
                                   reinterpret_cast<VkImageLayout&>(albedoOldLayout),
                                   reinterpret_cast<VkImageLayout&>(albedoNewLayout));
 
+    // ORM
+    auto ormFormat = vk::Format::eB8G8R8A8Unorm;
+    // @cleanup HPP
+    m_ormImageHolder.create(ormFormat, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
+    vk::ImageLayout ormOldLayout = vk::ImageLayout::ePreinitialized;
+    vk::ImageLayout ormNewLayout = vk::ImageLayout::eTransferDstOptimal;
+    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool(), m_ormImageHolder.image().castOld(),
+                                  reinterpret_cast<VkImageLayout&>(ormOldLayout), reinterpret_cast<VkImageLayout&>(ormNewLayout));
+
     // Depth
     auto depthFormat = vulkan::findDepthBufferFormat(m_engine.device().physicalDevice());
     // @cleanup HPP
@@ -305,7 +334,7 @@ void GBuffer::createFramebuffers()
     auto& swapchain = m_engine.swapchain();
 
     // Framebuffer
-    std::array<vk::ImageView, 3> attachments = {m_normalImageHolder.view(), m_albedoImageHolder.view(),
+    std::array<vk::ImageView, 4> attachments = {m_normalImageHolder.view(), m_albedoImageHolder.view(), m_ormImageHolder.view(),
                                                 m_depthImageHolder.view()};
 
     vk::FramebufferCreateInfo framebufferInfo;
