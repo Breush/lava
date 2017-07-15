@@ -25,12 +25,12 @@ namespace lava::magma {
 
         // ICamera
         ICamera::UserData render(ICamera::UserData data);
+        const glm::vec3& position() const { return m_position; }
 
         // OrbitCamera
         const glm::mat4& viewTransform() const { return m_viewTransform; }
         const glm::mat4& projectionTransform() const { return m_projectionTransform; }
 
-        const glm::vec3& position() const { return m_position; }
         void position(const glm::vec3& position);
         const glm::vec3& target() const { return m_target; }
         void target(const glm::vec3& target);

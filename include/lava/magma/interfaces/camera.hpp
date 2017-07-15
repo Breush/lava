@@ -20,5 +20,8 @@ namespace lava::magma {
 
         /// Render the camera (bind it).
         virtual UserData render(UserData data) = 0;
+
+        /// Its world position.
+        virtual const glm::vec3& position() const = 0;
     };
 }

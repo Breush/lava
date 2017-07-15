@@ -1,10 +1,19 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout(set = 0, binding = 0) uniform CameraUbo {
+    vec3 wPosition;
+} camera;
+
+// @todo To be replaced by LLL
+layout(set = 0, binding = 1) uniform LightUbo {
+    vec3 wPosition;
+} light;
+
 // @todo Add world position (or just depth?)
 vec3 wPosition = vec3(1, 0, 0);
-layout(set = 0, binding = 0) uniform sampler2D normalSampler;
-layout(set = 0, binding = 1) uniform sampler2D albedoSampler;
+layout(set = 0, binding = 2) uniform sampler2D normalSampler;
+layout(set = 0, binding = 3) uniform sampler2D albedoSampler;
 
 //----- Fragment in
 
@@ -16,10 +25,6 @@ layout(location = 0) out vec3 outColor;
 
 //----- Program
 
-// @todo Get the lights and such from the program, via an LLL
-vec3 wEyePosition = vec3(5, 5, 5);
-vec3 wLightPosition = vec3(3, -3, 0);
-
 void main()
 {
     vec3 albedo = texture(albedoSampler, inUv).xyz;
@@ -29,15 +34,16 @@ void main()
     float ka = 0.2;
     float kd = 0.7;
     float ks = 0.2;
-    float alpha = 10;
+    float alpha = 2;
 
     // For each light
+    // @note Distance should affect intensity
     float ia = 1;
     float id = 1;
     float is = 1;
 
-    vec3 l = normalize(wLightPosition - wPosition);
-    vec3 v = normalize(wEyePosition - wPosition);
+    vec3 l = normalize(light.wPosition - wPosition);
+    vec3 v = normalize(camera.wPosition - wPosition);
     float cosTheta = dot(normal, l);
     vec3 r = normalize(2 * cosTheta * normal - l);
     float cosOmega = dot(r, v);

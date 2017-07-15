@@ -9,6 +9,14 @@
 #include "../vertex.hpp"
 
 namespace {
+    struct CameraUbo {
+        glm::vec3 wPosition;
+    };
+
+    struct LightUbo {
+        glm::vec3 wPosition;
+    };
+
     struct Vertex {
         glm::vec2 position;
     };
@@ -25,6 +33,14 @@ Epiphany::Epiphany(RenderEngine::Impl& engine)
     , m_descriptorSetLayout{m_engine.device().vk()}
     , m_imageHolder{m_engine.device()}
     , m_framebuffer{m_engine.device().vk()}
+    , m_cameraUniformStagingBuffer{m_engine.device().vk()}
+    , m_cameraUniformStagingBufferMemory{m_engine.device().vk()}
+    , m_cameraUniformBuffer{m_engine.device().vk()}
+    , m_cameraUniformBufferMemory{m_engine.device().vk()}
+    , m_lightUniformStagingBuffer{m_engine.device().vk()}
+    , m_lightUniformStagingBufferMemory{m_engine.device().vk()}
+    , m_lightUniformBuffer{m_engine.device().vk()}
+    , m_lightUniformBufferMemory{m_engine.device().vk()}
 {
 }
 
@@ -51,14 +67,16 @@ void Epiphany::init()
     // @todo Should we really have so many pools?
     // Maybe just one in a central place.
 
-    vk::DescriptorPoolSize poolSize;
-    poolSize.type = vk::DescriptorType::eCombinedImageSampler;
-    poolSize.descriptorCount = 2u;
+    std::array<vk::DescriptorPoolSize, 2> poolSizes;
+    poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
+    poolSizes[0].descriptorCount = 2u;
+    poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
+    poolSizes[1].descriptorCount = 2u;
 
     vk::DescriptorPoolCreateInfo poolInfo;
-    poolInfo.poolSizeCount = 1u;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 2u;
+    poolInfo.poolSizeCount = poolSizes.size();
+    poolInfo.pPoolSizes = poolSizes.data();
+    poolInfo.maxSets = 4u;
 
     if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor pool." << std::endl;
@@ -66,19 +84,32 @@ void Epiphany::init()
 
     //----- Descriptor set layout
 
-    vk::DescriptorSetLayoutBinding normallayoutBinding;
-    normallayoutBinding.binding = 0;
-    normallayoutBinding.descriptorCount = 1;
-    normallayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    normallayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+    vk::DescriptorSetLayoutBinding cameraUboLayoutBinding;
+    cameraUboLayoutBinding.binding = 0;
+    cameraUboLayoutBinding.descriptorCount = 1;
+    cameraUboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    cameraUboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+    vk::DescriptorSetLayoutBinding lightUboLayoutBinding;
+    lightUboLayoutBinding.binding = 1;
+    lightUboLayoutBinding.descriptorCount = 1;
+    lightUboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    lightUboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+    vk::DescriptorSetLayoutBinding normalLayoutBinding;
+    normalLayoutBinding.binding = 2;
+    normalLayoutBinding.descriptorCount = 1;
+    normalLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    normalLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
     vk::DescriptorSetLayoutBinding albedoLayoutBinding;
-    albedoLayoutBinding.binding = 1;
+    albedoLayoutBinding.binding = 3;
     albedoLayoutBinding.descriptorCount = 1;
     albedoLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     albedoLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-    std::array<vk::DescriptorSetLayoutBinding, 2> bindings = {normallayoutBinding, albedoLayoutBinding};
+    std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {cameraUboLayoutBinding, lightUboLayoutBinding, normalLayoutBinding,
+                                                              albedoLayoutBinding};
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
     layoutInfo.bindingCount = bindings.size();
     layoutInfo.pBindings = bindings.data();
@@ -97,6 +128,53 @@ void Epiphany::init()
     if (vk_device.allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor set." << std::endl;
     }
+
+    //----- Uniform buffers
+
+    // @todo Have helpers - a Buffer Holder!
+    // Create uniform buffers
+    vk::DeviceSize cameraBufferSize = sizeof(CameraUbo);
+    vk::DeviceSize lightBufferSize = sizeof(LightUbo);
+
+    vk::BufferUsageFlags bufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
+    vk::MemoryPropertyFlags memoryPropertyFlags =
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    vulkan::createBuffer(m_engine.device(), cameraBufferSize, bufferUsageFlags, memoryPropertyFlags, m_cameraUniformStagingBuffer,
+                         m_cameraUniformStagingBufferMemory);
+    vulkan::createBuffer(m_engine.device(), lightBufferSize, bufferUsageFlags, memoryPropertyFlags, m_lightUniformStagingBuffer,
+                         m_lightUniformStagingBufferMemory);
+
+    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer;
+    memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+    vulkan::createBuffer(m_engine.device(), cameraBufferSize, bufferUsageFlags, memoryPropertyFlags, m_cameraUniformBuffer,
+                         m_cameraUniformBufferMemory);
+    vulkan::createBuffer(m_engine.device(), lightBufferSize, bufferUsageFlags, memoryPropertyFlags, m_lightUniformBuffer,
+                         m_lightUniformBufferMemory);
+
+    // Set them up
+    vk::DescriptorBufferInfo cameraBufferInfo;
+    cameraBufferInfo.buffer = m_cameraUniformBuffer;
+    cameraBufferInfo.range = sizeof(CameraUbo);
+
+    vk::DescriptorBufferInfo lightBufferInfo;
+    lightBufferInfo.buffer = m_lightUniformBuffer;
+    lightBufferInfo.range = sizeof(LightUbo);
+
+    std::array<vk::WriteDescriptorSet, 2> descriptorWrites;
+
+    descriptorWrites[0].dstSet = m_descriptorSet;
+    descriptorWrites[0].dstBinding = 0u;
+    descriptorWrites[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pBufferInfo = &cameraBufferInfo;
+
+    descriptorWrites[1].dstSet = m_descriptorSet;
+    descriptorWrites[1].dstBinding = 1u;
+    descriptorWrites[1].descriptorType = vk::DescriptorType::eUniformBuffer;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pBufferInfo = &lightBufferInfo;
+
+    vk_device.updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 
     logger.log().tab(-1);
 }
@@ -130,6 +208,9 @@ void Epiphany::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIn
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
+
+    // Update UBOs
+    updateUbos();
 
     //----- Render
 
@@ -337,7 +418,7 @@ void Epiphany::normalImageView(const vk::ImageView& imageView, const vk::Sampler
 
     vk::WriteDescriptorSet descriptorWrite;
     descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstBinding = 2;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     descriptorWrite.descriptorCount = 1;
@@ -359,11 +440,51 @@ void Epiphany::albedoImageView(const vk::ImageView& imageView, const vk::Sampler
 
     vk::WriteDescriptorSet descriptorWrite;
     descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 1;
+    descriptorWrite.dstBinding = 3;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
     vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+}
+
+void Epiphany::updateUbos()
+{
+    // @cleanup HPP
+    const auto& vk_device = m_engine.device().vk();
+
+    //----- Camera UBO
+
+    if (m_engine.cameras().size() > 0) {
+        CameraUbo ubo;
+        ubo.wPosition = m_engine.camera(0).position();
+
+        void* data;
+        vk::MemoryMapFlags memoryMapFlags;
+        vk_device.mapMemory(m_cameraUniformStagingBufferMemory, 0, sizeof(CameraUbo), memoryMapFlags, &data);
+        memcpy(data, &ubo, sizeof(CameraUbo));
+        vk_device.unmapMemory(m_cameraUniformStagingBufferMemory);
+
+        // @cleanup HPP
+        vulkan::copyBuffer(m_engine.device(), vk::CommandPool(m_engine.commandPool()), m_cameraUniformStagingBuffer,
+                           m_cameraUniformBuffer, sizeof(CameraUbo));
+    }
+
+    //----- Light UBO
+
+    if (m_engine.pointLights().size() > 0) {
+        CameraUbo ubo;
+        ubo.wPosition = m_engine.pointLight(0).position();
+
+        void* data;
+        vk::MemoryMapFlags memoryMapFlags;
+        vk_device.mapMemory(m_lightUniformStagingBufferMemory, 0, sizeof(LightUbo), memoryMapFlags, &data);
+        memcpy(data, &ubo, sizeof(LightUbo));
+        vk_device.unmapMemory(m_lightUniformStagingBufferMemory);
+
+        // @cleanup HPP
+        vulkan::copyBuffer(m_engine.device(), vk::CommandPool(m_engine.commandPool()), m_lightUniformStagingBuffer,
+                           m_lightUniformBuffer, sizeof(LightUbo));
+    }
 }

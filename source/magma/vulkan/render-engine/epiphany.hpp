@@ -28,6 +28,8 @@ namespace lava::magma {
         void createResources();
         void createFramebuffers();
 
+        void updateUbos();
+
     private:
         // Resources
         vulkan::ShaderModule m_vertShaderModule;
@@ -37,5 +39,16 @@ namespace lava::magma {
         vk::DescriptorSet m_descriptorSet;
         vulkan::ImageHolder m_imageHolder;
         vulkan::Framebuffer m_framebuffer;
+
+        // @todo Make BufferHolder (Uniform only?)
+        vulkan::Buffer m_cameraUniformStagingBuffer;
+        vulkan::DeviceMemory m_cameraUniformStagingBufferMemory;
+        vulkan::Buffer m_cameraUniformBuffer;
+        vulkan::DeviceMemory m_cameraUniformBufferMemory;
+
+        vulkan::Buffer m_lightUniformStagingBuffer;
+        vulkan::DeviceMemory m_lightUniformStagingBufferMemory;
+        vulkan::Buffer m_lightUniformBuffer;
+        vulkan::DeviceMemory m_lightUniformBufferMemory;
     };
 }

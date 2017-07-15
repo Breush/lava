@@ -26,6 +26,7 @@
 ## Magma
 
 - **up**
+    - Have BufferHolder - refactoring epiphany uniform buffers
     - Remove swapchain from GBuffer
         - Set extent at creation (remove swapchain info from there)
     - Light Linked List Renderer
@@ -38,6 +39,8 @@
             - PBR Epiphany (keep for last step)
         - ---Custom Materials---
         - Alpha
+    - Add semaphores (fences?) to wait between each step
+    - Clean what can be encapsulated into helper functions
 - **refacto**
     - Use vulkan.hpp 
         - Clean @cleanup HPP

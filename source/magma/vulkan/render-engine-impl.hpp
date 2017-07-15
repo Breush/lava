@@ -45,8 +45,15 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
+        const ICamera& camera(uint32_t index) const { return *m_cameras[index]; }
+        const IMaterial& material(uint32_t index) const { return *m_materials[index]; }
+        const IMesh& mesh(uint32_t index) const { return *m_meshes[index]; }
+        const IPointLight& pointLight(uint32_t index) const { return *m_pointLights[index]; }
+
         const std::vector<std::unique_ptr<ICamera>>& cameras() const { return m_cameras; }
+        const std::vector<std::unique_ptr<IMaterial>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
+        const std::vector<std::unique_ptr<IPointLight>>& pointLights() const { return m_pointLights; }
         /// @}
 
     protected:
