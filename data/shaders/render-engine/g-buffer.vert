@@ -43,11 +43,11 @@ void main() {
     gl_Position = camera.projectionTransform * vPosition;
 
     // Tangent-space
-    vec3 vNormal = normalize(M3 * inMNormal);
-    vec3 vTangent = normalize(M3 * inMTangent.xyz);
-    vTangent = normalize(vTangent - vNormal * dot(vNormal, vTangent)); // Orthogonalization
-    vec3 vBitangent = normalize(cross(vNormal, vTangent) * inMTangent.w);
+    vec3 wNormal = normalize(inMNormal);
+    vec3 wTangent = normalize(inMTangent.xyz);
+    wTangent = normalize(wTangent - wNormal * dot(wNormal, wTangent)); // Orthogonalization
+    vec3 wBitangent = normalize(cross(wNormal, wTangent) * inMTangent.w);
 
-    outTbn = mat3(vTangent, vBitangent, vNormal);
+    outTbn = M3 * mat3(wTangent, wBitangent, wNormal);
     outUv = inUv;
 }

@@ -78,7 +78,7 @@ void main()
 #endif
 
     // Out
-    outNormal = ((inTbn * normal) + 1) / 2;
+    outNormal = (normalize(inTbn * normal) + 1) / 2;
     outAlbedo = albedo;
     outOrm = vec3(occlusion, roughness, metallic);
 }

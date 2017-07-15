@@ -30,6 +30,13 @@ void main()
     vec3 albedo = texture(albedoSampler, inUv).xyz;
     vec3 normal = 2 * texture(normalSampler, inUv).xyz - 1;
 
+    // No normal > flat shading
+    // (the normal should already be normalized)
+    if (dot(normal, normal) <= 0.5) {
+        outColor = albedo;
+        return;
+    }
+
     // Material-specific... get them from ORM somehow
     float ka = 0.2;
     float kd = 0.7;
