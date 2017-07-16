@@ -23,5 +23,11 @@ namespace lava::magma {
 
         /// Its world position.
         virtual const glm::vec3& position() const = 0;
+
+        /// Its view transform.
+        virtual const glm::mat4& viewTransform() const = 0;
+
+        /// Its projection transform.
+        virtual const glm::mat4& projectionTransform() const = 0;
     };
 }

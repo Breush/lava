@@ -66,7 +66,7 @@ void GBuffer::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameInd
     // Set render pass
     std::array<vk::ClearValue, 4> clearValues;
     clearValues[0].setColor(std::array<float, 4>{0.5f, 0.5f, 0.5f, 1.f});
-    clearValues[1].setColor(std::array<float, 4>{0.f, 0.f, 0.f, 1.f});
+    clearValues[1].setColor(std::array<float, 4>{0.2f, 0.6f, 0.4f, 1.f}); // @todo Allow to be configure
     clearValues[2].setColor(std::array<float, 4>{1.f, 0.f, 0.f, 1.f});
     clearValues[3].setDepthStencil({1.f, 0u});
 

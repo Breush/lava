@@ -10,11 +10,13 @@
 
 namespace {
     struct CameraUbo {
-        glm::vec3 wPosition;
+        glm::mat4 invertedView;
+        glm::mat4 invertedProjection;
+        glm::vec4 wPosition;
     };
 
     struct LightUbo {
-        glm::vec3 wPosition;
+        glm::vec4 wPosition;
     };
 
     struct Vertex {
@@ -71,12 +73,12 @@ void Epiphany::init()
     poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
     poolSizes[0].descriptorCount = 2u;
     poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-    poolSizes[1].descriptorCount = 2u;
+    poolSizes[1].descriptorCount = 3u;
 
     vk::DescriptorPoolCreateInfo poolInfo;
     poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = 4u;
+    poolInfo.maxSets = 5u;
 
     if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor pool." << std::endl;
@@ -108,8 +110,14 @@ void Epiphany::init()
     albedoLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     albedoLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-    std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {cameraUboLayoutBinding, lightUboLayoutBinding, normalLayoutBinding,
-                                                              albedoLayoutBinding};
+    vk::DescriptorSetLayoutBinding depthLayoutBinding;
+    depthLayoutBinding.binding = 4;
+    depthLayoutBinding.descriptorCount = 1;
+    depthLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    depthLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+    std::array<vk::DescriptorSetLayoutBinding, 5> bindings = {cameraUboLayoutBinding, lightUboLayoutBinding, normalLayoutBinding,
+                                                              albedoLayoutBinding, depthLayoutBinding};
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
     layoutInfo.bindingCount = bindings.size();
     layoutInfo.pBindings = bindings.data();
@@ -163,13 +171,13 @@ void Epiphany::init()
     std::array<vk::WriteDescriptorSet, 2> descriptorWrites;
 
     descriptorWrites[0].dstSet = m_descriptorSet;
-    descriptorWrites[0].dstBinding = 0u;
+    descriptorWrites[0].dstBinding = 0;
     descriptorWrites[0].descriptorType = vk::DescriptorType::eUniformBuffer;
     descriptorWrites[0].descriptorCount = 1;
     descriptorWrites[0].pBufferInfo = &cameraBufferInfo;
 
     descriptorWrites[1].dstSet = m_descriptorSet;
-    descriptorWrites[1].dstBinding = 1u;
+    descriptorWrites[1].dstBinding = 1;
     descriptorWrites[1].descriptorType = vk::DescriptorType::eUniformBuffer;
     descriptorWrites[1].descriptorCount = 1;
     descriptorWrites[1].pBufferInfo = &lightBufferInfo;
@@ -449,6 +457,28 @@ void Epiphany::albedoImageView(const vk::ImageView& imageView, const vk::Sampler
     vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }
 
+void Epiphany::depthImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
+{
+    // @cleanup HPP
+    const auto& vk_device = m_engine.device().vk();
+
+    vk::DescriptorImageInfo imageInfo;
+    // @note Correspond to the final layout specified at previous pass
+    imageInfo.imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+    imageInfo.imageView = imageView;
+    imageInfo.sampler = sampler;
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = m_descriptorSet;
+    descriptorWrite.dstBinding = 4;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+}
+
 void Epiphany::updateUbos()
 {
     // @cleanup HPP
@@ -457,8 +487,12 @@ void Epiphany::updateUbos()
     //----- Camera UBO
 
     if (m_engine.cameras().size() > 0) {
+        const auto& camera = m_engine.camera(0);
+
         CameraUbo ubo;
-        ubo.wPosition = m_engine.camera(0).position();
+        ubo.invertedView = glm::inverse(camera.viewTransform());
+        ubo.invertedProjection = glm::inverse(camera.projectionTransform());
+        ubo.wPosition = glm::vec4(camera.position(), 1.f);
 
         void* data;
         vk::MemoryMapFlags memoryMapFlags;
@@ -474,8 +508,10 @@ void Epiphany::updateUbos()
     //----- Light UBO
 
     if (m_engine.pointLights().size() > 0) {
-        CameraUbo ubo;
-        ubo.wPosition = m_engine.pointLight(0).position();
+        const auto& pointLight = m_engine.pointLight(0);
+
+        LightUbo ubo;
+        ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
 
         void* data;
         vk::MemoryMapFlags memoryMapFlags;

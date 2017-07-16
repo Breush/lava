@@ -16,13 +16,10 @@ namespace lava::magma {
         // ICamera
         UserData render(UserData data) override final;
         const glm::vec3& position() const override final;
+        const glm::mat4& viewTransform() const override final;
+        const glm::mat4& projectionTransform() const override final;
 
-        /**
-         * Transforms.
-         */
-        const glm::mat4& viewTransform() const;
-        const glm::mat4& projectionTransform() const;
-
+        // Control
         void position(const glm::vec3& position);
         void target(const glm::vec3& target);
         void viewportRatio(float viewportRatio);

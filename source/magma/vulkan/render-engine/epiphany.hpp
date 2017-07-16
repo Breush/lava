@@ -19,6 +19,7 @@ namespace lava::magma {
 
         void normalImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
         void albedoImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
+        void depthImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
         void ormImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
         const vulkan::ImageView& imageView() const { return m_imageHolder.view(); }
 

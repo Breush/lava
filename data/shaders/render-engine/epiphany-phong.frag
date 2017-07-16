@@ -2,18 +2,19 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 layout(set = 0, binding = 0) uniform CameraUbo {
-    vec3 wPosition;
+    mat4 invertedView;
+    mat4 invertedProjection;
+    vec4 wPosition;
 } camera;
 
 // @todo To be replaced by LLL
 layout(set = 0, binding = 1) uniform LightUbo {
-    vec3 wPosition;
+    vec4 wPosition;
 } light;
 
-// @todo Add world position (or just depth?)
-vec3 wPosition = vec3(1, 0, 0);
 layout(set = 0, binding = 2) uniform sampler2D normalSampler;
 layout(set = 0, binding = 3) uniform sampler2D albedoSampler;
+layout(set = 0, binding = 4) uniform sampler2D depthSampler;
 
 //----- Fragment in
 
@@ -23,41 +24,66 @@ layout(location = 0) in vec2 inUv;
 
 layout(location = 0) out vec3 outColor;
 
+//----- Headers
+
+vec3 wPositionFromDepth(float depth, vec2 coord);
+
 //----- Program
 
 void main()
 {
     vec3 albedo = texture(albedoSampler, inUv).xyz;
     vec3 normal = 2 * texture(normalSampler, inUv).xyz - 1;
+    float depth = texture(depthSampler, inUv).x;
 
-    // No normal > flat shading
+    // No normal => flat shading
     // (the normal should already be normalized)
     if (dot(normal, normal) <= 0.5) {
         outColor = albedo;
         return;
     }
 
+    // General ambient
+    vec3 wPosition = wPositionFromDepth(depth, inUv);
+    vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
+    float ambient = 0.2;
+
     // Material-specific... get them from ORM somehow
-    float ka = 0.2;
+    float ka = 1;
     float kd = 0.7;
-    float ks = 0.2;
-    float alpha = 2;
+    float ks = 0.3;
+    float alpha = 64;
 
     // For each light
     // @note Distance should affect intensity
-    float ia = 1;
     float id = 1;
     float is = 1;
 
-    vec3 l = normalize(light.wPosition - wPosition);
-    vec3 v = normalize(camera.wPosition - wPosition);
+    float diffuse = 0;
+    float specular = 0;
+
+    // Check whether the lighting should have an effect
+    vec3 l = normalize(light.wPosition.xyz - wPosition.xyz);
     float cosTheta = dot(normal, l);
-    vec3 r = normalize(2 * cosTheta * normal - l);
-    float cosOmega = dot(r, v);
+    if (cosTheta > 0) {
+        vec3 r = normalize(2 * cosTheta * normal - l);
+        float cosOmega = dot(r, v);
 
-    vec3 ambient = ia * ka * albedo;
-    vec3 diffuse = id * kd * cosTheta * albedo;
-    vec3 specular = vec3(is * ks * pow(cosOmega, alpha));
+        diffuse += id * cosTheta;
+        if (cosOmega > 0) {
+            specular += is * pow(cosOmega, alpha);
+        }
+    }
 
-    outColor = ambient + diffuse + specular;
+    // Combining all lights
+    outColor += (ka * ambient + kd * diffuse) * albedo + ks * specular * vec3(1);
+}
+
+//----- Implementations
+
+vec3 wPositionFromDepth(float depth, vec2 coord) {
+    vec4 pPosition = vec4(2 * coord - 1, depth, 1);
+    vec4 vPosition = camera.invertedProjection * pPosition;
+    vPosition /= vPosition.w;
+    return (camera.invertedView * vPosition).xyz;
 }
