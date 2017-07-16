@@ -212,6 +212,7 @@ void RenderEngine::Impl::updateStages()
     // @cleanup HPP
     m_epiphany.normalImageView(m_gBuffer.normalImageView(), vk::Sampler(m_textureSampler));
     m_epiphany.albedoImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
+    m_epiphany.ormImageView(m_gBuffer.ormImageView(), vk::Sampler(m_textureSampler));
     m_epiphany.depthImageView(m_gBuffer.depthImageView(), vk::Sampler(m_textureSampler));
     m_present.shownImageView(m_epiphany.imageView(), vk::Sampler(m_textureSampler));
 

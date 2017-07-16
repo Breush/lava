@@ -14,7 +14,8 @@ layout(set = 0, binding = 1) uniform LightUbo {
 
 layout(set = 0, binding = 2) uniform sampler2D normalSampler;
 layout(set = 0, binding = 3) uniform sampler2D albedoSampler;
-layout(set = 0, binding = 4) uniform sampler2D depthSampler;
+layout(set = 0, binding = 4) uniform sampler2D ormSampler;
+layout(set = 0, binding = 5) uniform sampler2D depthSampler;
 
 //----- Fragment in
 
@@ -32,8 +33,9 @@ vec3 wPositionFromDepth(float depth, vec2 coord);
 
 void main()
 {
-    vec3 albedo = texture(albedoSampler, inUv).xyz;
+    vec3 albedo = texture(albedoSampler, inUv).rgb;
     vec3 normal = 2 * texture(normalSampler, inUv).xyz - 1;
+    vec3 orm = texture(ormSampler, inUv).rgb;
     float depth = texture(depthSampler, inUv).x;
 
     // No normal => flat shading
@@ -42,17 +44,20 @@ void main()
         outColor = albedo;
         return;
     }
-
+    
     // General ambient
     vec3 wPosition = wPositionFromDepth(depth, inUv);
     vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
     float ambient = 0.2;
 
-    // Material-specific... get them from ORM somehow
-    float ka = 1;
-    float kd = 0.7;
-    float ks = 0.3;
-    float alpha = 64;
+    // Material-specific
+    float occlusion = orm.r;
+    float roughness = orm.g;
+    float metallic = orm.b;
+    float ka = 1 - 0.2 * roughness;
+    float kd = 0.5 + 0.2 * roughness;
+    float ks = 0.25 - 0.23 * roughness;
+    float alpha = pow(2, 1 + 7 * metallic);
 
     // For each light
     // @note Distance should affect intensity
@@ -66,17 +71,17 @@ void main()
     vec3 l = normalize(light.wPosition.xyz - wPosition.xyz);
     float cosTheta = dot(normal, l);
     if (cosTheta > 0) {
+        diffuse += id * cosTheta;
+
         vec3 r = normalize(2 * cosTheta * normal - l);
         float cosOmega = dot(r, v);
-
-        diffuse += id * cosTheta;
         if (cosOmega > 0) {
             specular += is * pow(cosOmega, alpha);
         }
     }
 
-    // Combining all lights
-    outColor += (ka * ambient + kd * diffuse) * albedo + ks * specular * vec3(1);
+    // Combining all lights k
+    outColor += (ka * ambient + kd * occlusion * diffuse + ks * specular) * albedo;
 }
 
 //----- Implementations

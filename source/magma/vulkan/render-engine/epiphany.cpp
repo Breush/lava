@@ -73,12 +73,12 @@ void Epiphany::init()
     poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
     poolSizes[0].descriptorCount = 2u;
     poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-    poolSizes[1].descriptorCount = 3u;
+    poolSizes[1].descriptorCount = 4u;
 
     vk::DescriptorPoolCreateInfo poolInfo;
     poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = 5u;
+    poolInfo.maxSets = 6u;
 
     if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor pool." << std::endl;
@@ -110,14 +110,20 @@ void Epiphany::init()
     albedoLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     albedoLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
+    vk::DescriptorSetLayoutBinding ormLayoutBinding;
+    ormLayoutBinding.binding = 4;
+    ormLayoutBinding.descriptorCount = 1;
+    ormLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    ormLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
     vk::DescriptorSetLayoutBinding depthLayoutBinding;
-    depthLayoutBinding.binding = 4;
+    depthLayoutBinding.binding = 5;
     depthLayoutBinding.descriptorCount = 1;
     depthLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     depthLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-    std::array<vk::DescriptorSetLayoutBinding, 5> bindings = {cameraUboLayoutBinding, lightUboLayoutBinding, normalLayoutBinding,
-                                                              albedoLayoutBinding, depthLayoutBinding};
+    std::array<vk::DescriptorSetLayoutBinding, 6> bindings = {cameraUboLayoutBinding, lightUboLayoutBinding, normalLayoutBinding,
+                                                              albedoLayoutBinding,    ormLayoutBinding,      depthLayoutBinding};
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
     layoutInfo.bindingCount = bindings.size();
     layoutInfo.pBindings = bindings.data();
@@ -419,7 +425,6 @@ void Epiphany::normalImageView(const vk::ImageView& imageView, const vk::Sampler
     const auto& vk_device = m_engine.device().vk();
 
     vk::DescriptorImageInfo imageInfo;
-    // @note Correspond to the final layout specified at previous pass
     imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
     imageInfo.imageView = imageView;
     imageInfo.sampler = sampler;
@@ -441,7 +446,6 @@ void Epiphany::albedoImageView(const vk::ImageView& imageView, const vk::Sampler
     const auto& vk_device = m_engine.device().vk();
 
     vk::DescriptorImageInfo imageInfo;
-    // @note Correspond to the final layout specified at previous pass
     imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
     imageInfo.imageView = imageView;
     imageInfo.sampler = sampler;
@@ -449,6 +453,27 @@ void Epiphany::albedoImageView(const vk::ImageView& imageView, const vk::Sampler
     vk::WriteDescriptorSet descriptorWrite;
     descriptorWrite.dstSet = m_descriptorSet;
     descriptorWrite.dstBinding = 3;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+}
+
+void Epiphany::ormImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
+{
+    // @cleanup HPP
+    const auto& vk_device = m_engine.device().vk();
+
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    imageInfo.imageView = imageView;
+    imageInfo.sampler = sampler;
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = m_descriptorSet;
+    descriptorWrite.dstBinding = 4;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     descriptorWrite.descriptorCount = 1;
@@ -470,7 +495,7 @@ void Epiphany::depthImageView(const vk::ImageView& imageView, const vk::Sampler&
 
     vk::WriteDescriptorSet descriptorWrite;
     descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 4;
+    descriptorWrite.dstBinding = 5;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
     descriptorWrite.descriptorCount = 1;
