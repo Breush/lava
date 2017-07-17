@@ -8,7 +8,7 @@ local VERSION = "2.1.1"
 local localFile = "./.tmp/json_" .. VERSION .. ".hpp"
 if not fileValid(localFile) then
     os.mkdir("./.tmp")
-    os.remove("./include/nlohmann")
+    os.execute("rm --recursive ./include/nlohmann")
     local url = "https://github.com/nlohmann/json/releases/download/v" .. VERSION.. "/json.hpp"
     
     downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")

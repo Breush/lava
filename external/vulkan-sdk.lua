@@ -8,7 +8,7 @@ local VERSION = "1.0.54.0"
 local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".run";
 if not fileValid(localFile) then
     os.mkdir("./.tmp/")
-    os.remove("./include/vulkan")
+    os.execute("rm --recursive ./include/vulkan")
     local filename = "vulkansdk-linux-x86_64-" .. VERSION .. ".run"
     local url = "https://vulkan.lunarg.com/sdk/download/" .. VERSION .. "/linux/" .. filename .. "?Human=true"
 

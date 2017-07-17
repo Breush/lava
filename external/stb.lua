@@ -2,6 +2,7 @@
 
 if not fileExists("./.tmp/stb") then
     os.mkdir("./.tmp")
+    os.execute("rm --recursive ./include/stb")
 
     local url = "git@github.com:nothings/stb.git"
     
