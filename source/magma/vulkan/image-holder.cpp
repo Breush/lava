@@ -39,9 +39,8 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
     }
     else {
-        logger.error("magma.vulkan.image-holder")
-            << "Unknown image aspect for image holder. "
-            << "Valid ones are currently vk::ImageAspectFlagBitseDepth or vk::ImageAspectFlagBitseColor." << std::endl;
+        logger.error("magma.vulkan.image-holder") << "Unknown image aspect for image holder. "
+                                                  << "Valid ones are currently eDepth or eColor." << std::endl;
     }
 
     // @cleanup HPP

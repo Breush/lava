@@ -18,6 +18,7 @@ namespace lava::magma::vulkan {
 
     $capsule_device(DescriptorSetLayout);
     $capsule_device(DescriptorPool);
+    $capsule_device(CommandPool);
 
     $capsule_device(ShaderModule);
 }

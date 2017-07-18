@@ -17,6 +17,7 @@
 #include "./shader.hpp"
 #include "./tools.hpp"
 #include "./vertex.hpp"
+#include "./wrappers.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -225,13 +226,13 @@ void RenderEngine::Impl::createCommandPool()
 
     auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
 
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    vk::CommandPoolCreateInfo poolInfo;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
-    if (vkCreateCommandPool(m_device, &poolInfo, nullptr, m_commandPool.replace()) != VK_SUCCESS) {
-        logger.error("magma.vulkan.command-pool") << "Failed to create command pool." << std::endl;
+    // @cleanup HPP
+    if (m_device.vk().createCommandPool(&poolInfo, nullptr, m_commandPool.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.render-engine") << "Failed to create command pool." << std::endl;
     }
 }
 
@@ -277,10 +278,10 @@ void RenderEngine::Impl::createDummyTexture()
                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         m_dummyImage, m_dummyImageMemory);
 
-    vulkan::transitionImageLayout(m_device, m_commandPool, m_dummyImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+    vulkan::transitionImageLayout(m_device, m_commandPool.castOld(), m_dummyImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_dummyImage, 1u, 1u);
+    vulkan::copyBufferToImage(m_device, m_commandPool.castOld(), stagingBuffer, m_dummyImage, 1u, 1u);
 
     vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
 
@@ -294,10 +295,10 @@ void RenderEngine::Impl::createDummyTexture()
                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         m_dummyNormalImage, m_dummyNormalImageMemory);
 
-    vulkan::transitionImageLayout(m_device, m_commandPool, m_dummyNormalImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
+    vulkan::transitionImageLayout(m_device, m_commandPool.castOld(), m_dummyNormalImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_dummyNormalImage, 1u, 1u);
+    vulkan::copyBufferToImage(m_device, m_commandPool.castOld(), stagingBuffer, m_dummyNormalImage, 1u, 1u);
 
     vulkan::createImageView(m_device, m_dummyNormalImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
                             m_dummyNormalImageView);
@@ -433,14 +434,14 @@ void RenderEngine::Impl::createCommandBuffers()
 {
     // Free previous command buffers if any
     if (m_commandBuffers.size() > 0) {
-        vkFreeCommandBuffers(m_device, m_commandPool, m_commandBuffers.size(), m_commandBuffers.data());
+        vkFreeCommandBuffers(m_device, m_commandPool.castOld(), m_commandBuffers.size(), m_commandBuffers.data());
     }
 
     m_commandBuffers.resize(m_swapchain.imageViews().size());
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = m_commandPool;
+    allocInfo.commandPool = m_commandPool.castOld();
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
 

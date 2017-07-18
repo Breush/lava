@@ -26,7 +26,6 @@
 ## Magma
 
 - **up**
-    - Have BufferHolder - refactoring epiphany uniform buffers
     - Remove swapchain from GBuffer
         - Set extent at creation (remove swapchain info from there)
     - Light Linked List Renderer
@@ -49,7 +48,8 @@
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
-    - Use ImageHolder whenever possible
+    - Use ImageHolder/BufferHolder whenever possible
+    - Make some ImageDescriptor/BufferDescriptor?
     - Device -> DeviceHolder (holding Device and PhysicalDevice)
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh

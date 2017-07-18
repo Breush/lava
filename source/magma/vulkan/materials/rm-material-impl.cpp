@@ -218,7 +218,7 @@ void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width
 
     m_normal.type = Attribute::Type::TEXTURE;
     setupTexture(m_normal.texture, pixels, width, height, channels);
-    setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool(), m_normalImage, m_normalImageMemory,
+    setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool().castOld(), m_normalImage, m_normalImageMemory,
                       m_normalImageView);
     updateBindings();
 }
@@ -230,7 +230,7 @@ void RmMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t wi
 
     m_albedo.type = Attribute::Type::TEXTURE;
     setupTexture(m_albedo.texture, pixels, width, height, channels);
-    setupTextureImage(m_albedo.texture, m_engine.device(), m_engine.commandPool(), m_albedoImage, m_albedoImageMemory,
+    setupTextureImage(m_albedo.texture, m_engine.device(), m_engine.commandPool().castOld(), m_albedoImage, m_albedoImageMemory,
                       m_albedoImageView);
     updateBindings();
 }
@@ -242,7 +242,8 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
 
     m_orm.type = Attribute::Type::TEXTURE;
     setupTexture(m_orm.texture, pixels, width, height, channels);
-    setupTextureImage(m_orm.texture, m_engine.device(), m_engine.commandPool(), m_ormImage, m_ormImageMemory, m_ormImageView);
+    setupTextureImage(m_orm.texture, m_engine.device(), m_engine.commandPool().castOld(), m_ormImage, m_ormImageMemory,
+                      m_ormImageView);
     updateBindings();
 }
 
@@ -277,7 +278,8 @@ void RmMaterial::Impl::updateBindings()
     memcpy(data, &materialUbo, sizeof(MaterialUbo));
     vkUnmapMemory(m_engine.device(), m_uniformStagingBufferMemory);
 
-    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(MaterialUbo));
+    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool().castOld(), m_uniformStagingBuffer, m_uniformBuffer,
+                       sizeof(MaterialUbo));
 
     // Samplers
     bindTextureDescriptorSet(m_descriptorSet, 1u, m_engine.device(), m_engine.textureSampler(),

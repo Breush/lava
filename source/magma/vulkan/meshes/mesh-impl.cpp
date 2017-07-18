@@ -152,7 +152,7 @@ void Mesh::Impl::updateBindings()
     memcpy(data, &meshUbo, sizeof(MeshUbo));
     vkUnmapMemory(m_device, m_uniformStagingBufferMemory);
 
-    vulkan::copyBuffer(m_device, m_engine.commandPool(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(MeshUbo));
+    vulkan::copyBuffer(m_device, m_engine.commandPool().castOld(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(MeshUbo));
 }
 
 void Mesh::Impl::createVertexBuffer()
@@ -177,7 +177,7 @@ void Mesh::Impl::createVertexBuffer()
     vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_vertexBuffer, m_vertexBufferMemory);
 
     // Copy
-    vulkan::copyBuffer(m_device, m_engine.commandPool(), stagingBuffer, m_vertexBuffer, bufferSize);
+    vulkan::copyBuffer(m_device, m_engine.commandPool().castOld(), stagingBuffer, m_vertexBuffer, bufferSize);
 }
 
 void Mesh::Impl::createIndexBuffer()
@@ -202,7 +202,7 @@ void Mesh::Impl::createIndexBuffer()
     vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_indexBuffer, m_indexBufferMemory);
 
     // Copy
-    vulkan::copyBuffer(m_device, m_engine.commandPool(), stagingBuffer, m_indexBuffer, bufferSize);
+    vulkan::copyBuffer(m_device, m_engine.commandPool().castOld(), stagingBuffer, m_indexBuffer, bufferSize);
 }
 
 // ----- IMesh -----

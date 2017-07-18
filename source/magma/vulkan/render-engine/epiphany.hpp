@@ -2,6 +2,7 @@
 
 #include "./i-stage.hpp"
 
+#include "../buffer-holder.hpp"
 #include "../image-holder.hpp"
 
 namespace lava::magma {
@@ -39,17 +40,8 @@ namespace lava::magma {
         vulkan::DescriptorSetLayout m_descriptorSetLayout;
         vk::DescriptorSet m_descriptorSet;
         vulkan::ImageHolder m_imageHolder;
+        vulkan::BufferHolder m_cameraBufferHolder;
+        vulkan::BufferHolder m_lightBufferHolder;
         vulkan::Framebuffer m_framebuffer;
-
-        // @todo Make BufferHolder (Uniform only?)
-        vulkan::Buffer m_cameraUniformStagingBuffer;
-        vulkan::DeviceMemory m_cameraUniformStagingBufferMemory;
-        vulkan::Buffer m_cameraUniformBuffer;
-        vulkan::DeviceMemory m_cameraUniformBufferMemory;
-
-        vulkan::Buffer m_lightUniformStagingBuffer;
-        vulkan::DeviceMemory m_lightUniformStagingBufferMemory;
-        vulkan::Buffer m_lightUniformBuffer;
-        vulkan::DeviceMemory m_lightUniformBufferMemory;
     };
 }

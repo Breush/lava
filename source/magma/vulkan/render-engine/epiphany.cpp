@@ -34,15 +34,9 @@ Epiphany::Epiphany(RenderEngine::Impl& engine)
     , m_descriptorPool{m_engine.device().vk()}
     , m_descriptorSetLayout{m_engine.device().vk()}
     , m_imageHolder{m_engine.device()}
+    , m_cameraBufferHolder(m_engine.device(), m_engine.commandPool())
+    , m_lightBufferHolder(m_engine.device(), m_engine.commandPool())
     , m_framebuffer{m_engine.device().vk()}
-    , m_cameraUniformStagingBuffer{m_engine.device().vk()}
-    , m_cameraUniformStagingBufferMemory{m_engine.device().vk()}
-    , m_cameraUniformBuffer{m_engine.device().vk()}
-    , m_cameraUniformBufferMemory{m_engine.device().vk()}
-    , m_lightUniformStagingBuffer{m_engine.device().vk()}
-    , m_lightUniformStagingBufferMemory{m_engine.device().vk()}
-    , m_lightUniformBuffer{m_engine.device().vk()}
-    , m_lightUniformBufferMemory{m_engine.device().vk()}
 {
 }
 
@@ -145,33 +139,17 @@ void Epiphany::init()
 
     //----- Uniform buffers
 
-    // @todo Have helpers - a Buffer Holder!
-    // Create uniform buffers
-    vk::DeviceSize cameraBufferSize = sizeof(CameraUbo);
-    vk::DeviceSize lightBufferSize = sizeof(LightUbo);
-
-    vk::BufferUsageFlags bufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-    vk::MemoryPropertyFlags memoryPropertyFlags =
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-    vulkan::createBuffer(m_engine.device(), cameraBufferSize, bufferUsageFlags, memoryPropertyFlags, m_cameraUniformStagingBuffer,
-                         m_cameraUniformStagingBufferMemory);
-    vulkan::createBuffer(m_engine.device(), lightBufferSize, bufferUsageFlags, memoryPropertyFlags, m_lightUniformStagingBuffer,
-                         m_lightUniformStagingBufferMemory);
-
-    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer;
-    memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-    vulkan::createBuffer(m_engine.device(), cameraBufferSize, bufferUsageFlags, memoryPropertyFlags, m_cameraUniformBuffer,
-                         m_cameraUniformBufferMemory);
-    vulkan::createBuffer(m_engine.device(), lightBufferSize, bufferUsageFlags, memoryPropertyFlags, m_lightUniformBuffer,
-                         m_lightUniformBufferMemory);
+    // @todo Have vulkan::Ubo m_cameraUbo?
+    m_cameraBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(CameraUbo));
+    m_lightBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(LightUbo));
 
     // Set them up
     vk::DescriptorBufferInfo cameraBufferInfo;
-    cameraBufferInfo.buffer = m_cameraUniformBuffer;
+    cameraBufferInfo.buffer = m_cameraBufferHolder.buffer();
     cameraBufferInfo.range = sizeof(CameraUbo);
 
     vk::DescriptorBufferInfo lightBufferInfo;
-    lightBufferInfo.buffer = m_lightUniformBuffer;
+    lightBufferInfo.buffer = m_lightBufferHolder.buffer();
     lightBufferInfo.range = sizeof(LightUbo);
 
     std::array<vk::WriteDescriptorSet, 2> descriptorWrites;
@@ -391,7 +369,7 @@ void Epiphany::createResources()
     m_imageHolder.create(format, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
     vk::ImageLayout oldLayout = vk::ImageLayout::ePreinitialized;
     vk::ImageLayout newLayout = vk::ImageLayout::eTransferDstOptimal;
-    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool(), m_imageHolder.image().castOld(),
+    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_imageHolder.image().castOld(),
                                   reinterpret_cast<VkImageLayout&>(oldLayout), reinterpret_cast<VkImageLayout&>(newLayout));
 }
 
@@ -506,9 +484,6 @@ void Epiphany::depthImageView(const vk::ImageView& imageView, const vk::Sampler&
 
 void Epiphany::updateUbos()
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     //----- Camera UBO
 
     if (m_engine.cameras().size() > 0) {
@@ -519,15 +494,7 @@ void Epiphany::updateUbos()
         ubo.invertedProjection = glm::inverse(camera.projectionTransform());
         ubo.wPosition = glm::vec4(camera.position(), 1.f);
 
-        void* data;
-        vk::MemoryMapFlags memoryMapFlags;
-        vk_device.mapMemory(m_cameraUniformStagingBufferMemory, 0, sizeof(CameraUbo), memoryMapFlags, &data);
-        memcpy(data, &ubo, sizeof(CameraUbo));
-        vk_device.unmapMemory(m_cameraUniformStagingBufferMemory);
-
-        // @cleanup HPP
-        vulkan::copyBuffer(m_engine.device(), vk::CommandPool(m_engine.commandPool()), m_cameraUniformStagingBuffer,
-                           m_cameraUniformBuffer, sizeof(CameraUbo));
+        m_cameraBufferHolder.copy(ubo);
     }
 
     //----- Light UBO
@@ -538,14 +505,6 @@ void Epiphany::updateUbos()
         LightUbo ubo;
         ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
 
-        void* data;
-        vk::MemoryMapFlags memoryMapFlags;
-        vk_device.mapMemory(m_lightUniformStagingBufferMemory, 0, sizeof(LightUbo), memoryMapFlags, &data);
-        memcpy(data, &ubo, sizeof(LightUbo));
-        vk_device.unmapMemory(m_lightUniformStagingBufferMemory);
-
-        // @cleanup HPP
-        vulkan::copyBuffer(m_engine.device(), vk::CommandPool(m_engine.commandPool()), m_lightUniformStagingBuffer,
-                           m_lightUniformBuffer, sizeof(LightUbo));
+        m_lightBufferHolder.copy(ubo);
     }
 }

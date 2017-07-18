@@ -133,5 +133,6 @@ void OrbitCamera::Impl::updateBindings()
     memcpy(data, &ubo, sizeof(CameraUbo));
     vkUnmapMemory(m_engine.device(), m_uniformStagingBufferMemory);
 
-    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(CameraUbo));
+    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool().castOld(), m_uniformStagingBuffer, m_uniformBuffer,
+                       sizeof(CameraUbo));
 }

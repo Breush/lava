@@ -105,7 +105,7 @@ namespace lava::magma {
         Present m_present{*this};
 
         // Commands
-        $attribute(vulkan::Capsule<VkCommandPool>, commandPool, {m_device.capsule(), vkDestroyCommandPool});
+        $attribute(vulkan::CommandPool, commandPool, {m_device.vk()});
         $attribute(std::vector<VkCommandBuffer>, commandBuffers);
 
         /// Dummy texture for colors. 1x1 pixel of rgba(255, 255, 255, 255)

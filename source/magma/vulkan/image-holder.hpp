@@ -10,7 +10,7 @@ namespace lava::magma::vulkan {
 
 namespace lava::magma::vulkan {
     /**
-     * Simple wrapper around a vulkna ImageView,
+     * Simple wrapper around a vulkan ImageView,
      * holding its device memory and such.
      */
     class ImageHolder {
@@ -27,7 +27,7 @@ namespace lava::magma::vulkan {
         // References
         vulkan::Device& m_device;
 
-        // Depth
+        // Resources
         $attribute(vulkan::Image, image);
         $attribute(vulkan::DeviceMemory, memory);
         $attribute(vulkan::ImageView, view);
