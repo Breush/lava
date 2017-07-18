@@ -3,15 +3,51 @@
 ## Project's composition
 
 The **lava** project is in fact a bundle of multiple projects.
-They stack up as layers, each one being built over the previous ones.
 
-| Layer | Project | Description                                             |
-| :---: | ---     | ---                                                     |
-| 0     | chamber | Cross-projects core tools like math utils and macros.   |
-| 1     | crater  | Cross-platforms windows and event interface.            |
-| 2     | magma   | Vulkan-based rendering engine.                          |
-| 3     | caldera | Interactions engine.                                    |
-| ∞     | ashes   | Example applications (in examples folder).              |
+<table>
+    <tr>
+        <td colspan="4">
+            <strong>chamber</strong><br/>
+            Cross-projects core tools
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <strong>crater</strong><br/>
+            Window and events
+        </td>
+        <td rowspan="2">
+            <strong>dike</strong><br/>
+            Physics
+        </td>
+        <td rowspan="2">
+            <strong>flow</strong><br/>
+            Sound
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <strong>magma</strong><br/>
+            Renderer
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <strong>sill</strong><br/>
+            Behaviour and engine interface
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <strong>ashes</strong><br/>
+            Example applications
+        </td>
+        <td colspan="2">
+            <strong>caldera</strong><br/>
+            UI engine
+        </td>
+    </tr>
+</table>
 
 The core principles of **lava** are:
 - Be *up-to-date* with C++ standard (currently set to C++14) to make your code-life easier ;

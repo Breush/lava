@@ -83,11 +83,16 @@
     - GLB: should that loader really be in magma? That's not rendering *per se*. (Same goes for MeshMakers) - It should be another layer
     - Think about inlining in code data (shaders mainly, but debug texture too)
 
-## Caldera
+## Sill
 
 - Everything's left!
 - OrbitCameraController
 - Render loop controled by this lib?
+
+## Dike
+
+- Everything's left!
+- Wrap BulletPL into a nice API
 
 ## Ashes
 
