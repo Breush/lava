@@ -123,10 +123,7 @@ using namespace lava::chamber;
 
 RmMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
-    , m_uniformStagingBuffer{m_engine.device().capsule(), vkDestroyBuffer}
-    , m_uniformStagingBufferMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_uniformBuffer{m_engine.device().capsule(), vkDestroyBuffer}
-    , m_uniformBufferMemory{m_engine.device().capsule(), vkFreeMemory}
+    , m_uniformBufferHolder(m_engine.device(), m_engine.commandPool())
     , m_normalImage{m_engine.device().capsule(), vkDestroyImage}
     , m_normalImageMemory{m_engine.device().capsule(), vkFreeMemory}
     , m_normalImageView{m_engine.device().capsule(), vkDestroyImageView}
@@ -168,21 +165,11 @@ void RmMaterial::Impl::init()
     }
 
     // Create uniform buffer
-    VkDeviceSize bufferSize = sizeof(MaterialUbo);
-
-    int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    vulkan::createBuffer(m_engine.device(), bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformStagingBuffer,
-                         m_uniformStagingBufferMemory);
-
-    bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    vulkan::createBuffer(m_engine.device(), bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer,
-                         m_uniformBufferMemory);
+    m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(MaterialUbo));
 
     // Set it up
     VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBuffer;
+    bufferInfo.buffer = m_uniformBufferHolder.buffer().castOld(); // @cleanup HPP
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(MaterialUbo);
 
@@ -269,17 +256,10 @@ IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
 void RmMaterial::Impl::updateBindings()
 {
     // MaterialUbo
-    MaterialUbo materialUbo = {};
-    materialUbo.roughnessFactor = m_roughnessFactor;
-    materialUbo.metallicFactor = m_metallicFactor;
-
-    void* data;
-    vkMapMemory(m_engine.device(), m_uniformStagingBufferMemory, 0, sizeof(MaterialUbo), 0, &data);
-    memcpy(data, &materialUbo, sizeof(MaterialUbo));
-    vkUnmapMemory(m_engine.device(), m_uniformStagingBufferMemory);
-
-    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool().castOld(), m_uniformStagingBuffer, m_uniformBuffer,
-                       sizeof(MaterialUbo));
+    MaterialUbo ubo = {};
+    ubo.roughnessFactor = m_roughnessFactor;
+    ubo.metallicFactor = m_metallicFactor;
+    m_uniformBufferHolder.copy(ubo);
 
     // Samplers
     bindTextureDescriptorSet(m_descriptorSet, 1u, m_engine.device(), m_engine.textureSampler(),

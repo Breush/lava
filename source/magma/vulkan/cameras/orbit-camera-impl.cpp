@@ -12,10 +12,7 @@ using namespace lava::chamber;
 
 OrbitCamera::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
-    , m_uniformStagingBuffer({m_engine.device().capsule(), vkDestroyBuffer})
-    , m_uniformStagingBufferMemory({m_engine.device().capsule(), vkFreeMemory})
-    , m_uniformBuffer({m_engine.device().capsule(), vkDestroyBuffer})
-    , m_uniformBufferMemory({m_engine.device().capsule(), vkFreeMemory})
+    , m_uniformBufferHolder({m_engine.device(), m_engine.commandPool()})
 {
     // Create descriptor set
     VkDescriptorSetLayout layouts[] = {m_engine.cameraDescriptorSetLayout()};
@@ -30,21 +27,11 @@ OrbitCamera::Impl::Impl(RenderEngine& engine)
     }
 
     // Create uniform buffer
-    VkDeviceSize bufferSize = sizeof(CameraUbo);
-
-    int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    vulkan::createBuffer(m_engine.device(), bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformStagingBuffer,
-                         m_uniformStagingBufferMemory);
-
-    bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    vulkan::createBuffer(m_engine.device(), bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer,
-                         m_uniformBufferMemory);
+    m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(CameraUbo));
 
     // Set it up
     VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBuffer;
+    bufferInfo.buffer = m_uniformBufferHolder.buffer().castOld(); // @cleanup HPP
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(CameraUbo);
 
@@ -127,12 +114,5 @@ void OrbitCamera::Impl::updateBindings()
     CameraUbo ubo = {};
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;
-
-    void* data;
-    vkMapMemory(m_engine.device(), m_uniformStagingBufferMemory, 0, sizeof(CameraUbo), 0, &data);
-    memcpy(data, &ubo, sizeof(CameraUbo));
-    vkUnmapMemory(m_engine.device(), m_uniformStagingBufferMemory);
-
-    vulkan::copyBuffer(m_engine.device(), m_engine.commandPool().castOld(), m_uniformStagingBuffer, m_uniformBuffer,
-                       sizeof(CameraUbo));
+    m_uniformBufferHolder.copy(ubo);
 }

@@ -15,10 +15,7 @@ using namespace lava::magma;
 Mesh::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
     , m_device(m_engine.device())
-    , m_uniformStagingBuffer({m_device.capsule(), vkDestroyBuffer})
-    , m_uniformStagingBufferMemory({m_device.capsule(), vkFreeMemory})
-    , m_uniformBuffer({m_device.capsule(), vkDestroyBuffer})
-    , m_uniformBufferMemory({m_device.capsule(), vkFreeMemory})
+    , m_uniformBufferHolder(m_device, m_engine.commandPool())
     , m_vertexBuffer({m_device.capsule(), vkDestroyBuffer})
     , m_vertexBufferMemory({m_device.capsule(), vkFreeMemory})
     , m_indexBuffer({m_device.capsule(), vkDestroyBuffer})
@@ -37,20 +34,11 @@ Mesh::Impl::Impl(RenderEngine& engine)
     }
 
     // Create uniform buffer
-    VkDeviceSize bufferSize = sizeof(MeshUbo);
-
-    int bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    int memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformStagingBuffer,
-                         m_uniformStagingBufferMemory);
-
-    bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    vulkan::createBuffer(m_device, bufferSize, bufferUsageFlags, memoryPropertyFlags, m_uniformBuffer, m_uniformBufferMemory);
+    m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(MeshUbo));
 
     // Set it up
     VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBuffer;
+    bufferInfo.buffer = m_uniformBufferHolder.buffer().castOld(); // @cleanup HPP
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(MeshUbo);
 
@@ -143,16 +131,9 @@ void Mesh::Impl::material(RmMaterial& material)
 
 void Mesh::Impl::updateBindings()
 {
-    // Update UBOs
-    MeshUbo meshUbo = {};
-    meshUbo.transform = m_worldTransform;
-
-    void* data;
-    vkMapMemory(m_device, m_uniformStagingBufferMemory, 0, sizeof(MeshUbo), 0, &data);
-    memcpy(data, &meshUbo, sizeof(MeshUbo));
-    vkUnmapMemory(m_device, m_uniformStagingBufferMemory);
-
-    vulkan::copyBuffer(m_device, m_engine.commandPool().castOld(), m_uniformStagingBuffer, m_uniformBuffer, sizeof(MeshUbo));
+    MeshUbo ubo = {};
+    ubo.transform = m_worldTransform;
+    m_uniformBufferHolder.copy(ubo);
 }
 
 void Mesh::Impl::createVertexBuffer()

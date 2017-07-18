@@ -5,6 +5,7 @@
 #include <lava/magma/render-engine.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "../buffer-holder.hpp"
 #include "../capsule.hpp"
 
 namespace lava::magma {
@@ -46,10 +47,7 @@ namespace lava::magma {
 
         // Descriptor
         VkDescriptorSet m_descriptorSet;
-        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
-        vulkan::Capsule<VkBuffer> m_uniformBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
+        vulkan::BufferHolder m_uniformBufferHolder;
 
         // Attributes
         glm::mat4 m_viewTransform;

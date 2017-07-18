@@ -4,6 +4,7 @@
 #include <lava/magma/meshes/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
 
+#include "../buffer-holder.hpp"
 #include "../capsule.hpp"
 #include "../device.hpp"
 #include "../vertex.hpp"
@@ -60,12 +61,9 @@ namespace lava::magma {
 
         // Descriptor
         VkDescriptorSet m_descriptorSet;
-        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory;
-        vulkan::Capsule<VkBuffer> m_uniformBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory;
+        vulkan::BufferHolder m_uniformBufferHolder;
 
-        // Buffers
+        // Vertices
         vulkan::Capsule<VkBuffer> m_vertexBuffer;
         vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory;
         vulkan::Capsule<VkBuffer> m_indexBuffer;

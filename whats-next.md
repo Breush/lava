@@ -48,7 +48,8 @@
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
-    - Use ImageHolder/BufferHolder whenever possible
+    - Use ImageHolder whenever possible
+    - Create and use BufferHolder for Vertices/Indices
     - Make some ImageDescriptor/BufferDescriptor?
     - Device -> DeviceHolder (holding Device and PhysicalDevice)
 - **improvement** 

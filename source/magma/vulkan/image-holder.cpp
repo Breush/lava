@@ -27,6 +27,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
         imageAspectFlags = vk::ImageAspectFlagBits::eDepth;
         imageUsageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment;
         // @todo Following is useful because present uses an image. Try removing it, and see.
+        // Better have this configurable in the function's interface
         imageUsageFlags |= vk::ImageUsageFlagBits::eSampled;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
     }
