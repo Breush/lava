@@ -205,9 +205,10 @@ void RenderEngine::Impl::updateStages()
     logger.info("magma.vulkan.render-engine") << "Updating render stages." << std::endl;
     logger.log().tab(1);
 
-    m_gBuffer.update();
-    m_epiphany.update();
-    m_present.update();
+    const auto& extent = m_swapchain.extent();
+    m_gBuffer.update(extent);
+    m_epiphany.update(extent);
+    m_present.update(extent);
 
     // Set-up
     // @cleanup HPP

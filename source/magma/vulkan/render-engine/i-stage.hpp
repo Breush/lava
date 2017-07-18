@@ -13,7 +13,7 @@ namespace lava::magma {
         virtual void init() = 0;
 
         /// Called each time the extent changes.
-        virtual void update() = 0;
+        virtual void update(const vk::Extent2D& extent) = 0;
 
         /// Called each frame.
         virtual void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) = 0;

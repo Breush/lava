@@ -171,10 +171,12 @@ void Epiphany::init()
     logger.log().tab(-1);
 }
 
-void Epiphany::update()
+void Epiphany::update(const vk::Extent2D& extent)
 {
     logger.log() << "Updating Epiphany stage." << std::endl;
     logger.log().tab(1);
+
+    m_extent = extent;
 
     createRenderPass();
     createGraphicsPipeline();
@@ -196,7 +198,7 @@ void Epiphany::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIn
     renderPassInfo.renderPass = m_renderPass;
     renderPassInfo.framebuffer = m_framebuffer;
     renderPassInfo.renderArea.setOffset({0, 0});
-    renderPassInfo.renderArea.setExtent(m_engine.swapchain().extent());
+    renderPassInfo.renderArea.setExtent(m_extent);
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
@@ -227,20 +229,20 @@ void Epiphany::createRenderPass()
     const auto& vk_device = device.vk();
 
     // Epiphany attachement
-    vk::Format presentAttachmentFormat = vk::Format(m_engine.swapchain().imageFormat()); // @cleanup HPP
-    vk::AttachmentReference presentAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
+    vk::Format targetAttachmentFormat = vk::Format::eB8G8R8A8Unorm;
+    vk::AttachmentReference targetAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
 
-    vk::AttachmentDescription presentAttachment;
-    presentAttachment.setFormat(presentAttachmentFormat);
-    presentAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    presentAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    presentAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    presentAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    presentAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    presentAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    vk::AttachmentDescription targetAttachment;
+    targetAttachment.setFormat(targetAttachmentFormat);
+    targetAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    targetAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    targetAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    targetAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    targetAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    targetAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
-    std::array<vk::AttachmentReference, 1> colorAttachmentsRefs = {presentAttachmentRef};
-    std::array<vk::AttachmentDescription, 1> attachments = {presentAttachment};
+    std::array<vk::AttachmentReference, 1> colorAttachmentsRefs = {targetAttachmentRef};
+    std::array<vk::AttachmentDescription, 1> attachments = {targetAttachment};
 
     // Subpass
     vk::SubpassDescription subpass;
@@ -291,7 +293,7 @@ void Epiphany::createGraphicsPipeline()
     inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
 
     // Viewport and scissor
-    auto& extent = m_engine.swapchain().extent();
+    auto& extent = m_extent;
     vk::Rect2D scissor{{0, 0}, extent};
     vk::Viewport viewport{0.f, 0.f};
     viewport.setWidth(extent.width).setHeight(extent.height);
@@ -361,7 +363,7 @@ void Epiphany::createGraphicsPipeline()
 
 void Epiphany::createResources()
 {
-    auto extent = m_engine.swapchain().extent();
+    auto extent = m_extent;
 
     // Target
     auto format = vk::Format::eB8G8R8A8Unorm;
@@ -378,17 +380,13 @@ void Epiphany::createFramebuffers()
     // @cleanup HPP
     const auto& vk_device = m_engine.device().vk();
 
-    // @fixme We are still presenting something to the screen at this render pass,
-    // but it should not be here, and so swapchain info neither.
-    auto& swapchain = m_engine.swapchain();
-
     // Framebuffer
     vk::FramebufferCreateInfo framebufferInfo;
     framebufferInfo.renderPass = m_renderPass;
     framebufferInfo.attachmentCount = 1;
     framebufferInfo.pAttachments = &m_imageHolder.view();
-    framebufferInfo.width = swapchain.extent().width;
-    framebufferInfo.height = swapchain.extent().height;
+    framebufferInfo.width = m_extent.width;
+    framebufferInfo.height = m_extent.height;
     framebufferInfo.layers = 1;
 
     if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {

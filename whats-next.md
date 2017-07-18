@@ -26,8 +26,6 @@
 ## Magma
 
 - **up**
-    - Remove swapchain from GBuffer
-        - Set extent at creation (remove swapchain info from there)
     - Light Linked List Renderer
         - Fill linked list
             - Software depth test

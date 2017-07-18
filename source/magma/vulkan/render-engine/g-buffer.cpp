@@ -46,10 +46,12 @@ void GBuffer::init()
     logger.log().tab(-1);
 }
 
-void GBuffer::update()
+void GBuffer::update(const vk::Extent2D& extent)
 {
     logger.log() << "Updating G-Buffer stage." << std::endl;
     logger.log().tab(1);
+
+    m_extent = extent;
 
     createRenderPass();
     createGraphicsPipeline();
@@ -74,7 +76,7 @@ void GBuffer::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameInd
     renderPassInfo.setRenderPass(m_renderPass);
     renderPassInfo.setFramebuffer(m_framebuffer);
     renderPassInfo.renderArea.setOffset({0, 0});
-    renderPassInfo.renderArea.setExtent(m_engine.swapchain().extent());
+    renderPassInfo.renderArea.setExtent(m_extent);
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
@@ -114,7 +116,7 @@ void GBuffer::createRenderPass()
     const auto& vk_device = device.vk();
 
     // Normal attachement
-    vk::Format normalAttachmentFormat = vk::Format(m_engine.swapchain().imageFormat()); // @cleanup HPP
+    vk::Format normalAttachmentFormat = vk::Format::eB8G8R8A8Unorm;
     vk::AttachmentReference normalAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
 
     vk::AttachmentDescription normalAttachment;
@@ -232,10 +234,9 @@ void GBuffer::createGraphicsPipeline()
     inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
 
     // Viewport and scissor
-    vk::Rect2D scissor{{0, 0}, m_engine.swapchain().extent()};
+    vk::Rect2D scissor{{0, 0}, m_extent};
     vk::Viewport viewport{0.f, 0.f};
-    // @todo The GBuffer should be configurable, and not take the swapchain to get the extent
-    viewport.setWidth(m_engine.swapchain().extent().width).setHeight(m_engine.swapchain().extent().height);
+    viewport.setWidth(m_extent.width).setHeight(m_extent.height);
     viewport.setMinDepth(0.f).setMaxDepth(1.f);
 
     vk::PipelineViewportStateCreateInfo viewportState;
@@ -321,12 +322,10 @@ void GBuffer::createGraphicsPipeline()
 
 void GBuffer::createResources()
 {
-    auto extent = m_engine.swapchain().extent();
-
     // Normal
     auto normalFormat = vk::Format::eB8G8R8A8Unorm;
     // @cleanup HPP
-    m_normalImageHolder.create(normalFormat, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
+    m_normalImageHolder.create(normalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
     vk::ImageLayout normalOldLayout = vk::ImageLayout::ePreinitialized;
     vk::ImageLayout normalNewLayout = vk::ImageLayout::eTransferDstOptimal;
     vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_normalImageHolder.image().castOld(),
@@ -336,7 +335,7 @@ void GBuffer::createResources()
     // Albedo
     auto albedoFormat = vk::Format::eB8G8R8A8Unorm;
     // @cleanup HPP
-    m_albedoImageHolder.create(albedoFormat, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
+    m_albedoImageHolder.create(albedoFormat, m_extent, vk::ImageAspectFlagBits::eColor);
     vk::ImageLayout albedoOldLayout = vk::ImageLayout::ePreinitialized;
     vk::ImageLayout albedoNewLayout = vk::ImageLayout::eTransferDstOptimal;
     vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_albedoImageHolder.image().castOld(),
@@ -346,7 +345,7 @@ void GBuffer::createResources()
     // ORM
     auto ormFormat = vk::Format::eB8G8R8A8Unorm;
     // @cleanup HPP
-    m_ormImageHolder.create(ormFormat, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
+    m_ormImageHolder.create(ormFormat, m_extent, vk::ImageAspectFlagBits::eColor);
     vk::ImageLayout ormOldLayout = vk::ImageLayout::ePreinitialized;
     vk::ImageLayout ormNewLayout = vk::ImageLayout::eTransferDstOptimal;
     vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_ormImageHolder.image().castOld(),
@@ -355,7 +354,7 @@ void GBuffer::createResources()
     // Depth
     auto depthFormat = vulkan::findDepthBufferFormat(m_engine.device().physicalDevice());
     // @cleanup HPP
-    m_depthImageHolder.create(vk::Format(depthFormat), vk::Extent2D(extent), vk::ImageAspectFlagBits::eDepth);
+    m_depthImageHolder.create(vk::Format(depthFormat), m_extent, vk::ImageAspectFlagBits::eDepth);
     vk::ImageLayout depthOldLayout = vk::ImageLayout::eUndefined;
     vk::ImageLayout depthNewLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
     vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_depthImageHolder.image().castOld(),
@@ -368,10 +367,6 @@ void GBuffer::createFramebuffers()
     // @cleanup HPP
     const auto& vk_device = m_engine.device().vk();
 
-    // @fixme We are still presenting something to the screen at this render pass,
-    // but it should not be here, and so swapchain info neither.
-    auto& swapchain = m_engine.swapchain();
-
     // Framebuffer
     std::array<vk::ImageView, 4> attachments = {m_normalImageHolder.view(), m_albedoImageHolder.view(), m_ormImageHolder.view(),
                                                 m_depthImageHolder.view()};
@@ -380,8 +375,8 @@ void GBuffer::createFramebuffers()
     framebufferInfo.renderPass = m_renderPass;
     framebufferInfo.attachmentCount = attachments.size();
     framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = swapchain.extent().width;
-    framebufferInfo.height = swapchain.extent().height;
+    framebufferInfo.width = m_extent.width;
+    framebufferInfo.height = m_extent.height;
     framebufferInfo.layers = 1;
 
     if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {

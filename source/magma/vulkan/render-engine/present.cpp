@@ -92,10 +92,12 @@ void Present::init()
     logger.log().tab(-1);
 }
 
-void Present::update()
+void Present::update(const vk::Extent2D& extent)
 {
     logger.log() << "Updating Present stage." << std::endl;
     logger.log().tab(1);
+
+    m_extent = extent;
 
     createRenderPass();
     createGraphicsPipeline();
@@ -117,7 +119,7 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
     renderPassInfo.renderPass = m_renderPass;
     renderPassInfo.framebuffer = m_framebuffers[frameIndex];
     renderPassInfo.renderArea.setOffset({0, 0});
-    renderPassInfo.renderArea.setExtent(m_engine.swapchain().extent());
+    renderPassInfo.renderArea.setExtent(m_extent);
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
@@ -209,10 +211,9 @@ void Present::createGraphicsPipeline()
     inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
 
     // Viewport and scissor
-    auto& extent = m_engine.swapchain().extent();
-    vk::Rect2D scissor{{0, 0}, extent};
+    vk::Rect2D scissor{{0, 0}, m_extent};
     vk::Viewport viewport{0.f, 0.f};
-    viewport.setWidth(extent.width).setHeight(extent.height);
+    viewport.setWidth(m_extent.width).setHeight(m_extent.height);
     viewport.setMinDepth(0.f).setMaxDepth(1.f);
 
     vk::PipelineViewportStateCreateInfo viewportState;
