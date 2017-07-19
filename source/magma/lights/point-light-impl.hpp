@@ -20,5 +20,6 @@ namespace lava::magma {
 
         // IPointLight
         $property(glm::vec3, position);
+        $property(float, radius, = 1.f);
     };
 }

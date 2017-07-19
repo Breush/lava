@@ -17,5 +17,8 @@ namespace lava::magma {
 
         /// World position.
         virtual const glm::vec3& position() const = 0;
+
+        /// Radius.
+        virtual float radius() const = 0;
     };
 }

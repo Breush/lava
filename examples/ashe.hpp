@@ -35,6 +35,7 @@ namespace lava::ashe {
             // A light.
             m_light = &m_engine->make<magma::PointLight>();
             m_light->position({5.f, 5.f, 0.f});
+            m_light->radius(10.f);
         }
 
         /// Simply run the main loop.

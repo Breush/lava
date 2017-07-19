@@ -12,6 +12,7 @@
         "assets": true
     },
 
+    "C_Cpp.intelliSenseEngine": "Default",
     "C_Cpp.clang_format_sortIncludes": true,
     "C_Cpp.clang_format_formatOnSave": true,
     "C_Cpp.formatting": "Default",

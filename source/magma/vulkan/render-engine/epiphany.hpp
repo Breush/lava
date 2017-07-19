@@ -32,6 +32,9 @@ namespace lava::magma {
 
         void updateUbos();
 
+        // Light linked list
+        void fillLll();
+
     private:
         vk::Extent2D m_extent;
 

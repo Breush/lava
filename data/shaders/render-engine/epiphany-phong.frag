@@ -10,6 +10,7 @@ layout(set = 0, binding = 0) uniform CameraUbo {
 // @todo To be replaced by LLL
 layout(set = 0, binding = 1) uniform LightUbo {
     vec4 wPosition;
+    float radius;
 } light;
 
 layout(set = 0, binding = 2) uniform sampler2D normalSampler;
@@ -68,15 +69,21 @@ void main()
     float specular = 0;
 
     // Check whether the lighting should have an effect
-    vec3 l = normalize(light.wPosition.xyz - wPosition.xyz);
-    float cosTheta = dot(normal, l);
-    if (cosTheta > 0) {
-        diffuse += id * cosTheta;
+    vec3 lightVector = light.wPosition.xyz - wPosition.xyz;
+    float lightDistance = length(lightVector);
+    if (lightDistance < light.radius) {
+        float i = 1 - (lightDistance * lightDistance) / (light.radius * light.radius);
 
-        vec3 r = normalize(2 * cosTheta * normal - l);
-        float cosOmega = dot(r, v);
-        if (cosOmega > 0) {
-            specular += is * pow(cosOmega, alpha);
+        vec3 l = normalize(lightVector);
+        float cosTheta = dot(normal, l);
+        if (cosTheta > 0) {
+            diffuse += i * id * cosTheta;
+
+            vec3 r = normalize(2 * cosTheta * normal - l);
+            float cosOmega = dot(r, v);
+            if (cosOmega > 0) {
+                specular += i * is * pow(cosOmega, alpha);
+            }
         }
     }
 

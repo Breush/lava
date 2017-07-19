@@ -17,6 +17,7 @@ namespace {
 
     struct LightUbo {
         glm::vec4 wPosition;
+        float radius;
     };
 
     struct Vertex {
@@ -202,6 +203,9 @@ void Epiphany::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIn
     renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
+
+    // Light linked list
+    fillLll();
 
     // Update UBOs
     updateUbos();
@@ -502,7 +506,13 @@ void Epiphany::updateUbos()
 
         LightUbo ubo;
         ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
+        ubo.radius = pointLight.radius();
 
         m_lightBufferHolder.copy(ubo);
     }
+}
+
+void Epiphany::fillLll()
+{
+    // @todo Render a sphere for the light
 }
