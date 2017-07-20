@@ -16,10 +16,10 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
     : IStage(engine)
     , m_vertShaderModule{m_engine.device().vk()}
     , m_fragShaderModule{m_engine.device().vk()}
-    , m_normalImageHolder{m_engine.device()}
-    , m_albedoImageHolder{m_engine.device()}
-    , m_ormImageHolder{m_engine.device()}
-    , m_depthImageHolder{m_engine.device()}
+    , m_normalImageHolder{m_engine.device(), m_engine.commandPool()}
+    , m_albedoImageHolder{m_engine.device(), m_engine.commandPool()}
+    , m_ormImageHolder{m_engine.device(), m_engine.commandPool()}
+    , m_depthImageHolder{m_engine.device(), m_engine.commandPool()}
     , m_framebuffer{m_engine.device().vk()}
 {
 }
@@ -324,42 +324,20 @@ void GBuffer::createResources()
 {
     // Normal
     auto normalFormat = vk::Format::eB8G8R8A8Unorm;
-    // @cleanup HPP
     m_normalImageHolder.create(normalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
-    vk::ImageLayout normalOldLayout = vk::ImageLayout::ePreinitialized;
-    vk::ImageLayout normalNewLayout = vk::ImageLayout::eTransferDstOptimal;
-    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_normalImageHolder.image().castOld(),
-                                  reinterpret_cast<VkImageLayout&>(normalOldLayout),
-                                  reinterpret_cast<VkImageLayout&>(normalNewLayout));
 
     // Albedo
     auto albedoFormat = vk::Format::eB8G8R8A8Unorm;
-    // @cleanup HPP
     m_albedoImageHolder.create(albedoFormat, m_extent, vk::ImageAspectFlagBits::eColor);
-    vk::ImageLayout albedoOldLayout = vk::ImageLayout::ePreinitialized;
-    vk::ImageLayout albedoNewLayout = vk::ImageLayout::eTransferDstOptimal;
-    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_albedoImageHolder.image().castOld(),
-                                  reinterpret_cast<VkImageLayout&>(albedoOldLayout),
-                                  reinterpret_cast<VkImageLayout&>(albedoNewLayout));
 
     // ORM
     auto ormFormat = vk::Format::eB8G8R8A8Unorm;
-    // @cleanup HPP
     m_ormImageHolder.create(ormFormat, m_extent, vk::ImageAspectFlagBits::eColor);
-    vk::ImageLayout ormOldLayout = vk::ImageLayout::ePreinitialized;
-    vk::ImageLayout ormNewLayout = vk::ImageLayout::eTransferDstOptimal;
-    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_ormImageHolder.image().castOld(),
-                                  reinterpret_cast<VkImageLayout&>(ormOldLayout), reinterpret_cast<VkImageLayout&>(ormNewLayout));
 
     // Depth
-    auto depthFormat = vulkan::findDepthBufferFormat(m_engine.device().physicalDevice());
     // @cleanup HPP
+    auto depthFormat = vulkan::findDepthBufferFormat(m_engine.device().physicalDevice());
     m_depthImageHolder.create(vk::Format(depthFormat), m_extent, vk::ImageAspectFlagBits::eDepth);
-    vk::ImageLayout depthOldLayout = vk::ImageLayout::eUndefined;
-    vk::ImageLayout depthNewLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_depthImageHolder.image().castOld(),
-                                  reinterpret_cast<VkImageLayout&>(depthOldLayout),
-                                  reinterpret_cast<VkImageLayout&>(depthNewLayout));
 }
 
 void GBuffer::createFramebuffers()

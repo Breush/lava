@@ -6,6 +6,7 @@
 
 #include "../buffer-holder.hpp"
 #include "../capsule.hpp"
+#include "../image-holder.hpp"
 
 namespace lava::magma {
     /**
@@ -70,19 +71,10 @@ namespace lava::magma {
         VkDescriptorSet m_descriptorSet;
         vulkan::BufferHolder m_uniformBufferHolder;
 
-        // @todo Use ImageHolder
         // @todo Should be in the texture itself, and probably unique_ptr, so that they can be deleted
-        vulkan::Capsule<VkImage> m_normalImage;
-        vulkan::Capsule<VkDeviceMemory> m_normalImageMemory;
-        vulkan::Capsule<VkImageView> m_normalImageView;
-
-        vulkan::Capsule<VkImage> m_albedoImage;
-        vulkan::Capsule<VkDeviceMemory> m_albedoImageMemory;
-        vulkan::Capsule<VkImageView> m_albedoImageView;
-
-        vulkan::Capsule<VkImage> m_ormImage;
-        vulkan::Capsule<VkDeviceMemory> m_ormImageMemory;
-        vulkan::Capsule<VkImageView> m_ormImageView;
+        vulkan::ImageHolder m_normalImageHolder;
+        vulkan::ImageHolder m_albedoImageHolder;
+        vulkan::ImageHolder m_ormImageHolder;
 
         // Data
         float m_roughnessFactor = 1.f;

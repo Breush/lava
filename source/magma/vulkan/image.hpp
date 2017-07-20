@@ -73,6 +73,21 @@ namespace lava::magma::vulkan {
             chamber::logger.error("magma.vulkan.image") << "Failed to create image view." << std::endl;
         }
     }
+
+    inline void copyBufferToImage(Device& device, const vk::CommandPool& commandPool, const vk::Buffer& buffer,
+                                  const vk::Image& image, const vk::Extent2D& extent)
+    {
+        auto commandBuffer = beginSingleTimeCommands(device, commandPool);
+
+        vk::BufferImageCopy region;
+        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        region.imageSubresource.layerCount = 1;
+        region.imageExtent = vk::Extent3D{extent.width, extent.height, 1};
+
+        commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+
+        endSingleTimeCommands(device, commandPool, commandBuffer);
+    }
 }
 
 // @cleanup HPP Some of these overloads should not be needed anymore

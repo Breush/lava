@@ -38,63 +38,8 @@ namespace {
         memcpy(texture.pixels, pixels.data(), pixels.size());
     }
 
-    void setupTextureImage(magma::RmMaterial::Impl::Attribute::Texture& texture, magma::vulkan::Device& device,
-                           VkCommandPool commandPool, magma::vulkan::Capsule<VkImage>& image,
-                           magma::vulkan::Capsule<VkDeviceMemory>& imageMemory, magma::vulkan::Capsule<VkImageView>& imageView)
-    {
-        if (texture.channels != 4u) {
-            chamber::logger.error("magma.vulkan.rm-material")
-                << "Cannot handle texture with " << static_cast<uint32_t>(texture.channels)
-                << " channels. Only 4 is currently supported." << std::endl;
-        }
-
-        magma::vulkan::Capsule<VkImage> stagingImage{device.capsule(), vkDestroyImage};
-        magma::vulkan::Capsule<VkDeviceMemory> stagingImageMemory{device.capsule(), vkFreeMemory};
-        magma::vulkan::Capsule<VkImageView> stagingImageView{device.capsule(), vkDestroyImageView};
-
-        magma::vulkan::createImage(device, texture.width, texture.height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR,
-                                   VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage,
-                                   stagingImageMemory);
-
-        VkImageSubresource subresource = {};
-        subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        subresource.mipLevel = 0;
-        subresource.arrayLayer = 0;
-
-        VkSubresourceLayout stagingImageLayout;
-        vkGetImageSubresourceLayout(device, stagingImage, &subresource, &stagingImageLayout);
-
-        // Staging buffer
-        magma::vulkan::Capsule<VkBuffer> stagingBuffer{device.capsule(), vkDestroyBuffer};
-        magma::vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{device.capsule(), vkFreeMemory};
-
-        VkDeviceSize imageSize = texture.width * texture.height * 4;
-        magma::vulkan::createBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-                                    stagingBufferMemory);
-
-        void* data;
-        vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, texture.pixels, static_cast<size_t>(imageSize));
-        vkUnmapMemory(device, stagingBufferMemory);
-
-        // The real image
-        magma::vulkan::createImage(device, texture.width, texture.height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-                                   VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, imageMemory);
-
-        magma::vulkan::transitionImageLayout(device, commandPool, image, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-        magma::vulkan::copyBufferToImage(device, commandPool, stagingBuffer, image, texture.width, texture.height);
-
-        // Update image view
-        magma::vulkan::createImageView(device, image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, imageView);
-    }
-
     void bindTextureDescriptorSet(VkDescriptorSet& descriptorSet, uint32_t dstBinding, magma::vulkan::Device& device,
-                                  magma::vulkan::Capsule<VkSampler>& sampler, magma::vulkan::Capsule<VkImageView>& imageView)
+                                  magma::vulkan::Capsule<VkSampler>& sampler, const VkImageView& imageView)
     {
         // Update descriptor set
         VkWriteDescriptorSet descriptorWrite = {};
@@ -124,15 +69,9 @@ using namespace lava::chamber;
 RmMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
     , m_uniformBufferHolder(m_engine.device(), m_engine.commandPool())
-    , m_normalImage{m_engine.device().capsule(), vkDestroyImage}
-    , m_normalImageMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_normalImageView{m_engine.device().capsule(), vkDestroyImageView}
-    , m_albedoImage{m_engine.device().capsule(), vkDestroyImage}
-    , m_albedoImageMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_albedoImageView{m_engine.device().capsule(), vkDestroyImageView}
-    , m_ormImage{m_engine.device().capsule(), vkDestroyImage}
-    , m_ormImageMemory{m_engine.device().capsule(), vkFreeMemory}
-    , m_ormImageView{m_engine.device().capsule(), vkDestroyImageView}
+    , m_normalImageHolder(m_engine.device(), m_engine.commandPool())
+    , m_albedoImageHolder(m_engine.device(), m_engine.commandPool())
+    , m_ormImageHolder(m_engine.device(), m_engine.commandPool())
 {
     m_albedo.type = Attribute::Type::NONE;
     m_normal.type = Attribute::Type::NONE;
@@ -205,8 +144,7 @@ void RmMaterial::Impl::normal(const std::vector<uint8_t>& pixels, uint32_t width
 
     m_normal.type = Attribute::Type::TEXTURE;
     setupTexture(m_normal.texture, pixels, width, height, channels);
-    setupTextureImage(m_normal.texture, m_engine.device(), m_engine.commandPool().castOld(), m_normalImage, m_normalImageMemory,
-                      m_normalImageView);
+    m_normalImageHolder.setup(pixels, width, height, channels);
     updateBindings();
 }
 
@@ -217,8 +155,7 @@ void RmMaterial::Impl::baseColor(const std::vector<uint8_t>& pixels, uint32_t wi
 
     m_albedo.type = Attribute::Type::TEXTURE;
     setupTexture(m_albedo.texture, pixels, width, height, channels);
-    setupTextureImage(m_albedo.texture, m_engine.device(), m_engine.commandPool().castOld(), m_albedoImage, m_albedoImageMemory,
-                      m_albedoImageView);
+    m_albedoImageHolder.setup(pixels, width, height, channels);
     updateBindings();
 }
 
@@ -229,8 +166,7 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
 
     m_orm.type = Attribute::Type::TEXTURE;
     setupTexture(m_orm.texture, pixels, width, height, channels);
-    setupTextureImage(m_orm.texture, m_engine.device(), m_engine.commandPool().castOld(), m_ormImage, m_ormImageMemory,
-                      m_ormImageView);
+    m_ormImageHolder.setup(pixels, width, height, channels);
     updateBindings();
 }
 
@@ -262,10 +198,14 @@ void RmMaterial::Impl::updateBindings()
     m_uniformBufferHolder.copy(ubo);
 
     // Samplers
+    // @cleanup HPP
     bindTextureDescriptorSet(m_descriptorSet, 1u, m_engine.device(), m_engine.textureSampler(),
-                             (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageView : m_engine.dummyNormalImageView());
+                             (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view().castOld()
+                                                                         : m_engine.dummyNormalImageView());
     bindTextureDescriptorSet(m_descriptorSet, 2u, m_engine.device(), m_engine.textureSampler(),
-                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageView : m_engine.dummyImageView());
+                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view().castOld()
+                                                                         : m_engine.dummyImageView());
     bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(),
-                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageView : m_engine.dummyImageView());
+                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view().castOld()
+                                                                      : m_engine.dummyImageView());
 }

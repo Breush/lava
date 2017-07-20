@@ -34,7 +34,7 @@ Epiphany::Epiphany(RenderEngine::Impl& engine)
     , m_fragShaderModule{m_engine.device().vk()}
     , m_descriptorPool{m_engine.device().vk()}
     , m_descriptorSetLayout{m_engine.device().vk()}
-    , m_imageHolder{m_engine.device()}
+    , m_imageHolder{m_engine.device(), m_engine.commandPool()}
     , m_cameraBufferHolder(m_engine.device(), m_engine.commandPool())
     , m_lightBufferHolder(m_engine.device(), m_engine.commandPool())
     , m_framebuffer{m_engine.device().vk()}
@@ -371,12 +371,7 @@ void Epiphany::createResources()
 
     // Target
     auto format = vk::Format::eB8G8R8A8Unorm;
-    // @cleanup HPP
     m_imageHolder.create(format, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
-    vk::ImageLayout oldLayout = vk::ImageLayout::ePreinitialized;
-    vk::ImageLayout newLayout = vk::ImageLayout::eTransferDstOptimal;
-    vulkan::transitionImageLayout(m_engine.device(), m_engine.commandPool().castOld(), m_imageHolder.image().castOld(),
-                                  reinterpret_cast<VkImageLayout&>(oldLayout), reinterpret_cast<VkImageLayout&>(newLayout));
 }
 
 void Epiphany::createFramebuffers()

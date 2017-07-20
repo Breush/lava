@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceRoot}/external/include",
+                "${workspaceRoot}/include",
+                "/usr/include/x86_64-linux-gnu/c++/6",
+                "/usr/include/c++/6",
+                "/usr/local/include",
+                "/usr/lib/clang/4.0.0/include",
+                "/usr/include/x86_64-linux-gnu",
+                "/usr/include"
+            ],
+            "defines": [],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "/usr/include/x86_64-linux-gnu/c++/6",
+                    "/usr/include/c++/6",
+                    "/usr/local/include",
+                    "/usr/lib/clang/4.0.0/include",
+                    "/usr/include/x86_64-linux-gnu",
+                    "/usr/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ]
+}

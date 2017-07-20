@@ -11,8 +11,8 @@ namespace lava::magma::vulkan {
         bufferAllocateInfo.commandBufferCount = 1;
 
         vk::CommandBuffer commandBuffer;
-        vk::Device(device).allocateCommandBuffers(&bufferAllocateInfo, &commandBuffer);
-        // @todo Cast clean
+        device.vk().allocateCommandBuffers(&bufferAllocateInfo, &commandBuffer);
+        // @todo cleanup HPP
 
         vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
         commandBuffer.begin(&beginInfo);
@@ -30,7 +30,7 @@ namespace lava::magma::vulkan {
         vk::Queue(device.graphicsQueue()).submit(1, &submitInfo, vk::Fence());
 
         vk::Queue(device.graphicsQueue()).waitIdle();
-        vk::Device(device).freeCommandBuffers(commandPool, 1, &commandBuffer);
-        // @todo Cast clean
+        device.vk().freeCommandBuffers(commandPool, 1, &commandBuffer);
+        // @todo cleanup HPP
     }
 }
