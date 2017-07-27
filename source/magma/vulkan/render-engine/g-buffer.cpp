@@ -67,17 +67,18 @@ void GBuffer::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameInd
 
     // Set render pass
     std::array<vk::ClearValue, 4> clearValues;
-    clearValues[0].setColor(std::array<float, 4>{0.5f, 0.5f, 0.5f, 1.f});
-    clearValues[1].setColor(std::array<float, 4>{0.2f, 0.6f, 0.4f, 1.f}); // @todo Allow to be configure
-    clearValues[2].setColor(std::array<float, 4>{1.f, 0.f, 0.f, 1.f});
-    clearValues[3].setDepthStencil({1.f, 0u});
+    clearValues[0].color = std::array<float, 4>{0.5f, 0.5f, 0.5f, 1.f};
+    clearValues[1].color = std::array<float, 4>{0.2f, 0.6f, 0.4f, 1.f}; // @todo Allow to be configure
+    clearValues[2].color = std::array<float, 4>{1.f, 0.f, 0.f, 1.f};
+    clearValues[3].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
 
     vk::RenderPassBeginInfo renderPassInfo;
-    renderPassInfo.setRenderPass(m_renderPass);
-    renderPassInfo.setFramebuffer(m_framebuffer);
-    renderPassInfo.renderArea.setOffset({0, 0});
-    renderPassInfo.renderArea.setExtent(m_extent);
-    renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
+    renderPassInfo.renderPass = m_renderPass;
+    renderPassInfo.framebuffer = m_framebuffer;
+    renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
+    renderPassInfo.renderArea.extent = m_extent;
+    renderPassInfo.clearValueCount = clearValues.size();
+    renderPassInfo.pClearValues = clearValues.data();
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
 
@@ -120,39 +121,39 @@ void GBuffer::createRenderPass()
     vk::AttachmentReference normalAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
 
     vk::AttachmentDescription normalAttachment;
-    normalAttachment.setFormat(normalAttachmentFormat);
-    normalAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    normalAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    normalAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    normalAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    normalAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    normalAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    normalAttachment.format = normalAttachmentFormat;
+    normalAttachment.samples = vk::SampleCountFlagBits::e1;
+    normalAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    normalAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    normalAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    normalAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    normalAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
     // Albedo attachement
     vk::Format albedoAttachmentFormat = vk::Format::eB8G8R8A8Unorm;
     vk::AttachmentReference albedoAttachmentRef{1, vk::ImageLayout::eColorAttachmentOptimal};
 
     vk::AttachmentDescription albedoAttachment;
-    albedoAttachment.setFormat(albedoAttachmentFormat);
-    albedoAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    albedoAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    albedoAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    albedoAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    albedoAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    albedoAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    albedoAttachment.format = albedoAttachmentFormat;
+    albedoAttachment.samples = vk::SampleCountFlagBits::e1;
+    albedoAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    albedoAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    albedoAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    albedoAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    albedoAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
     // ORM attachement
     vk::Format ormAttachmentFormat = vk::Format::eB8G8R8A8Unorm;
     vk::AttachmentReference ormAttachmentRef{2, vk::ImageLayout::eColorAttachmentOptimal};
 
     vk::AttachmentDescription ormAttachment;
-    ormAttachment.setFormat(ormAttachmentFormat);
-    ormAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    ormAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    ormAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    ormAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    ormAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    ormAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    ormAttachment.format = ormAttachmentFormat;
+    ormAttachment.samples = vk::SampleCountFlagBits::e1;
+    ormAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    ormAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    ormAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    ormAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    ormAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
     // Depth attachement
     vk::Format depthAttachmentFormat =
@@ -160,34 +161,38 @@ void GBuffer::createRenderPass()
     vk::AttachmentReference depthAttachmentRef{3, vk::ImageLayout::eDepthStencilAttachmentOptimal};
 
     vk::AttachmentDescription depthAttachment;
-    depthAttachment.setFormat(depthAttachmentFormat);
-    depthAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    depthAttachment.format = depthAttachmentFormat;
+    depthAttachment.samples = vk::SampleCountFlagBits::e1;
+    depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
     std::array<vk::AttachmentReference, 3> colorAttachmentsRefs = {normalAttachmentRef, albedoAttachmentRef, ormAttachmentRef};
     std::array<vk::AttachmentDescription, 4> attachments = {normalAttachment, albedoAttachment, ormAttachment, depthAttachment};
 
     // Subpass
     vk::SubpassDescription subpass;
-    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-    subpass.setColorAttachmentCount(colorAttachmentsRefs.size()).setPColorAttachments(colorAttachmentsRefs.data());
-    subpass.setPDepthStencilAttachment(&depthAttachmentRef);
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = colorAttachmentsRefs.size();
+    subpass.pColorAttachments = colorAttachmentsRefs.data();
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
     vk::SubpassDependency dependency;
-    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
-    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
     // The render pass indeed
     vk::RenderPassCreateInfo renderPassInfo;
-    renderPassInfo.setAttachmentCount(attachments.size()).setPAttachments(attachments.data());
-    renderPassInfo.setSubpassCount(1).setPSubpasses(&subpass);
-    renderPassInfo.setDependencyCount(1).setPDependencies(&dependency);
+    renderPassInfo.attachmentCount = attachments.size();
+    renderPassInfo.pAttachments = attachments.data();
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create render pass." << std::endl;
@@ -202,14 +207,14 @@ void GBuffer::createGraphicsPipeline()
 
     // Shader stages
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(m_vertShaderModule);
-    vertShaderStageInfo.setPName("main");
+    vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
+    vertShaderStageInfo.module = m_vertShaderModule;
+    vertShaderStageInfo.pName = "main";
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    fragShaderStageInfo.setModule(m_fragShaderModule);
-    fragShaderStageInfo.setPName("main");
+    fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
+    fragShaderStageInfo.module = m_fragShaderModule;
+    fragShaderStageInfo.pName = "main";
 
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
@@ -225,61 +230,68 @@ void GBuffer::createGraphicsPipeline()
     }
 
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-    vertexInputInfo.setVertexBindingDescriptionCount(1).setPVertexBindingDescriptions(&vk_bindingDescription);
-    vertexInputInfo.setVertexAttributeDescriptionCount(vk_attributeDescriptions.size())
-        .setPVertexAttributeDescriptions(vk_attributeDescriptions.data());
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions = &vk_bindingDescription;
+    vertexInputInfo.vertexAttributeDescriptionCount = vk_attributeDescriptions.size();
+    vertexInputInfo.pVertexAttributeDescriptions = vk_attributeDescriptions.data();
 
     // Input assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
 
     // Viewport and scissor
     vk::Rect2D scissor{{0, 0}, m_extent};
     vk::Viewport viewport{0.f, 0.f};
-    viewport.setWidth(m_extent.width).setHeight(m_extent.height);
-    viewport.setMinDepth(0.f).setMaxDepth(1.f);
+    viewport.width = m_extent.width;
+    viewport.height = m_extent.height;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
 
     vk::PipelineViewportStateCreateInfo viewportState;
-    viewportState.setScissorCount(1).setPScissors(&scissor);
-    viewportState.setViewportCount(1).setPViewports(&viewport);
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &viewport;
 
     // Rasterizer
     vk::PipelineRasterizationStateCreateInfo rasterizer;
-    rasterizer.setLineWidth(1.f);
-    rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
-    rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
+    rasterizer.lineWidth = 1.f;
+    rasterizer.cullMode = vk::CullModeFlagBits::eBack;
+    rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
 
     // Multi-sample
     vk::PipelineMultisampleStateCreateInfo multisampling;
-    multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
-    multisampling.setMinSampleShading(1.f);
+    multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    multisampling.minSampleShading = 1.f;
 
     // Depth buffer
     vk::PipelineDepthStencilStateCreateInfo depthStencil;
-    depthStencil.setDepthTestEnable(true);
-    depthStencil.setDepthWriteEnable(true);
-    depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
-    depthStencil.setMinDepthBounds(0.f).setMaxDepthBounds(1.f);
+    depthStencil.depthTestEnable = true;
+    depthStencil.depthWriteEnable = true;
+    depthStencil.depthCompareOp = vk::CompareOp::eLess;
+    depthStencil.minDepthBounds = 0.f;
+    depthStencil.maxDepthBounds = 1.f;
 
     // Color-blending
     vk::PipelineColorBlendAttachmentState normalBlendAttachment;
-    normalBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-                                            | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    normalBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
+                                           | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
     vk::PipelineColorBlendAttachmentState albedoBlendAttachment;
-    albedoBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-                                            | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    albedoBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
+                                           | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
     vk::PipelineColorBlendAttachmentState ormBlendAttachment;
-    ormBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-                                         | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    ormBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
+                                        | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
     std::array<vk::PipelineColorBlendAttachmentState, 3> colorBlendAttachments = {normalBlendAttachment, albedoBlendAttachment,
                                                                                   ormBlendAttachment};
 
     vk::PipelineColorBlendStateCreateInfo colorBlending;
-    colorBlending.setLogicOp(vk::LogicOp::eCopy);
-    colorBlending.setAttachmentCount(colorBlendAttachments.size()).setPAttachments(colorBlendAttachments.data());
+    colorBlending.logicOp = vk::LogicOp::eCopy;
+    colorBlending.attachmentCount = colorBlendAttachments.size();
+    colorBlending.pAttachments = colorBlendAttachments.data();
 
     // Dynamic state
     // Not used yet VkDynamicState
@@ -292,7 +304,8 @@ void GBuffer::createGraphicsPipeline()
                                                          vk::DescriptorSetLayout(m_engine.meshDescriptorSetLayout())};
 
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-    pipelineLayoutInfo.setSetLayoutCount(setLayouts.size()).setPSetLayouts(setLayouts.data());
+    pipelineLayoutInfo.setLayoutCount = setLayouts.size();
+    pipelineLayoutInfo.pSetLayouts = setLayouts.data();
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create pipeline layout." << std::endl;
@@ -300,16 +313,17 @@ void GBuffer::createGraphicsPipeline()
 
     // Graphics pipeline indeed
     vk::GraphicsPipelineCreateInfo pipelineInfo;
-    pipelineInfo.setStageCount(2).setPStages(shaderStages);
-    pipelineInfo.setPVertexInputState(&vertexInputInfo);
-    pipelineInfo.setPInputAssemblyState(&inputAssembly);
-    pipelineInfo.setPViewportState(&viewportState);
-    pipelineInfo.setPRasterizationState(&rasterizer);
-    pipelineInfo.setPMultisampleState(&multisampling);
-    pipelineInfo.setPDepthStencilState(&depthStencil);
-    pipelineInfo.setPColorBlendState(&colorBlending);
-    pipelineInfo.setLayout(m_pipelineLayout);
-    pipelineInfo.setRenderPass(m_renderPass);
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = &depthStencil;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.layout = m_pipelineLayout;
+    pipelineInfo.renderPass = m_renderPass;
 
     if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create graphics pipeline." << std::endl;

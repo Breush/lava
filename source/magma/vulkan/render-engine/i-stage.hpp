@@ -19,6 +19,10 @@ namespace lava::magma {
         virtual void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) = 0;
 
     protected:
+        // @todo pipeline creation defaults
+        // Get some createPipelineInputAssembly() and such
+
+    protected:
         RenderEngine::Impl& m_engine;
 
         // Render pipeline

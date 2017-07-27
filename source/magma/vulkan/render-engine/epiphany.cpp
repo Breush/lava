@@ -198,9 +198,10 @@ void Epiphany::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIn
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPass;
     renderPassInfo.framebuffer = m_framebuffer;
-    renderPassInfo.renderArea.setOffset({0, 0});
-    renderPassInfo.renderArea.setExtent(m_extent);
-    renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
+    renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
+    renderPassInfo.renderArea.extent = m_extent;
+    renderPassInfo.clearValueCount = clearValues.size();
+    renderPassInfo.pClearValues = clearValues.data();
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
 
@@ -237,33 +238,37 @@ void Epiphany::createRenderPass()
     vk::AttachmentReference targetAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
 
     vk::AttachmentDescription targetAttachment;
-    targetAttachment.setFormat(targetAttachmentFormat);
-    targetAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    targetAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    targetAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    targetAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    targetAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    targetAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    targetAttachment.format = targetAttachmentFormat;
+    targetAttachment.samples = vk::SampleCountFlagBits::e1;
+    targetAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    targetAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    targetAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    targetAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    targetAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
     std::array<vk::AttachmentReference, 1> colorAttachmentsRefs = {targetAttachmentRef};
     std::array<vk::AttachmentDescription, 1> attachments = {targetAttachment};
 
     // Subpass
     vk::SubpassDescription subpass;
-    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-    subpass.setColorAttachmentCount(colorAttachmentsRefs.size()).setPColorAttachments(colorAttachmentsRefs.data());
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = colorAttachmentsRefs.size();
+    subpass.pColorAttachments = colorAttachmentsRefs.data();
 
     vk::SubpassDependency dependency;
-    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
-    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
     // The render pass indeed
     vk::RenderPassCreateInfo renderPassInfo;
-    renderPassInfo.setAttachmentCount(attachments.size()).setPAttachments(attachments.data());
-    renderPassInfo.setSubpassCount(1).setPSubpasses(&subpass);
-    renderPassInfo.setDependencyCount(1).setPDependencies(&dependency);
+    renderPassInfo.attachmentCount = attachments.size();
+    renderPassInfo.pAttachments = attachments.data();
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create render pass." << std::endl;
@@ -278,14 +283,14 @@ void Epiphany::createGraphicsPipeline()
 
     // Shader stages
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(m_vertShaderModule);
-    vertShaderStageInfo.setPName("main");
+    vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
+    vertShaderStageInfo.module = m_vertShaderModule;
+    vertShaderStageInfo.pName = "main";
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    fragShaderStageInfo.setModule(m_fragShaderModule);
-    fragShaderStageInfo.setPName("main");
+    fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
+    fragShaderStageInfo.module = m_fragShaderModule;
+    fragShaderStageInfo.pName = "main";
 
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
@@ -294,42 +299,47 @@ void Epiphany::createGraphicsPipeline()
 
     // Input assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
 
     // Viewport and scissor
     auto& extent = m_extent;
     vk::Rect2D scissor{{0, 0}, extent};
     vk::Viewport viewport{0.f, 0.f};
-    viewport.setWidth(extent.width).setHeight(extent.height);
-    viewport.setMinDepth(0.f).setMaxDepth(1.f);
+    viewport.width = extent.width;
+    viewport.height = extent.height;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
 
     vk::PipelineViewportStateCreateInfo viewportState;
-    viewportState.setScissorCount(1).setPScissors(&scissor);
-    viewportState.setViewportCount(1).setPViewports(&viewport);
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &viewport;
 
     // Rasterizer
     vk::PipelineRasterizationStateCreateInfo rasterizer;
-    rasterizer.setLineWidth(1.f);
-    rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
+    rasterizer.lineWidth = 1.f;
+    rasterizer.cullMode = vk::CullModeFlagBits::eNone;
 
     // Multi-sample
     vk::PipelineMultisampleStateCreateInfo multisampling;
-    multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
-    multisampling.setMinSampleShading(1.f);
+    multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    multisampling.minSampleShading = 1.f;
 
     // Depth buffer
     // Not used
 
     // Color-blending
     vk::PipelineColorBlendAttachmentState presentBlendAttachment;
-    presentBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-                                             | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    presentBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
+                                            | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
     std::array<vk::PipelineColorBlendAttachmentState, 1> colorBlendAttachments = {presentBlendAttachment};
 
     vk::PipelineColorBlendStateCreateInfo colorBlending;
-    colorBlending.setLogicOp(vk::LogicOp::eCopy);
-    colorBlending.setAttachmentCount(colorBlendAttachments.size()).setPAttachments(colorBlendAttachments.data());
+    colorBlending.logicOp = vk::LogicOp::eCopy;
+    colorBlending.attachmentCount = colorBlendAttachments.size();
+    colorBlending.pAttachments = colorBlendAttachments.data();
 
     // Dynamic state
     // Not used yet VkDynamicState
@@ -346,15 +356,16 @@ void Epiphany::createGraphicsPipeline()
 
     // Graphics pipeline indeed
     vk::GraphicsPipelineCreateInfo pipelineInfo;
-    pipelineInfo.setStageCount(2).setPStages(shaderStages);
-    pipelineInfo.setPVertexInputState(&vertexInputInfo);
-    pipelineInfo.setPInputAssemblyState(&inputAssembly);
-    pipelineInfo.setPViewportState(&viewportState);
-    pipelineInfo.setPRasterizationState(&rasterizer);
-    pipelineInfo.setPMultisampleState(&multisampling);
-    pipelineInfo.setPColorBlendState(&colorBlending);
-    pipelineInfo.setLayout(m_pipelineLayout);
-    pipelineInfo.setRenderPass(m_renderPass);
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.layout = m_pipelineLayout;
+    pipelineInfo.renderPass = m_renderPass;
 
     if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline." << std::endl;

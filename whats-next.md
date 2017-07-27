@@ -41,7 +41,6 @@
 - **refacto**
     - Use vulkan.hpp 
         - Clean @cleanup HPP
-        - Remove useless setXXX made because of vulkan-hpp conventions
         - Remove Capsule castOld() thingy
     - Have interfaces.hpp
     - Have user documentation
@@ -50,6 +49,7 @@
     - Create and use BufferHolder for Vertices/Indices
     - Make some ImageDescriptor/BufferDescriptor?
     - Device -> DeviceHolder (holding Device and PhysicalDevice)
+    - IStage: default pipeline creation
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame

@@ -118,9 +118,10 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPass;
     renderPassInfo.framebuffer = m_framebuffers[frameIndex];
-    renderPassInfo.renderArea.setOffset({0, 0});
-    renderPassInfo.renderArea.setExtent(m_extent);
-    renderPassInfo.setClearValueCount(clearValues.size()).setPClearValues(clearValues.data());
+    renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
+    renderPassInfo.renderArea.extent = m_extent;
+    renderPassInfo.clearValueCount = clearValues.size();
+    renderPassInfo.pClearValues = clearValues.data();
 
     commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
 
@@ -151,33 +152,37 @@ void Present::createRenderPass()
     vk::AttachmentReference presentAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
 
     vk::AttachmentDescription presentAttachment;
-    presentAttachment.setFormat(presentAttachmentFormat);
-    presentAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    presentAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    presentAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    presentAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    presentAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    presentAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+    presentAttachment.format = presentAttachmentFormat;
+    presentAttachment.samples = vk::SampleCountFlagBits::e1;
+    presentAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    presentAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    presentAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    presentAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    presentAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
     std::array<vk::AttachmentReference, 1> colorAttachmentsRefs = {presentAttachmentRef};
     std::array<vk::AttachmentDescription, 1> attachments = {presentAttachment};
 
     // Subpass
     vk::SubpassDescription subpass;
-    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-    subpass.setColorAttachmentCount(colorAttachmentsRefs.size()).setPColorAttachments(colorAttachmentsRefs.data());
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = colorAttachmentsRefs.size();
+    subpass.pColorAttachments = colorAttachmentsRefs.data();
 
     vk::SubpassDependency dependency;
-    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
-    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
     // The render pass indeed
     vk::RenderPassCreateInfo renderPassInfo;
-    renderPassInfo.setAttachmentCount(attachments.size()).setPAttachments(attachments.data());
-    renderPassInfo.setSubpassCount(1).setPSubpasses(&subpass);
-    renderPassInfo.setDependencyCount(1).setPDependencies(&dependency);
+    renderPassInfo.attachmentCount = attachments.size();
+    renderPassInfo.pAttachments = attachments.data();
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create render pass." << std::endl;
@@ -192,14 +197,14 @@ void Present::createGraphicsPipeline()
 
     // Shader stages
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(m_vertShaderModule);
-    vertShaderStageInfo.setPName("main");
+    vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
+    vertShaderStageInfo.module = m_vertShaderModule;
+    vertShaderStageInfo.pName = "main";
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    fragShaderStageInfo.setModule(m_fragShaderModule);
-    fragShaderStageInfo.setPName("main");
+    fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
+    fragShaderStageInfo.module = m_fragShaderModule;
+    fragShaderStageInfo.pName = "main";
 
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
@@ -208,41 +213,46 @@ void Present::createGraphicsPipeline()
 
     // Input assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
 
     // Viewport and scissor
     vk::Rect2D scissor{{0, 0}, m_extent};
     vk::Viewport viewport{0.f, 0.f};
-    viewport.setWidth(m_extent.width).setHeight(m_extent.height);
-    viewport.setMinDepth(0.f).setMaxDepth(1.f);
+    viewport.width = m_extent.width;
+    viewport.height = m_extent.height;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
 
     vk::PipelineViewportStateCreateInfo viewportState;
-    viewportState.setScissorCount(1).setPScissors(&scissor);
-    viewportState.setViewportCount(1).setPViewports(&viewport);
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &viewport;
 
     // Rasterizer
     vk::PipelineRasterizationStateCreateInfo rasterizer;
-    rasterizer.setLineWidth(1.f);
-    rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
+    rasterizer.lineWidth = 1.f;
+    rasterizer.cullMode = vk::CullModeFlagBits::eNone;
 
     // Multi-sample
     vk::PipelineMultisampleStateCreateInfo multisampling;
-    multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
-    multisampling.setMinSampleShading(1.f);
+    multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    multisampling.minSampleShading = 1.f;
 
     // Depth buffer
     // Not used
 
     // Color-blending
     vk::PipelineColorBlendAttachmentState presentBlendAttachment;
-    presentBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-                                             | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    presentBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
+                                            | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
     std::array<vk::PipelineColorBlendAttachmentState, 1> colorBlendAttachments = {presentBlendAttachment};
 
     vk::PipelineColorBlendStateCreateInfo colorBlending;
-    colorBlending.setLogicOp(vk::LogicOp::eCopy);
-    colorBlending.setAttachmentCount(colorBlendAttachments.size()).setPAttachments(colorBlendAttachments.data());
+    colorBlending.logicOp = vk::LogicOp::eCopy;
+    colorBlending.attachmentCount = colorBlendAttachments.size();
+    colorBlending.pAttachments = colorBlendAttachments.data();
 
     // Dynamic state
     // Not used yet VkDynamicState
@@ -259,15 +269,16 @@ void Present::createGraphicsPipeline()
 
     // Graphics pipeline indeed
     vk::GraphicsPipelineCreateInfo pipelineInfo;
-    pipelineInfo.setStageCount(2).setPStages(shaderStages);
-    pipelineInfo.setPVertexInputState(&vertexInputInfo);
-    pipelineInfo.setPInputAssemblyState(&inputAssembly);
-    pipelineInfo.setPViewportState(&viewportState);
-    pipelineInfo.setPRasterizationState(&rasterizer);
-    pipelineInfo.setPMultisampleState(&multisampling);
-    pipelineInfo.setPColorBlendState(&colorBlending);
-    pipelineInfo.setLayout(m_pipelineLayout);
-    pipelineInfo.setRenderPass(m_renderPass);
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.layout = m_pipelineLayout;
+    pipelineInfo.renderPass = m_renderPass;
 
     if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline." << std::endl;
