@@ -19,8 +19,6 @@ using namespace lava::chamber;
 
 Present::Present(RenderEngine::Impl& engine)
     : IStage(engine)
-    , m_vertShaderModule{m_engine.device().vk()}
-    , m_fragShaderModule{m_engine.device().vk()}
     , m_descriptorPool{m_engine.device().vk()}
     , m_descriptorSetLayout{m_engine.device().vk()}
 {
@@ -38,11 +36,11 @@ void Present::init()
 
     //----- Shaders
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.frag");
+    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.vert");
+    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.frag");
 
-    vulkan::createShaderModule(vk_device, vertShaderCode, m_vertShaderModule);
-    vulkan::createShaderModule(vk_device, fragShaderCode, m_fragShaderModule);
+    vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
+    vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
 
     //----- Descriptor pool
 
@@ -97,7 +95,7 @@ void Present::update(const vk::Extent2D& extent)
     logger.log() << "Updating Present stage." << std::endl;
     logger.log().tab(1);
 
-    m_extent = extent;
+    IStage::update(extent);
 
     createRenderPass();
     createGraphicsPipeline();
@@ -191,71 +189,10 @@ void Present::createRenderPass()
 
 void Present::createGraphicsPipeline()
 {
-    // @cleanup HPP Remove this second device, as it will be casted automatically
+
+    // @cleanup HPP
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
-
-    // Shader stages
-    vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-    vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
-    vertShaderStageInfo.module = m_vertShaderModule;
-    vertShaderStageInfo.pName = "main";
-
-    vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
-    fragShaderStageInfo.module = m_fragShaderModule;
-    fragShaderStageInfo.pName = "main";
-
-    vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
-
-    // Vertex input
-    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-
-    // Input assembly
-    vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
-
-    // Viewport and scissor
-    vk::Rect2D scissor{{0, 0}, m_extent};
-    vk::Viewport viewport{0.f, 0.f};
-    viewport.width = m_extent.width;
-    viewport.height = m_extent.height;
-    viewport.minDepth = 0.f;
-    viewport.maxDepth = 1.f;
-
-    vk::PipelineViewportStateCreateInfo viewportState;
-    viewportState.scissorCount = 1;
-    viewportState.pScissors = &scissor;
-    viewportState.viewportCount = 1;
-    viewportState.pViewports = &viewport;
-
-    // Rasterizer
-    vk::PipelineRasterizationStateCreateInfo rasterizer;
-    rasterizer.lineWidth = 1.f;
-    rasterizer.cullMode = vk::CullModeFlagBits::eNone;
-
-    // Multi-sample
-    vk::PipelineMultisampleStateCreateInfo multisampling;
-    multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
-    multisampling.minSampleShading = 1.f;
-
-    // Depth buffer
-    // Not used
-
-    // Color-blending
-    vk::PipelineColorBlendAttachmentState presentBlendAttachment;
-    presentBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-                                            | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-
-    std::array<vk::PipelineColorBlendAttachmentState, 1> colorBlendAttachments = {presentBlendAttachment};
-
-    vk::PipelineColorBlendStateCreateInfo colorBlending;
-    colorBlending.logicOp = vk::LogicOp::eCopy;
-    colorBlending.attachmentCount = colorBlendAttachments.size();
-    colorBlending.pAttachments = colorBlendAttachments.data();
-
-    // Dynamic state
-    // Not used yet VkDynamicState
 
     // Pipeline layout
     // __Note__: Order IS important, as sets numbers in shader correspond to order of appearance in this list
@@ -267,26 +204,7 @@ void Present::createGraphicsPipeline()
         logger.error("magma.vulkan.render-engine.present") << "Failed to create pipeline layout." << std::endl;
     }
 
-    // Graphics pipeline indeed
-    vk::GraphicsPipelineCreateInfo pipelineInfo;
-    pipelineInfo.stageCount = 2;
-    pipelineInfo.pStages = shaderStages;
-    pipelineInfo.pVertexInputState = &vertexInputInfo;
-    pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pViewportState = &viewportState;
-    pipelineInfo.pRasterizationState = &rasterizer;
-    pipelineInfo.pMultisampleState = &multisampling;
-    pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.layout = m_pipelineLayout;
-    pipelineInfo.renderPass = m_renderPass;
-
-    if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline." << std::endl;
-    }
-
-    if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline layout." << std::endl;
-    }
+    updatePipeline();
 }
 
 void Present::createResources()

@@ -29,8 +29,6 @@ namespace lava::magma {
         void createFramebuffers();
 
     private:
-        vk::Extent2D m_extent;
-
         // Resources
         vulkan::ShaderModule m_vertShaderModule;
         vulkan::ShaderModule m_fragShaderModule;
