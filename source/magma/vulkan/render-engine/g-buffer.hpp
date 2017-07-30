@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./i-stage.hpp"
+#include "./render-stage.hpp"
 
 #include "../image-holder.hpp"
 
@@ -8,14 +8,9 @@ namespace lava::magma {
     /**
      * Pipeline layout for the G-Buffer construction.
      */
-    class GBuffer final : public IStage {
+    class GBuffer final : public RenderStage {
     public:
         GBuffer(RenderEngine::Impl& engine);
-
-        // IStage
-        void init() override final;
-        void update(const vk::Extent2D& extent) override final;
-        void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) override final;
 
         const vulkan::ImageView& normalImageView() const { return m_normalImageHolder.view(); }
         const vulkan::ImageView& albedoImageView() const { return m_albedoImageHolder.view(); }
@@ -23,19 +18,29 @@ namespace lava::magma {
         const vulkan::ImageView& depthImageView() const { return m_depthImageHolder.view(); }
 
     protected:
-        void createRenderPass();
-        void createGraphicsPipeline();
+        // RenderStage
+        void stageInit() override final;
+        void stageUpdate() override final;
+        void stageRender(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) override final;
+
+        vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo() override final;
+        vk::PipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo() override final;
+
         void createResources();
         void createFramebuffers();
 
     private:
         // Resources
-        vulkan::ShaderModule m_vertShaderModule;
-        vulkan::ShaderModule m_fragShaderModule;
+        vulkan::ShaderModule m_vertexShaderModule;
+        vulkan::ShaderModule m_fragmentShaderModule;
         vulkan::ImageHolder m_normalImageHolder;
         vulkan::ImageHolder m_albedoImageHolder;
         vulkan::ImageHolder m_ormImageHolder;
         vulkan::ImageHolder m_depthImageHolder;
         vulkan::Framebuffer m_framebuffer;
+
+        // Internal configuration
+        vk::VertexInputBindingDescription m_vertexInputBindingDescription;
+        std::vector<vk::VertexInputAttributeDescription> m_vertexInputAttributeDescriptions;
     };
 }

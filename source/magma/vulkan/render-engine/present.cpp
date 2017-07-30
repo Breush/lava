@@ -8,25 +8,22 @@
 #include "../shader.hpp"
 #include "../vertex.hpp"
 
-namespace {
-    struct Vertex {
-        glm::vec2 position;
-    };
-}
-
 using namespace lava::magma;
 using namespace lava::chamber;
 
 Present::Present(RenderEngine::Impl& engine)
-    : IStage(engine)
+    : RenderStage(engine)
+    , m_vertexShaderModule{m_engine.device().vk()}
+    , m_fragmentShaderModule{m_engine.device().vk()}
     , m_descriptorPool{m_engine.device().vk()}
     , m_descriptorSetLayout{m_engine.device().vk()}
 {
+    updateCleverlySkipped(false); // As we're creating our framebuffers based on swapchain image views.
 }
 
-//----- IStage
+//----- RenderStage
 
-void Present::init()
+void Present::stageInit()
 {
     logger.log() << "Initializing Present Stage." << std::endl;
     logger.log().tab(1);
@@ -37,10 +34,12 @@ void Present::init()
     //----- Shaders
 
     auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.vert");
-    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.frag");
-
     vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
+    add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
+
+    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.frag");
     vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
+    add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptor pool
 
@@ -76,6 +75,8 @@ void Present::init()
         logger.error("magma.vulkan.render-engine.present") << "Failed to create material descriptor set layout." << std::endl;
     }
 
+    add(m_descriptorSetLayout);
+
     //----- Descriptor set
 
     vk::DescriptorSetAllocateInfo allocInfo;
@@ -88,24 +89,28 @@ void Present::init()
     }
 
     logger.log().tab(-1);
+
+    //----- Attachments
+
+    // @cleanup HPP
+    ColorAttachment presentColorAttachment;
+    presentColorAttachment.format = vk::Format(m_engine.swapchain().imageFormat());
+    presentColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+    add(presentColorAttachment);
 }
 
-void Present::update(const vk::Extent2D& extent)
+void Present::stageUpdate()
 {
     logger.log() << "Updating Present stage." << std::endl;
     logger.log().tab(1);
 
-    IStage::update(extent);
-
-    createRenderPass();
-    createGraphicsPipeline();
     createResources();
     createFramebuffers();
 
     logger.log().tab(-1);
 }
 
-void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex)
+void Present::stageRender(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex)
 {
     //----- Prologue
 
@@ -138,74 +143,6 @@ void Present::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex
 }
 
 //----- Internal
-
-void Present::createRenderPass()
-{
-    // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
-    // Present attachement
-    vk::Format presentAttachmentFormat = vk::Format(m_engine.swapchain().imageFormat()); // @cleanup HPP
-    vk::AttachmentReference presentAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
-
-    vk::AttachmentDescription presentAttachment;
-    presentAttachment.format = presentAttachmentFormat;
-    presentAttachment.samples = vk::SampleCountFlagBits::e1;
-    presentAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-    presentAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-    presentAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-    presentAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-    presentAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-
-    std::array<vk::AttachmentReference, 1> colorAttachmentsRefs = {presentAttachmentRef};
-    std::array<vk::AttachmentDescription, 1> attachments = {presentAttachment};
-
-    // Subpass
-    vk::SubpassDescription subpass;
-    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-    subpass.colorAttachmentCount = colorAttachmentsRefs.size();
-    subpass.pColorAttachments = colorAttachmentsRefs.data();
-
-    vk::SubpassDependency dependency;
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
-
-    // The render pass indeed
-    vk::RenderPassCreateInfo renderPassInfo;
-    renderPassInfo.attachmentCount = attachments.size();
-    renderPassInfo.pAttachments = attachments.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-
-    if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create render pass." << std::endl;
-    }
-}
-
-void Present::createGraphicsPipeline()
-{
-
-    // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
-    // Pipeline layout
-    // __Note__: Order IS important, as sets numbers in shader correspond to order of appearance in this list
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-
-    if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create pipeline layout." << std::endl;
-    }
-
-    updatePipeline();
-}
 
 void Present::createResources()
 {

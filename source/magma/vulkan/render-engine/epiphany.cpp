@@ -29,9 +29,9 @@ using namespace lava::magma;
 using namespace lava::chamber;
 
 Epiphany::Epiphany(RenderEngine::Impl& engine)
-    : IStage(engine)
-    , m_vertShaderModule{m_engine.device().vk()}
-    , m_fragShaderModule{m_engine.device().vk()}
+    : RenderStage(engine)
+    , m_vertexShaderModule{m_engine.device().vk()}
+    , m_fragmentShaderModule{m_engine.device().vk()}
     , m_descriptorPool{m_engine.device().vk()}
     , m_descriptorSetLayout{m_engine.device().vk()}
     , m_imageHolder{m_engine.device(), m_engine.commandPool()}
@@ -41,9 +41,9 @@ Epiphany::Epiphany(RenderEngine::Impl& engine)
 {
 }
 
-//----- IStage
+//----- RenderStage
 
-void Epiphany::init()
+void Epiphany::stageInit()
 {
     logger.log() << "Initializing Epiphany Stage." << std::endl;
     logger.log().tab(1);
@@ -53,11 +53,13 @@ void Epiphany::init()
 
     //----- Shaders
 
-    auto vertShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany.vert");
-    auto fragShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany-phong.frag");
+    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany.vert");
+    vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
+    add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
-    vulkan::createShaderModule(vk_device, vertShaderCode, m_vertShaderModule);
-    vulkan::createShaderModule(vk_device, fragShaderCode, m_fragShaderModule);
+    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany-phong.frag");
+    vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
+    add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptor pool
 
@@ -138,6 +140,8 @@ void Epiphany::init()
         logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor set." << std::endl;
     }
 
+    add(m_descriptorSetLayout);
+
     //----- Uniform buffers
 
     // @todo Have vulkan::Ubo m_cameraUbo?
@@ -169,25 +173,28 @@ void Epiphany::init()
 
     vk_device.updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 
+    //----- Attachments
+
+    ColorAttachment targetColorAttachment;
+    targetColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
+    targetColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    add(targetColorAttachment);
+
     logger.log().tab(-1);
 }
 
-void Epiphany::update(const vk::Extent2D& extent)
+void Epiphany::stageUpdate()
 {
     logger.log() << "Updating Epiphany stage." << std::endl;
     logger.log().tab(1);
 
-    m_extent = extent;
-
-    createRenderPass();
-    createGraphicsPipeline();
     createResources();
     createFramebuffers();
 
     logger.log().tab(-1);
 }
 
-void Epiphany::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIndex*/)
+void Epiphany::stageRender(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIndex*/)
 {
     //----- Prologue
 
@@ -227,162 +234,11 @@ void Epiphany::render(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIn
 
 //----- Internal
 
-void Epiphany::createRenderPass()
-{
-    // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
-    // Epiphany attachement
-    vk::Format targetAttachmentFormat = vk::Format::eB8G8R8A8Unorm;
-    vk::AttachmentReference targetAttachmentRef{0, vk::ImageLayout::eColorAttachmentOptimal};
-
-    vk::AttachmentDescription targetAttachment;
-    targetAttachment.format = targetAttachmentFormat;
-    targetAttachment.samples = vk::SampleCountFlagBits::e1;
-    targetAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-    targetAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-    targetAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-    targetAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-    targetAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-
-    std::array<vk::AttachmentReference, 1> colorAttachmentsRefs = {targetAttachmentRef};
-    std::array<vk::AttachmentDescription, 1> attachments = {targetAttachment};
-
-    // Subpass
-    vk::SubpassDescription subpass;
-    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-    subpass.colorAttachmentCount = colorAttachmentsRefs.size();
-    subpass.pColorAttachments = colorAttachmentsRefs.data();
-
-    vk::SubpassDependency dependency;
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
-
-    // The render pass indeed
-    vk::RenderPassCreateInfo renderPassInfo;
-    renderPassInfo.attachmentCount = attachments.size();
-    renderPassInfo.pAttachments = attachments.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-
-    if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create render pass." << std::endl;
-    }
-}
-
-void Epiphany::createGraphicsPipeline()
-{
-    // @cleanup HPP Remove this second device, as it will be casted automatically
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
-    // Shader stages
-    vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-    vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
-    vertShaderStageInfo.module = m_vertShaderModule;
-    vertShaderStageInfo.pName = "main";
-
-    vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
-    fragShaderStageInfo.module = m_fragShaderModule;
-    fragShaderStageInfo.pName = "main";
-
-    vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
-
-    // Vertex input
-    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-
-    // Input assembly
-    vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
-
-    // Viewport and scissor
-    auto& extent = m_extent;
-    vk::Rect2D scissor{{0, 0}, extent};
-    vk::Viewport viewport{0.f, 0.f};
-    viewport.width = extent.width;
-    viewport.height = extent.height;
-    viewport.minDepth = 0.f;
-    viewport.maxDepth = 1.f;
-
-    vk::PipelineViewportStateCreateInfo viewportState;
-    viewportState.scissorCount = 1;
-    viewportState.pScissors = &scissor;
-    viewportState.viewportCount = 1;
-    viewportState.pViewports = &viewport;
-
-    // Rasterizer
-    vk::PipelineRasterizationStateCreateInfo rasterizer;
-    rasterizer.lineWidth = 1.f;
-    rasterizer.cullMode = vk::CullModeFlagBits::eNone;
-
-    // Multi-sample
-    vk::PipelineMultisampleStateCreateInfo multisampling;
-    multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
-    multisampling.minSampleShading = 1.f;
-
-    // Depth buffer
-    // Not used
-
-    // Color-blending
-    vk::PipelineColorBlendAttachmentState presentBlendAttachment;
-    presentBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-                                            | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-
-    std::array<vk::PipelineColorBlendAttachmentState, 1> colorBlendAttachments = {presentBlendAttachment};
-
-    vk::PipelineColorBlendStateCreateInfo colorBlending;
-    colorBlending.logicOp = vk::LogicOp::eCopy;
-    colorBlending.attachmentCount = colorBlendAttachments.size();
-    colorBlending.pAttachments = colorBlendAttachments.data();
-
-    // Dynamic state
-    // Not used yet VkDynamicState
-
-    // Pipeline layout
-    // __Note__: Order IS important, as sets numbers in shader correspond to order of appearance in this list
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-
-    if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create pipeline layout." << std::endl;
-    }
-
-    // Graphics pipeline indeed
-    vk::GraphicsPipelineCreateInfo pipelineInfo;
-    pipelineInfo.stageCount = 2;
-    pipelineInfo.pStages = shaderStages;
-    pipelineInfo.pVertexInputState = &vertexInputInfo;
-    pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pViewportState = &viewportState;
-    pipelineInfo.pRasterizationState = &rasterizer;
-    pipelineInfo.pMultisampleState = &multisampling;
-    pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.layout = m_pipelineLayout;
-    pipelineInfo.renderPass = m_renderPass;
-
-    if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline." << std::endl;
-    }
-
-    if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create graphics pipeline layout." << std::endl;
-    }
-}
-
 void Epiphany::createResources()
 {
-    auto extent = m_extent;
-
     // Target
-    auto format = vk::Format::eB8G8R8A8Unorm;
-    m_imageHolder.create(format, vk::Extent2D(extent), vk::ImageAspectFlagBits::eColor);
+    auto format = vk::Format::eR8G8B8A8Unorm;
+    m_imageHolder.create(format, m_extent, vk::ImageAspectFlagBits::eColor);
 }
 
 void Epiphany::createFramebuffers()

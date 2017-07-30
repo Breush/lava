@@ -49,8 +49,8 @@
     - Create and use BufferHolder for Vertices/Indices
     - Make some ImageDescriptor/BufferDescriptor?
     - Device -> DeviceHolder (holding Device and PhysicalDevice)
-    - IStage: default pipeline creation > and rename to RenderStage
-    - RenderStage: genericity for shader setup
+    - Remove useless descriptor pools
+    - RenderStage: A good design shouldn't need virtual functions for create infos
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame
