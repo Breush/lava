@@ -7,6 +7,7 @@
 #include <lava/magma/interfaces/material.hpp>
 #include <lava/magma/interfaces/mesh.hpp>
 #include <lava/magma/interfaces/point-light.hpp>
+#include <lava/magma/interfaces/render-target.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "./device.hpp"
@@ -38,7 +39,7 @@ namespace lava::magma {
         void add(std::unique_ptr<IMaterial>&& material) { m_materials.emplace_back(std::move(material)); }
         void add(std::unique_ptr<IMesh>&& mesh) { m_meshes.emplace_back(std::move(mesh)); }
         void add(std::unique_ptr<IPointLight>&& pointLight) { m_pointLights.emplace_back(std::move(pointLight)); }
-        void add(IRenderTarget& renderTarget);
+        void add(std::unique_ptr<IRenderTarget>&& renderTarget) { m_renderTargets.emplace_back(std::move(renderTarget)); }
         /// @}
 
         /**
@@ -135,6 +136,6 @@ namespace lava::magma {
         std::vector<std::unique_ptr<IMaterial>> m_materials;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
         std::vector<std::unique_ptr<IPointLight>> m_pointLights;
-        std::vector<IRenderTarget*> m_renderTargets;
+        std::vector<std::unique_ptr<IRenderTarget>> m_renderTargets;
     };
 }

@@ -23,8 +23,7 @@ namespace lava::ashe {
             m_engine = std::make_unique<magma::RenderEngine>();
 
             // A window we can draw to.
-            m_window = std::make_unique<magma::RenderWindow>(crater::VideoMode{800, 600}, title);
-            m_engine->add(*m_window);
+            m_window = &m_engine->make<magma::RenderWindow>(crater::VideoMode{800, 600}, title);
 
             // A camera.
             m_camera = &m_engine->make<magma::OrbitCamera>();
@@ -143,7 +142,7 @@ namespace lava::ashe {
 
     private:
         std::unique_ptr<magma::RenderEngine> m_engine = nullptr;
-        std::unique_ptr<magma::RenderWindow> m_window = nullptr;
+        magma::RenderWindow* m_window = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::PointLight* m_light = nullptr;
     };

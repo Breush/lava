@@ -37,7 +37,6 @@
         - ---Custom Materials---
         - Alpha
     - Add semaphores (fences?) to wait between each step
-    - Clean what can be encapsulated into helper functions
 - **refacto**
     - Use vulkan.hpp 
         - Clean @cleanup HPP

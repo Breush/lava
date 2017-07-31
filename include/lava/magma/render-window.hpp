@@ -14,11 +14,10 @@ namespace lava::magma {
      */
     class RenderWindow final : public IRenderTarget {
     public:
-        RenderWindow(crater::VideoMode mode, const std::string& title);
+        RenderWindow(RenderEngine& engine, crater::VideoMode mode, const std::string& title);
         ~RenderWindow();
 
         // IRenderTarget
-        void init(RenderEngine& engine) override final;
         void draw() const override final;
         void refresh() override final;
 

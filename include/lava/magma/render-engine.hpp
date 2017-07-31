@@ -57,7 +57,7 @@ namespace lava::magma {
         void add(std::unique_ptr<IMaterial>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
         void add(std::unique_ptr<IPointLight>&& pointLight);
-        void add(IRenderTarget& renderTarget);
+        void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 
     public:

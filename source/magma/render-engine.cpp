@@ -33,8 +33,7 @@ void RenderEngine::add(std::unique_ptr<IPointLight>&& pointLight)
     m_impl->add(std::move(pointLight));
 }
 
-void RenderEngine::add(IRenderTarget& renderTarget)
+void RenderEngine::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 {
-    renderTarget.init(*this);
-    m_impl->add(renderTarget);
+    m_impl->add(std::move(renderTarget));
 }

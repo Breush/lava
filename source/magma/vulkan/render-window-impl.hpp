@@ -12,13 +12,13 @@ namespace lava::magma::vulkan {
 namespace lava::magma {
     class RenderWindow::Impl {
     public:
-        Impl(crater::VideoMode mode, const std::string& title);
+        Impl(RenderEngine& engine, crater::VideoMode mode, const std::string& title);
 
         // IRenderTarget
-        void init(RenderEngine& engine);
         void draw() const;
         void refresh();
 
+        // crater::Window forwarding
         bool pollEvent(crater::Event& event);
         void close();
 
@@ -28,10 +28,11 @@ namespace lava::magma {
         bool opened() const;
 
     private:
+        // References
+        RenderEngine::Impl& m_engine;
+
+        // Resources
         crater::Window m_window;
         VkExtent2D m_windowExtent;
-
-        RenderEngine::Impl* m_engine = nullptr;
-        vulkan::Swapchain* m_swapchain = nullptr;
     };
 }

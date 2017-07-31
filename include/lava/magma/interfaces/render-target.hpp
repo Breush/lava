@@ -12,8 +12,10 @@ namespace lava::magma {
     public:
         virtual ~IRenderTarget() = default;
 
-        virtual void init(RenderEngine& engine) = 0;
+        /// Draw.
         virtual void draw() const = 0;
-        virtual void refresh() = 0; // from size
+
+        /// Refresh from size.
+        virtual void refresh() = 0;
     };
 }

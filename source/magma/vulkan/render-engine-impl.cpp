@@ -31,11 +31,6 @@ RenderEngine::Impl::~Impl()
     vkDeviceWaitIdle(m_device);
 }
 
-void RenderEngine::Impl::add(IRenderTarget& renderTarget)
-{
-    m_renderTargets.emplace_back(&renderTarget);
-}
-
 void RenderEngine::Impl::draw()
 {
     m_renderTargets[0]->draw();

@@ -7,9 +7,8 @@
 using namespace lava::magma;
 using namespace lava::crater;
 
-$pimpl_class(RenderWindow, VideoMode, mode, const std::string&, title);
+$pimpl_class(RenderWindow, RenderEngine&, engine, VideoMode, mode, const std::string&, title);
 
-$pimpl_method(RenderWindow, void, init, RenderEngine&, engine);
 $pimpl_method_const(RenderWindow, void, draw);
 $pimpl_method(RenderWindow, void, refresh);
 
