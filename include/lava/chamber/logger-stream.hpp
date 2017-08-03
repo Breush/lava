@@ -35,6 +35,8 @@ namespace lava::chamber {
     protected:
         int overflow(int c) override;
 
+        std::string tabsString();
+
     private:
         std::ostream* m_stream = nullptr;
 
@@ -43,5 +45,6 @@ namespace lava::chamber {
         $property(bool, autoExit, = false);
 
         bool m_beenReset = true;
+        uint8_t m_tabs = 0u;
     };
 }

@@ -20,14 +20,14 @@ LoggerStream& LoggerStream::operator[](uint8_t i)
 
 LoggerStream& LoggerStream::tab(int8_t i)
 {
-    const std::string tab("| ");
-    if (i > 0) {
-        m_prefixString += tab * i;
-    }
-    else if (i < 0) {
-        m_prefixString = m_prefixString.substr(0, m_prefixString.length() + tab.size() * i);
-    }
+    m_tabs += i;
     return *this;
+}
+
+std::string LoggerStream::tabsString()
+{
+    static const std::string tab("| ");
+    return tab * m_tabs;
 }
 
 int LoggerStream::overflow(int c)
@@ -45,7 +45,7 @@ int LoggerStream::overflow(int c)
         }
     }
     else if (m_beenReset) {
-        stream() << prefixString();
+        stream() << prefixString() << tabsString();
         m_beenReset = false;
     }
 
