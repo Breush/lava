@@ -15,8 +15,8 @@
 #include "./render-engine/epiphany.hpp"
 #include "./render-engine/g-buffer.hpp"
 #include "./render-engine/present.hpp"
-#include "./surface.hpp"
-#include "./swapchain.hpp"
+#include "./render-target-data.hpp"
+#include "./wrappers.hpp"
 
 namespace lava::magma {
     /**
@@ -39,7 +39,7 @@ namespace lava::magma {
         void add(std::unique_ptr<IMaterial>&& material) { m_materials.emplace_back(std::move(material)); }
         void add(std::unique_ptr<IMesh>&& mesh) { m_meshes.emplace_back(std::move(mesh)); }
         void add(std::unique_ptr<IPointLight>&& pointLight) { m_pointLights.emplace_back(std::move(pointLight)); }
-        void add(std::unique_ptr<IRenderTarget>&& renderTarget) { m_renderTargets.emplace_back(std::move(renderTarget)); }
+        void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 
         /**
@@ -58,6 +58,9 @@ namespace lava::magma {
         /// @}
 
     protected:
+        void initVulkan();
+        void initVulkanDevice(VkSurfaceKHR surface);
+
         // Pipelines
         void initStages();
         void updateStages();
@@ -68,26 +71,28 @@ namespace lava::magma {
         void createTextureSampler();
 
         // Command buffers
-        VkCommandBuffer& recordCommandBuffer(uint32_t index);
-        void createCommandPool();
-        void createCommandBuffers();
+        vk::CommandBuffer& recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex);
+        void createCommandPool(VkSurfaceKHR surface);
+        void createCommandBuffers(uint32_t renderTargetIndex);
 
         // Transform UBOs
         void createDescriptorSetLayouts();
         void createDescriptorPool();
 
-    public:
-        crater::WindowHandle m_windowHandle;
-        VkExtent2D m_windowExtent;
+    private:
+        /// This bundle is what each render target needs.
+        struct RenderTargetBundle {
+            std::unique_ptr<IRenderTarget> renderTarget;
+            std::unique_ptr<Present> presentStage;
+            std::vector<vk::CommandBuffer> commandBuffers;
 
-        void initVulkan(); // @todo That is a really really bad idea
-        void recreateSwapchain();
+            inline const DataRenderTarget& data() { return *reinterpret_cast<const DataRenderTarget*>(renderTarget->data()); }
+        };
 
     private:
         $attribute(vulkan::Instance, instance);
-        $attribute(vulkan::Surface, surface, {m_instance});
+
         $attribute(vulkan::Device, device);
-        $attribute(vulkan::Swapchain, swapchain, {m_device}); // @todo TBR
 
         // Descriptor layouts and pools
         $attribute(vulkan::Capsule<VkDescriptorSetLayout>, cameraDescriptorSetLayout,
@@ -101,13 +106,12 @@ namespace lava::magma {
         $attribute(vulkan::Capsule<VkDescriptorPool>, materialDescriptorPool, {m_device.capsule(), vkDestroyDescriptorPool});
 
         // Rendering stages
+        // @note We currently have only one scene, so these are standalone here.
         GBuffer m_gBuffer{*this};
         Epiphany m_epiphany{*this};
-        Present m_present{*this};
 
         // Commands
         $attribute(vulkan::CommandPool, commandPool, {m_device.vk()});
-        $attribute(std::vector<VkCommandBuffer>, commandBuffers);
 
         /// Dummy texture for colors. 1x1 pixel of rgba(255, 255, 255, 255)
         vulkan::Capsule<VkImage> m_dummyImage{m_device.capsule(), vkDestroyImage};
@@ -121,21 +125,14 @@ namespace lava::magma {
 
         $attribute(vulkan::Capsule<VkSampler>, textureSampler, {m_device.capsule(), vkDestroySampler});
 
-        // Rendering
-        vulkan::Capsule<VkSemaphore> m_imageAvailableSemaphore{m_device.capsule(), vkDestroySemaphore};
-        vulkan::Capsule<VkSemaphore> m_renderFinishedSemaphore{m_device.capsule(), vkDestroySemaphore};
-
-        // Transform UBOs
-        vulkan::Capsule<VkBuffer> m_uniformStagingBuffer{m_device.capsule(), vkDestroyBuffer};
-        vulkan::Capsule<VkDeviceMemory> m_uniformStagingBufferMemory{m_device.capsule(), vkFreeMemory};
-        vulkan::Capsule<VkBuffer> m_uniformBuffer{m_device.capsule(), vkDestroyBuffer};
-        vulkan::Capsule<VkDeviceMemory> m_uniformBufferMemory{m_device.capsule(), vkFreeMemory};
+        // Semaphores
+        vulkan::Semaphore m_renderFinishedSemaphore{m_device.vk()}; // @cleanup HPP
 
         // Data
         std::vector<std::unique_ptr<ICamera>> m_cameras;
         std::vector<std::unique_ptr<IMaterial>> m_materials;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
         std::vector<std::unique_ptr<IPointLight>> m_pointLights;
-        std::vector<std::unique_ptr<IRenderTarget>> m_renderTargets;
+        std::vector<RenderTargetBundle> m_renderTargetBundles;
     };
 }

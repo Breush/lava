@@ -9,8 +9,11 @@ using namespace lava::crater;
 
 $pimpl_class(RenderWindow, RenderEngine&, engine, VideoMode, mode, const std::string&, title);
 
-$pimpl_method_const(RenderWindow, void, draw);
+$pimpl_method(RenderWindow, void, init);
+$pimpl_method(RenderWindow, void, prepare);
 $pimpl_method(RenderWindow, void, refresh);
+$pimpl_method_const(RenderWindow, void, draw, UserData, data);
+$pimpl_method(RenderWindow, IRenderTarget::UserData, data);
 
 $pimpl_method(RenderWindow, bool, pollEvent, Event&, event);
 $pimpl_method(RenderWindow, void, close);

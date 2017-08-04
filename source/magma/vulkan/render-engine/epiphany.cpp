@@ -194,7 +194,7 @@ void Epiphany::stageUpdate()
     logger.log().tab(-1);
 }
 
-void Epiphany::stageRender(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIndex*/)
+void Epiphany::stageRender(const vk::CommandBuffer& commandBuffer)
 {
     //----- Prologue
 

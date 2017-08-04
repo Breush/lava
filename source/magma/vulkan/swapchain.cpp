@@ -62,6 +62,7 @@ using namespace lava::chamber;
 Swapchain::Swapchain(Device& device)
     : m_swapchain{device.capsule(), vkDestroySwapchainKHR}
     , m_device(device)
+    , m_imageAvailableSemaphore(device.vk())
 {
 }
 
@@ -69,6 +70,18 @@ void Swapchain::init(VkSurfaceKHR surface, VkExtent2D& windowExtent)
 {
     createSwapchain(surface, windowExtent);
     createImageViews();
+    createSemaphore();
+}
+
+vk::Result Swapchain::acquireNextImage()
+{
+    // @cleanup HPP
+
+    static const auto MAX = std::numeric_limits<uint64_t>::max();
+    auto result =
+        vkAcquireNextImageKHR(m_device, m_swapchain, MAX, m_imageAvailableSemaphore.castOld(), VK_NULL_HANDLE, &m_currentIndex);
+
+    return vk::Result(result);
 }
 
 void Swapchain::createSwapchain(VkSurfaceKHR surface, VkExtent2D& windowExtent)
@@ -129,5 +142,17 @@ void Swapchain::createImageViews()
 
     for (uint32_t i = 0; i < m_images.size(); i++) {
         createImageView(m_device, m_images[i], m_imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, m_imageViews[i]);
+    }
+}
+
+void Swapchain::createSemaphore()
+{
+    // @cleanup HPP
+    const auto& vk_device = m_device.vk();
+
+    vk::SemaphoreCreateInfo semaphoreInfo;
+
+    if (vk_device.createSemaphore(&semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.swapchain-holder") << "Failed to create semaphores." << std::endl;
     }
 }

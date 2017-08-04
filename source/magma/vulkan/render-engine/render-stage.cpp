@@ -42,9 +42,9 @@ void RenderStage::update(const vk::Extent2D& extent)
     updatePipeline();
 }
 
-void RenderStage::render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex)
+void RenderStage::render(const vk::CommandBuffer& commandBuffer)
 {
-    stageRender(commandBuffer, frameIndex);
+    stageRender(commandBuffer);
 }
 
 //----- Internals API

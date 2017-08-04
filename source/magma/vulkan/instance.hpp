@@ -20,6 +20,9 @@ namespace lava::magma::vulkan {
 
         operator VkInstance() const { return m_instance; }
 
+        // @todo Should make a cast operator
+        const vk::Instance& vk() const { return reinterpret_cast<const vk::Instance&>(m_instance); }
+
     protected:
         void createInstance();
         void setupDebug();

@@ -6,6 +6,7 @@
 #include "../image.hpp"
 #include "../render-engine-impl.hpp"
 #include "../shader.hpp"
+#include "../swapchain.hpp"
 #include "../vertex.hpp"
 
 using namespace lava::magma;
@@ -27,6 +28,10 @@ void Present::stageInit()
 {
     logger.log() << "Initializing Present Stage." << std::endl;
     logger.log().tab(1);
+
+    if (!m_swapchain) {
+        logger.error("magma.vulkan.render-engine.present") << "No swapchain binded before initialization." << std::endl;
+    }
 
     // @cleanup HPP
     const auto& vk_device = m_engine.device().vk();
@@ -94,7 +99,7 @@ void Present::stageInit()
 
     // @cleanup HPP
     ColorAttachment presentColorAttachment;
-    presentColorAttachment.format = vk::Format(m_engine.swapchain().imageFormat());
+    presentColorAttachment.format = vk::Format(m_swapchain->imageFormat());
     presentColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
     add(presentColorAttachment);
 }
@@ -110,8 +115,10 @@ void Present::stageUpdate()
     logger.log().tab(-1);
 }
 
-void Present::stageRender(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex)
+void Present::stageRender(const vk::CommandBuffer& commandBuffer)
 {
+    const auto frameIndex = m_swapchain->currentIndex();
+
     //----- Prologue
 
     // Set render pass
@@ -154,19 +161,19 @@ void Present::createFramebuffers()
     // @cleanup HPP
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
-    auto& swapchain = m_engine.swapchain();
+    auto& imageViews = m_swapchain->imageViews();
 
-    m_framebuffers.resize(swapchain.imageViews().size(), vulkan::Framebuffer{m_engine.device().vk()});
+    m_framebuffers.resize(imageViews.size(), vulkan::Framebuffer{m_engine.device().vk()});
 
-    for (size_t i = 0; i < swapchain.imageViews().size(); i++) {
-        std::array<vk::ImageView, 1> attachments = {vk::ImageView(swapchain.imageViews()[i])};
+    for (size_t i = 0; i < imageViews.size(); i++) {
+        std::array<vk::ImageView, 1> attachments = {vk::ImageView(imageViews[i])};
 
         vk::FramebufferCreateInfo framebufferInfo;
         framebufferInfo.renderPass = m_renderPass;
         framebufferInfo.attachmentCount = attachments.size();
         framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = swapchain.extent().width;
-        framebufferInfo.height = swapchain.extent().height;
+        framebufferInfo.width = m_extent.width;
+        framebufferInfo.height = m_extent.height;
         framebufferInfo.layers = 1;
 
         if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
@@ -175,7 +182,12 @@ void Present::createFramebuffers()
     }
 }
 
-void Present::shownImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
+void Present::bindSwapchain(vulkan::Swapchain& swapchain)
+{
+    m_swapchain = &swapchain;
+}
+
+void Present::imageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
     // @cleanup HPP
     const auto& vk_device = m_engine.device().vk();

@@ -15,7 +15,7 @@ namespace lava::magma {
         // IStage
         void init() override final;
         void update(const vk::Extent2D& extent) override final;
-        void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) override final;
+        void render(const vk::CommandBuffer& commandBuffer) override final;
 
     protected:
         //----- Subclass API
@@ -27,7 +27,7 @@ namespace lava::magma {
         virtual void stageUpdate() = 0;
 
         /// Called each frame.
-        virtual void stageRender(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) = 0;
+        virtual void stageRender(const vk::CommandBuffer& commandBuffer) = 0;
 
         //----- Configuration structures
 

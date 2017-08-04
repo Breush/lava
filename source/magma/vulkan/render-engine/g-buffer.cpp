@@ -90,7 +90,7 @@ void GBuffer::stageUpdate()
     logger.log().tab(-1);
 }
 
-void GBuffer::stageRender(const vk::CommandBuffer& commandBuffer, uint32_t /*frameIndex*/)
+void GBuffer::stageRender(const vk::CommandBuffer& commandBuffer)
 {
     //----- Prologue
 

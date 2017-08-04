@@ -23,7 +23,7 @@ namespace lava::magma {
         // RenderStage
         void stageInit() override final;
         void stageUpdate() override final;
-        void stageRender(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) override final;
+        void stageRender(const vk::CommandBuffer& commandBuffer) override final;
 
         void createResources();
         void createFramebuffers();

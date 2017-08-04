@@ -75,6 +75,39 @@ namespace lava::magma::vulkan {
  * Encapsulate destructor behavior for Vulkan types.
  * This provides an RAII lifetime.
  *
+ * Usage: $capsule_instance(SurfaceKHR);
+ */
+#define $capsule_instance(Class) $capsule_instance_do(Class, $cat(destroy, Class))
+
+#define $capsule_instance_do(Class, deleter)                                                                                     \
+    class Class {                                                                                                                \
+    public:                                                                                                                      \
+        using WrappedClass = vk::Class;                                                                                          \
+                                                                                                                                 \
+    public:                                                                                                                      \
+        Class() = delete;                                                                                                        \
+        Class(const vk::Instance& instance)                                                                                      \
+            : m_instance(instance)                                                                                               \
+        {                                                                                                                        \
+        }                                                                                                                        \
+        ~Class() { cleanup(); }                                                                                                  \
+                                                                                                                                 \
+        $capsule_casts(Class);                                                                                                   \
+                                                                                                                                 \
+    protected:                                                                                                                   \
+        void cleanup()                                                                                                           \
+        {                                                                                                                        \
+            if (m_object) {                                                                                                      \
+                m_instance.deleter(m_object, nullptr);                                                                           \
+            }                                                                                                                    \
+            m_object = nullptr;                                                                                                  \
+        }                                                                                                                        \
+                                                                                                                                 \
+        $capsule_attributes();                                                                                                   \
+        const vk::Instance& m_instance;                                                                                          \
+    }
+
+/**
  * Usage: $capsule_device(PipelineLayout);
  *        $capsule_device(DeviceMemory, freeMemory); // Using custom delete function name.
  */

@@ -50,6 +50,7 @@
     - Device -> DeviceHolder (holding Device and PhysicalDevice)
     - Remove useless descriptor pools
     - RenderStage: A good design shouldn't need virtual functions for create infos
+    - RenderEngine: Make rendering dimensions independent to window ones
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame
@@ -65,6 +66,7 @@
     - PBR: Use define to know whether there is a texture (compile shaders within the engine)
     - PBR: Remove Vertex Color attribute
     - PBR: what is the meaning of the 0.5 * ambientColor?
+    - RenderWindow: fix window resizing
     - RmMaterial: Clarify albedo/normalMap usage
     - SphereMesh: fix poles tangents
     - SphereMesh: uv mapping

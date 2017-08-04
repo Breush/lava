@@ -5,6 +5,8 @@
 #include "./capsule.hpp"
 
 namespace lava::magma::vulkan {
+    $capsule_instance(SurfaceKHR);
+
     $capsule_device(RenderPass);
     $capsule_device(PipelineLayout);
     $capsule_device(Pipeline);
@@ -18,6 +20,8 @@ namespace lava::magma::vulkan {
 
     $capsule_device(DescriptorSetLayout);
     $capsule_device(DescriptorPool);
+
+    $capsule_device(Semaphore);
     $capsule_device(CommandPool);
 
     $capsule_device(ShaderModule);

@@ -15,6 +15,6 @@ namespace lava::magma {
         virtual void update(const vk::Extent2D& extent) = 0;
 
         /// Called each frame.
-        virtual void render(const vk::CommandBuffer& commandBuffer, uint32_t frameIndex) = 0;
+        virtual void render(const vk::CommandBuffer& commandBuffer) = 0;
     };
 }

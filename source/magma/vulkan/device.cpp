@@ -61,7 +61,6 @@ void Device::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
 
     if (devices.size() == 0) {
         logger.error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;
-        exit(1);
     }
 
     for (const auto& device : devices) {
@@ -73,7 +72,6 @@ void Device::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
     if (m_physicalDevice != VK_NULL_HANDLE) return;
 
     logger.error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
-    exit(1);
 }
 
 void Device::createLogicalDevice(VkSurfaceKHR surface)

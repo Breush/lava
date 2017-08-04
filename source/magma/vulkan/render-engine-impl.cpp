@@ -24,6 +24,7 @@ using namespace lava::chamber;
 
 RenderEngine::Impl::Impl()
 {
+    initVulkan();
 }
 
 RenderEngine::Impl::~Impl()
@@ -33,61 +34,78 @@ RenderEngine::Impl::~Impl()
 
 void RenderEngine::Impl::draw()
 {
-    m_renderTargets[0]->draw();
-
-    uint32_t index;
-    const auto MAX = std::numeric_limits<uint64_t>::max();
-    auto result = vkAcquireNextImageKHR(m_device, m_swapchain, MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &index);
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        recreateSwapchain();
-        return;
+    if (m_renderTargetBundles.size() != 1u) {
+        logger.error("magma.vulkan.render-engine") << "No or too many render targets added during draw." << std::endl;
     }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        logger.error("magma.vulkan.draw") << "Failed to acquire swapchain image." << std::endl;
-    }
+
+    auto& renderTargetBundle = m_renderTargetBundles[0];
+    auto& renderTarget = *renderTargetBundle.renderTarget;
+    const auto& data = renderTargetBundle.data();
+
+    renderTarget.prepare();
 
     // Record command buffer each frame
     vkDeviceWaitIdle(m_device); // @todo Better wait for a fence on the queue
-    auto& commandBuffer = recordCommandBuffer(index);
+    auto& commandBuffer = recordCommandBuffer(0, data.swapchain.currentIndex());
 
     // Submit it to the queue
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    vk::Semaphore waitSemaphores[] = {data.swapchain.imageAvailableSemaphore()};
+    vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-    VkSemaphore waitSemaphores[] = {m_imageAvailableSemaphore};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    vk::SubmitInfo submitInfo;
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphore};
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
-
-    if (vkQueueSubmit(m_device.graphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+    // @cleanup HPP
+    if (vkQueueSubmit(m_device.graphicsQueue(), 1, reinterpret_cast<VkSubmitInfo*>(&submitInfo), VK_NULL_HANDLE) != VK_SUCCESS) {
         logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
     }
 
-    // Submitting the image back to the swap chain
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-
-    VkSwapchainKHR swapChains[] = {m_swapchain};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-    presentInfo.pImageIndices = &index;
-    presentInfo.pResults = nullptr;
-
-    vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
+    InDataRenderTargetDraw drawData{m_renderFinishedSemaphore};
+    renderTarget.draw(&drawData);
 }
 
 void RenderEngine::Impl::update()
 {
+}
+
+void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
+{
+    logger.info("magma.vulkan.render-engine") << "Adding render target " << m_renderTargetBundles.size() << "." << std::endl;
+    logger.log().tab(1);
+
+    const auto& data = *reinterpret_cast<const DataRenderTarget*>(renderTarget->data());
+
+    // @todo This is probably not the right thing to do.
+    // However - what can be the solution?
+    // Device creation requires a surface, which requires a windowHandle.
+    // Thus, no window => unable to init the device.
+    // So we init what's left of the engine write here, when adding a renderTarget.
+    {
+        // @cleanup HPP
+        const auto& surface = reinterpret_cast<const VkSurfaceKHR&>(data.surface);
+        initVulkanDevice(surface); // As the render target below must have a valid device.
+    }
+
+    renderTarget->init();
+
+    RenderTargetBundle renderTargetBundle;
+    renderTargetBundle.renderTarget = std::move(renderTarget);
+    renderTargetBundle.presentStage = std::make_unique<Present>(*this);
+    renderTargetBundle.presentStage->bindSwapchain(data.swapchain);
+    renderTargetBundle.presentStage->init();
+    renderTargetBundle.presentStage->imageView(m_epiphany.imageView(), vk::Sampler(m_textureSampler)); // @cleanup HPP
+    renderTargetBundle.presentStage->update(data.swapchain.extent());
+    m_renderTargetBundles.emplace_back(std::move(renderTargetBundle));
+
+    createCommandBuffers(m_renderTargetBundles.size() - 1u);
+
+    logger.log().tab(-1);
 }
 
 void RenderEngine::Impl::createDescriptorSetLayouts()
@@ -190,7 +208,6 @@ void RenderEngine::Impl::initStages()
 
     m_gBuffer.init();
     m_epiphany.init();
-    m_present.init();
 
     logger.log().tab(-1);
 }
@@ -200,10 +217,10 @@ void RenderEngine::Impl::updateStages()
     logger.info("magma.vulkan.render-engine") << "Updating render stages." << std::endl;
     logger.log().tab(1);
 
-    const auto& extent = m_swapchain.extent();
+    // @todo The extent should be the maximum of each RenderTarget extent it should be drawn to.
+    auto extent = vk::Extent2D(800u, 600u);
     m_gBuffer.update(extent);
     m_epiphany.update(extent);
-    m_present.update(extent);
 
     // Set-up
     // @cleanup HPP
@@ -211,16 +228,15 @@ void RenderEngine::Impl::updateStages()
     m_epiphany.albedoImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
     m_epiphany.ormImageView(m_gBuffer.ormImageView(), vk::Sampler(m_textureSampler));
     m_epiphany.depthImageView(m_gBuffer.depthImageView(), vk::Sampler(m_textureSampler));
-    m_present.shownImageView(m_epiphany.imageView(), vk::Sampler(m_textureSampler));
 
     logger.log().tab(-1);
 }
 
-void RenderEngine::Impl::createCommandPool()
+void RenderEngine::Impl::createCommandPool(VkSurfaceKHR surface)
 {
     logger.info("magma.vulkan.render-engine") << "Creating command pool." << std::endl;
 
-    auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), m_surface);
+    auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), surface);
 
     vk::CommandPoolCreateInfo poolInfo;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
@@ -404,9 +420,18 @@ void RenderEngine::Impl::createDescriptorPool()
     }
 }
 
-VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
+vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex)
 {
-    vk::CommandBuffer commandBuffer{m_commandBuffers[index]}; // @cleanup HPP
+
+    auto& renderTargetBundle = m_renderTargetBundles[renderTargetIndex];
+
+    if (bufferIndex >= renderTargetBundle.commandBuffers.size()) {
+        logger.error("magma.vulkan.render-engine")
+            << "Invalid bufferIndex during command buffers recording (" << bufferIndex << ") that should have been between 0 and "
+            << renderTargetBundle.commandBuffers.size() - 1u << "." << std::endl;
+    }
+
+    auto& commandBuffer = renderTargetBundle.commandBuffers[bufferIndex];
 
     //----- Prologue
 
@@ -415,39 +440,43 @@ VkCommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t index)
 
     //----- Render
 
-    m_gBuffer.render(commandBuffer, index);
-    m_epiphany.render(commandBuffer, index);
-    m_present.render(commandBuffer, index);
+    m_gBuffer.render(commandBuffer);
+    m_epiphany.render(commandBuffer);
+    renderTargetBundle.presentStage->render(commandBuffer);
 
     //----- Epilogue
 
     commandBuffer.end();
 
-    return m_commandBuffers[index]; // @cleanup HPP
+    return commandBuffer;
 }
 
-void RenderEngine::Impl::createCommandBuffers()
+void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetIndex)
 {
+    logger.log() << "Creating command buffers for render target " << renderTargetIndex << "." << std::endl;
+
+    // @cleanup HPP
+    auto& vk_device = m_device.vk();
+
+    auto& renderTargetBundle = m_renderTargetBundles[renderTargetIndex];
+    auto& commandBuffers = renderTargetBundle.commandBuffers;
+    auto& swapchain = renderTargetBundle.data().swapchain;
+
     // Free previous command buffers if any
-    if (m_commandBuffers.size() > 0) {
-        vkFreeCommandBuffers(m_device, m_commandPool.castOld(), m_commandBuffers.size(), m_commandBuffers.data());
+    if (commandBuffers.size() > 0) {
+        vk_device.freeCommandBuffers(m_commandPool, commandBuffers.size(), commandBuffers.data());
     }
 
-    m_commandBuffers.resize(m_swapchain.imageViews().size());
+    // Allocate them all
+    commandBuffers.resize(swapchain.imagesCount());
 
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = m_commandPool.castOld();
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
+    vk::CommandBufferAllocateInfo allocateInfo;
+    allocateInfo.commandPool = m_commandPool;
+    allocateInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocateInfo.commandBufferCount = commandBuffers.size();
 
-    if (vkAllocateCommandBuffers(m_device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS) {
+    if (vk_device.allocateCommandBuffers(&allocateInfo, commandBuffers.data()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
-    }
-
-    // Start recording
-    for (auto i = 0u; i < m_commandBuffers.size(); i++) {
-        recordCommandBuffer(i);
     }
 }
 
@@ -455,41 +484,41 @@ void RenderEngine::Impl::createSemaphores()
 {
     logger.info("magma.vulkan.render-engine") << "Creating semaphores." << std::endl;
 
-    VkSemaphoreCreateInfo semaphoreInfo = {};
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    // @cleanup HPP
+    const auto& vk_device = m_device.vk();
 
-    if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != VK_SUCCESS
-        || vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != VK_SUCCESS) {
-        logger.error("magma.vulkan.command-buffer") << "Failed to create semaphores." << std::endl;
+    vk::SemaphoreCreateInfo semaphoreInfo;
+
+    if (vk_device.createSemaphore(&semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.render-engine") << "Failed to create semaphores." << std::endl;
     }
-}
-
-void RenderEngine::Impl::recreateSwapchain()
-{
-    logger.info("magma.vulkan.render-engine") << "Recreating swapchain." << std::endl;
-
-    vkDeviceWaitIdle(m_device);
-
-    m_swapchain.init(m_surface, m_windowExtent);
-
-    updateStages();
-    createCommandBuffers();
 }
 
 void RenderEngine::Impl::initVulkan()
 {
-    m_instance.init(true);
-    m_surface.init(m_windowHandle);
-    m_device.init(m_instance.capsule(), m_surface);
-    m_swapchain.init(m_surface, m_windowExtent);
+    logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
+    logger.log().tab(1);
 
-    createCommandPool();
+    m_instance.init(true);
+
+    logger.log().tab(-1);
+}
+
+void RenderEngine::Impl::initVulkanDevice(VkSurfaceKHR surface)
+{
+    logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
+    logger.log().tab(1);
+
+    m_device.init(m_instance.capsule(), surface);
+
+    createCommandPool(surface);
     createDescriptorSetLayouts();
     createDummyTexture();
     createTextureSampler();
     initStages();
     updateStages();
     createDescriptorPool();
-    createCommandBuffers();
     createSemaphores();
+
+    logger.log().tab(-1);
 }
