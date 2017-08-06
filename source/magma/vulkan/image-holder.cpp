@@ -2,18 +2,17 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./device.hpp"
 #include "./image.hpp"
+#include "./render-engine-impl.hpp"
 
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-ImageHolder::ImageHolder(vulkan::Device& device, vk::CommandPool& commandPool)
-    : m_device(device)
-    , m_commandPool(commandPool)
-    , m_image{device.vk()}
-    , m_memory{device.vk()}
-    , m_view{device.vk()}
+ImageHolder::ImageHolder(const RenderEngine::Impl& engine)
+    : m_engine(engine)
+    , m_image{engine.device()}
+    , m_memory{engine.device()}
+    , m_view{engine.device()}
 {
 }
 
@@ -54,41 +53,38 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
                                                   << "Valid ones are currently eDepth or eColor." << std::endl;
     }
 
-    // @cleanup HPP
-
-    vulkan::createImage(m_device, extent, format, vk::ImageTiling::eOptimal, imageUsageFlags,
+    vulkan::createImage(m_engine.device(), m_engine.physicalDevice(), extent, format, vk::ImageTiling::eOptimal, imageUsageFlags,
                         vk::MemoryPropertyFlagBits::eDeviceLocal, m_image, m_memory);
 
-    vulkan::createImageView(m_device, m_image, format, imageAspectFlags, m_view);
+    vulkan::createImageView(m_engine.device(), m_image, format, imageAspectFlags, m_view);
 
-    vulkan::transitionImageLayout(m_device, reinterpret_cast<VkCommandPool&>(m_commandPool), reinterpret_cast<VkImage&>(m_image),
-                                  reinterpret_cast<VkImageLayout&>(oldLayout), reinterpret_cast<VkImageLayout&>(newLayout));
+    vulkan::transitionImageLayout(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), m_image, oldLayout,
+                                  newLayout);
 }
 
 void ImageHolder::copy(const void* data, vk::DeviceSize size)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_device.vk();
-
     //----- Staging buffer
 
-    vulkan::Buffer stagingBuffer(vk_device);
-    vulkan::DeviceMemory stagingBufferMemory(vk_device);
+    vulkan::Buffer stagingBuffer(m_engine.device());
+    vulkan::DeviceMemory stagingBufferMemory(m_engine.device());
 
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
     vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
-    vulkan::createBuffer(m_device, size, usageFlags, propertyFlags, stagingBuffer, stagingBufferMemory);
+    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
+                         stagingBufferMemory);
 
     //----- Copy indeed
 
     void* targetData;
     vk::MemoryMapFlags memoryMapFlags;
-    vk_device.mapMemory(stagingBufferMemory, 0, size, memoryMapFlags, &targetData);
+    m_engine.device().mapMemory(stagingBufferMemory, 0, size, memoryMapFlags, &targetData);
     memcpy(targetData, data, size);
-    vk_device.unmapMemory(stagingBufferMemory);
+    m_engine.device().unmapMemory(stagingBufferMemory);
 
-    vulkan::copyBufferToImage(m_device, m_commandPool, stagingBuffer, m_image, m_extent);
+    vulkan::copyBufferToImage(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), stagingBuffer, m_image,
+                              m_extent);
 }
 
 void ImageHolder::setup(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)

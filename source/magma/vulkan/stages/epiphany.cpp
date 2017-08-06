@@ -30,14 +30,14 @@ using namespace lava::chamber;
 
 Epiphany::Epiphany(RenderEngine::Impl& engine)
     : RenderStage(engine)
-    , m_vertexShaderModule{m_engine.device().vk()}
-    , m_fragmentShaderModule{m_engine.device().vk()}
-    , m_descriptorPool{m_engine.device().vk()}
-    , m_descriptorSetLayout{m_engine.device().vk()}
-    , m_imageHolder{m_engine.device(), m_engine.commandPool()}
-    , m_cameraBufferHolder(m_engine.device(), m_engine.commandPool())
-    , m_lightBufferHolder(m_engine.device(), m_engine.commandPool())
-    , m_framebuffer{m_engine.device().vk()}
+    , m_vertexShaderModule{engine.device()}
+    , m_fragmentShaderModule{engine.device()}
+    , m_descriptorPool{engine.device()}
+    , m_descriptorSetLayout{engine.device()}
+    , m_imageHolder{engine}
+    , m_cameraBufferHolder(engine)
+    , m_lightBufferHolder(engine)
+    , m_framebuffer{engine.device()}
 {
 }
 
@@ -48,17 +48,14 @@ void Epiphany::stageInit()
     logger.log() << "Initializing Epiphany Stage." << std::endl;
     logger.log().tab(1);
 
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     //----- Shaders
 
     auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/epiphany.vert");
-    vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
+    vulkan::createShaderModule(m_engine.device(), vertexShaderCode, m_vertexShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
     auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/epiphany-phong.frag");
-    vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
+    vulkan::createShaderModule(m_engine.device(), fragmentShaderCode, m_fragmentShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptor pool
@@ -77,7 +74,7 @@ void Epiphany::stageInit()
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = 6u;
 
-    if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.present") << "Failed to create descriptor pool." << std::endl;
     }
 
@@ -125,7 +122,8 @@ void Epiphany::stageInit()
     layoutInfo.bindingCount = bindings.size();
     layoutInfo.pBindings = bindings.data();
 
-    if (vk_device.createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace())
+        != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.present") << "Failed to create material descriptor set layout." << std::endl;
     }
 
@@ -136,7 +134,7 @@ void Epiphany::stageInit()
     allocInfo.descriptorSetCount = 1;
     allocInfo.pSetLayouts = &m_descriptorSetLayout;
 
-    if (vk_device.allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
+    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.present") << "Failed to create descriptor set." << std::endl;
     }
 
@@ -171,7 +169,7 @@ void Epiphany::stageInit()
     descriptorWrites[1].descriptorCount = 1;
     descriptorWrites[1].pBufferInfo = &lightBufferInfo;
 
-    vk_device.updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+    m_engine.device().updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 
     //----- Attachments
 
@@ -243,9 +241,6 @@ void Epiphany::createResources()
 
 void Epiphany::createFramebuffers()
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     // Framebuffer
     vk::FramebufferCreateInfo framebufferInfo;
     framebufferInfo.renderPass = m_renderPass;
@@ -255,7 +250,7 @@ void Epiphany::createFramebuffers()
     framebufferInfo.height = m_extent.height;
     framebufferInfo.layers = 1;
 
-    if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.g-buffer") << "Failed to create framebuffers." << std::endl;
     }
 }
@@ -263,9 +258,6 @@ void Epiphany::createFramebuffers()
 // @todo Use helper function (merge with RmMaterial ones)
 void Epiphany::normalImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     vk::DescriptorImageInfo imageInfo;
     imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
     imageInfo.imageView = imageView;
@@ -279,14 +271,11 @@ void Epiphany::normalImageView(const vk::ImageView& imageView, const vk::Sampler
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }
 
 void Epiphany::albedoImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     vk::DescriptorImageInfo imageInfo;
     imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
     imageInfo.imageView = imageView;
@@ -300,14 +289,11 @@ void Epiphany::albedoImageView(const vk::ImageView& imageView, const vk::Sampler
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }
 
 void Epiphany::ormImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     vk::DescriptorImageInfo imageInfo;
     imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
     imageInfo.imageView = imageView;
@@ -321,14 +307,11 @@ void Epiphany::ormImageView(const vk::ImageView& imageView, const vk::Sampler& s
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }
 
 void Epiphany::depthImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     vk::DescriptorImageInfo imageInfo;
     // @note Correspond to the final layout specified at previous pass
     imageInfo.imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
@@ -343,7 +326,7 @@ void Epiphany::depthImageView(const vk::ImageView& imageView, const vk::Sampler&
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }
 
 void Epiphany::updateUbos()

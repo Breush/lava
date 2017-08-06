@@ -1,13 +1,9 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include <lava/magma/render-engine.hpp>
 
 #include "./capsule.hpp"
 #include "./wrappers.hpp"
-
-namespace lava::magma::vulkan {
-    class Device;
-}
 
 namespace lava::magma::vulkan {
     /**
@@ -15,7 +11,7 @@ namespace lava::magma::vulkan {
      */
     class SwapchainHolder {
     public:
-        SwapchainHolder(Device& device);
+        SwapchainHolder(const RenderEngine::Impl& engine);
 
         /// Set up the swapchain given a valid surface.
         void init(vk::SurfaceKHR surface, vk::Extent2D& windowExtent);
@@ -52,7 +48,7 @@ namespace lava::magma::vulkan {
 
     private:
         // References
-        Device& m_device;
+        const RenderEngine::Impl& m_engine;
 
         // Configuration
         $attribute(vk::Extent2D, extent);

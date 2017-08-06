@@ -1,12 +1,9 @@
 #pragma once
 
 #include <lava/chamber/macros.hpp>
+#include <lava/magma/render-engine.hpp>
 
 #include "./wrappers.hpp"
-
-namespace lava::magma::vulkan {
-    class Device;
-}
 
 namespace lava::magma::vulkan {
     /**
@@ -16,7 +13,10 @@ namespace lava::magma::vulkan {
     class ImageHolder {
     public:
         ImageHolder() = delete;
-        ImageHolder(Device& device, vk::CommandPool& commandPool);
+        ImageHolder(const RenderEngine::Impl& engine);
+
+        /// Set all references.
+        void init(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Queue queue, vk::CommandPool commandPool);
 
         /// Allocate all image memory for the specified format.
         void create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect);
@@ -29,8 +29,7 @@ namespace lava::magma::vulkan {
 
     private:
         // References
-        vulkan::Device& m_device;
-        vk::CommandPool& m_commandPool;
+        const RenderEngine::Impl& m_engine;
 
         // Resources
         vk::Extent2D m_extent;

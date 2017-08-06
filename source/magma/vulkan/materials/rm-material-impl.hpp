@@ -68,7 +68,7 @@ namespace lava::magma {
         RenderEngine::Impl& m_engine;
 
         // Descriptor
-        VkDescriptorSet m_descriptorSet;
+        vk::DescriptorSet m_descriptorSet;
         vulkan::BufferHolder m_uniformBufferHolder;
 
         // @todo Should be in the texture itself, and probably unique_ptr, so that they can be deleted

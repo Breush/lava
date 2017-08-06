@@ -12,7 +12,7 @@ using namespace lava::chamber;
 RenderWindow::Impl::Impl(RenderEngine& engine, VideoMode mode, const std::string& title)
     : m_engine(engine.impl())
     , m_surface(m_engine.instance().vk())
-    , m_swapchainHolder(m_engine.device())
+    , m_swapchainHolder(m_engine)
     , m_renderTargetData({m_swapchainHolder, m_surface})
     , m_window(mode, title)
     , m_windowExtent{mode.width, mode.height}
@@ -51,13 +51,10 @@ void RenderWindow::Impl::draw(IRenderTarget::UserData data) const
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = &drawData->renderFinishedSemaphore;
     presentInfo.swapchainCount = 1;
-    // @cleanup HPP
     presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;
-    presentInfo.pResults = nullptr;
 
-    // @cleanup HPP
-    vkQueuePresentKHR(m_engine.device().presentQueue(), &reinterpret_cast<VkPresentInfoKHR&>(presentInfo));
+    m_engine.presentQueue().presentKHR(presentInfo);
 }
 
 void RenderWindow::Impl::refresh()

@@ -29,7 +29,7 @@ RenderEngine::Impl::Impl()
 
 RenderEngine::Impl::~Impl()
 {
-    vkDeviceWaitIdle(m_device);
+    device().waitIdle();
 }
 
 void RenderEngine::Impl::draw()
@@ -45,7 +45,7 @@ void RenderEngine::Impl::draw()
     renderTarget.prepare();
 
     // Record command buffer each frame
-    vkDeviceWaitIdle(m_device); // @todo Better wait for a fence on the queue
+    device().waitIdle(); // @todo Better wait for a fence on the queue
     auto& commandBuffer = recordCommandBuffer(0, data.swapchainHolder.currentIndex());
 
     // Submit it to the queue
@@ -61,8 +61,7 @@ void RenderEngine::Impl::draw()
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    // @cleanup HPP
-    if (vkQueueSubmit(m_device.graphicsQueue(), 1, reinterpret_cast<VkSubmitInfo*>(&submitInfo), VK_NULL_HANDLE) != VK_SUCCESS) {
+    if (graphicsQueue().submit(1, &submitInfo, nullptr) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
     }
 
@@ -114,20 +113,18 @@ void RenderEngine::Impl::createDescriptorSetLayouts()
 
     {
         // Camera UBO
-        VkDescriptorSetLayoutBinding transformsLayoutBinding = {};
+        vk::DescriptorSetLayoutBinding transformsLayoutBinding;
         transformsLayoutBinding.binding = 0;
-        transformsLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        transformsLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
         transformsLayoutBinding.descriptorCount = 1;
-        transformsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        transformsLayoutBinding.pImmutableSamplers = nullptr;
+        transformsLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
 
-        std::array<VkDescriptorSetLayoutBinding, 1> bindings = {transformsLayoutBinding};
-        VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
+        vk::DescriptorSetLayoutCreateInfo layoutInfo;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &transformsLayoutBinding;
 
-        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_cameraDescriptorSetLayout.replace()) != VK_SUCCESS) {
+        if (device().createDescriptorSetLayout(&layoutInfo, nullptr, m_cameraDescriptorSetLayout.replace())
+            != vk::Result::eSuccess) {
             logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
         }
     }
@@ -135,20 +132,18 @@ void RenderEngine::Impl::createDescriptorSetLayouts()
     // @todo Move ?
     {
         // Model UBO
-        VkDescriptorSetLayoutBinding modelLayoutBinding = {};
+        vk::DescriptorSetLayoutBinding modelLayoutBinding;
         modelLayoutBinding.binding = 0;
-        modelLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        modelLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
         modelLayoutBinding.descriptorCount = 1;
-        modelLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        modelLayoutBinding.pImmutableSamplers = nullptr;
+        modelLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
 
-        std::array<VkDescriptorSetLayoutBinding, 1> bindings = {modelLayoutBinding};
-        VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
+        vk::DescriptorSetLayoutCreateInfo layoutInfo;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &modelLayoutBinding;
 
-        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_meshDescriptorSetLayout.replace()) != VK_SUCCESS) {
+        if (device().createDescriptorSetLayout(&layoutInfo, nullptr, m_meshDescriptorSetLayout.replace())
+            != vk::Result::eSuccess) {
             logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create mesh descriptor set layout." << std::endl;
         }
     }
@@ -157,45 +152,41 @@ void RenderEngine::Impl::createDescriptorSetLayouts()
     // @note Not so much, as this is what's REQUIRED by G-Buffer
     {
         // Attributes UBO
-        VkDescriptorSetLayoutBinding attributesLayoutBinding = {};
+        vk::DescriptorSetLayoutBinding attributesLayoutBinding;
         attributesLayoutBinding.binding = 0;
-        attributesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        attributesLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
         attributesLayoutBinding.descriptorCount = 1;
-        attributesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        attributesLayoutBinding.pImmutableSamplers = nullptr;
+        attributesLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
         // Sampler
-        VkDescriptorSetLayoutBinding normalMapLayoutBinding = {};
+        vk::DescriptorSetLayoutBinding normalMapLayoutBinding;
         normalMapLayoutBinding.binding = 1;
         normalMapLayoutBinding.descriptorCount = 1;
-        normalMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        normalMapLayoutBinding.pImmutableSamplers = nullptr;
-        normalMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        normalMapLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+        normalMapLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
         // Sampler
-        VkDescriptorSetLayoutBinding baseColorLayoutBinding = {};
+        vk::DescriptorSetLayoutBinding baseColorLayoutBinding;
         baseColorLayoutBinding.binding = 2;
         baseColorLayoutBinding.descriptorCount = 1;
-        baseColorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        baseColorLayoutBinding.pImmutableSamplers = nullptr;
-        baseColorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        baseColorLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+        baseColorLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
         // Sampler
-        VkDescriptorSetLayoutBinding ormLayoutBinding = {};
+        vk::DescriptorSetLayoutBinding ormLayoutBinding;
         ormLayoutBinding.binding = 3;
         ormLayoutBinding.descriptorCount = 1;
-        ormLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        ormLayoutBinding.pImmutableSamplers = nullptr;
-        ormLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        ormLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+        ormLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-        std::array<VkDescriptorSetLayoutBinding, 4> bindings = {attributesLayoutBinding, baseColorLayoutBinding,
-                                                                normalMapLayoutBinding, ormLayoutBinding};
-        VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {attributesLayoutBinding, baseColorLayoutBinding,
+                                                                  normalMapLayoutBinding, ormLayoutBinding};
+        vk::DescriptorSetLayoutCreateInfo layoutInfo;
+        layoutInfo.bindingCount = bindings.size();
         layoutInfo.pBindings = bindings.data();
 
-        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, m_materialDescriptorSetLayout.replace()) != VK_SUCCESS) {
+        if (device().createDescriptorSetLayout(&layoutInfo, nullptr, m_materialDescriptorSetLayout.replace())
+            != vk::Result::eSuccess) {
             logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create material descriptor set layout." << std::endl;
         }
     }
@@ -235,14 +226,13 @@ void RenderEngine::Impl::createCommandPool(VkSurfaceKHR surface)
 {
     logger.info("magma.vulkan.render-engine") << "Creating command pool." << std::endl;
 
-    auto queueFamilyIndices = vulkan::findQueueFamilies(m_device.physicalDevice(), surface);
+    auto queueFamilyIndices = vulkan::findQueueFamilies(physicalDevice(), surface);
 
     vk::CommandPoolCreateInfo poolInfo;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
     poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
-    // @cleanup HPP
-    if (m_device.vk().createCommandPool(&poolInfo, nullptr, m_commandPool.replace()) != vk::Result::eSuccess) {
+    if (device().createCommandPool(&poolInfo, nullptr, m_commandPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine") << "Failed to create command pool." << std::endl;
     }
 }
@@ -272,10 +262,7 @@ void RenderEngine::Impl::createDummyTextures()
     samplerInfo.compareEnable = false;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
 
-    // @cleanup HPP
-    const auto& vk_device = m_device.vk();
-
-    if (vk_device.createSampler(&samplerInfo, nullptr, m_dummySampler.replace()) != vk::Result::eSuccess) {
+    if (device().createSampler(&samplerInfo, nullptr, m_dummySampler.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.texture-sampler") << "Failed to texture sampler." << std::endl;
     }
 }
@@ -284,75 +271,63 @@ void RenderEngine::Impl::createDescriptorPool()
 {
     logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
 
-    std::array<VkDescriptorPoolSize, 1> poolSizes = {};
-
     {
         // Camera UBO
-        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        std::array<vk::DescriptorPoolSize, 1> poolSizes;
+        poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
         poolSizes[0].descriptorCount = 1;
 
-        VkDescriptorPoolCreateInfo poolInfo = {};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        vk::DescriptorPoolCreateInfo poolInfo;
+        poolInfo.poolSizeCount = poolSizes.size();
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = 1;
-        poolInfo.flags = 0;
 
-        if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_cameraDescriptorPool.replace()) != VK_SUCCESS) {
+        if (device().createDescriptorPool(&poolInfo, nullptr, m_cameraDescriptorPool.replace()) != vk::Result::eSuccess) {
             logger.error("magma.vulkan.descriptor-pool") << "Failed to create descriptor pool." << std::endl;
-            exit(1);
         }
     }
 
     // @todo Should be somewhere else?
     {
-        std::array<VkDescriptorPoolSize, 1> poolSizes = {};
-
-        const uint32_t maxSets = 128u;
         // @todo How to choose? (= max number of meshes)
+        const uint32_t maxSets = 128u;
 
         // Models UBO
-        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        std::array<vk::DescriptorPoolSize, 1> poolSizes = {};
+        poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
         poolSizes[0].descriptorCount = 1 * maxSets;
 
-        VkDescriptorPoolCreateInfo poolInfo = {};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        vk::DescriptorPoolCreateInfo poolInfo;
+        poolInfo.poolSizeCount = poolSizes.size();
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = maxSets;
-        poolInfo.flags = 0;
 
-        if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_meshDescriptorPool.replace()) != VK_SUCCESS) {
+        if (device().createDescriptorPool(&poolInfo, nullptr, m_meshDescriptorPool.replace()) != vk::Result::eSuccess) {
             logger.error("magma.vulkan.descriptor-pool") << "Failed to create mesh descriptor pool." << std::endl;
-            exit(1);
         }
     }
 
-    // @todo Should be somewhere else - this closely related to current shader
+    // @todo Should be somewhere else - this is closely related to current shader
     {
-        std::array<VkDescriptorPoolSize, 2> poolSizes = {};
-
-        const uint32_t maxSets = 128u;
         // @todo How to choose? (= max number of materials)
+        const uint32_t maxSets = 128u;
 
         // Materials UBO
-        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        std::array<vk::DescriptorPoolSize, 2> poolSizes = {};
+        poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
         poolSizes[0].descriptorCount = 1 * maxSets;
 
         // Albedo, normal map and ORM map
-        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
         poolSizes[1].descriptorCount = 3 * maxSets;
 
-        VkDescriptorPoolCreateInfo poolInfo = {};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        vk::DescriptorPoolCreateInfo poolInfo;
+        poolInfo.poolSizeCount = poolSizes.size();
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = maxSets;
-        poolInfo.flags = 0;
 
-        if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, m_materialDescriptorPool.replace()) != VK_SUCCESS) {
+        if (device().createDescriptorPool(&poolInfo, nullptr, m_materialDescriptorPool.replace()) != vk::Result::eSuccess) {
             logger.error("magma.vulkan.descriptor-pool") << "Failed to create material descriptor pool." << std::endl;
-            exit(1);
         }
     }
 }
@@ -392,16 +367,13 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetIndex)
 {
     logger.log() << "Creating command buffers for render target " << renderTargetIndex << "." << std::endl;
 
-    // @cleanup HPP
-    auto& vk_device = m_device.vk();
-
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetIndex];
     auto& commandBuffers = renderTargetBundle.commandBuffers;
     auto& swapchain = renderTargetBundle.data().swapchainHolder;
 
     // Free previous command buffers if any
     if (commandBuffers.size() > 0) {
-        vk_device.freeCommandBuffers(m_commandPool, commandBuffers.size(), commandBuffers.data());
+        device().freeCommandBuffers(m_commandPool, commandBuffers.size(), commandBuffers.data());
     }
 
     // Allocate them all
@@ -412,7 +384,7 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetIndex)
     allocateInfo.level = vk::CommandBufferLevel::ePrimary;
     allocateInfo.commandBufferCount = commandBuffers.size();
 
-    if (vk_device.allocateCommandBuffers(&allocateInfo, commandBuffers.data()) != vk::Result::eSuccess) {
+    if (device().allocateCommandBuffers(&allocateInfo, commandBuffers.data()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
     }
 }
@@ -421,12 +393,9 @@ void RenderEngine::Impl::createSemaphores()
 {
     logger.info("magma.vulkan.render-engine") << "Creating semaphores." << std::endl;
 
-    // @cleanup HPP
-    const auto& vk_device = m_device.vk();
-
     vk::SemaphoreCreateInfo semaphoreInfo;
 
-    if (vk_device.createSemaphore(&semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != vk::Result::eSuccess) {
+    if (device().createSemaphore(&semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine") << "Failed to create semaphores." << std::endl;
     }
 }
@@ -446,7 +415,7 @@ void RenderEngine::Impl::initVulkanDevice(VkSurfaceKHR surface)
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);
 
-    m_device.init(m_instance.capsule(), surface);
+    m_deviceHolder.init(m_instance.vk(), surface); // @cleanup HPP
 
     createCommandPool(surface);
     createDescriptorSetLayouts();

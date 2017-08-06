@@ -13,10 +13,10 @@ using namespace lava::chamber;
 
 Present::Present(RenderEngine::Impl& engine)
     : RenderStage(engine)
-    , m_vertexShaderModule{m_engine.device().vk()}
-    , m_fragmentShaderModule{m_engine.device().vk()}
-    , m_descriptorPool{m_engine.device().vk()}
-    , m_descriptorSetLayout{m_engine.device().vk()}
+    , m_vertexShaderModule{engine.device()}
+    , m_fragmentShaderModule{engine.device()}
+    , m_descriptorPool{engine.device()}
+    , m_descriptorSetLayout{engine.device()}
 {
     updateCleverlySkipped(false); // As we're creating our framebuffers based on swapchain image views.
 }
@@ -32,17 +32,14 @@ void Present::stageInit()
         logger.error("magma.vulkan.stages.present") << "No swapchain holder binded before initialization." << std::endl;
     }
 
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     //----- Shaders
 
     auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/present.vert");
-    vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
+    vulkan::createShaderModule(m_engine.device(), vertexShaderCode, m_vertexShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
     auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/present.frag");
-    vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
+    vulkan::createShaderModule(m_engine.device(), fragmentShaderCode, m_fragmentShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptor pool
@@ -59,7 +56,7 @@ void Present::stageInit()
     poolInfo.pPoolSizes = &poolSize;
     poolInfo.maxSets = 1u;
 
-    if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.present") << "Failed to create descriptor pool." << std::endl;
     }
 
@@ -75,7 +72,8 @@ void Present::stageInit()
     layoutInfo.bindingCount = 1;
     layoutInfo.pBindings = &layoutBinding;
 
-    if (vk_device.createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace())
+        != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.present") << "Failed to create material descriptor set layout." << std::endl;
     }
 
@@ -88,7 +86,7 @@ void Present::stageInit()
     allocInfo.descriptorSetCount = 1;
     allocInfo.pSetLayouts = &m_descriptorSetLayout;
 
-    if (vk_device.allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
+    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.present") << "Failed to create descriptor set." << std::endl;
     }
 
@@ -158,11 +156,9 @@ void Present::createResources()
 void Present::createFramebuffers()
 {
     // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
     auto& imageViews = m_swapchainHolder->imageViews();
 
-    m_framebuffers.resize(imageViews.size(), vulkan::Framebuffer{m_engine.device().vk()});
+    m_framebuffers.resize(imageViews.size(), vulkan::Framebuffer{m_engine.device()});
 
     for (size_t i = 0; i < imageViews.size(); i++) {
         std::array<vk::ImageView, 1> attachments = {imageViews[i]};
@@ -175,7 +171,7 @@ void Present::createFramebuffers()
         framebufferInfo.height = m_extent.height;
         framebufferInfo.layers = 1;
 
-        if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
+        if (m_engine.device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
             logger.error("magma.vulkan.stages.present") << "Failed to create framebuffers." << std::endl;
         }
     }
@@ -188,9 +184,6 @@ void Present::bindSwapchainHolder(vulkan::SwapchainHolder& swapchainHolder)
 
 void Present::imageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     vk::DescriptorImageInfo imageInfo;
     // @note Correspond to the final layout specified at previous pass
     imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
@@ -205,5 +198,5 @@ void Present::imageView(const vk::ImageView& imageView, const vk::Sampler& sampl
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    vk_device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }

@@ -65,10 +65,10 @@ using namespace lava::chamber;
 
 RmMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
-    , m_uniformBufferHolder(m_engine.device(), m_engine.commandPool())
-    , m_normalImageHolder(m_engine.device(), m_engine.commandPool())
-    , m_albedoImageHolder(m_engine.device(), m_engine.commandPool())
-    , m_ormImageHolder(m_engine.device(), m_engine.commandPool())
+    , m_uniformBufferHolder(m_engine)
+    , m_normalImageHolder(m_engine)
+    , m_albedoImageHolder(m_engine)
+    , m_ormImageHolder(m_engine)
 {
     m_albedo.type = Attribute::Type::NONE;
     m_normal.type = Attribute::Type::NONE;
@@ -89,14 +89,12 @@ void RmMaterial::Impl::init()
 {
     // Create descriptor set
     // @todo The linked shader should provide the layout
-    VkDescriptorSetLayout layouts[] = {m_engine.materialDescriptorSetLayout()};
-    VkDescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    vk::DescriptorSetAllocateInfo allocInfo;
     allocInfo.descriptorPool = m_engine.materialDescriptorPool();
     allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = layouts;
+    allocInfo.pSetLayouts = &m_engine.materialDescriptorSetLayout();
 
-    if (vkAllocateDescriptorSets(m_engine.device(), &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
+    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.rm-material") << "Failed to create descriptor set." << std::endl;
     }
 
@@ -104,23 +102,19 @@ void RmMaterial::Impl::init()
     m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(MaterialUbo));
 
     // Set it up
-    VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBufferHolder.buffer().castOld(); // @cleanup HPP
+    vk::DescriptorBufferInfo bufferInfo = {};
+    bufferInfo.buffer = m_uniformBufferHolder.buffer();
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(MaterialUbo);
 
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    vk::WriteDescriptorSet descriptorWrite = {};
     descriptorWrite.dstSet = m_descriptorSet;
     descriptorWrite.dstBinding = 0u;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pBufferInfo = &bufferInfo;
-    descriptorWrite.pImageInfo = nullptr;
-    descriptorWrite.pTexelBufferView = nullptr;
 
-    vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }
 
 void RmMaterial::Impl::roughness(float factor)
@@ -178,8 +172,8 @@ IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
     // __NOTE__: This presuppose that the correct shader is binded
 
     // Bind with the material descriptor set
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, DESCRIPTOR_SET_INDEX, 1,
-                            &m_descriptorSet, 0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, DESCRIPTOR_SET_INDEX, 1, &m_descriptorSet,
+                                     0, nullptr);
 
     return nullptr;
 }
@@ -195,15 +189,12 @@ void RmMaterial::Impl::updateBindings()
     m_uniformBufferHolder.copy(ubo);
 
     // Samplers
-    const auto& vk_device = m_engine.device().vk();
-
-    // @cleanup HPP
-    bindTextureDescriptorSet(vk_device, vk::DescriptorSet(m_descriptorSet), 1u, m_engine.dummySampler(),
+    bindTextureDescriptorSet(m_engine.device(), m_descriptorSet, 1u, m_engine.dummySampler(),
                              (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view()
                                                                          : m_engine.dummyNormalImageView());
-    bindTextureDescriptorSet(vk_device, vk::DescriptorSet(m_descriptorSet), 2u, m_engine.dummySampler(),
+    bindTextureDescriptorSet(m_engine.device(), m_descriptorSet, 2u, m_engine.dummySampler(),
                              (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view()
                                                                          : m_engine.dummyImageView());
-    bindTextureDescriptorSet(vk_device, vk::DescriptorSet(m_descriptorSet), 3u, m_engine.dummySampler(),
+    bindTextureDescriptorSet(m_engine.device(), m_descriptorSet, 3u, m_engine.dummySampler(),
                              (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : m_engine.dummyImageView());
 }

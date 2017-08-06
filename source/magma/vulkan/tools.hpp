@@ -119,15 +119,6 @@ namespace lava::magma::vulkan {
         return devices;
     }
 
-    inline std::vector<VkQueueFamilyProperties> availableQueueFamilies(VkPhysicalDevice device)
-    {
-        uint32_t count = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
-        std::vector<VkQueueFamilyProperties> queueFamilies(count);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &count, queueFamilies.data());
-        return queueFamilies;
-    }
-
     inline bool validationLayersSupported(const std::vector<const char*>& validationLayers)
     {
         auto layers = availableLayers();

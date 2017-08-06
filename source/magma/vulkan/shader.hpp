@@ -213,20 +213,4 @@ namespace lava::magma::vulkan {
 
         return buffer;
     }
-
-    inline void createShaderModule(VkDevice device, const std::vector<uint8_t>& code, Capsule<VkShaderModule>& shaderModule)
-    {
-        VkShaderModuleCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = code.size();
-
-        // We need to realigned the data as the shader module require an uint32_t array
-        std::vector<uint32_t> codeAligned(code.size() / sizeof(uint32_t) + 1);
-        memcpy(codeAligned.data(), code.data(), code.size());
-        createInfo.pCode = codeAligned.data();
-
-        if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
-            chamber::logger.error("magma.vulkan.shader") << "Failed to create shader module" << std::endl;
-        }
-    }
 }

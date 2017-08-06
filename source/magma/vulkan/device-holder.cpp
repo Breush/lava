@@ -1,4 +1,4 @@
-#include "./device.hpp"
+#include "./device-holder.hpp"
 
 #include <lava/chamber/logger.hpp>
 
@@ -49,72 +49,63 @@ namespace {
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-void Device::init(VkInstance instance, VkSurfaceKHR surface)
+void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR surface)
 {
     pickPhysicalDevice(instance, surface);
     createLogicalDevice(surface);
 }
 
-void Device::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
+void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface)
 {
-    auto devices = availablePhysicalDevices(instance);
+    auto physicalDevices = availablePhysicalDevices(instance);
 
-    if (devices.size() == 0) {
+    if (physicalDevices.size() == 0) {
         logger.error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;
     }
 
-    for (const auto& device : devices) {
-        if (!deviceSuitable(device, m_extensions, surface)) continue;
-        m_physicalDevice = device;
+    for (const auto& physicalDevice : physicalDevices) {
+        if (!deviceSuitable(physicalDevice, m_extensions, surface)) continue;
+        m_physicalDevice = physicalDevice;
         break;
     }
 
-    if (m_physicalDevice != VK_NULL_HANDLE) return;
+    if (m_physicalDevice) return;
 
     logger.error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
 }
 
-void Device::createLogicalDevice(VkSurfaceKHR surface)
+void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
 {
-    // Device
-    VkDeviceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
     // Queues
     float queuePriority = 1.0f;
     auto indices = findQueueFamilies(m_physicalDevice, surface);
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set<int> uniqueQueueFamilies = {indices.graphics, indices.present};
 
     for (int queueFamily : uniqueQueueFamilies) {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        vk::DeviceQueueCreateInfo queueCreateInfo = {};
         queueCreateInfo.queueFamilyIndex = queueFamily;
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.queueCreateInfoCount = queueCreateInfos.size();
-
-    // Extensions
-    createInfo.enabledExtensionCount = m_extensions.size();
-    createInfo.ppEnabledExtensionNames = m_extensions.data();
-
     // Features
-    VkPhysicalDeviceFeatures deviceFeatures = {};
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
-
-    createInfo.pEnabledFeatures = &deviceFeatures;
+    vk::PhysicalDeviceFeatures deviceFeatures;
+    deviceFeatures.samplerAnisotropy = true;
 
     // Really create
-    auto err = vkCreateDevice(m_physicalDevice, &createInfo, nullptr, m_device.replace());
-    if (err) {
-        logger.error("magma.vulkan.device") << "Unable to create logical device. " << vulkan::toString(err) << std::endl;
-        exit(1);
+    vk::DeviceCreateInfo createInfo;
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+    createInfo.queueCreateInfoCount = queueCreateInfos.size();
+    createInfo.enabledExtensionCount = m_extensions.size();
+    createInfo.ppEnabledExtensionNames = m_extensions.data();
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    if (m_physicalDevice.createDevice(&createInfo, nullptr, m_device.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.device-holder") << "Unable to create logical device. " << std::endl;
     };
 
-    vkGetDeviceQueue(m_device, indices.graphics, 0, &m_graphicsQueue);
-    vkGetDeviceQueue(m_device, indices.present, 0, &m_presentQueue);
+    m_graphicsQueue = m_device.vk().getQueue(indices.graphics, 0);
+    m_presentQueue = m_device.vk().getQueue(indices.present, 0);
 }

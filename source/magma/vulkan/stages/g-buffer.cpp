@@ -14,13 +14,13 @@ using namespace lava::chamber;
 
 GBuffer::GBuffer(RenderEngine::Impl& engine)
     : RenderStage(engine)
-    , m_vertexShaderModule{m_engine.device().vk()}
-    , m_fragmentShaderModule{m_engine.device().vk()}
-    , m_normalImageHolder{m_engine.device(), m_engine.commandPool()}
-    , m_albedoImageHolder{m_engine.device(), m_engine.commandPool()}
-    , m_ormImageHolder{m_engine.device(), m_engine.commandPool()}
-    , m_depthImageHolder{m_engine.device(), m_engine.commandPool()}
-    , m_framebuffer{m_engine.device().vk()}
+    , m_vertexShaderModule{engine.device()}
+    , m_fragmentShaderModule{engine.device()}
+    , m_normalImageHolder{engine}
+    , m_albedoImageHolder{engine}
+    , m_ormImageHolder{engine}
+    , m_depthImageHolder{engine}
+    , m_framebuffer{engine.device()}
 {
 }
 
@@ -31,18 +31,14 @@ void GBuffer::stageInit()
     logger.log() << "Initializing G-Buffer stage." << std::endl;
     logger.log().tab(1);
 
-    // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
     //----- Shaders
 
     auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/g-buffer.vert");
-    vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
+    vulkan::createShaderModule(m_engine.device(), vertexShaderCode, m_vertexShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
     auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/g-buffer.frag");
-    vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
+    vulkan::createShaderModule(m_engine.device(), fragmentShaderCode, m_fragmentShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptor set layouts
@@ -63,7 +59,7 @@ void GBuffer::stageInit()
 
     DepthStencilAttachment depthStencilAttachment;
     depthStencilAttachment.format =
-        static_cast<vk::Format>(vulkan::findDepthBufferFormat(device.physicalDevice())); // @cleanup HPP
+        static_cast<vk::Format>(vulkan::findDepthBufferFormat(m_engine.physicalDevice())); // @cleanup HPP
     set(depthStencilAttachment);
 
     //---- Vertex input
@@ -176,15 +172,12 @@ void GBuffer::createResources()
 
     // Depth
     // @cleanup HPP
-    auto depthFormat = vulkan::findDepthBufferFormat(m_engine.device().physicalDevice());
+    auto depthFormat = vulkan::findDepthBufferFormat(m_engine.physicalDevice());
     m_depthImageHolder.create(vk::Format(depthFormat), m_extent, vk::ImageAspectFlagBits::eDepth);
 }
 
 void GBuffer::createFramebuffers()
 {
-    // @cleanup HPP
-    const auto& vk_device = m_engine.device().vk();
-
     // Framebuffer
     std::array<vk::ImageView, 4> attachments = {m_normalImageHolder.view(), m_albedoImageHolder.view(), m_ormImageHolder.view(),
                                                 m_depthImageHolder.view()};
@@ -197,7 +190,7 @@ void GBuffer::createFramebuffers()
     framebufferInfo.height = m_extent.height;
     framebufferInfo.layers = 1;
 
-    if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.g-buffer") << "Failed to create framebuffers." << std::endl;
     }
 }

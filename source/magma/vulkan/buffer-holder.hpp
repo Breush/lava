@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/chamber/macros.hpp>
+#include <lava/magma/render-engine.hpp>
 
 #include "./wrappers.hpp"
 
@@ -16,7 +17,7 @@ namespace lava::magma::vulkan {
     class BufferHolder {
     public:
         BufferHolder() = delete;
-        BufferHolder(Device& device, vk::CommandPool& commandPool);
+        BufferHolder(const RenderEngine::Impl& engine);
 
         /// Allocate all buffer memory.
         void create(vk::BufferUsageFlagBits usage, vk::DeviceSize size);
@@ -30,8 +31,7 @@ namespace lava::magma::vulkan {
 
     private:
         // References
-        vulkan::Device& m_device;
-        vk::CommandPool& m_commandPool; // @todo vulkan::CommandPool?
+        const RenderEngine::Impl& m_engine;
 
         // Resources
         vulkan::Buffer m_stagingBuffer;

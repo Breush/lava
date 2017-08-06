@@ -9,9 +9,9 @@ using namespace lava::chamber;
 
 RenderStage::RenderStage(RenderEngine::Impl& engine)
     : m_engine(engine)
-    , m_renderPass{m_engine.device().vk()}
-    , m_pipelineLayout{m_engine.device().vk()}
-    , m_pipeline{m_engine.device().vk()}
+    , m_renderPass{engine.device()}
+    , m_pipelineLayout{engine.device()}
+    , m_pipeline{engine.device()}
 {
 }
 
@@ -73,10 +73,6 @@ void RenderStage::set(const DepthStencilAttachment& depthStencilAttachment)
 
 void RenderStage::initRenderPass()
 {
-    // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
     std::vector<vk::AttachmentDescription> attachments;
     std::vector<vk::AttachmentReference> attachmentsReferences;
 
@@ -136,32 +132,25 @@ void RenderStage::initRenderPass()
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.render-stage") << "Failed to create render pass." << std::endl;
     }
 }
 
 void RenderStage::initPipelineLayout()
 {
-    // @cleanup HPP
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
     pipelineLayoutInfo.setLayoutCount = m_descriptorSetLayouts.size();
     pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data();
 
-    if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace())
+        != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.render-stage") << "Failed to create pipeline layout." << std::endl;
     }
 }
 
 void RenderStage::updatePipeline()
 {
-    // @cleanup HPP Remove this second device, as it will be casted automatically
-    auto& device = m_engine.device();
-    const auto& vk_device = device.vk();
-
     auto vertexInputInfoState = pipelineVertexInputStateCreateInfo();
     auto inputAssemblyState = pipelineInputAssemblyStateCreateInfo();
     auto viewportState = pipelineViewportStateCreateInfo();
@@ -185,7 +174,8 @@ void RenderStage::updatePipeline()
     pipelineInfo.layout = m_pipelineLayout;
     pipelineInfo.renderPass = m_renderPass;
 
-    if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace())
+        != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.render-stage") << "Failed to create graphics pipeline." << std::endl;
     }
 }

@@ -2,19 +2,18 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./device.hpp"
 #include "./image.hpp"
+#include "./render-engine-impl.hpp"
 
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-BufferHolder::BufferHolder(vulkan::Device& device, vk::CommandPool& commandPool)
-    : m_device(device)
-    , m_commandPool(commandPool)
-    , m_stagingBuffer{device.vk()}
-    , m_stagingMemory{device.vk()}
-    , m_buffer{device.vk()}
-    , m_memory{device.vk()}
+BufferHolder::BufferHolder(const RenderEngine::Impl& engine)
+    : m_engine(engine)
+    , m_stagingBuffer{engine.device()}
+    , m_stagingMemory{engine.device()}
+    , m_buffer{engine.device()}
+    , m_memory{engine.device()}
 {
 }
 
@@ -25,7 +24,8 @@ void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
     vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
-    vulkan::createBuffer(m_device, size, usageFlags, propertyFlags, m_stagingBuffer, m_stagingMemory);
+    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_stagingBuffer,
+                         m_stagingMemory);
 
     //----- Final buffer
 
@@ -41,24 +41,20 @@ void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
                                                    << "Valid ones are currently eUniformBuffer." << std::endl;
     }
 
-    vulkan::createBuffer(m_device, size, usageFlags, propertyFlags, m_buffer, m_memory);
+    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_buffer, m_memory);
 }
 
 void BufferHolder::copy(const void* data, vk::DeviceSize size)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_device.vk();
-
     // Copy to staging
     void* targetData;
     vk::MemoryMapFlags memoryMapFlags;
-    vk_device.mapMemory(m_stagingMemory, 0, size, memoryMapFlags, &targetData);
+    m_engine.device().mapMemory(m_stagingMemory, 0, size, memoryMapFlags, &targetData);
     memcpy(targetData, data, size);
-    vk_device.unmapMemory(m_stagingMemory);
+    m_engine.device().unmapMemory(m_stagingMemory);
 
     // And to final buffer
-    // @todo This copyBuffer could probably be inlined here
-    vulkan::copyBuffer(m_device, m_commandPool, m_stagingBuffer, m_buffer, size);
+    vulkan::copyBuffer(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), m_stagingBuffer, m_buffer, size);
 }
 
 // @todo Make some ImageDescriptor/BufferDescriptor?

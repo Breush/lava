@@ -2,17 +2,14 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "./device.hpp"
-
 namespace lava::magma::vulkan {
-    inline vk::CommandBuffer beginSingleTimeCommands(Device& device, vk::CommandPool commandPool)
+    inline vk::CommandBuffer beginSingleTimeCommands(vk::Device device, vk::CommandPool commandPool)
     {
         vk::CommandBufferAllocateInfo bufferAllocateInfo{commandPool};
         bufferAllocateInfo.commandBufferCount = 1;
 
         vk::CommandBuffer commandBuffer;
-        device.vk().allocateCommandBuffers(&bufferAllocateInfo, &commandBuffer);
-        // @cleanup HPP
+        device.allocateCommandBuffers(&bufferAllocateInfo, &commandBuffer);
 
         vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
         commandBuffer.begin(&beginInfo);
@@ -20,17 +17,17 @@ namespace lava::magma::vulkan {
         return commandBuffer;
     }
 
-    inline void endSingleTimeCommands(Device& device, vk::CommandPool commandPool, vk::CommandBuffer commandBuffer)
+    inline void endSingleTimeCommands(vk::Device device, vk::Queue queue, vk::CommandPool commandPool,
+                                      vk::CommandBuffer commandBuffer)
     {
         commandBuffer.end();
 
         vk::SubmitInfo submitInfo = {};
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
-        vk::Queue(device.graphicsQueue()).submit(1, &submitInfo, vk::Fence());
+        queue.submit(1, &submitInfo, vk::Fence());
 
-        vk::Queue(device.graphicsQueue()).waitIdle();
-        device.vk().freeCommandBuffers(commandPool, 1, &commandBuffer);
-        // @cleanup HPP
+        queue.waitIdle();
+        device.freeCommandBuffers(commandPool, 1, &commandBuffer);
     }
 }

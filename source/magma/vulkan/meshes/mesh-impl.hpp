@@ -6,7 +6,6 @@
 
 #include "../buffer-holder.hpp"
 #include "../capsule.hpp"
-#include "../device.hpp"
 #include "../vertex.hpp"
 
 namespace lava::magma {
@@ -22,7 +21,6 @@ namespace lava::magma {
 
     public:
         Impl(RenderEngine& engine);
-        ~Impl();
 
         // IMesh
         IMesh::UserData render(IMesh::UserData data);
@@ -49,7 +47,6 @@ namespace lava::magma {
     private:
         // References
         RenderEngine::Impl& m_engine;
-        vulkan::Device& m_device;
 
         // Data
         std::vector<vulkan::Vertex> m_vertices;
@@ -60,13 +57,14 @@ namespace lava::magma {
         glm::mat4 m_worldTransform;
 
         // Descriptor
-        VkDescriptorSet m_descriptorSet;
+        vk::DescriptorSet m_descriptorSet;
         vulkan::BufferHolder m_uniformBufferHolder;
 
         // Vertices
-        vulkan::Capsule<VkBuffer> m_vertexBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_vertexBufferMemory;
-        vulkan::Capsule<VkBuffer> m_indexBuffer;
-        vulkan::Capsule<VkDeviceMemory> m_indexBufferMemory;
+        // @todo Make a BufferHolder of these
+        vulkan::Buffer m_vertexBuffer;
+        vulkan::DeviceMemory m_vertexBufferMemory;
+        vulkan::Buffer m_indexBuffer;
+        vulkan::DeviceMemory m_indexBufferMemory;
     };
 }

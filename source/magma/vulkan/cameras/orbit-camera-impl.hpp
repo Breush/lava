@@ -46,7 +46,7 @@ namespace lava::magma {
         RenderEngine::Impl& m_engine;
 
         // Descriptor
-        VkDescriptorSet m_descriptorSet;
+        vk::DescriptorSet m_descriptorSet;
         vulkan::BufferHolder m_uniformBufferHolder;
 
         // Attributes

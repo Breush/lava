@@ -1,7 +1,5 @@
 #pragma once
 
-#include "./tools.hpp"
-
 namespace lava::magma::vulkan {
     /**
      * Holds Vulkan queue family indices.
@@ -17,23 +15,23 @@ namespace lava::magma::vulkan {
     /**
      * Find correct queue families of a device.
      */
-    inline QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+    inline QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
     {
         QueueFamilyIndices indices;
 
-        auto queueFamilies = availableQueueFamilies(device);
+        auto queueFamilies = physicalDevice.getQueueFamilyProperties();
         for (size_t i = 0; i < queueFamilies.size(); ++i) {
             const auto& queueFamily = queueFamilies[i];
             if (queueFamily.queueCount <= 0) continue;
 
             // Graphics
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
                 indices.graphics = i;
             }
 
             // Check that it can handle surfaces
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+            vk::Bool32 presentSupport = false;
+            physicalDevice.getSurfaceSupportKHR(i, surface, &presentSupport);
             if (presentSupport) {
                 indices.present = i;
             }

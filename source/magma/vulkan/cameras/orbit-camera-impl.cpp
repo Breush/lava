@@ -12,17 +12,15 @@ using namespace lava::chamber;
 
 OrbitCamera::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
-    , m_uniformBufferHolder({m_engine.device(), m_engine.commandPool()})
+    , m_uniformBufferHolder(m_engine)
 {
     // Create descriptor set
-    VkDescriptorSetLayout layouts[] = {m_engine.cameraDescriptorSetLayout()};
-    VkDescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    vk::DescriptorSetAllocateInfo allocInfo;
     allocInfo.descriptorPool = m_engine.cameraDescriptorPool();
     allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = layouts;
+    allocInfo.pSetLayouts = &m_engine.cameraDescriptorSetLayout();
 
-    if (vkAllocateDescriptorSets(m_engine.device(), &allocInfo, &m_descriptorSet) != VK_SUCCESS) {
+    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.camera") << "Failed to create descriptor set." << std::endl;
     }
 
@@ -30,23 +28,18 @@ OrbitCamera::Impl::Impl(RenderEngine& engine)
     m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(CameraUbo));
 
     // Set it up
-    VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBufferHolder.buffer().castOld(); // @cleanup HPP
-    bufferInfo.offset = 0;
+    vk::DescriptorBufferInfo bufferInfo;
+    bufferInfo.buffer = m_uniformBufferHolder.buffer();
     bufferInfo.range = sizeof(CameraUbo);
 
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    vk::WriteDescriptorSet descriptorWrite;
     descriptorWrite.dstSet = m_descriptorSet;
     descriptorWrite.dstBinding = 0u;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+    descriptorWrite.descriptorCount = 1u;
     descriptorWrite.pBufferInfo = &bufferInfo;
-    descriptorWrite.pImageInfo = nullptr;
-    descriptorWrite.pTexelBufferView = nullptr;
 
-    vkUpdateDescriptorSets(m_engine.device(), 1u, &descriptorWrite, 0, nullptr);
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 
     updateBindings();
 }
@@ -64,8 +57,8 @@ ICamera::UserData OrbitCamera::Impl::render(ICamera::UserData data)
     const auto& pipelineLayout = *userData.pipelineLayout;
 
     // Bind with the camera descriptor set
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, DESCRIPTOR_SET_INDEX, 1,
-                            &m_descriptorSet, 0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, DESCRIPTOR_SET_INDEX, 1, &m_descriptorSet,
+                                     0, nullptr);
 
     return nullptr;
 }

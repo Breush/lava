@@ -77,6 +77,38 @@ namespace lava::magma::vulkan {
  *
  * Usage: $capsule_instance(SurfaceKHR);
  */
+#define $capsule_standalone(Class) $capsule_standalone_do(Class)
+
+#define $capsule_standalone_do(Class)                                                                                            \
+    class Class {                                                                                                                \
+    public:                                                                                                                      \
+        using WrappedClass = vk::Class;                                                                                          \
+                                                                                                                                 \
+    public:                                                                                                                      \
+        Class() {}                                                                                                               \
+        ~Class() { cleanup(); }                                                                                                  \
+                                                                                                                                 \
+        $capsule_casts(Class);                                                                                                   \
+                                                                                                                                 \
+    protected:                                                                                                                   \
+        void cleanup()                                                                                                           \
+        {                                                                                                                        \
+            if (m_object) {                                                                                                      \
+                m_object.destroy();                                                                                              \
+            }                                                                                                                    \
+            m_object = nullptr;                                                                                                  \
+        }                                                                                                                        \
+                                                                                                                                 \
+    private:                                                                                                                     \
+        $capsule_attributes();                                                                                                   \
+    }
+
+/**
+ * Encapsulate destructor behavior for Vulkan types.
+ * This provides an RAII lifetime.
+ *
+ * Usage: $capsule_instance(SurfaceKHR);
+ */
 #define $capsule_instance(Class) $capsule_instance_do(Class, $cat(destroy, Class))
 
 #define $capsule_instance_do(Class, deleter)                                                                                     \
@@ -103,6 +135,7 @@ namespace lava::magma::vulkan {
             m_object = nullptr;                                                                                                  \
         }                                                                                                                        \
                                                                                                                                  \
+    private:                                                                                                                     \
         $capsule_attributes();                                                                                                   \
         const vk::Instance& m_instance;                                                                                          \
     }
@@ -140,19 +173,16 @@ namespace lava::magma::vulkan {
             m_object = nullptr;                                                                                                  \
         }                                                                                                                        \
                                                                                                                                  \
+    private:                                                                                                                     \
         $capsule_attributes();                                                                                                   \
         const vk::Device& m_device;                                                                                              \
     }
 
 #define $capsule_casts(Class)                                                                                                    \
+    WrappedClass vk() const { return m_object; }                                                                                 \
     operator WrappedClass&() { return m_object; }                                                                                \
     operator const WrappedClass&() const { return m_object; }                                                                    \
     const WrappedClass* operator&() const { return &m_object; }                                                                  \
-                                                                                                                                 \
-    /* To be removed one day */                                                                                                  \
-    using OldWrappedClass = Vk##Class;                                                                                           \
-    OldWrappedClass& castOld() { return reinterpret_cast<OldWrappedClass&>(m_object); }                                          \
-    const OldWrappedClass& castOld() const { return reinterpret_cast<const OldWrappedClass&>(m_object); }                        \
                                                                                                                                  \
     WrappedClass* replace()                                                                                                      \
     {                                                                                                                            \
@@ -169,7 +199,5 @@ namespace lava::magma::vulkan {
                                                                                                                                  \
     void operator=(const Class& rhs) { *this = static_cast<const WrappedClass&>(rhs); }
 
-#define $capsule_attributes()                                                                                                    \
-private:                                                                                                                         \
-    WrappedClass m_object = nullptr;
+#define $capsule_attributes() WrappedClass m_object = nullptr;
 }

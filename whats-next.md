@@ -40,16 +40,16 @@
 - **refacto**
     - Use vulkan.hpp 
         - Clean @cleanup HPP
-        - Remove Capsule castOld() thingy
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
     - Create and use BufferHolder for Vertices/Indices
     - Make some ImageDescriptor/BufferDescriptor?
-    - Device -> DeviceHolder (holding Device and PhysicalDevice)
     - Remove useless descriptor pools
     - RenderStage: A good design shouldn't need virtual functions for create infos
     - RenderEngine: Make rendering dimensions independent to window ones
+    - Create InstanceHolder + cleanup capsule.hpp
+    - Move utils functions to own folder or inside Holders's cpp file
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame

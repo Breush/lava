@@ -2,9 +2,9 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./device.hpp"
 #include "./image.hpp"
 #include "./queue.hpp"
+#include "./render-engine-impl.hpp"
 #include "./swapchain-support-details.hpp"
 
 namespace {
@@ -60,10 +60,10 @@ namespace {
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-SwapchainHolder::SwapchainHolder(Device& device)
-    : m_device(device)
-    , m_swapchain{device.vk()} // @cleanup HPP
-    , m_imageAvailableSemaphore(device.vk())
+SwapchainHolder::SwapchainHolder(const RenderEngine::Impl& engine)
+    : m_engine(engine)
+    , m_swapchain{engine.device()}
+    , m_imageAvailableSemaphore(engine.device())
 {
 }
 
@@ -78,21 +78,14 @@ vk::Result SwapchainHolder::acquireNextImage()
 {
     static const auto MAX = std::numeric_limits<uint64_t>::max();
 
-    // @cleanup HPP
-    const auto& vk_device = m_device.vk();
-
-    return vk_device.acquireNextImageKHR(m_swapchain, MAX, m_imageAvailableSemaphore, nullptr, &m_currentIndex);
+    return m_engine.device().acquireNextImageKHR(m_swapchain, MAX, m_imageAvailableSemaphore, nullptr, &m_currentIndex);
 }
 
 //----- Internal
 
 void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& windowExtent)
 {
-    // @cleanup HPP
-    const auto& vk_device = m_device.vk();
-
-    // @cleanup HPP
-    auto details = swapchainSupportDetails(vk::PhysicalDevice(m_device.physicalDevice()), surface);
+    auto details = swapchainSupportDetails(m_engine.physicalDevice(), surface);
 
     auto surfaceFormat = swapchainSurfaceFormat(details.formats);
     auto presentMode = swapchainPresentMode(details.presentModes);
@@ -117,7 +110,7 @@ void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& wind
     createInfo.clipped = true;
     createInfo.oldSwapchain = m_swapchain;
 
-    auto indices = findQueueFamilies(m_device.physicalDevice(), surface);
+    auto indices = findQueueFamilies(m_engine.physicalDevice(), surface);
     std::vector<uint32_t> queueFamilyIndices = {(uint32_t)indices.graphics, (uint32_t)indices.present};
 
     auto sameFamily = (indices.graphics == indices.present);
@@ -125,12 +118,12 @@ void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& wind
     createInfo.queueFamilyIndexCount = sameFamily ? 0 : queueFamilyIndices.size();
     createInfo.pQueueFamilyIndices = sameFamily ? nullptr : queueFamilyIndices.data();
 
-    if (vk_device.createSwapchainKHR(&createInfo, nullptr, m_swapchain.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createSwapchainKHR(&createInfo, nullptr, m_swapchain.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.swapchain") << "Failed to create swapchain." << std::endl;
     }
 
     // Retrieving image handles (we need to request the real image count as the implementation can require more)
-    m_images = vk_device.getSwapchainImagesKHR(m_swapchain);
+    m_images = m_engine.device().getSwapchainImagesKHR(m_swapchain);
 
     // Saving some values
     m_extent = extent;
@@ -139,21 +132,18 @@ void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& wind
 
 void SwapchainHolder::createImageViews()
 {
-    m_imageViews.resize(m_images.size(), vulkan::ImageView{m_device.vk()}); // @cleanup HPP
+    m_imageViews.resize(m_images.size(), vulkan::ImageView{m_engine.device()});
 
     for (uint32_t i = 0; i < m_images.size(); i++) {
-        createImageView(m_device, m_images[i], m_imageFormat, vk::ImageAspectFlagBits::eColor, m_imageViews[i]);
+        createImageView(m_engine.device(), m_images[i], m_imageFormat, vk::ImageAspectFlagBits::eColor, m_imageViews[i]);
     }
 }
 
 void SwapchainHolder::createSemaphore()
 {
-    // @cleanup HPP
-    const auto& vk_device = m_device.vk();
-
     vk::SemaphoreCreateInfo semaphoreInfo;
 
-    if (vk_device.createSemaphore(&semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != vk::Result::eSuccess) {
+    if (m_engine.device().createSemaphore(&semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.swapchain-holder") << "Failed to create semaphores." << std::endl;
     }
 }
