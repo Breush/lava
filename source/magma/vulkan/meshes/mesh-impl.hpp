@@ -35,8 +35,8 @@ namespace lava::magma {
         void verticesTangents(const std::vector<glm::vec4>& tangents);
         void indices(const std::vector<uint16_t>& indices);
 
-        RmMaterial& material() { return *m_material; }
-        void material(RmMaterial& material);
+        IMaterial& material() { return *m_material; }
+        void material(IMaterial& material);
 
     private:
         void updateBindings();
@@ -50,7 +50,7 @@ namespace lava::magma {
         // Data
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
-        RmMaterial* m_material = nullptr;
+        IMaterial* m_material = nullptr;
 
         // Node
         glm::mat4 m_worldTransform;

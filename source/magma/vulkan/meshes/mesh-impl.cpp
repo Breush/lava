@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
-#include <lava/magma/materials/rm-material.hpp>
+#include <lava/magma/interfaces/material.hpp>
 
 #include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
@@ -114,7 +114,7 @@ void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
     // while we update our secondary command buffer right here
 }
 
-void Mesh::Impl::material(RmMaterial& material)
+void Mesh::Impl::material(IMaterial& material)
 {
     m_material = &material;
 }

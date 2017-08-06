@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace lava::magma {
-    class RmMaterial;
+    class IMaterial;
 }
 
 namespace lava::magma {
@@ -35,9 +35,8 @@ namespace lava::magma {
         void verticesTangents(const std::vector<glm::vec4>& tangents);
         void indices(const std::vector<uint16_t>& indices);
 
-        // @todo Why isn't that a IMaterial?
-        RmMaterial& material();
-        void material(RmMaterial& material);
+        IMaterial& material();
+        void material(IMaterial& material);
 
     public:
         class Impl;
