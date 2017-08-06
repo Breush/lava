@@ -39,14 +39,16 @@ LoggerStream& Logger::info(const std::string& category)
 
 LoggerStream& Logger::warning(const std::string& category)
 {
+    static const std::string follow("/!\\ ");
     m_stream.autoExit(false);
-    m_stream.prefixString("\e[1m[" + category + "] \e[33m/!\\ " + spacing(category));
+    m_stream.prefixString("\e[1m[" + category + "] \e[33m" + follow + spacing(category + follow));
     return m_stream;
 }
 
 LoggerStream& Logger::error(const std::string& category)
 {
+    static const std::string follow("//!\\\\ ");
     m_stream.autoExit(true);
-    m_stream.prefixString("\e[1m[" + category + "] \e[31m/!\\ /!\\ " + spacing(category));
+    m_stream.prefixString("\e[1m[" + category + "] \e[31m" + follow + spacing(category + follow));
     return m_stream;
 }
