@@ -2,12 +2,36 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "../buffer.hpp"
-#include "../image.hpp"
 #include "../render-engine-impl.hpp"
 #include "../shader.hpp"
 #include "../user-data-render.hpp"
 #include "../vertex.hpp"
+
+namespace {
+    vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, const std::vector<vk::Format>& candidates,
+                                   vk::ImageTiling tiling, vk::FormatFeatureFlags features)
+    {
+        for (auto format : candidates) {
+            vk::FormatProperties props = physicalDevice.getFormatProperties(format);
+
+            if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
+                return format;
+            }
+            else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
+                return format;
+            }
+        }
+
+        return vk::Format::eUndefined;
+    }
+
+    vk::Format findDepthBufferFormat(vk::PhysicalDevice physicalDevice)
+    {
+        return findSupportedFormat(physicalDevice,
+                                   {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
+                                   vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+    }
+}
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -43,10 +67,10 @@ void GBuffer::stageInit()
 
     //----- Descriptor set layouts
 
-    // @cleanup HPP vk::DescriptorSetLayout Should be made here anyway
-    add(vk::DescriptorSetLayout(m_engine.cameraDescriptorSetLayout()));
-    add(vk::DescriptorSetLayout(m_engine.materialDescriptorSetLayout()));
-    add(vk::DescriptorSetLayout(m_engine.meshDescriptorSetLayout()));
+    // @todo These descriptors should be part of us
+    add(m_engine.cameraDescriptorSetLayout());
+    add(m_engine.materialDescriptorSetLayout());
+    add(m_engine.meshDescriptorSetLayout());
 
     //----- Attachments
 
@@ -58,19 +82,37 @@ void GBuffer::stageInit()
     add(colorAttachment); // ORM
 
     DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format =
-        static_cast<vk::Format>(vulkan::findDepthBufferFormat(m_engine.physicalDevice())); // @cleanup HPP
+    depthStencilAttachment.format = findDepthBufferFormat(m_engine.physicalDevice());
     set(depthStencilAttachment);
 
     //---- Vertex input
 
     // @todo Should not be stored by ourself, but added through the interface
-    // @cleanup HPP
-    m_vertexInputBindingDescription = vulkan::Vertex::bindingDescription();
-    auto attributeDescriptions = vulkan::Vertex::attributeDescriptions();
-    for (auto& attribute : attributeDescriptions) {
-        m_vertexInputAttributeDescriptions.emplace_back(attribute);
-    }
+    m_vertexInputBindingDescription.binding = 0;
+    m_vertexInputBindingDescription.stride = sizeof(vulkan::Vertex);
+    m_vertexInputBindingDescription.inputRate = vk::VertexInputRate::eVertex;
+
+    m_vertexInputAttributeDescriptions.resize(4);
+
+    m_vertexInputAttributeDescriptions[0].binding = 0;
+    m_vertexInputAttributeDescriptions[0].location = 0;
+    m_vertexInputAttributeDescriptions[0].format = vk::Format::eR32G32B32Sfloat;
+    m_vertexInputAttributeDescriptions[0].offset = offsetof(vulkan::Vertex, pos);
+
+    m_vertexInputAttributeDescriptions[1].binding = 0;
+    m_vertexInputAttributeDescriptions[1].location = 1;
+    m_vertexInputAttributeDescriptions[1].format = vk::Format::eR32G32Sfloat;
+    m_vertexInputAttributeDescriptions[1].offset = offsetof(vulkan::Vertex, uv);
+
+    m_vertexInputAttributeDescriptions[2].binding = 0;
+    m_vertexInputAttributeDescriptions[2].location = 2;
+    m_vertexInputAttributeDescriptions[2].format = vk::Format::eR32G32B32Sfloat;
+    m_vertexInputAttributeDescriptions[2].offset = offsetof(vulkan::Vertex, normal);
+
+    m_vertexInputAttributeDescriptions[3].binding = 0;
+    m_vertexInputAttributeDescriptions[3].location = 3;
+    m_vertexInputAttributeDescriptions[3].format = vk::Format::eR32G32B32A32Sfloat;
+    m_vertexInputAttributeDescriptions[3].offset = offsetof(vulkan::Vertex, tangent);
 
     logger.log().tab(-1);
 }
@@ -171,9 +213,8 @@ void GBuffer::createResources()
     m_ormImageHolder.create(ormFormat, m_extent, vk::ImageAspectFlagBits::eColor);
 
     // Depth
-    // @cleanup HPP
-    auto depthFormat = vulkan::findDepthBufferFormat(m_engine.physicalDevice());
-    m_depthImageHolder.create(vk::Format(depthFormat), m_extent, vk::ImageAspectFlagBits::eDepth);
+    auto depthFormat = findDepthBufferFormat(m_engine.physicalDevice());
+    m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
 }
 
 void GBuffer::createFramebuffers()

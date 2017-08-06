@@ -12,9 +12,9 @@ namespace {
     /**
      * Checks if a device supports the extensions.
      */
-    inline bool deviceExtensionsSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions)
+    inline bool deviceExtensionsSupported(vk::PhysicalDevice physicalDevice, const std::vector<const char*>& deviceExtensions)
     {
-        auto extensions = magma::vulkan::availableExtensions(device);
+        auto extensions = physicalDevice.enumerateDeviceExtensionProperties();
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
         for (const auto& extension : extensions) {
@@ -27,19 +27,19 @@ namespace {
     /**
      * Checks if a device is suitable for our operations.
      */
-    inline bool deviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface)
+    inline bool deviceSuitable(vk::PhysicalDevice physicalDevice, const std::vector<const char*>& deviceExtensions,
+                               vk::SurfaceKHR surface)
     {
-        auto indices = magma::vulkan::findQueueFamilies(device, surface);
+        auto indices = magma::vulkan::findQueueFamilies(physicalDevice, surface);
         if (!indices.valid()) return false;
 
-        auto extensionsSupported = deviceExtensionsSupported(device, deviceExtensions);
+        auto extensionsSupported = deviceExtensionsSupported(physicalDevice, deviceExtensions);
         if (!extensionsSupported) return false;
 
-        auto swapChainSupport = magma::vulkan::swapchainSupportDetails(device, surface);
+        auto swapChainSupport = magma::vulkan::swapchainSupportDetails(physicalDevice, surface);
         if (!swapChainSupport.valid()) return false;
 
-        VkPhysicalDeviceFeatures supportedFeatures;
-        vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+        auto supportedFeatures = physicalDevice.getFeatures();
         if (!supportedFeatures.samplerAnisotropy) return false;
 
         return true;
@@ -57,7 +57,7 @@ void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR surface)
 
 void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface)
 {
-    auto physicalDevices = availablePhysicalDevices(instance);
+    auto physicalDevices = instance.enumeratePhysicalDevices();
 
     if (physicalDevices.size() == 0) {
         logger.error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;

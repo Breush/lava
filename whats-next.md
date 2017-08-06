@@ -38,8 +38,6 @@
         - Alpha
     - Add semaphores (fences?) to wait between each step
 - **refacto**
-    - Use vulkan.hpp 
-        - Clean @cleanup HPP
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)

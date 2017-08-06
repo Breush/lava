@@ -94,7 +94,6 @@ void Present::stageInit()
 
     //----- Attachments
 
-    // @cleanup HPP
     ColorAttachment presentColorAttachment;
     presentColorAttachment.format = m_swapchainHolder->imageFormat();
     presentColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
@@ -155,7 +154,6 @@ void Present::createResources()
 
 void Present::createFramebuffers()
 {
-    // @cleanup HPP
     auto& imageViews = m_swapchainHolder->imageViews();
 
     m_framebuffers.resize(imageViews.size(), vulkan::Framebuffer{m_engine.device()});

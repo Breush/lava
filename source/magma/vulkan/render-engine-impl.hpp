@@ -76,7 +76,7 @@ namespace lava::magma {
 
     protected:
         void initVulkan();
-        void initVulkanDevice(VkSurfaceKHR surface);
+        void initVulkanDevice(vk::SurfaceKHR surface);
 
         // Pipelines
         void initStages();
@@ -88,7 +88,7 @@ namespace lava::magma {
 
         // Command buffers
         vk::CommandBuffer& recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex);
-        void createCommandPool(VkSurfaceKHR surface);
+        void createCommandPool(vk::SurfaceKHR surface);
         void createCommandBuffers(uint32_t renderTargetIndex);
 
         // Transform UBOs

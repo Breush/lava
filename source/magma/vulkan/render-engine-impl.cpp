@@ -85,9 +85,7 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     // Thus, no window => unable to init the device.
     // So we init what's left of the engine write here, when adding a renderTarget.
     {
-        // @cleanup HPP
-        const auto& surface = reinterpret_cast<const VkSurfaceKHR&>(data.surface);
-        initVulkanDevice(surface); // As the render target below must have a valid device.
+        initVulkanDevice(data.surface); // As the render target below must have a valid device.
     }
 
     renderTarget->init();
@@ -221,7 +219,7 @@ void RenderEngine::Impl::updateStages()
     logger.log().tab(-1);
 }
 
-void RenderEngine::Impl::createCommandPool(VkSurfaceKHR surface)
+void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR surface)
 {
     logger.info("magma.vulkan.render-engine") << "Creating command pool." << std::endl;
 
@@ -409,7 +407,7 @@ void RenderEngine::Impl::initVulkan()
     logger.log().tab(-1);
 }
 
-void RenderEngine::Impl::initVulkanDevice(VkSurfaceKHR surface)
+void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR surface)
 {
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);

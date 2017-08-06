@@ -38,10 +38,7 @@ namespace lava::magma::vulkan {
 
         vk::MemoryAllocateInfo allocInfo;
         allocInfo.allocationSize = memRequirements.size;
-        // @cleanup HPP
-        allocInfo.memoryTypeIndex =
-            findMemoryType(reinterpret_cast<VkPhysicalDevice&>(physicalDevice), memRequirements.memoryTypeBits,
-                           reinterpret_cast<VkMemoryPropertyFlags&>(properties));
+        allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
 
         if (device.allocateMemory(&allocInfo, nullptr, imageMemory.replace()) != vk::Result::eSuccess) {
             chamber::logger.error("magma.vulkan.image") << "Failed to allocate image memory." << std::endl;

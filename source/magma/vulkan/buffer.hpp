@@ -25,8 +25,7 @@ namespace lava::magma::vulkan {
 
         vk::MemoryAllocateInfo allocInfo;
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits,
-                                                   reinterpret_cast<VkMemoryPropertyFlags&>(properties)); // @cleanup HPP
+        allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
 
         if (device.allocateMemory(&allocInfo, nullptr, bufferMemory.replace()) != vk::Result::eSuccess) {
             chamber::logger.error("magma.vulkan.buffer") << "Failed to allocate buffer memory." << std::endl;
@@ -67,34 +66,5 @@ namespace lava::magma::vulkan {
 
         queue.waitIdle();
         device.freeCommandBuffers(commandPool, 1, &commandBuffer);
-    }
-}
-
-// @cleanup HPP Remove
-namespace lava::magma::vulkan {
-    inline VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& candidates,
-                                        VkImageTiling tiling, VkFormatFeatureFlags features)
-    {
-        for (VkFormat format : candidates) {
-            VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
-
-            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
-                return format;
-            }
-            else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
-                return format;
-            }
-        }
-
-        chamber::logger.error("magma.vulkan.buffer") << "Unable to find valid format." << std::endl;
-        return VK_FORMAT_UNDEFINED;
-    }
-
-    inline VkFormat findDepthBufferFormat(VkPhysicalDevice physicalDevice)
-    {
-        return findSupportedFormat(physicalDevice,
-                                   {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-                                   VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 }

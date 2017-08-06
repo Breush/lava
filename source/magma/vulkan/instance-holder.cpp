@@ -39,6 +39,27 @@ namespace {
 
         return VK_FALSE;
     }
+
+    bool layersSupported(const std::vector<const char*>& layers)
+    {
+        auto availableLayers = vk::enumerateInstanceLayerProperties();
+
+        for (auto layerName : layers) {
+            bool layerFound = false;
+
+            for (const auto& layerProperties : availableLayers) {
+                if (strcmp(layerName, layerProperties.layerName)) continue;
+                layerFound = true;
+                break;
+            }
+
+            if (!layerFound) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 using namespace lava::magma::vulkan;
@@ -125,7 +146,7 @@ void InstanceHolder::initValidationLayers(vk::InstanceCreateInfo& instanceCreate
 
     if (!m_debugEnabled) return;
 
-    if (!validationLayersSupported(m_validationLayers)) {
+    if (!layersSupported(m_validationLayers)) {
         logger.warning("magma.vulkan.layer") << "Validation layers enabled, but are not available." << std::endl;
         m_debugEnabled = false;
         return;
