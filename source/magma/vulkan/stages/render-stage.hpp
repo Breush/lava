@@ -67,7 +67,6 @@ namespace lava::magma {
         /// Creates the pipeline layout. All descriptors sets must have been added.
         void initPipelineLayout();
 
-        // @todo The update could call that automatically.
         /// Creates the pipeline. All shader stages must have been added.
         void updatePipeline();
 

@@ -255,7 +255,7 @@ void Epiphany::createFramebuffers()
     }
 }
 
-// @todo Use helper function (merge with RmMaterial ones)
+// @todo Have vulkan::DescriptorCombinedImageSampler
 void Epiphany::normalImageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
 {
     vk::DescriptorImageInfo imageInfo;
