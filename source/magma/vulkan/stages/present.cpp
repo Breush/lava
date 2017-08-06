@@ -29,7 +29,7 @@ void Present::stageInit()
     logger.log().tab(1);
 
     if (!m_swapchainHolder) {
-        logger.error("magma.vulkan.render-engine.present") << "No swapchain holder binded before initialization." << std::endl;
+        logger.error("magma.vulkan.stages.present") << "No swapchain holder binded before initialization." << std::endl;
     }
 
     // @cleanup HPP
@@ -37,11 +37,11 @@ void Present::stageInit()
 
     //----- Shaders
 
-    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.vert");
+    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/present.vert");
     vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
-    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/present.frag");
+    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/present.frag");
     vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
@@ -60,7 +60,7 @@ void Present::stageInit()
     poolInfo.maxSets = 1u;
 
     if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor pool." << std::endl;
+        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor pool." << std::endl;
     }
 
     //----- Descriptor set layout
@@ -76,7 +76,7 @@ void Present::stageInit()
     layoutInfo.pBindings = &layoutBinding;
 
     if (vk_device.createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create material descriptor set layout." << std::endl;
+        logger.error("magma.vulkan.stages.present") << "Failed to create material descriptor set layout." << std::endl;
     }
 
     add(m_descriptorSetLayout);
@@ -89,7 +89,7 @@ void Present::stageInit()
     allocInfo.pSetLayouts = &m_descriptorSetLayout;
 
     if (vk_device.allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor set." << std::endl;
+        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor set." << std::endl;
     }
 
     logger.log().tab(-1);
@@ -176,7 +176,7 @@ void Present::createFramebuffers()
         framebufferInfo.layers = 1;
 
         if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.render-engine.present") << "Failed to create framebuffers." << std::endl;
+            logger.error("magma.vulkan.stages.present") << "Failed to create framebuffers." << std::endl;
         }
     }
 }

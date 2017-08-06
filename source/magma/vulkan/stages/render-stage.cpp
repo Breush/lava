@@ -27,12 +27,12 @@ void RenderStage::init()
 void RenderStage::update(const vk::Extent2D& extent)
 {
     if (extent.width == 0 || extent.height == 0) {
-        logger.warning("magma.vulkan.render-engine.render-stage")
+        logger.warning("magma.vulkan.stages.render-stage")
             << "Skipping update with invalid extent " << extent.width << "x" << extent.height << "." << std::endl;
         return;
     }
     else if (m_updateCleverlySkipped && (extent.width == m_extent.width || extent.height == m_extent.height)) {
-        logger.info("magma.vulkan.render-engine.render-stage") << "Skipping update with same extent." << std::endl;
+        logger.info("magma.vulkan.stages.render-stage") << "Skipping update with same extent." << std::endl;
         return;
     }
 
@@ -137,7 +137,7 @@ void RenderStage::initRenderPass()
     renderPassInfo.pDependencies = &dependency;
 
     if (vk_device.createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.render-stage") << "Failed to create render pass." << std::endl;
+        logger.error("magma.vulkan.stages.render-stage") << "Failed to create render pass." << std::endl;
     }
 }
 
@@ -152,7 +152,7 @@ void RenderStage::initPipelineLayout()
     pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data();
 
     if (vk_device.createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.render-stage") << "Failed to create pipeline layout." << std::endl;
+        logger.error("magma.vulkan.stages.render-stage") << "Failed to create pipeline layout." << std::endl;
     }
 }
 
@@ -186,7 +186,7 @@ void RenderStage::updatePipeline()
     pipelineInfo.renderPass = m_renderPass;
 
     if (vk_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.render-stage") << "Failed to create graphics pipeline." << std::endl;
+        logger.error("magma.vulkan.stages.render-stage") << "Failed to create graphics pipeline." << std::endl;
     }
 }
 

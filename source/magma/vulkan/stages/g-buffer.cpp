@@ -37,11 +37,11 @@ void GBuffer::stageInit()
 
     //----- Shaders
 
-    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/g-buffer.vert");
+    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/g-buffer.vert");
     vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
-    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/g-buffer.frag");
+    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/g-buffer.frag");
     vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
@@ -198,6 +198,6 @@ void GBuffer::createFramebuffers()
     framebufferInfo.layers = 1;
 
     if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create framebuffers." << std::endl;
+        logger.error("magma.vulkan.stages.g-buffer") << "Failed to create framebuffers." << std::endl;
     }
 }

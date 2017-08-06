@@ -53,11 +53,11 @@ void Epiphany::stageInit()
 
     //----- Shaders
 
-    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany.vert");
+    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/epiphany.vert");
     vulkan::createShaderModule(vk_device, vertexShaderCode, m_vertexShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
-    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/render-engine/epiphany-phong.frag");
+    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/epiphany-phong.frag");
     vulkan::createShaderModule(vk_device, fragmentShaderCode, m_fragmentShaderModule);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
@@ -78,7 +78,7 @@ void Epiphany::stageInit()
     poolInfo.maxSets = 6u;
 
     if (vk_device.createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor pool." << std::endl;
+        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor pool." << std::endl;
     }
 
     //----- Descriptor set layout
@@ -126,7 +126,7 @@ void Epiphany::stageInit()
     layoutInfo.pBindings = bindings.data();
 
     if (vk_device.createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create material descriptor set layout." << std::endl;
+        logger.error("magma.vulkan.stages.present") << "Failed to create material descriptor set layout." << std::endl;
     }
 
     //----- Descriptor set
@@ -137,7 +137,7 @@ void Epiphany::stageInit()
     allocInfo.pSetLayouts = &m_descriptorSetLayout;
 
     if (vk_device.allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.present") << "Failed to create descriptor set." << std::endl;
+        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor set." << std::endl;
     }
 
     add(m_descriptorSetLayout);
@@ -256,7 +256,7 @@ void Epiphany::createFramebuffers()
     framebufferInfo.layers = 1;
 
     if (vk_device.createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine.g-buffer") << "Failed to create framebuffers." << std::endl;
+        logger.error("magma.vulkan.stages.g-buffer") << "Failed to create framebuffers." << std::endl;
     }
 }
 

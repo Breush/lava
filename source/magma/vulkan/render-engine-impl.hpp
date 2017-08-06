@@ -12,10 +12,8 @@
 
 #include "./device.hpp"
 #include "./instance.hpp"
-#include "./render-engine/epiphany.hpp"
-#include "./render-engine/g-buffer.hpp"
-#include "./render-engine/present.hpp"
 #include "./render-target-data.hpp"
+#include "./stages.hpp"
 #include "./wrappers.hpp"
 
 namespace lava::magma {
