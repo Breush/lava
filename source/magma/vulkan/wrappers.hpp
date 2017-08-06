@@ -13,6 +13,7 @@ namespace lava::magma::vulkan {
     $capsule_device(PipelineLayout);
     $capsule_device(Pipeline);
 
+    $capsule_device(Sampler);
     $capsule_device(Image);
     $capsule_device(Buffer);
     $capsule_device(ImageView);

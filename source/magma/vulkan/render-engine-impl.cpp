@@ -99,7 +99,7 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     renderTargetBundle.presentStage = std::make_unique<Present>(*this);
     renderTargetBundle.presentStage->bindSwapchainHolder(data.swapchainHolder);
     renderTargetBundle.presentStage->init();
-    renderTargetBundle.presentStage->imageView(m_epiphany.imageView(), vk::Sampler(m_textureSampler)); // @cleanup HPP
+    renderTargetBundle.presentStage->imageView(m_epiphany.imageView(), m_dummySampler);
     renderTargetBundle.presentStage->update(data.swapchainHolder.extent());
     m_renderTargetBundles.emplace_back(std::move(renderTargetBundle));
 
@@ -217,17 +217,16 @@ void RenderEngine::Impl::updateStages()
     logger.info("magma.vulkan.render-engine") << "Updating render stages." << std::endl;
     logger.log().tab(1);
 
-    // @todo The extent should be the maximum of each RenderTarget extent it should be drawn to.
+    // @todo The extent should be the one defined in the scene containing this
     auto extent = vk::Extent2D(800u, 600u);
     m_gBuffer.update(extent);
     m_epiphany.update(extent);
 
     // Set-up
-    // @cleanup HPP
-    m_epiphany.normalImageView(m_gBuffer.normalImageView(), vk::Sampler(m_textureSampler));
-    m_epiphany.albedoImageView(m_gBuffer.albedoImageView(), vk::Sampler(m_textureSampler));
-    m_epiphany.ormImageView(m_gBuffer.ormImageView(), vk::Sampler(m_textureSampler));
-    m_epiphany.depthImageView(m_gBuffer.depthImageView(), vk::Sampler(m_textureSampler));
+    m_epiphany.normalImageView(m_gBuffer.normalImageView(), m_dummySampler);
+    m_epiphany.albedoImageView(m_gBuffer.albedoImageView(), m_dummySampler);
+    m_epiphany.ormImageView(m_gBuffer.ormImageView(), m_dummySampler);
+    m_epiphany.depthImageView(m_gBuffer.depthImageView(), m_dummySampler);
 
     logger.log().tab(-1);
 }
@@ -248,97 +247,35 @@ void RenderEngine::Impl::createCommandPool(VkSurfaceKHR surface)
     }
 }
 
-void RenderEngine::Impl::createDummyTexture()
+void RenderEngine::Impl::createDummyTextures()
 {
-    logger.info("magma.vulkan.render-engine") << "Creating dummy texture." << std::endl;
+    logger.info("magma.vulkan.render-engine") << "Creating dummy textures." << std::endl;
 
-    // @todo This should be refactored with what's in RmMaterial
+    // Plain white
+    std::vector<uint8_t> dummyData = {0xFF, 0xFF, 0xFF, 0xFF};
+    m_dummyImageHolder.setup(dummyData, 1, 1, 4);
 
-    magma::vulkan::Capsule<VkImage> stagingImage{m_device.capsule(), vkDestroyImage};
-    magma::vulkan::Capsule<VkDeviceMemory> stagingImageMemory{m_device.capsule(), vkFreeMemory};
-    magma::vulkan::Capsule<VkImageView> stagingImageView{m_device.capsule(), vkDestroyImageView};
+    // Flat blue
+    dummyData = {0x80, 0x80, 0xFF, 0xFF};
+    m_dummyNormalImageHolder.setup(dummyData, 1, 1, 4);
 
-    magma::vulkan::createImage(
-        m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
-
-    VkImageSubresource subresource = {};
-    subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    subresource.mipLevel = 0;
-    subresource.arrayLayer = 0;
-
-    VkSubresourceLayout stagingImageLayout;
-    vkGetImageSubresourceLayout(m_device, stagingImage, &subresource, &stagingImageLayout);
-
-    // Staging buffer
-    magma::vulkan::Capsule<VkBuffer> stagingBuffer{m_device.capsule(), vkDestroyBuffer};
-    magma::vulkan::Capsule<VkDeviceMemory> stagingBufferMemory{m_device.capsule(), vkFreeMemory};
-
-    VkDeviceSize imageSize = 4u;
-    magma::vulkan::createBuffer(m_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-                                stagingBufferMemory);
-
-    void* data;
-
-    // The real image - plain white
-    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memset(data, 0xFF, 4u);
-    vkUnmapMemory(m_device, stagingBufferMemory);
-
-    vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        m_dummyImage, m_dummyImageMemory);
-
-    vulkan::transitionImageLayout(m_device, m_commandPool.castOld(), m_dummyImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    vulkan::copyBufferToImage(m_device, m_commandPool.castOld(), stagingBuffer, m_dummyImage, 1u, 1u);
-
-    vulkan::createImageView(m_device, m_dummyImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_dummyImageView);
-
-    // The real normal image - plain flat blue
-    vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memset(data, 0x80, 2u);
-    memset(reinterpret_cast<uint8_t*>(data) + 2, 0xFF, 2u);
-    vkUnmapMemory(m_device, stagingBufferMemory);
-
-    vulkan::createImage(m_device, 1u, 1u, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        m_dummyNormalImage, m_dummyNormalImageMemory);
-
-    vulkan::transitionImageLayout(m_device, m_commandPool.castOld(), m_dummyNormalImage, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    vulkan::copyBufferToImage(m_device, m_commandPool.castOld(), stagingBuffer, m_dummyNormalImage, 1u, 1u);
-
-    vulkan::createImageView(m_device, m_dummyNormalImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
-                            m_dummyNormalImageView);
-}
-
-void RenderEngine::Impl::createTextureSampler()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating texture sampler." << std::endl;
-
-    VkSamplerCreateInfo samplerInfo = {};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.anisotropyEnable = VK_TRUE;
+    // Sampler
+    vk::SamplerCreateInfo samplerInfo;
+    samplerInfo.magFilter = vk::Filter::eLinear;
+    samplerInfo.minFilter = vk::Filter::eLinear;
+    samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+    samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+    samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+    samplerInfo.anisotropyEnable = true;
     samplerInfo.maxAnisotropy = 16; // Over 16 is useless, but lower that for better performances
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.f;
-    samplerInfo.minLod = 0.f;
-    samplerInfo.maxLod = 0.f;
+    samplerInfo.unnormalizedCoordinates = false;
+    samplerInfo.compareEnable = false;
+    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
 
-    if (vkCreateSampler(m_device, &samplerInfo, nullptr, m_textureSampler.replace()) != VK_SUCCESS) {
+    // @cleanup HPP
+    const auto& vk_device = m_device.vk();
+
+    if (vk_device.createSampler(&samplerInfo, nullptr, m_dummySampler.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.texture-sampler") << "Failed to texture sampler." << std::endl;
     }
 }
@@ -513,8 +450,7 @@ void RenderEngine::Impl::initVulkanDevice(VkSurfaceKHR surface)
 
     createCommandPool(surface);
     createDescriptorSetLayouts();
-    createDummyTexture();
-    createTextureSampler();
+    createDummyTextures();
     initStages();
     updateStages();
     createDescriptorPool();

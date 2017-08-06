@@ -44,7 +44,6 @@
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
-    - Use ImageHolder whenever possible
     - Create and use BufferHolder for Vertices/Indices
     - Make some ImageDescriptor/BufferDescriptor?
     - Device -> DeviceHolder (holding Device and PhysicalDevice)
@@ -77,6 +76,7 @@
     - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
+    - Scene: A scene holds some render stages an is binded to x render-targets
     - Shader: Recompile on demand, removing the need to bind empty textures
     - Shader: ShaderManager to handle recompilation on the fly
     - Texture: Have the notion and a manager

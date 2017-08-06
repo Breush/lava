@@ -38,28 +38,25 @@ namespace {
         memcpy(texture.pixels, pixels.data(), pixels.size());
     }
 
-    void bindTextureDescriptorSet(VkDescriptorSet& descriptorSet, uint32_t dstBinding, magma::vulkan::Device& device,
-                                  magma::vulkan::Capsule<VkSampler>& sampler, const VkImageView& imageView)
+    void bindTextureDescriptorSet(vk::Device device, vk::DescriptorSet descriptorSet, uint32_t dstBinding, vk::Sampler sampler,
+                                  vk::ImageView imageView)
     {
-        // Update descriptor set
-        VkWriteDescriptorSet descriptorWrite = {};
-
-        VkDescriptorImageInfo imageInfo = {};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        vk::DescriptorImageInfo imageInfo;
+        imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
         imageInfo.imageView = imageView;
         imageInfo.sampler = sampler;
 
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        vk::WriteDescriptorSet descriptorWrite;
         descriptorWrite.dstSet = descriptorSet;
         descriptorWrite.dstBinding = dstBinding;
         descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = nullptr;
         descriptorWrite.pImageInfo = &imageInfo;
         descriptorWrite.pTexelBufferView = nullptr;
 
-        vkUpdateDescriptorSets(device, 1u, &descriptorWrite, 0, nullptr);
+        device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
     }
 }
 
@@ -198,14 +195,15 @@ void RmMaterial::Impl::updateBindings()
     m_uniformBufferHolder.copy(ubo);
 
     // Samplers
+    const auto& vk_device = m_engine.device().vk();
+
     // @cleanup HPP
-    bindTextureDescriptorSet(m_descriptorSet, 1u, m_engine.device(), m_engine.textureSampler(),
-                             (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view().castOld()
+    bindTextureDescriptorSet(vk_device, vk::DescriptorSet(m_descriptorSet), 1u, m_engine.dummySampler(),
+                             (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view()
                                                                          : m_engine.dummyNormalImageView());
-    bindTextureDescriptorSet(m_descriptorSet, 2u, m_engine.device(), m_engine.textureSampler(),
-                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view().castOld()
+    bindTextureDescriptorSet(vk_device, vk::DescriptorSet(m_descriptorSet), 2u, m_engine.dummySampler(),
+                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view()
                                                                          : m_engine.dummyImageView());
-    bindTextureDescriptorSet(m_descriptorSet, 3u, m_engine.device(), m_engine.textureSampler(),
-                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view().castOld()
-                                                                      : m_engine.dummyImageView());
+    bindTextureDescriptorSet(vk_device, vk::DescriptorSet(m_descriptorSet), 3u, m_engine.dummySampler(),
+                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : m_engine.dummyImageView());
 }

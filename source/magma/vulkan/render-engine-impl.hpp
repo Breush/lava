@@ -43,6 +43,14 @@ namespace lava::magma {
         /// @}
 
         /**
+         * @name Textures
+         */
+        /// @{
+        vk::ImageView dummyImageView() const { return m_dummyImageHolder.view(); }
+        vk::ImageView dummyNormalImageView() const { return m_dummyNormalImageHolder.view(); }
+        /// @}
+
+        /**
          * @name Internal interface
          */
         /// @{
@@ -66,9 +74,8 @@ namespace lava::magma {
         void updateStages();
         void createSemaphores();
 
-        // Textures
-        void createDummyTexture();
-        void createTextureSampler();
+        // Dummies
+        void createDummyTextures();
 
         // Command buffers
         vk::CommandBuffer& recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex);
@@ -113,17 +120,19 @@ namespace lava::magma {
         // Commands
         $attribute(vulkan::CommandPool, commandPool, {m_device.vk()});
 
+        /**
+         * @name Textures
+         */
+        /// @{
         /// Dummy texture for colors. 1x1 pixel of rgba(255, 255, 255, 255)
-        vulkan::Capsule<VkImage> m_dummyImage{m_device.capsule(), vkDestroyImage};
-        vulkan::Capsule<VkDeviceMemory> m_dummyImageMemory{m_device.capsule(), vkFreeMemory};
-        $attribute(vulkan::Capsule<VkImageView>, dummyImageView, {m_device.capsule(), vkDestroyImageView});
+        vulkan::ImageHolder m_dummyImageHolder{m_device, m_commandPool};
 
         /// Dummy texture for normal mapping. 1x1 pixel of rgba(128, 128, 255, 255)
-        vulkan::Capsule<VkImage> m_dummyNormalImage{m_device.capsule(), vkDestroyImage};
-        vulkan::Capsule<VkDeviceMemory> m_dummyNormalImageMemory{m_device.capsule(), vkFreeMemory};
-        $attribute(vulkan::Capsule<VkImageView>, dummyNormalImageView, {m_device.capsule(), vkDestroyImageView});
+        vulkan::ImageHolder m_dummyNormalImageHolder{m_device, m_commandPool};
 
-        $attribute(vulkan::Capsule<VkSampler>, textureSampler, {m_device.capsule(), vkDestroySampler});
+        /// Dummy texture sampler.
+        $attribute(vulkan::Sampler, dummySampler, {m_device.vk()});
+        /// @}
 
         // Semaphores
         vulkan::Semaphore m_renderFinishedSemaphore{m_device.vk()}; // @cleanup HPP
