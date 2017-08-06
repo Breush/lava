@@ -5,7 +5,6 @@
 #include <lava/magma/render-engine.hpp>
 
 #include "../buffer-holder.hpp"
-#include "../capsule.hpp"
 #include "../image-holder.hpp"
 
 namespace lava::magma {

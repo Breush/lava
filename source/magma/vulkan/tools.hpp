@@ -83,15 +83,6 @@ namespace lava::magma::vulkan {
         }
     }
 
-    inline std::vector<VkExtensionProperties> availableExtensions()
-    {
-        uint32_t count = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
-        std::vector<VkExtensionProperties> extensions(count);
-        vkEnumerateInstanceExtensionProperties(nullptr, &count, extensions.data());
-        return extensions;
-    }
-
     inline std::vector<VkExtensionProperties> availableExtensions(VkPhysicalDevice device)
     {
         uint32_t count = 0;

@@ -2,7 +2,6 @@
 
 #include <lava/magma/render-engine.hpp>
 
-#include "./capsule.hpp"
 #include "./wrappers.hpp"
 
 namespace lava::magma::vulkan {

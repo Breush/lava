@@ -22,10 +22,6 @@ namespace lava::magma::vulkan {
 
         const std::vector<const char*>& extensions() const { return m_extensions; }
 
-        // ----- Casts
-
-        operator vk::Device() const { return m_device; }
-
     protected:
         void pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
         void createLogicalDevice(vk::SurfaceKHR surface);

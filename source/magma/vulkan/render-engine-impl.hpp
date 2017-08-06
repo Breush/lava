@@ -11,7 +11,7 @@
 #include <lava/magma/render-engine.hpp>
 
 #include "./device-holder.hpp"
-#include "./instance.hpp"
+#include "./instance-holder.hpp"
 #include "./render-target-data.hpp"
 #include "./stages.hpp"
 #include "./wrappers.hpp"
@@ -44,6 +44,7 @@ namespace lava::magma {
          * @name Getters
          */
         /// @{
+        const vk::Instance& instance() const { return m_instanceHolder.instance(); }
         const vk::Device& device() const { return m_deviceHolder.device(); }
         const vk::PhysicalDevice& physicalDevice() const { return m_deviceHolder.physicalDevice(); }
         const vk::Queue& graphicsQueue() const { return m_deviceHolder.graphicsQueue(); }
@@ -105,9 +106,8 @@ namespace lava::magma {
         };
 
     private:
-        $attribute(vulkan::Instance, instance);
-
-        $attribute(vulkan::DeviceHolder, deviceHolder);
+        vulkan::InstanceHolder m_instanceHolder;
+        vulkan::DeviceHolder m_deviceHolder;
 
         // Descriptor layouts and pools
         $attribute(vulkan::DescriptorSetLayout, cameraDescriptorSetLayout, {device()});

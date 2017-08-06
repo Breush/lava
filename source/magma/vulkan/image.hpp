@@ -4,7 +4,6 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./buffer.hpp"
-#include "./capsule.hpp"
 #include "./command-buffer.hpp"
 #include "./wrappers.hpp"
 

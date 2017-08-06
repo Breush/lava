@@ -6,7 +6,6 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../buffer-holder.hpp"
-#include "../capsule.hpp"
 
 namespace lava::magma {
     /**

@@ -12,7 +12,6 @@
 #include "./buffer.hpp"
 #include "./image.hpp"
 #include "./meshes/mesh-impl.hpp"
-#include "./proxy.hpp"
 #include "./queue.hpp"
 #include "./shader.hpp"
 #include "./tools.hpp"
@@ -405,7 +404,7 @@ void RenderEngine::Impl::initVulkan()
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
     logger.log().tab(1);
 
-    m_instance.init(true);
+    m_instanceHolder.init(true);
 
     logger.log().tab(-1);
 }
@@ -415,7 +414,7 @@ void RenderEngine::Impl::initVulkanDevice(VkSurfaceKHR surface)
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);
 
-    m_deviceHolder.init(m_instance.vk(), surface); // @cleanup HPP
+    m_deviceHolder.init(instance(), surface);
 
     createCommandPool(surface);
     createDescriptorSetLayouts();

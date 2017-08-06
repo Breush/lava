@@ -11,7 +11,7 @@ using namespace lava::chamber;
 
 RenderWindow::Impl::Impl(RenderEngine& engine, VideoMode mode, const std::string& title)
     : m_engine(engine.impl())
-    , m_surface(m_engine.instance().vk())
+    , m_surface(m_engine.instance())
     , m_swapchainHolder(m_engine)
     , m_renderTargetData({m_swapchainHolder, m_surface})
     , m_window(mode, title)
@@ -105,10 +105,7 @@ void RenderWindow::Impl::initSurface()
     createInfo.connection = windowHandle().connection;
     createInfo.window = windowHandle().window;
 
-    // @cleanup HPP
-    const auto& vk_instance = m_engine.instance().vk();
-
-    if (vk_instance.createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace()) != vk::Result::eSuccess) {
+    if (m_engine.instance().createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
     }
 }

@@ -5,9 +5,11 @@
 #include "./capsule.hpp"
 
 namespace lava::magma::vulkan {
+    $capsule_standalone(Instance);
     $capsule_standalone(Device);
 
     $capsule_instance(SurfaceKHR);
+    $capsule_instance(DebugReportCallbackEXT);
 
     $capsule_device(SwapchainKHR);
 

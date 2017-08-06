@@ -7,8 +7,6 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
-#include "./capsule.hpp"
-
 namespace lava::magma::vulkan {
     inline void createShaderModule(vk::Device device, const std::vector<uint8_t>& code, vulkan::ShaderModule& shaderModule)
     {

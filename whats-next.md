@@ -48,7 +48,7 @@
     - Remove useless descriptor pools
     - RenderStage: A good design shouldn't need virtual functions for create infos
     - RenderEngine: Make rendering dimensions independent to window ones
-    - Create InstanceHolder + cleanup capsule.hpp
+    - Clean up capsule.hpp
     - Move utils functions to own folder or inside Holders's cpp file
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
