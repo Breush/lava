@@ -5,31 +5,19 @@
 namespace lava::magma::vulkan {
     class SwapchainSupportDetails {
     public:
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
+        vk::SurfaceCapabilitiesKHR capabilities;
+        std::vector<vk::SurfaceFormatKHR> formats;
+        std::vector<vk::PresentModeKHR> presentModes;
 
         bool valid() { return !formats.empty() && !presentModes.empty(); }
     };
 
-    inline SwapchainSupportDetails swapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface)
+    inline SwapchainSupportDetails swapchainSupportDetails(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
     {
         SwapchainSupportDetails details;
-
-        // Capabilities
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
-
-        // Formats
-        uint32_t formatCount;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-        details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-
-        // Present modes
-        uint32_t presentModeCount;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-        details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+        details.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
+        details.formats = physicalDevice.getSurfaceFormatsKHR(surface);
+        details.presentModes = physicalDevice.getSurfacePresentModesKHR(surface);
 
         return details;
     }

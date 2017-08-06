@@ -7,6 +7,8 @@
 namespace lava::magma::vulkan {
     $capsule_instance(SurfaceKHR);
 
+    $capsule_device(SwapchainKHR);
+
     $capsule_device(RenderPass);
     $capsule_device(PipelineLayout);
     $capsule_device(Pipeline);

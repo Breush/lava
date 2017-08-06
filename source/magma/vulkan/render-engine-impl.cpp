@@ -46,10 +46,10 @@ void RenderEngine::Impl::draw()
 
     // Record command buffer each frame
     vkDeviceWaitIdle(m_device); // @todo Better wait for a fence on the queue
-    auto& commandBuffer = recordCommandBuffer(0, data.swapchain.currentIndex());
+    auto& commandBuffer = recordCommandBuffer(0, data.swapchainHolder.currentIndex());
 
     // Submit it to the queue
-    vk::Semaphore waitSemaphores[] = {data.swapchain.imageAvailableSemaphore()};
+    vk::Semaphore waitSemaphores[] = {data.swapchainHolder.imageAvailableSemaphore()};
     vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
     vk::SubmitInfo submitInfo;
@@ -97,10 +97,10 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     RenderTargetBundle renderTargetBundle;
     renderTargetBundle.renderTarget = std::move(renderTarget);
     renderTargetBundle.presentStage = std::make_unique<Present>(*this);
-    renderTargetBundle.presentStage->bindSwapchain(data.swapchain);
+    renderTargetBundle.presentStage->bindSwapchainHolder(data.swapchainHolder);
     renderTargetBundle.presentStage->init();
     renderTargetBundle.presentStage->imageView(m_epiphany.imageView(), vk::Sampler(m_textureSampler)); // @cleanup HPP
-    renderTargetBundle.presentStage->update(data.swapchain.extent());
+    renderTargetBundle.presentStage->update(data.swapchainHolder.extent());
     m_renderTargetBundles.emplace_back(std::move(renderTargetBundle));
 
     createCommandBuffers(m_renderTargetBundles.size() - 1u);
@@ -460,7 +460,7 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetIndex)
 
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetIndex];
     auto& commandBuffers = renderTargetBundle.commandBuffers;
-    auto& swapchain = renderTargetBundle.data().swapchain;
+    auto& swapchain = renderTargetBundle.data().swapchainHolder;
 
     // Free previous command buffers if any
     if (commandBuffers.size() > 0) {

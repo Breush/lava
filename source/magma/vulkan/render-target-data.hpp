@@ -1,12 +1,12 @@
 #pragma once
 
-#include "./swapchain.hpp"
+#include "./swapchain-holder.hpp"
 
 namespace lava::magma {
     // @fixme Rename accordingly
     struct DataRenderTarget {
-        vulkan::Swapchain& swapchain; ///< Reference to the swapchain.
-        vk::SurfaceKHR& surface;      ///< Reference to the surface.
+        vulkan::SwapchainHolder& swapchainHolder; ///< Reference to the swapchain holder.
+        vk::SurfaceKHR& surface;                  ///< Reference to the surface.
     };
 
     struct InDataRenderTargetDraw {

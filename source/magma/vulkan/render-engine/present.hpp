@@ -7,7 +7,7 @@
 #include "../image-holder.hpp"
 
 namespace lava::magma::vulkan {
-    class Swapchain;
+    class SwapchainHolder;
 }
 
 namespace lava::magma {
@@ -18,7 +18,7 @@ namespace lava::magma {
     public:
         Present(RenderEngine::Impl& engine);
 
-        void bindSwapchain(vulkan::Swapchain& swapchain);
+        void bindSwapchainHolder(vulkan::SwapchainHolder& swapchainHolder);
         void imageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
 
     protected:
@@ -32,7 +32,7 @@ namespace lava::magma {
 
     private:
         // References
-        vulkan::Swapchain* m_swapchain = nullptr;
+        vulkan::SwapchainHolder* m_swapchainHolder = nullptr;
 
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;

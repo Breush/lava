@@ -4,7 +4,6 @@
 #include <lava/magma/render-engine.hpp>
 
 #include "./render-engine-impl.hpp"
-#include "./swapchain.hpp"
 
 using namespace lava::magma;
 using namespace lava::crater;
@@ -13,10 +12,10 @@ using namespace lava::chamber;
 RenderWindow::Impl::Impl(RenderEngine& engine, VideoMode mode, const std::string& title)
     : m_engine(engine.impl())
     , m_surface(m_engine.instance().vk())
-    , m_swapchain(m_engine.device())
-    , m_renderTargetData({m_swapchain, m_surface})
+    , m_swapchainHolder(m_engine.device())
+    , m_renderTargetData({m_swapchainHolder, m_surface})
     , m_window(mode, title)
-    , m_windowExtent({mode.width, mode.height})
+    , m_windowExtent{mode.width, mode.height}
 {
     initSurface();
 }
@@ -30,7 +29,7 @@ void RenderWindow::Impl::init()
 
 void RenderWindow::Impl::prepare()
 {
-    auto result = m_swapchain.acquireNextImage();
+    auto result = m_swapchainHolder.acquireNextImage();
 
     if (result == vk::Result::eErrorOutOfDateKHR) {
         // m_engine.recreateSwapchain();
@@ -45,7 +44,7 @@ void RenderWindow::Impl::prepare()
 void RenderWindow::Impl::draw(IRenderTarget::UserData data) const
 {
     const auto* drawData = reinterpret_cast<const InDataRenderTargetDraw*>(data);
-    const uint32_t imageIndex = m_swapchain.currentIndex();
+    const uint32_t imageIndex = m_swapchainHolder.currentIndex();
 
     // Submitting the image back to the swapchain
     vk::PresentInfoKHR presentInfo;
@@ -53,7 +52,7 @@ void RenderWindow::Impl::draw(IRenderTarget::UserData data) const
     presentInfo.pWaitSemaphores = &drawData->renderFinishedSemaphore;
     presentInfo.swapchainCount = 1;
     // @cleanup HPP
-    presentInfo.pSwapchains = &reinterpret_cast<const vk::SwapchainKHR&>(m_swapchain);
+    presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
@@ -90,7 +89,8 @@ VideoMode RenderWindow::Impl::videoMode() const
 
 void RenderWindow::Impl::videoMode(const VideoMode& mode)
 {
-    m_windowExtent = {mode.width, mode.height};
+    m_windowExtent.width = mode.width;
+    m_windowExtent.height = mode.height;
     // m_engine.recreateSwapchain();
 }
 
@@ -118,6 +118,5 @@ void RenderWindow::Impl::initSurface()
 
 void RenderWindow::Impl::initSwapchain()
 {
-    // @cleanup HPP
-    m_swapchain.init(reinterpret_cast<VkSurfaceKHR&>(m_surface), m_windowExtent);
+    m_swapchainHolder.init(m_surface, m_windowExtent);
 }

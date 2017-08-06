@@ -8,12 +8,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./render-target-data.hpp"
-#include "./swapchain.hpp"
 #include "./wrappers.hpp"
-
-namespace lava::magma::vulkan {
-    class Swapchain;
-}
 
 namespace lava::magma {
     class RenderWindow::Impl {
@@ -46,10 +41,10 @@ namespace lava::magma {
         RenderEngine::Impl& m_engine;
 
         // Resources
-        $attribute(vulkan::SurfaceKHR, surface);
-        $attribute(vulkan::Swapchain, swapchain);
+        vulkan::SurfaceKHR m_surface;
+        vulkan::SwapchainHolder m_swapchainHolder;
         DataRenderTarget m_renderTargetData;
         crater::Window m_window;
-        VkExtent2D m_windowExtent;
+        vk::Extent2D m_windowExtent;
     };
 }

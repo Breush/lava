@@ -6,7 +6,6 @@
 #include "../image.hpp"
 #include "../render-engine-impl.hpp"
 #include "../shader.hpp"
-#include "../swapchain.hpp"
 #include "../vertex.hpp"
 
 using namespace lava::magma;
@@ -29,8 +28,8 @@ void Present::stageInit()
     logger.log() << "Initializing Present Stage." << std::endl;
     logger.log().tab(1);
 
-    if (!m_swapchain) {
-        logger.error("magma.vulkan.render-engine.present") << "No swapchain binded before initialization." << std::endl;
+    if (!m_swapchainHolder) {
+        logger.error("magma.vulkan.render-engine.present") << "No swapchain holder binded before initialization." << std::endl;
     }
 
     // @cleanup HPP
@@ -99,7 +98,7 @@ void Present::stageInit()
 
     // @cleanup HPP
     ColorAttachment presentColorAttachment;
-    presentColorAttachment.format = vk::Format(m_swapchain->imageFormat());
+    presentColorAttachment.format = m_swapchainHolder->imageFormat();
     presentColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
     add(presentColorAttachment);
 }
@@ -117,7 +116,7 @@ void Present::stageUpdate()
 
 void Present::stageRender(const vk::CommandBuffer& commandBuffer)
 {
-    const auto frameIndex = m_swapchain->currentIndex();
+    const auto frameIndex = m_swapchainHolder->currentIndex();
 
     //----- Prologue
 
@@ -161,12 +160,12 @@ void Present::createFramebuffers()
     // @cleanup HPP
     auto& device = m_engine.device();
     const auto& vk_device = device.vk();
-    auto& imageViews = m_swapchain->imageViews();
+    auto& imageViews = m_swapchainHolder->imageViews();
 
     m_framebuffers.resize(imageViews.size(), vulkan::Framebuffer{m_engine.device().vk()});
 
     for (size_t i = 0; i < imageViews.size(); i++) {
-        std::array<vk::ImageView, 1> attachments = {vk::ImageView(imageViews[i])};
+        std::array<vk::ImageView, 1> attachments = {imageViews[i]};
 
         vk::FramebufferCreateInfo framebufferInfo;
         framebufferInfo.renderPass = m_renderPass;
@@ -182,9 +181,9 @@ void Present::createFramebuffers()
     }
 }
 
-void Present::bindSwapchain(vulkan::Swapchain& swapchain)
+void Present::bindSwapchainHolder(vulkan::SwapchainHolder& swapchainHolder)
 {
-    m_swapchain = &swapchain;
+    m_swapchainHolder = &swapchainHolder;
 }
 
 void Present::imageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
