@@ -58,11 +58,11 @@ void GBuffer::stageInit()
     //----- Shaders
 
     auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/g-buffer.vert");
-    vulkan::createShaderModule(m_engine.device(), vertexShaderCode, m_vertexShaderModule);
+    m_vertexShaderModule = vulkan::createShaderModule(m_engine.device(), vertexShaderCode);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
     auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/g-buffer.frag");
-    vulkan::createShaderModule(m_engine.device(), fragmentShaderCode, m_fragmentShaderModule);
+    m_fragmentShaderModule = vulkan::createShaderModule(m_engine.device(), fragmentShaderCode);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptor set layouts
