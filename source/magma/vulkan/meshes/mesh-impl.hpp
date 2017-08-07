@@ -60,10 +60,7 @@ namespace lava::magma {
         vulkan::BufferHolder m_uniformBufferHolder;
 
         // Vertices
-        // @todo Make a BufferHolder of these
-        vulkan::Buffer m_vertexBuffer;
-        vulkan::DeviceMemory m_vertexBufferMemory;
-        vulkan::Buffer m_indexBuffer;
-        vulkan::DeviceMemory m_indexBufferMemory;
+        vulkan::BufferHolder m_vertexBufferHolder;
+        vulkan::BufferHolder m_indexBufferHolder;
     };
 }

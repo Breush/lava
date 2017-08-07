@@ -15,10 +15,8 @@ using namespace lava::magma;
 Mesh::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
     , m_uniformBufferHolder(m_engine)
-    , m_vertexBuffer{m_engine.device()}
-    , m_vertexBufferMemory{m_engine.device()}
-    , m_indexBuffer{m_engine.device()}
-    , m_indexBufferMemory{m_engine.device()}
+    , m_vertexBufferHolder(m_engine)
+    , m_indexBufferHolder(m_engine)
 {
     // Create descriptor set
     vk::DescriptorSetAllocateInfo allocInfo = {};
@@ -130,58 +128,16 @@ void Mesh::Impl::createVertexBuffer()
 {
     vk::DeviceSize bufferSize = sizeof(vulkan::Vertex) * m_vertices.size();
 
-    // Staging buffer
-    vulkan::Buffer stagingBuffer{m_engine.device()};
-    vulkan::DeviceMemory stagingBufferMemory{m_engine.device()};
-    vk::BufferUsageFlags bufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-    vk::MemoryPropertyFlags memoryPropertyFlags =
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), bufferSize, bufferUsageFlags, memoryPropertyFlags,
-                         stagingBuffer, stagingBufferMemory);
-
-    void* data;
-    m_engine.device().mapMemory(stagingBufferMemory, 0, bufferSize, vk::MemoryMapFlags(), &data);
-    memcpy(data, m_vertices.data(), (size_t)bufferSize);
-    m_engine.device().unmapMemory(stagingBufferMemory);
-
-    // Actual vertex buffer
-    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
-    memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), bufferSize, bufferUsageFlags, memoryPropertyFlags,
-                         m_vertexBuffer, m_vertexBufferMemory);
-
-    // Copy
-    vulkan::copyBuffer(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), stagingBuffer, m_vertexBuffer,
-                       bufferSize);
+    m_vertexBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
+    m_vertexBufferHolder.copy(m_vertices.data(), bufferSize);
 }
 
 void Mesh::Impl::createIndexBuffer()
 {
     vk::DeviceSize bufferSize = sizeof(uint16_t) * m_indices.size();
 
-    // Staging buffer
-    vulkan::Buffer stagingBuffer{m_engine.device()};
-    vulkan::DeviceMemory stagingBufferMemory{m_engine.device()};
-    vk::BufferUsageFlags bufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-    vk::MemoryPropertyFlags memoryPropertyFlags =
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), bufferSize, bufferUsageFlags, memoryPropertyFlags,
-                         stagingBuffer, stagingBufferMemory);
-
-    void* data;
-    m_engine.device().mapMemory(stagingBufferMemory, 0, bufferSize, vk::MemoryMapFlags(), &data);
-    memcpy(data, m_indices.data(), (size_t)bufferSize);
-    m_engine.device().unmapMemory(stagingBufferMemory);
-
-    // Actual index buffer
-    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
-    memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), bufferSize, bufferUsageFlags, memoryPropertyFlags,
-                         m_indexBuffer, m_indexBufferMemory);
-
-    // Copy
-    vulkan::copyBuffer(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), stagingBuffer, m_indexBuffer,
-                       bufferSize);
+    m_indexBufferHolder.create(vk::BufferUsageFlagBits::eIndexBuffer, bufferSize);
+    m_indexBufferHolder.copy(m_indices.data(), bufferSize);
 }
 
 // ----- IMesh -----
@@ -202,8 +158,8 @@ IMesh::UserData Mesh::Impl::render(IMesh::UserData data)
 
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};
-    commandBuffer.bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
-    commandBuffer.bindIndexBuffer(m_indexBuffer, 0, vk::IndexType::eUint16);
+    commandBuffer.bindVertexBuffers(0, 1, &m_vertexBufferHolder.buffer(), offsets);
+    commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
 
     // Draw
     commandBuffer.drawIndexed(m_indices.size(), 1, 0, 0, 0);

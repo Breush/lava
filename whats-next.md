@@ -41,7 +41,6 @@
     - Have interfaces.hpp
     - Have user documentation
     - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
-    - Create and use BufferHolder for Vertices/Indices
     - Make some ImageDescriptor/BufferDescriptor?
     - Remove useless descriptor pools
     - RenderStage: A good design shouldn't need virtual functions for create infos

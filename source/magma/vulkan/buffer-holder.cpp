@@ -19,6 +19,13 @@ BufferHolder::BufferHolder(const RenderEngine::Impl& engine)
 
 void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
 {
+    if (usage != vk::BufferUsageFlagBits::eUniformBuffer && usage != vk::BufferUsageFlagBits::eVertexBuffer
+        && usage != vk::BufferUsageFlagBits::eIndexBuffer) {
+        logger.error("magma.vulkan.buffer-holder")
+            << "Unknown usage flag for buffer holder: " << vk::to_string(usage) << ". "
+            << "Valid ones are currently UniformBuffer, VertexBuffer and IndexBuffer." << std::endl;
+    }
+
     //----- Staging memory
 
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
@@ -33,13 +40,7 @@ void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
     propertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
 
     // Uniform Buffer
-    if (usage == vk::BufferUsageFlagBits::eUniformBuffer) {
-        usageFlags |= usage;
-    }
-    else {
-        logger.error("magma.vulkan.buffer-holder") << "Unknown usage flag for buffer holder. "
-                                                   << "Valid ones are currently eUniformBuffer." << std::endl;
-    }
+    usageFlags |= usage;
 
     vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_buffer, m_memory);
 }
