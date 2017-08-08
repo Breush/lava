@@ -18,10 +18,9 @@ namespace lava::magma {
         ~RenderWindow();
 
         // IRenderTarget
-        void init() override final;
+        void init(UserData data) override final;
         void prepare() override final;
         void draw(UserData data) const override final;
-        void refresh() override final;
         UserData data() override final;
 
         bool pollEvent(crater::Event& event);

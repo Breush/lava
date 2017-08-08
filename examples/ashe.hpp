@@ -96,7 +96,7 @@ namespace lava::ashe {
             }
 
             case crater::Event::WindowResized: {
-                m_window->refresh();
+                // m_scene->size({event.size.width, event.size.height});
                 m_camera->viewportRatio(static_cast<float>(event.size.width) / static_cast<float>(event.size.height));
                 break;
             }

@@ -8,6 +8,10 @@ namespace lava::magma {
         vk::SurfaceKHR& surface;                  ///< Reference to the surface.
     };
 
+    struct InDataRenderTargetInit {
+        uint32_t id; ///< Id to communicate with Engine::Impl.
+    };
+
     struct InDataRenderTargetDraw {
         vk::Semaphore& renderFinishedSemaphore; ///< Reference to the semaphore called when the rendering is finished.
     };

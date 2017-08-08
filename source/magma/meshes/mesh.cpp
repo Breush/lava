@@ -198,4 +198,6 @@ void Mesh::load(const std::string& fileName)
     m_impl->verticesUvs(uv1s);
     m_impl->indices(indices);
     m_impl->material(rmMaterial);
+
+    logger.log().tab(-1);
 }

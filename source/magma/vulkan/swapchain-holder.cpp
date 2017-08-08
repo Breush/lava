@@ -74,6 +74,13 @@ void SwapchainHolder::init(vk::SurfaceKHR surface, vk::Extent2D& windowExtent)
     createSemaphore();
 }
 
+void SwapchainHolder::recreate(vk::SurfaceKHR surface, vk::Extent2D& windowExtent)
+{
+    m_engine.device().waitIdle();
+    createSwapchain(surface, windowExtent);
+    createImageViews();
+}
+
 vk::Result SwapchainHolder::acquireNextImage()
 {
     static const auto MAX = std::numeric_limits<uint64_t>::max();
@@ -118,9 +125,12 @@ void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& wind
     createInfo.queueFamilyIndexCount = sameFamily ? 0 : queueFamilyIndices.size();
     createInfo.pQueueFamilyIndices = sameFamily ? nullptr : queueFamilyIndices.data();
 
-    if (m_engine.device().createSwapchainKHR(&createInfo, nullptr, m_swapchain.replace()) != vk::Result::eSuccess) {
+    // Can't replace directly: the oldSwapchain has to be valid
+    vk::SwapchainKHR newSwapchain;
+    if (m_engine.device().createSwapchainKHR(&createInfo, nullptr, &newSwapchain) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.swapchain") << "Failed to create swapchain." << std::endl;
     }
+    m_swapchain = newSwapchain;
 
     // Retrieving image handles (we need to request the real image count as the implementation can require more)
     m_images = m_engine.device().getSwapchainImagesKHR(m_swapchain);

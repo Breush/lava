@@ -16,16 +16,13 @@ namespace lava::magma {
         virtual ~IRenderTarget() = default;
 
         /// Called once when added to the engine.
-        virtual void init() = 0;
+        virtual void init(UserData data) = 0;
 
         /// Prepare the upcoming draw.
         virtual void prepare() = 0;
 
         /// Draw.
         virtual void draw(UserData data) const = 0;
-
-        /// Refresh from size.
-        virtual void refresh() = 0; // @fixme What?
 
         /// Get some internal data.
         virtual UserData data() = 0;

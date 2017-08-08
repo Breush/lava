@@ -88,7 +88,9 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
         initVulkanDevice(data.surface); // As the render target below must have a valid device.
     }
 
-    renderTarget->init();
+    InDataRenderTargetInit dataRenderTargetInit;
+    dataRenderTargetInit.id = m_renderTargetBundles.size();
+    renderTarget->init(&dataRenderTargetInit);
 
     RenderTargetBundle renderTargetBundle;
     renderTargetBundle.renderTarget = std::move(renderTarget);
@@ -96,12 +98,25 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     renderTargetBundle.presentStage->bindSwapchainHolder(data.swapchainHolder);
     renderTargetBundle.presentStage->init();
     renderTargetBundle.presentStage->imageView(m_epiphany.imageView(), m_dummySampler);
-    renderTargetBundle.presentStage->update(data.swapchainHolder.extent());
     m_renderTargetBundles.emplace_back(std::move(renderTargetBundle));
 
-    createCommandBuffers(m_renderTargetBundles.size() - 1u);
+    updateRenderTarget(dataRenderTargetInit.id);
+    createCommandBuffers(dataRenderTargetInit.id);
 
     logger.log().tab(-1);
+}
+
+void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
+{
+    if (renderTargetId > m_renderTargetBundles.size()) {
+        logger.warning("magma.vulkan.render-engine")
+            << "Updating render target with invalid id: " << renderTargetId << "." << std::endl;
+        return;
+    }
+
+    auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
+    const auto& data = renderTargetBundle.data();
+    renderTargetBundle.presentStage->update(data.swapchainHolder.extent());
 }
 
 void RenderEngine::Impl::createDescriptorSetLayouts()

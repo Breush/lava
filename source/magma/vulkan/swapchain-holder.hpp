@@ -15,6 +15,9 @@ namespace lava::magma::vulkan {
         /// Set up the swapchain given a valid surface.
         void init(vk::SurfaceKHR surface, vk::Extent2D& windowExtent);
 
+        /// Recreate the swapchain (the extent or the surface changed).
+        void recreate(vk::SurfaceKHR surface, vk::Extent2D& windowExtent);
+
         /// Acquire the next image.
         vk::Result acquireNextImage();
 

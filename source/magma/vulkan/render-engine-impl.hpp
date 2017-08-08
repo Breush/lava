@@ -72,6 +72,8 @@ namespace lava::magma {
         const std::vector<std::unique_ptr<IMaterial>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
         const std::vector<std::unique_ptr<IPointLight>>& pointLights() const { return m_pointLights; }
+
+        void updateRenderTarget(uint32_t renderTargetId);
         /// @}
 
     protected:

@@ -16,10 +16,9 @@ namespace lava::magma {
         Impl(RenderEngine& engine, crater::VideoMode mode, const std::string& title);
 
         // IRenderTarget
-        void init();
+        void init(IRenderTarget::UserData data);
         void prepare();
         void draw(IRenderTarget::UserData data) const;
-        void refresh();
         IRenderTarget::UserData data() const { return &m_renderTargetData; }
 
         // crater::Window forwarding
@@ -35,10 +34,12 @@ namespace lava::magma {
         // Internal
         void initSurface();
         void initSwapchain();
+        void recreateSwapchain();
 
     private:
         // References
         RenderEngine::Impl& m_engine;
+        uint32_t m_id = -1u;
 
         // Resources
         vulkan::SurfaceKHR m_surface;

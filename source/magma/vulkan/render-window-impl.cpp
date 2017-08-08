@@ -22,8 +22,11 @@ RenderWindow::Impl::Impl(RenderEngine& engine, VideoMode mode, const std::string
 
 //----- IRenderTarget
 
-void RenderWindow::Impl::init()
+void RenderWindow::Impl::init(IRenderTarget::UserData data)
 {
+    const auto& initData = *reinterpret_cast<const InDataRenderTargetInit*>(data);
+    m_id = initData.id;
+
     initSwapchain();
 }
 
@@ -32,9 +35,7 @@ void RenderWindow::Impl::prepare()
     auto result = m_swapchainHolder.acquireNextImage();
 
     if (result == vk::Result::eErrorOutOfDateKHR) {
-        // m_engine.recreateSwapchain();
         logger.warning("magma.vulkan.render-window") << "Seems like nobody cares about a out of date swapchain." << std::endl;
-        return;
     }
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
         logger.error("magma.vulkan.render-window") << "Failed to acquire swapchain image." << std::endl;
@@ -43,13 +44,13 @@ void RenderWindow::Impl::prepare()
 
 void RenderWindow::Impl::draw(IRenderTarget::UserData data) const
 {
-    const auto* drawData = reinterpret_cast<const InDataRenderTargetDraw*>(data);
+    const auto& drawData = *reinterpret_cast<const InDataRenderTargetDraw*>(data);
     const uint32_t imageIndex = m_swapchainHolder.currentIndex();
 
     // Submitting the image back to the swapchain
     vk::PresentInfoKHR presentInfo;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &drawData->renderFinishedSemaphore;
+    presentInfo.pWaitSemaphores = &drawData.renderFinishedSemaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;
@@ -57,16 +58,25 @@ void RenderWindow::Impl::draw(IRenderTarget::UserData data) const
     m_engine.presentQueue().presentKHR(presentInfo);
 }
 
-void RenderWindow::Impl::refresh()
-{
-    // m_engine.recreateSwapchain();
-}
-
 //----- RenderWindow
 
 bool RenderWindow::Impl::pollEvent(Event& event)
 {
-    return m_window.pollEvent(event);
+    auto foundEvent = m_window.pollEvent(event);
+    if (foundEvent && event.type == crater::Event::WindowResized) {
+        // Ignore resize of same size
+        if (m_windowExtent.width == event.size.width && m_windowExtent.height == event.size.height) {
+            return false;
+        }
+
+        // Or update swapchain
+        m_windowExtent.width = event.size.width;
+        m_windowExtent.height = event.size.height;
+        recreateSwapchain();
+
+        m_engine.updateRenderTarget(m_id);
+    }
+    return foundEvent;
 }
 
 void RenderWindow::Impl::close()
@@ -88,7 +98,7 @@ void RenderWindow::Impl::videoMode(const VideoMode& mode)
 {
     m_windowExtent.width = mode.width;
     m_windowExtent.height = mode.height;
-    // m_engine.recreateSwapchain();
+    recreateSwapchain();
 }
 
 bool RenderWindow::Impl::opened() const
@@ -113,4 +123,9 @@ void RenderWindow::Impl::initSurface()
 void RenderWindow::Impl::initSwapchain()
 {
     m_swapchainHolder.init(m_surface, m_windowExtent);
+}
+
+void RenderWindow::Impl::recreateSwapchain()
+{
+    m_swapchainHolder.recreate(m_surface, m_windowExtent);
 }
