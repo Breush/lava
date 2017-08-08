@@ -25,15 +25,17 @@ void vkDestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackE
 using namespace lava;
 
 namespace {
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT objType,
-                                                        uint64_t, size_t, int32_t, const char*, const char* msg, void*)
+    VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t,
+                                                 size_t, int32_t, const char*, const char* msg, void*)
     {
-        auto category = magma::vulkan::toString(vk::DebugReportObjectTypeEXT(objType));
+        auto vk_flags = reinterpret_cast<vk::DebugReportFlagsEXT&>(flags);
+        auto vk_objType = reinterpret_cast<vk::DebugReportObjectTypeEXT&>(objType);
+        auto category = magma::vulkan::toString(vk_objType);
 
-        if (flags & vk::DebugReportFlagBitsEXT::eWarning) {
+        if (vk_flags & vk::DebugReportFlagBitsEXT::eWarning) {
             chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
         }
-        else if (flags & vk::DebugReportFlagBitsEXT::eError) {
+        else if (vk_flags & vk::DebugReportFlagBitsEXT::eError) {
             chamber::logger.error("magma.vulkan." + category) << msg << std::endl;
         }
 
