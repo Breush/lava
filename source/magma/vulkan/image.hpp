@@ -86,6 +86,9 @@ namespace lava::magma::vulkan {
     {
         auto commandBuffer = beginSingleTimeCommands(device, commandPool);
 
+        vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+        vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+
         vk::ImageMemoryBarrier barrier;
         barrier.oldLayout = oldLayout;
         barrier.newLayout = newLayout;
@@ -103,25 +106,31 @@ namespace lava::magma::vulkan {
         if (oldLayout == vk::ImageLayout::ePreinitialized && newLayout == vk::ImageLayout::eTransferSrcOptimal) {
             barrier.srcAccessMask = vk::AccessFlagBits::eHostWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+            srcStageMask |= vk::PipelineStageFlagBits::eHost;
+            dstStageMask |= vk::PipelineStageFlagBits::eTransfer;
         }
         else if (oldLayout == vk::ImageLayout::ePreinitialized && newLayout == vk::ImageLayout::eTransferDstOptimal) {
             barrier.srcAccessMask = vk::AccessFlagBits::eHostWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            srcStageMask |= vk::PipelineStageFlagBits::eHost;
+            dstStageMask |= vk::PipelineStageFlagBits::eTransfer;
         }
         else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            srcStageMask |= vk::PipelineStageFlagBits::eTransfer;
+            dstStageMask |= vk::PipelineStageFlagBits::eFragmentShader;
         }
         else if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
             barrier.dstAccessMask =
                 vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            dstStageMask |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
         }
         else {
             chamber::logger.error("magma.vulkan.image") << "Unsupported layout transition." << std::endl;
         }
 
-        commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTopOfPipe,
-                                      vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
+        commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
 
         endSingleTimeCommands(device, graphicsQueue, commandPool, commandBuffer);
     }

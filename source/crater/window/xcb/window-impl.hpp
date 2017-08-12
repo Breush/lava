@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../interfaces/window-impl.hpp"
+#include "../../interfaces/window-impl.hpp"
 #include <lava/crater/window.hpp>
 
 #include <glm/vec2.hpp>

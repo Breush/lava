@@ -13,12 +13,12 @@ export VK_LAYER_PATH=`pwd`/external/etc/explicit_layer.d
 
 if [ $? -eq 0 ]; then
     # Find a file that match the name
-    EXECUTABLE=$(find ./build/debug/ -type f -executable -name "*$1*" ! -name "*.*")
+    EXECUTABLE=$(find ./build/debug/ -type f -executable -name "*$1*")
     echo "Running ${EXECUTABLE}..."
 
     if [ "$2" == "debug" ]; then
         echo "... in debug mode."
-        EXECUTABLE="gdb --quiet --directory=./external/source/vulkan/layers -ex run ${EXECUTABLE}"
+        EXECUTABLE="gdb --quiet --directory=./external/source/vulkan/layers -ex run ${EXECUTABLE}*"
     fi
 
     ${EXECUTABLE}

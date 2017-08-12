@@ -21,7 +21,7 @@ namespace {
 using namespace lava::chamber;
 
 Logger::Logger()
-    : m_stream(std::cout, "\e[21m\e[39m")
+    : m_stream(std::cout, "\e[0m")
 {
 }
 

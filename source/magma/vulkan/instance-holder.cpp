@@ -120,10 +120,12 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
     }
     logger.log().tab(-1);
 
-    // Enable surface extensions depending on os
-    // TODO Depend on OS, there should be an interface to get those somewhere
     m_extensions = {VK_KHR_SURFACE_EXTENSION_NAME};
+#if defined(VK_USE_PLATFORM_XCB_KHR)
     m_extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
+    m_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#endif
 
     // Validation layers
     if (m_debugEnabled) {

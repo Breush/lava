@@ -16,12 +16,28 @@
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
+                    "${workspaceRoot}",
                     "/usr/include/x86_64-linux-gnu/c++/6",
                     "/usr/include/c++/6",
                     "/usr/local/include",
                     "/usr/lib/clang/4.0.0/include",
                     "/usr/include/x86_64-linux-gnu",
-                    "/usr/include",
+                    "/usr/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceRoot}/external/include",
+                "${workspaceRoot}/include"
+            ],
+            "defines": [],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
                     "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,

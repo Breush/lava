@@ -2,13 +2,13 @@
 
 #if defined(__GNUC__) && not defined(__MINGW32__)
 #include <execinfo.h>
+#include <dlfcn.h>
 #endif
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cxxabi.h>
-#include <dlfcn.h>
 #include <memory>
 #include <string>
 #include <typeinfo>

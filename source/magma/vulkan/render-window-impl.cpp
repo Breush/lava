@@ -110,12 +110,25 @@ bool RenderWindow::Impl::opened() const
 
 void RenderWindow::Impl::initSurface()
 {
-    // @todo This is platform-specific! Have it work well with any platform
-    vk::XcbSurfaceCreateInfoKHR createInfo;
-    createInfo.connection = windowHandle().connection;
-    createInfo.window = windowHandle().window;
+    vk::Result result;
 
-    if (m_engine.instance().createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace()) != vk::Result::eSuccess) {
+    const auto handle = windowHandle();
+
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    vk::XcbSurfaceCreateInfoKHR createInfo;
+    createInfo.connection = handle.xcb.connection;
+    createInfo.window = handle.xcb.window;
+
+    result = m_engine.instance().createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace());
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
+    vk::Win32SurfaceCreateInfoKHR createInfo;
+    createInfo.hwnd = reinterpret_cast<HWND>(handle.dwm.hwnd);
+    createInfo.hinstance = reinterpret_cast<HINSTANCE>(handle.dwm.hinstance);
+
+    result = m_engine.instance().createWin32SurfaceKHR(&createInfo, nullptr, m_surface.replace());
+#endif
+
+    if (result != vk::Result::eSuccess) {
         logger.error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
     }
 }

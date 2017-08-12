@@ -1,6 +1,8 @@
 project "lava-chamber"
     kind "SharedLib"
-    pic "on"
+    
+    -- Ignored by clang
+    -- pic "on"
 
     files "chamber/**"
 

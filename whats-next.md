@@ -21,7 +21,8 @@
     - Event: gave a way to access keyboard/mouse state (isKeyPressed)
     - Event: complex event handling (dragging, double click)
     - Window: fullscreen
-    - Window::Impl: have Win32 and Wayland support
+    - Window::Impl: have Wayland support
+    - Window::Impl: DWM - complete all events
 
 ## Magma
 

@@ -5,9 +5,16 @@ project "lava-magma"
     files "magma/**"
 
     function magmaDependencies()
-        -- TODO To be changed according to platform
-        -- And define should probably not be in here
-        defines { "VK_USE_PLATFORM_XCB_KHR" }
+        if os.get() == "linux" then
+            defines { "VK_USE_PLATFORM_XCB_KHR" }
+
+        elseif os.get() == "windows" then
+            defines { "VK_USE_PLATFORM_WIN32_KHR" }
+
+        else
+            error("Unsupported platform " + os.get())
+
+        end
 
         useCrater()
         useVulkanSdk()

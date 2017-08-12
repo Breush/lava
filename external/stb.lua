@@ -21,10 +21,9 @@ end
 -- Set up
 
 if not fileExists("./include/stb") then
-    os.mkdir("./include/stb")
-
     print("[Dependencies] Setting STB librairies up...")
-    os.copyfile(".tmp/stb/stb_image.h", "./include/stb")
+
+    os.execute("bash ../scripts/setup/stb.sh")
 end
 
 -- Use hook

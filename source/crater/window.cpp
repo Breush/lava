@@ -2,8 +2,13 @@
 
 #include <lava/chamber/macros.hpp>
 
-// @todo Should be #defined by platforms
-#include "./xcb/window-impl.hpp"
+#if defined(LAVA_CRATER_WINDOW_XCB)
+#include "./window/xcb/window-impl.hpp"
+#elif defined(LAVA_CRATER_WINDOW_DWM)
+#include "./window/dwm/window-impl.hpp"
+#else
+#error "[lava.crater.window] No windowing system defined."
+#endif
 
 using namespace lava::crater;
 

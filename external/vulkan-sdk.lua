@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Vulkan SDK"
-local VERSION = "1.0.54.0"
+local VERSION = "1.0.57.0"
 
 -- Download
 
@@ -9,8 +9,13 @@ local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".run";
 if not fileValid(localFile) then
     os.mkdir("./.tmp/")
     os.execute("rm --recursive ./include/vulkan")
-    local filename = "vulkansdk-linux-x86_64-" .. VERSION .. ".run"
-    local url = "https://vulkan.lunarg.com/sdk/download/" .. VERSION .. "/linux/" .. filename .. "?Human=true"
+
+    local filename = "linux/vulkansdk-linux-x86_64-" .. VERSION .. ".run"
+    if os.get() == "windows" then
+        filename = "windows/VulkanSDK-" .. VERSION .. ".run"
+    end
+    
+    local url = "https://vulkan.lunarg.com/sdk/download/" .. VERSION .. "/" .. filename .. "?Human=true"
 
     downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
     local downloadResult = http.download(url, localFile, { progress = downloadProgress })
@@ -29,29 +34,15 @@ end
 
 if not fileExists("./include/vulkan") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
+
+    if os.get() == "windows" then
+        local installFolder = path.getabsolute("./.tmp/vulkan-sdk"):gsub("/", "\\")
+        os.execute("mv " .. localFile .. " vulkan-sdk.exe")
+        os.execute("vulkan-sdk.exe /S /D=" .. installFolder)
+        os.execute("mv vulkan-sdk.exe " .. localFile)
+    end
     
-    -- Vulkan SDK
-    local folder = "VulkanSDK/" .. VERSION .. "/x86_64"
-    os.execute("cd ./.tmp && bash ./vulkan-sdk_" .. VERSION .. ".run &&" ..
-               "cp -R " .. folder .. "/include/vulkan ../include &&" ..
-               "cp -R " .. folder .. "/bin/* ../bin &&" ..
-               "cp -R " .. folder .. "/etc/* ../etc")
-
-    -- @todo We're using libs from source folder for debugging,
-    -- but we should use the ones in x84_64/lib for release.
-    os.mkdir("source/vulkan")
-    local folder = "VulkanSDK/" .. VERSION .. "/source"
-    os.execute("cd ./.tmp &&" ..
-               "cp -R " .. folder .. "/lib/* ../lib &&" ..
-               "cp -R " .. folder .. "/layers ../source/vulkan")
-
-    -- glslang
-    folder = "VulkanSDK/" .. VERSION .. "/source/glslang"
-    os.execute("cd ./.tmp/" .. folder .. " && mkdir -p build && cd build && CXXFLAGS=-fPIC cmake .. && make -j 2")
-    os.execute("cd ./.tmp/ &&" ..
-               "cp -R " .. folder .. "/glslang ../include &&" ..
-               "cp -R " .. folder .. "/SPIRV ../include &&" ..
-               "cp -R `find " .. folder .. " -name *.a` ../lib")
+    os.execute("bash ../scripts/setup/vulkan-sdk.sh " .. VERSION)
 end
 
 -- Use hook
@@ -60,7 +51,17 @@ local externalPath = path.getabsolute(".")
 function useVulkanSdk()
     includedirs(externalPath .. "/include")
     libdirs(externalPath .. "/lib")
-    links { "vulkan", "SPIRV", "OGLCompiler", "HLSL", "OSDependent", "glslang" }
+
+    if os.get() == "windows" then 
+        links { "vulkan-1" }
+    else
+        links { "vulkan" }
+    end
+
+    -- Dependency tree:
+    -- glslang  -> HLSL
+    --          -> OGLCompiler  -> OSDependent
+    links { "SPIRV", "glslang", "HLSL", "OGLCompiler", "OSDependent" }
     linkoptions("-pthread")
     
     filter { "configurations:debug" }

@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glslang/Public/ShaderLang.h>
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
 #include <set>
