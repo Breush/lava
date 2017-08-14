@@ -57,21 +57,30 @@ void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR surface)
 
 void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface)
 {
+    logger.info("magma.vulkan.device-holder") << "Picking the right GPU." << std::endl;
+    logger.log().tab(1);
+
     auto physicalDevices = instance.enumeratePhysicalDevices();
+    logger.info("magma.vulkan.device-holder") << "Found " << physicalDevices.size() << " GPUs." << std::endl;
 
     if (physicalDevices.size() == 0) {
-        logger.error("magma.vulkan.physical-device") << "Unable to find GPU with Vulkan support." << std::endl;
+        logger.error("magma.vulkan.device-holder") << "Unable to find GPU with Vulkan support." << std::endl;
     }
 
     for (const auto& physicalDevice : physicalDevices) {
         if (!deviceSuitable(physicalDevice, m_extensions, surface)) continue;
         m_physicalDevice = physicalDevice;
+
+        auto properties = m_physicalDevice.getProperties();
+        logger.log() << "Picked GPU: " << properties.deviceName << "." << std::endl;
         break;
     }
 
+    logger.log().tab(-1);
+
     if (m_physicalDevice) return;
 
-    logger.error("magma.vulkan.physical-device") << "Unable to find suitable GPU." << std::endl;
+    logger.error("magma.vulkan.device-holder") << "Unable to find suitable GPU." << std::endl;
 }
 
 void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
