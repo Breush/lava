@@ -27,7 +27,7 @@ namespace lava::magma {
         void close();
 
         crater::WindowHandle windowHandle() const;
-        crater::VideoMode videoMode() const;
+        const crater::VideoMode& videoMode() const;
         void videoMode(const crater::VideoMode& mode);
         bool opened() const;
 

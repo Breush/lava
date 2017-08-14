@@ -4,7 +4,7 @@
 
 using namespace lava::crater;
 
-IWindowImpl::IWindowImpl(VideoMode videoMode)
+IWindowImpl::IWindowImpl(const VideoMode& videoMode)
     : m_videoMode(videoMode)
 {
 }

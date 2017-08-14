@@ -13,13 +13,13 @@ namespace lava::crater {
     class IWindowImpl {
     public:
         IWindowImpl() = default;
-        IWindowImpl(VideoMode videoMode);
+        IWindowImpl(const VideoMode& videoMode);
         virtual ~IWindowImpl() = default;
 
         bool popEvent(Event& event);
 
         virtual WindowHandle windowHandle() const = 0;
-        inline VideoMode videoMode() const { return m_videoMode; }
+        const VideoMode& videoMode() const { return m_videoMode; }
 
     protected:
         void pushEvent(const Event& event);

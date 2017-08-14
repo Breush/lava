@@ -21,7 +21,7 @@ namespace lava::crater {
 
         bool opened() const;
         WindowHandle windowHandle() const;
-        VideoMode videoMode() const;
+        const VideoMode& videoMode() const;
 
     public:
         class Impl;

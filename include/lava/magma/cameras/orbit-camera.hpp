@@ -21,7 +21,10 @@ namespace lava::magma {
 
         // Control
         void position(const glm::vec3& position);
+
+        const glm::vec3& target() const;
         void target(const glm::vec3& target);
+        float viewportRatio() const;
         void viewportRatio(float viewportRatio);
 
         void radius(float radius);

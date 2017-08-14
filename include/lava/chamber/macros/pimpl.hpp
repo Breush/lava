@@ -18,4 +18,15 @@ namespace lava::chamber::macros {
 #define $pimpl_method_implementation_return(type) $cat($pimpl_method_implementation_return_, $type_void(type))
 #define $pimpl_method_implementation_return_0 return
 #define $pimpl_method_implementation_return_1
+
+// $pimpl_whatever_v means it will be by value
+#define $pimpl_attribute(Class, type, name) $pimpl_method_const(Class, const type&, name);
+#define $pimpl_attribute_v(Class, type, name) $pimpl_method_const(Class, type, name);
+
+#define $pimpl_property(Class, type, name)                                                                                       \
+    $pimpl_method_const(Class, const type&, name);                                                                               \
+    $pimpl_method(Class, void, name, const type&, _##name);
+#define $pimpl_property_v(Class, type, name)                                                                                     \
+    $pimpl_method_const(Class, type, name);                                                                                      \
+    $pimpl_method(Class, void, name, type, _##name);
 }

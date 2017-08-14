@@ -26,8 +26,8 @@ Window::~Window()
     close();
 }
 
-$pimpl_method_const(Window, WindowHandle, windowHandle);
-$pimpl_method_const(Window, VideoMode, videoMode);
+$pimpl_attribute_v(Window, WindowHandle, windowHandle);
+$pimpl_attribute(Window, VideoMode, videoMode);
 
 void Window::create(VideoMode mode, const std::string& title)
 {

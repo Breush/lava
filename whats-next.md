@@ -9,8 +9,6 @@
 
 - **refacto**
     - Have user documentation
-- **feature**
-    - Macros: `$pimpl_property` and `$pimpl_attribute`
 
 ## Crater
 

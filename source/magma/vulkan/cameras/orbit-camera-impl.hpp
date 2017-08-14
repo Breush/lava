@@ -31,7 +31,6 @@ namespace lava::magma {
 
         // OrbitCamera
         void position(const glm::vec3& position);
-        const glm::vec3& target() const { return m_target; }
         void target(const glm::vec3& target);
         void viewportRatio(float viewportRatio);
 
@@ -48,11 +47,13 @@ namespace lava::magma {
         vk::DescriptorSet m_descriptorSet;
         vulkan::BufferHolder m_uniformBufferHolder;
 
+        // Configuration
+        $attribute(glm::vec3, target);
+        $attribute(float, viewportRatio, = 16.f / 9.f);
+
         // Attributes
+        glm::vec3 m_position;
         glm::mat4 m_viewTransform;
         glm::mat4 m_projectionTransform;
-        glm::vec3 m_position;
-        glm::vec3 m_target;
-        float m_viewportRatio = 16.f / 9.f;
     };
 }

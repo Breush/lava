@@ -17,9 +17,6 @@ $pimpl_method(RenderWindow, IRenderTarget::UserData, data);
 $pimpl_method(RenderWindow, bool, pollEvent, Event&, event);
 $pimpl_method(RenderWindow, void, close);
 
-$pimpl_method_const(RenderWindow, WindowHandle, windowHandle);
-$pimpl_method_const(RenderWindow, bool, opened);
-
-// @todo Have pimpl property
-$pimpl_method_const(RenderWindow, VideoMode, videoMode);
-$pimpl_method(RenderWindow, void, videoMode, const VideoMode&, mode);
+$pimpl_attribute_v(RenderWindow, WindowHandle, windowHandle);
+$pimpl_attribute_v(RenderWindow, bool, opened);
+$pimpl_property(RenderWindow, VideoMode, videoMode);

@@ -89,7 +89,7 @@ WindowHandle RenderWindow::Impl::windowHandle() const
     return m_window.windowHandle();
 }
 
-VideoMode RenderWindow::Impl::videoMode() const
+const VideoMode& RenderWindow::Impl::videoMode() const
 {
     return m_window.videoMode();
 }

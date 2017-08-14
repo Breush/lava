@@ -15,10 +15,9 @@ $pimpl_method(OrbitCamera, ICamera::UserData, render, UserData, data);
 $pimpl_method_const(OrbitCamera, const glm::mat4&, viewTransform);
 $pimpl_method_const(OrbitCamera, const glm::mat4&, projectionTransform);
 
-$pimpl_method_const(OrbitCamera, const glm::vec3&, position);
-$pimpl_method(OrbitCamera, void, position, const glm::vec3&, position);
-$pimpl_method(OrbitCamera, void, target, const glm::vec3&, target);
-$pimpl_method(OrbitCamera, void, viewportRatio, float, viewportRatio);
+$pimpl_property(OrbitCamera, glm::vec3, position);
+$pimpl_property(OrbitCamera, glm::vec3, target);
+$pimpl_property_v(OrbitCamera, float, viewportRatio);
 
 void OrbitCamera::radius(float radius)
 {
