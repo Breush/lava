@@ -9,6 +9,8 @@
 
 - **refacto**
     - Have user documentation
+- **feature**
+    - CallStack: allow to compile with clang, make a dummy implementation
 
 ## Crater
 

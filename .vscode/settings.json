@@ -64,6 +64,7 @@
         "set": "cpp",
         "atomic": "cpp",
         "bitset": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "codecvt": "cpp"
     }
 }
