@@ -33,8 +33,7 @@ Epiphany::Epiphany(RenderEngine::Impl& engine)
     , m_vertexShaderModule{engine.device()}
     , m_fragmentShaderModule{engine.device()}
     , m_imageHolder{engine}
-    , m_cameraBufferHolder(engine)
-    , m_lightBufferHolder(engine)
+    , m_uboHolder(engine)
     , m_descriptorHolder(engine)
     , m_framebuffer{engine.device()}
 {
@@ -68,34 +67,7 @@ void Epiphany::stageInit()
 
     //----- Uniform buffers
 
-    // @todo Have vulkan::Ubo m_cameraUbo?
-    m_cameraBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(CameraUbo));
-    m_lightBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(LightUbo));
-
-    // Set them up
-    vk::DescriptorBufferInfo cameraBufferInfo;
-    cameraBufferInfo.buffer = m_cameraBufferHolder.buffer();
-    cameraBufferInfo.range = sizeof(CameraUbo);
-
-    vk::DescriptorBufferInfo lightBufferInfo;
-    lightBufferInfo.buffer = m_lightBufferHolder.buffer();
-    lightBufferInfo.range = sizeof(LightUbo);
-
-    std::array<vk::WriteDescriptorSet, 2> descriptorWrites;
-
-    descriptorWrites[0].dstSet = m_descriptorSet;
-    descriptorWrites[0].dstBinding = 0;
-    descriptorWrites[0].descriptorType = vk::DescriptorType::eUniformBuffer;
-    descriptorWrites[0].descriptorCount = 1;
-    descriptorWrites[0].pBufferInfo = &cameraBufferInfo;
-
-    descriptorWrites[1].dstSet = m_descriptorSet;
-    descriptorWrites[1].dstBinding = 1;
-    descriptorWrites[1].descriptorType = vk::DescriptorType::eUniformBuffer;
-    descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pBufferInfo = &lightBufferInfo;
-
-    m_engine.device().updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+    m_uboHolder.init(m_descriptorSet, {sizeof(CameraUbo), sizeof(LightUbo)});
 
     //----- Attachments
 
@@ -267,7 +239,7 @@ void Epiphany::updateUbos()
         ubo.invertedProjection = glm::inverse(camera.projectionTransform());
         ubo.wPosition = glm::vec4(camera.position(), 1.f);
 
-        m_cameraBufferHolder.copy(ubo);
+        m_uboHolder.copy(0, ubo);
     }
 
     //----- Light UBO
@@ -279,7 +251,7 @@ void Epiphany::updateUbos()
         ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
         ubo.radius = pointLight.radius();
 
-        m_lightBufferHolder.copy(ubo);
+        m_uboHolder.copy(1, ubo);
     }
 }
 

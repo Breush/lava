@@ -12,27 +12,13 @@ using namespace lava::chamber;
 
 OrbitCamera::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
-    , m_uniformBufferHolder(m_engine)
+    , m_uboHolder(m_engine)
 {
     // Create descriptor set
     m_descriptorSet = m_engine.cameraDescriptorHolder().allocateSet();
 
     // Create uniform buffer
-    m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(CameraUbo));
-
-    // Set it up
-    vk::DescriptorBufferInfo bufferInfo;
-    bufferInfo.buffer = m_uniformBufferHolder.buffer();
-    bufferInfo.range = sizeof(CameraUbo);
-
-    vk::WriteDescriptorSet descriptorWrite;
-    descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 0u;
-    descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
-    descriptorWrite.descriptorCount = 1u;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-
-    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_uboHolder.init(m_descriptorSet, {sizeof(CameraUbo)});
 
     updateBindings();
 }
@@ -97,8 +83,8 @@ void OrbitCamera::Impl::updateProjectionTransform()
 
 void OrbitCamera::Impl::updateBindings()
 {
-    CameraUbo ubo = {};
+    CameraUbo ubo;
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;
-    m_uniformBufferHolder.copy(ubo);
+    m_uboHolder.copy(0, ubo);
 }

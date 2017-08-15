@@ -65,7 +65,7 @@ using namespace lava::chamber;
 
 RmMaterial::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
-    , m_uniformBufferHolder(m_engine)
+    , m_uboHolder(m_engine)
     , m_normalImageHolder(m_engine)
     , m_albedoImageHolder(m_engine)
     , m_ormImageHolder(m_engine)
@@ -91,22 +91,7 @@ void RmMaterial::Impl::init()
     m_descriptorSet = m_engine.materialDescriptorHolder().allocateSet();
 
     // Create uniform buffer
-    m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(MaterialUbo));
-
-    // Set it up
-    vk::DescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBufferHolder.buffer();
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(MaterialUbo);
-
-    vk::WriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 0u;
-    descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-
-    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_uboHolder.init(m_descriptorSet, {sizeof(MaterialUbo)});
 }
 
 void RmMaterial::Impl::roughness(float factor)
@@ -175,10 +160,10 @@ IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
 void RmMaterial::Impl::updateBindings()
 {
     // MaterialUbo
-    MaterialUbo ubo = {};
+    MaterialUbo ubo;
     ubo.roughnessFactor = m_roughnessFactor;
     ubo.metallicFactor = m_metallicFactor;
-    m_uniformBufferHolder.copy(ubo);
+    m_uboHolder.copy(0, ubo);
 
     // Samplers
     bindTextureDescriptorSet(m_engine.device(), m_descriptorSet, 1u, m_engine.dummySampler(),

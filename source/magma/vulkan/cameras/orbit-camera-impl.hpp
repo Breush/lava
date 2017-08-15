@@ -5,7 +5,7 @@
 #include <lava/magma/render-engine.hpp>
 #include <vulkan/vulkan.hpp>
 
-#include "../buffer-holder.hpp"
+#include "../ubo-holder.hpp"
 
 namespace lava::magma {
     /**
@@ -45,7 +45,7 @@ namespace lava::magma {
 
         // Descriptor
         vk::DescriptorSet m_descriptorSet;
-        vulkan::BufferHolder m_uniformBufferHolder;
+        vulkan::UboHolder m_uboHolder;
 
         // Configuration
         $attribute(glm::vec3, target);

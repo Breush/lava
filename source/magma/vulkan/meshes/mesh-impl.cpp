@@ -14,7 +14,7 @@ using namespace lava::magma;
 
 Mesh::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
-    , m_uniformBufferHolder(m_engine)
+    , m_uboHolder(m_engine)
     , m_vertexBufferHolder(m_engine)
     , m_indexBufferHolder(m_engine)
 {
@@ -22,24 +22,7 @@ Mesh::Impl::Impl(RenderEngine& engine)
     m_descriptorSet = m_engine.meshDescriptorHolder().allocateSet();
 
     // Create uniform buffer
-    m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(MeshUbo));
-
-    // Set it up
-    // @todo There is a lot a common code between Mesh::Impl, OrbitCamera::Impl and RmMaterial::Impl
-    // about descriptor sets. Find a way to refacto.
-    vk::DescriptorBufferInfo bufferInfo;
-    bufferInfo.buffer = m_uniformBufferHolder.buffer();
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(MeshUbo);
-
-    vk::WriteDescriptorSet descriptorWrite;
-    descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 0u;
-    descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-
-    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    m_uboHolder.init(m_descriptorSet, {sizeof(MeshUbo)});
 
     updateBindings();
 }
@@ -112,9 +95,9 @@ void Mesh::Impl::material(IMaterial& material)
 
 void Mesh::Impl::updateBindings()
 {
-    MeshUbo ubo = {};
+    MeshUbo ubo;
     ubo.transform = m_worldTransform;
-    m_uniformBufferHolder.copy(ubo);
+    m_uboHolder.copy(0, ubo);
 }
 
 void Mesh::Impl::createVertexBuffer()

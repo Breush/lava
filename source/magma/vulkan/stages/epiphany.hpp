@@ -5,6 +5,7 @@
 #include "../buffer-holder.hpp"
 #include "../descriptor-holder.hpp"
 #include "../image-holder.hpp"
+#include "../ubo-holder.hpp"
 
 namespace lava::magma {
     /**
@@ -39,8 +40,7 @@ namespace lava::magma {
         vulkan::ShaderModule m_vertexShaderModule;
         vulkan::ShaderModule m_fragmentShaderModule;
         vulkan::ImageHolder m_imageHolder;
-        vulkan::BufferHolder m_cameraBufferHolder;
-        vulkan::BufferHolder m_lightBufferHolder;
+        vulkan::UboHolder m_uboHolder;
         vulkan::DescriptorHolder m_descriptorHolder;
         vk::DescriptorSet m_descriptorSet;
         vulkan::Framebuffer m_framebuffer;
