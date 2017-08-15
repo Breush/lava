@@ -44,7 +44,6 @@ else
     bash ./vulkan-sdk_${VERSION}.run
     FOLDER="VulkanSDK/${VERSION}/x86_64"
     cp -R ${FOLDER}/include/vulkan ../include
-    cp -R ${FOLDER}/bin/* ../bin # @todo To be tested but we might not care anymore about this folder
     cp -R ${FOLDER}/etc/* ../etc
 
     # @todo We're using libs from source folder for debugging,
