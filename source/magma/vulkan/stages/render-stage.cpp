@@ -92,7 +92,6 @@ void RenderStage::initRenderPass()
     }
 
     // Depth stencil
-
     if (m_depthStencilAttachment) {
         attachmentsReferences.emplace_back(attachmentsReferences.size(), vk::ImageLayout::eDepthStencilAttachmentOptimal);
 

@@ -15,9 +15,6 @@ namespace lava::magma::vulkan {
         ImageHolder() = delete;
         ImageHolder(const RenderEngine::Impl& engine);
 
-        /// Set all references.
-        void init(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Queue queue, vk::CommandPool commandPool);
-
         /// Allocate all image memory for the specified format.
         void create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect);
 
