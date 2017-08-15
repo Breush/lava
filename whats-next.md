@@ -48,6 +48,7 @@
     - RenderEngine: Make rendering dimensions independent to window ones
     - Clean up capsule.hpp
     - Move utils functions to own folder or inside Holders's cpp file
+    - Replace useless const vk::Whatever& by vk::Whatever
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame

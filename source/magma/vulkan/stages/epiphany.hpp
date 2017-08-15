@@ -3,6 +3,7 @@
 #include "./render-stage.hpp"
 
 #include "../buffer-holder.hpp"
+#include "../descriptor-holder.hpp"
 #include "../image-holder.hpp"
 
 namespace lava::magma {
@@ -37,12 +38,11 @@ namespace lava::magma {
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;
         vulkan::ShaderModule m_fragmentShaderModule;
-        vulkan::DescriptorPool m_descriptorPool;
-        vulkan::DescriptorSetLayout m_descriptorSetLayout;
-        vk::DescriptorSet m_descriptorSet;
         vulkan::ImageHolder m_imageHolder;
         vulkan::BufferHolder m_cameraBufferHolder;
         vulkan::BufferHolder m_lightBufferHolder;
+        vulkan::DescriptorHolder m_descriptorHolder;
+        vk::DescriptorSet m_descriptorSet;
         vulkan::Framebuffer m_framebuffer;
     };
 }

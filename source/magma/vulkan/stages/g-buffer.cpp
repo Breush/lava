@@ -44,6 +44,9 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
     , m_albedoImageHolder{engine}
     , m_ormImageHolder{engine}
     , m_depthImageHolder{engine}
+    , m_cameraDescriptorHolder{engine}
+    , m_materialDescriptorHolder{engine}
+    , m_meshDescriptorHolder{engine}
     , m_framebuffer{engine.device()}
 {
 }
@@ -67,10 +70,14 @@ void GBuffer::stageInit()
 
     //----- Descriptor set layouts
 
-    // @todo These descriptors should be part of us
-    add(m_engine.cameraDescriptorSetLayout());
-    add(m_engine.materialDescriptorSetLayout());
-    add(m_engine.meshDescriptorSetLayout());
+    m_cameraDescriptorHolder.init(1, 0, 1, vk::ShaderStageFlagBits::eVertex);
+    m_materialDescriptorHolder.init(1, 3, 128, vk::ShaderStageFlagBits::eFragment);
+    m_meshDescriptorHolder.init(1, 0, 128, vk::ShaderStageFlagBits::eVertex);
+
+    // @note Ordering is important
+    add(m_cameraDescriptorHolder.setLayout());
+    add(m_materialDescriptorHolder.setLayout());
+    add(m_meshDescriptorHolder.setLayout());
 
     //----- Attachments
 

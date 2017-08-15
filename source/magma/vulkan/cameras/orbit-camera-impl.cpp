@@ -15,14 +15,7 @@ OrbitCamera::Impl::Impl(RenderEngine& engine)
     , m_uniformBufferHolder(m_engine)
 {
     // Create descriptor set
-    vk::DescriptorSetAllocateInfo allocInfo;
-    allocInfo.descriptorPool = m_engine.cameraDescriptorPool();
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &m_engine.cameraDescriptorSetLayout();
-
-    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.camera") << "Failed to create descriptor set." << std::endl;
-    }
+    m_descriptorSet = m_engine.cameraDescriptorHolder().allocateSet();
 
     // Create uniform buffer
     m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(CameraUbo));

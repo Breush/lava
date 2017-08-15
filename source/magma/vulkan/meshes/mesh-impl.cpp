@@ -19,14 +19,7 @@ Mesh::Impl::Impl(RenderEngine& engine)
     , m_indexBufferHolder(m_engine)
 {
     // Create descriptor set
-    vk::DescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.descriptorPool = m_engine.meshDescriptorPool();
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &m_engine.meshDescriptorSetLayout();
-
-    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.mesh") << "Failed to create descriptor set." << std::endl;
-    }
+    m_descriptorSet = m_engine.meshDescriptorHolder().allocateSet();
 
     // Create uniform buffer
     m_uniformBufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, sizeof(MeshUbo));

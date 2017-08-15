@@ -2,6 +2,7 @@
 
 #include "./render-stage.hpp"
 
+#include "../descriptor-holder.hpp"
 #include "../image-holder.hpp"
 
 namespace lava::magma {
@@ -12,10 +13,14 @@ namespace lava::magma {
     public:
         GBuffer(RenderEngine::Impl& engine);
 
-        const vulkan::ImageView& normalImageView() const { return m_normalImageHolder.view(); }
-        const vulkan::ImageView& albedoImageView() const { return m_albedoImageHolder.view(); }
-        const vulkan::ImageView& ormImageView() const { return m_ormImageHolder.view(); }
-        const vulkan::ImageView& depthImageView() const { return m_depthImageHolder.view(); }
+        vk::ImageView normalImageView() const { return m_normalImageHolder.view(); }
+        vk::ImageView albedoImageView() const { return m_albedoImageHolder.view(); }
+        vk::ImageView ormImageView() const { return m_ormImageHolder.view(); }
+        vk::ImageView depthImageView() const { return m_depthImageHolder.view(); }
+
+        const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_cameraDescriptorHolder; }
+        const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
+        const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_meshDescriptorHolder; }
 
     protected:
         // RenderStage
@@ -37,6 +42,9 @@ namespace lava::magma {
         vulkan::ImageHolder m_albedoImageHolder;
         vulkan::ImageHolder m_ormImageHolder;
         vulkan::ImageHolder m_depthImageHolder;
+        vulkan::DescriptorHolder m_cameraDescriptorHolder;
+        vulkan::DescriptorHolder m_materialDescriptorHolder;
+        vulkan::DescriptorHolder m_meshDescriptorHolder;
         vulkan::Framebuffer m_framebuffer;
 
         // Internal configuration

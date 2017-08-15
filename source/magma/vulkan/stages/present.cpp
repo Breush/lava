@@ -15,8 +15,7 @@ Present::Present(RenderEngine::Impl& engine)
     : RenderStage(engine)
     , m_vertexShaderModule{engine.device()}
     , m_fragmentShaderModule{engine.device()}
-    , m_descriptorPool{engine.device()}
-    , m_descriptorSetLayout{engine.device()}
+    , m_descriptorHolder(engine)
 {
     updateCleverlySkipped(false); // As we're creating our framebuffers based on swapchain image views.
 }
@@ -42,55 +41,12 @@ void Present::stageInit()
     m_fragmentShaderModule = vulkan::createShaderModule(m_engine.device(), fragmentShaderCode);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
-    //----- Descriptor pool
+    //----- Descriptors
 
-    // @todo Should we really have so many pools?
-    // Maybe just one in a central place.
+    m_descriptorHolder.init(0, 1, 1, vk::ShaderStageFlagBits::eFragment);
+    add(m_descriptorHolder.setLayout());
 
-    vk::DescriptorPoolSize poolSize;
-    poolSize.type = vk::DescriptorType::eCombinedImageSampler;
-    poolSize.descriptorCount = 1u;
-
-    vk::DescriptorPoolCreateInfo poolInfo;
-    poolInfo.poolSizeCount = 1u;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 1u;
-
-    if (m_engine.device().createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor pool." << std::endl;
-    }
-
-    //----- Descriptor set layout
-
-    vk::DescriptorSetLayoutBinding layoutBinding;
-    layoutBinding.binding = 0;
-    layoutBinding.descriptorCount = 1;
-    layoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    layoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-    vk::DescriptorSetLayoutCreateInfo layoutInfo;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &layoutBinding;
-
-    if (m_engine.device().createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.present") << "Failed to create material descriptor set layout." << std::endl;
-    }
-
-    add(m_descriptorSetLayout);
-
-    //----- Descriptor set
-
-    vk::DescriptorSetAllocateInfo allocInfo;
-    allocInfo.descriptorPool = m_descriptorPool;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &m_descriptorSetLayout;
-
-    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor set." << std::endl;
-    }
-
-    logger.log().tab(-1);
+    m_descriptorSet = m_descriptorHolder.allocateSet();
 
     //----- Attachments
 
@@ -98,6 +54,8 @@ void Present::stageInit()
     presentColorAttachment.format = m_swapchainHolder->imageFormat();
     presentColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
     add(presentColorAttachment);
+
+    logger.log().tab(-1);
 }
 
 void Present::stageUpdate()

@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "../descriptor-holder.hpp"
 #include "../image-holder.hpp"
 
 namespace lava::magma::vulkan {
@@ -37,8 +38,7 @@ namespace lava::magma {
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;
         vulkan::ShaderModule m_fragmentShaderModule;
-        vulkan::DescriptorPool m_descriptorPool;
-        vulkan::DescriptorSetLayout m_descriptorSetLayout;
+        vulkan::DescriptorHolder m_descriptorHolder;
         vk::DescriptorSet m_descriptorSet;
         std::vector<vulkan::Framebuffer> m_framebuffers;
     };

@@ -118,91 +118,6 @@ void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
     renderTargetBundle.presentStage->update(data.swapchainHolder.extent());
 }
 
-void RenderEngine::Impl::createDescriptorSetLayouts()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating descriptor set layouts." << std::endl;
-
-    {
-        // Camera UBO
-        vk::DescriptorSetLayoutBinding transformsLayoutBinding;
-        transformsLayoutBinding.binding = 0;
-        transformsLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-        transformsLayoutBinding.descriptorCount = 1;
-        transformsLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
-        vk::DescriptorSetLayoutCreateInfo layoutInfo;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings = &transformsLayoutBinding;
-
-        if (device().createDescriptorSetLayout(&layoutInfo, nullptr, m_cameraDescriptorSetLayout.replace())
-            != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create descriptor set layout." << std::endl;
-        }
-    }
-
-    // @todo Move ?
-    {
-        // Model UBO
-        vk::DescriptorSetLayoutBinding modelLayoutBinding;
-        modelLayoutBinding.binding = 0;
-        modelLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-        modelLayoutBinding.descriptorCount = 1;
-        modelLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
-        vk::DescriptorSetLayoutCreateInfo layoutInfo;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings = &modelLayoutBinding;
-
-        if (device().createDescriptorSetLayout(&layoutInfo, nullptr, m_meshDescriptorSetLayout.replace())
-            != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create mesh descriptor set layout." << std::endl;
-        }
-    }
-
-    // @todo Move, this is very individual shader-related
-    // @note Not so much, as this is what's REQUIRED by G-Buffer
-    {
-        // Attributes UBO
-        vk::DescriptorSetLayoutBinding attributesLayoutBinding;
-        attributesLayoutBinding.binding = 0;
-        attributesLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-        attributesLayoutBinding.descriptorCount = 1;
-        attributesLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-        // Sampler
-        vk::DescriptorSetLayoutBinding normalMapLayoutBinding;
-        normalMapLayoutBinding.binding = 1;
-        normalMapLayoutBinding.descriptorCount = 1;
-        normalMapLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        normalMapLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-        // Sampler
-        vk::DescriptorSetLayoutBinding baseColorLayoutBinding;
-        baseColorLayoutBinding.binding = 2;
-        baseColorLayoutBinding.descriptorCount = 1;
-        baseColorLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        baseColorLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-        // Sampler
-        vk::DescriptorSetLayoutBinding ormLayoutBinding;
-        ormLayoutBinding.binding = 3;
-        ormLayoutBinding.descriptorCount = 1;
-        ormLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        ormLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-        std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {attributesLayoutBinding, baseColorLayoutBinding,
-                                                                  normalMapLayoutBinding, ormLayoutBinding};
-        vk::DescriptorSetLayoutCreateInfo layoutInfo;
-        layoutInfo.bindingCount = bindings.size();
-        layoutInfo.pBindings = bindings.data();
-
-        if (device().createDescriptorSetLayout(&layoutInfo, nullptr, m_materialDescriptorSetLayout.replace())
-            != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.descriptor-set-layout") << "Failed to create material descriptor set layout." << std::endl;
-        }
-    }
-}
-
 void RenderEngine::Impl::initStages()
 {
     logger.info("magma.vulkan.render-engine") << "Initializing render stages." << std::endl;
@@ -275,71 +190,6 @@ void RenderEngine::Impl::createDummyTextures()
 
     if (device().createSampler(&samplerInfo, nullptr, m_dummySampler.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.texture-sampler") << "Failed to texture sampler." << std::endl;
-    }
-}
-
-void RenderEngine::Impl::createDescriptorPool()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating descriptor pool." << std::endl;
-
-    {
-        // Camera UBO
-        std::array<vk::DescriptorPoolSize, 1> poolSizes;
-        poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
-        poolSizes[0].descriptorCount = 1;
-
-        vk::DescriptorPoolCreateInfo poolInfo;
-        poolInfo.poolSizeCount = poolSizes.size();
-        poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = 1;
-
-        if (device().createDescriptorPool(&poolInfo, nullptr, m_cameraDescriptorPool.replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.descriptor-pool") << "Failed to create descriptor pool." << std::endl;
-        }
-    }
-
-    // @todo Should be somewhere else?
-    {
-        // @todo How to choose? (= max number of meshes)
-        const uint32_t maxSets = 128u;
-
-        // Models UBO
-        std::array<vk::DescriptorPoolSize, 1> poolSizes = {};
-        poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
-        poolSizes[0].descriptorCount = 1 * maxSets;
-
-        vk::DescriptorPoolCreateInfo poolInfo;
-        poolInfo.poolSizeCount = poolSizes.size();
-        poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = maxSets;
-
-        if (device().createDescriptorPool(&poolInfo, nullptr, m_meshDescriptorPool.replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.descriptor-pool") << "Failed to create mesh descriptor pool." << std::endl;
-        }
-    }
-
-    // @todo Should be somewhere else - this is closely related to current shader
-    {
-        // @todo How to choose? (= max number of materials)
-        const uint32_t maxSets = 128u;
-
-        // Materials UBO
-        std::array<vk::DescriptorPoolSize, 2> poolSizes = {};
-        poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
-        poolSizes[0].descriptorCount = 1 * maxSets;
-
-        // Albedo, normal map and ORM map
-        poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-        poolSizes[1].descriptorCount = 3 * maxSets;
-
-        vk::DescriptorPoolCreateInfo poolInfo;
-        poolInfo.poolSizeCount = poolSizes.size();
-        poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = maxSets;
-
-        if (device().createDescriptorPool(&poolInfo, nullptr, m_materialDescriptorPool.replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.descriptor-pool") << "Failed to create material descriptor pool." << std::endl;
-        }
     }
 }
 
@@ -429,11 +279,9 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR surface)
     m_deviceHolder.init(instance(), surface);
 
     createCommandPool(surface);
-    createDescriptorSetLayouts();
     createDummyTextures();
     initStages();
     updateStages();
-    createDescriptorPool();
     createSemaphores();
 
     logger.log().tab(-1);

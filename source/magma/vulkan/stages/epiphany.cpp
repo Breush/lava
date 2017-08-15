@@ -32,11 +32,10 @@ Epiphany::Epiphany(RenderEngine::Impl& engine)
     : RenderStage(engine)
     , m_vertexShaderModule{engine.device()}
     , m_fragmentShaderModule{engine.device()}
-    , m_descriptorPool{engine.device()}
-    , m_descriptorSetLayout{engine.device()}
     , m_imageHolder{engine}
     , m_cameraBufferHolder(engine)
     , m_lightBufferHolder(engine)
+    , m_descriptorHolder(engine)
     , m_framebuffer{engine.device()}
 {
 }
@@ -58,87 +57,14 @@ void Epiphany::stageInit()
     m_fragmentShaderModule = vulkan::createShaderModule(m_engine.device(), fragmentShaderCode);
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
-    //----- Descriptor pool
+    //----- Descriptors
 
-    // @todo Should we really have so many pools?
-    // Maybe just one in a central place.
+    // UBO: camera, light
+    // CIS: normal, albedo, orm, depth
+    m_descriptorHolder.init(2, 4, 1, vk::ShaderStageFlagBits::eFragment);
+    add(m_descriptorHolder.setLayout());
 
-    std::array<vk::DescriptorPoolSize, 2> poolSizes;
-    poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
-    poolSizes[0].descriptorCount = 2u;
-    poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-    poolSizes[1].descriptorCount = 4u;
-
-    vk::DescriptorPoolCreateInfo poolInfo;
-    poolInfo.poolSizeCount = poolSizes.size();
-    poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = 6u;
-
-    if (m_engine.device().createDescriptorPool(&poolInfo, nullptr, m_descriptorPool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor pool." << std::endl;
-    }
-
-    //----- Descriptor set layout
-
-    vk::DescriptorSetLayoutBinding cameraUboLayoutBinding;
-    cameraUboLayoutBinding.binding = 0;
-    cameraUboLayoutBinding.descriptorCount = 1;
-    cameraUboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-    cameraUboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-    vk::DescriptorSetLayoutBinding lightUboLayoutBinding;
-    lightUboLayoutBinding.binding = 1;
-    lightUboLayoutBinding.descriptorCount = 1;
-    lightUboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-    lightUboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-    vk::DescriptorSetLayoutBinding normalLayoutBinding;
-    normalLayoutBinding.binding = 2;
-    normalLayoutBinding.descriptorCount = 1;
-    normalLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    normalLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-    vk::DescriptorSetLayoutBinding albedoLayoutBinding;
-    albedoLayoutBinding.binding = 3;
-    albedoLayoutBinding.descriptorCount = 1;
-    albedoLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    albedoLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-    vk::DescriptorSetLayoutBinding ormLayoutBinding;
-    ormLayoutBinding.binding = 4;
-    ormLayoutBinding.descriptorCount = 1;
-    ormLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    ormLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-    vk::DescriptorSetLayoutBinding depthLayoutBinding;
-    depthLayoutBinding.binding = 5;
-    depthLayoutBinding.descriptorCount = 1;
-    depthLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    depthLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-
-    std::array<vk::DescriptorSetLayoutBinding, 6> bindings = {cameraUboLayoutBinding, lightUboLayoutBinding, normalLayoutBinding,
-                                                              albedoLayoutBinding,    ormLayoutBinding,      depthLayoutBinding};
-    vk::DescriptorSetLayoutCreateInfo layoutInfo;
-    layoutInfo.bindingCount = bindings.size();
-    layoutInfo.pBindings = bindings.data();
-
-    if (m_engine.device().createDescriptorSetLayout(&layoutInfo, nullptr, m_descriptorSetLayout.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.present") << "Failed to create material descriptor set layout." << std::endl;
-    }
-
-    //----- Descriptor set
-
-    vk::DescriptorSetAllocateInfo allocInfo;
-    allocInfo.descriptorPool = m_descriptorPool;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &m_descriptorSetLayout;
-
-    if (m_engine.device().allocateDescriptorSets(&allocInfo, &m_descriptorSet) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.present") << "Failed to create descriptor set." << std::endl;
-    }
-
-    add(m_descriptorSetLayout);
+    m_descriptorSet = m_descriptorHolder.allocateSet();
 
     //----- Uniform buffers
 

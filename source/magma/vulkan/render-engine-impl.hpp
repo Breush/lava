@@ -49,6 +49,10 @@ namespace lava::magma {
         const vk::PhysicalDevice& physicalDevice() const { return m_deviceHolder.physicalDevice(); }
         const vk::Queue& graphicsQueue() const { return m_deviceHolder.graphicsQueue(); }
         const vk::Queue& presentQueue() const { return m_deviceHolder.presentQueue(); }
+
+        const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_gBuffer.cameraDescriptorHolder(); }
+        const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_gBuffer.materialDescriptorHolder(); }
+        const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_gBuffer.meshDescriptorHolder(); }
         /// @}
 
         /**
@@ -93,10 +97,6 @@ namespace lava::magma {
         void createCommandPool(vk::SurfaceKHR surface);
         void createCommandBuffers(uint32_t renderTargetIndex);
 
-        // Transform UBOs
-        void createDescriptorSetLayouts();
-        void createDescriptorPool();
-
     private:
         /// This bundle is what each render target needs.
         struct RenderTargetBundle {
@@ -110,14 +110,6 @@ namespace lava::magma {
     private:
         vulkan::InstanceHolder m_instanceHolder;
         vulkan::DeviceHolder m_deviceHolder;
-
-        // Descriptor layouts and pools
-        $attribute(vulkan::DescriptorSetLayout, cameraDescriptorSetLayout, {device()});
-        $attribute(vulkan::DescriptorPool, cameraDescriptorPool, {device()});
-        $attribute(vulkan::DescriptorSetLayout, meshDescriptorSetLayout, {device()});
-        $attribute(vulkan::DescriptorPool, meshDescriptorPool, {device()});
-        $attribute(vulkan::DescriptorSetLayout, materialDescriptorSetLayout, {device()});
-        $attribute(vulkan::DescriptorPool, materialDescriptorPool, {device()});
 
         // Rendering stages
         // @note We currently have only one scene, so these are standalone here.
