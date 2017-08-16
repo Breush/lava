@@ -1,8 +1,7 @@
 #include "./instance-holder.hpp"
 
 #include <lava/chamber/logger.hpp>
-
-#include "./tools.hpp"
+#include <lava/chamber/string-tools.hpp>
 
 // @note Instanciation of declared-only in vulkan.h.
 
@@ -30,7 +29,7 @@ namespace {
     {
         auto vk_flags = reinterpret_cast<vk::DebugReportFlagsEXT&>(flags);
         auto vk_objType = reinterpret_cast<vk::DebugReportObjectTypeEXT&>(objType);
-        auto category = magma::vulkan::toString(vk_objType);
+        auto category = chamber::camelToSnakeCase(vk::to_string(vk_objType));
 
         if (vk_flags & vk::DebugReportFlagBitsEXT::eWarning) {
             chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
