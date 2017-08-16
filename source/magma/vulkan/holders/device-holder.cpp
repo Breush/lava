@@ -3,7 +3,7 @@
 #include <lava/chamber/logger.hpp>
 
 #include "../helpers/queue.hpp"
-#include "../swapchain-support-details.hpp"
+#include "../helpers/swapchain.hpp"
 
 using namespace lava;
 
