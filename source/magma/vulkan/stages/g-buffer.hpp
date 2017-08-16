@@ -2,8 +2,8 @@
 
 #include "./render-stage.hpp"
 
-#include "../descriptor-holder.hpp"
-#include "../image-holder.hpp"
+#include "../holders/descriptor-holder.hpp"
+#include "../holders/image-holder.hpp"
 
 namespace lava::magma {
     /**

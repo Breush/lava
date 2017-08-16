@@ -1,6 +1,8 @@
 #pragma once
 
-#include "./swapchain-holder.hpp"
+namespace lava::magma::vulkan {
+    class SwapchainHolder;
+}
 
 namespace lava::magma {
     struct DataRenderTarget {

@@ -2,9 +2,9 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./helpers/queue.hpp"
-#include "./render-engine-impl.hpp"
-#include "./swapchain-support-details.hpp"
+#include "../helpers/queue.hpp"
+#include "../render-engine-impl.hpp"
+#include "../swapchain-support-details.hpp"
 
 namespace {
     vk::SurfaceFormatKHR swapchainSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)

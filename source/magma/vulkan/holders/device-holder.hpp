@@ -3,7 +3,7 @@
 #include <set>
 #include <vulkan/vulkan.hpp>
 
-#include "./wrappers.hpp"
+#include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
     /**

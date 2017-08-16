@@ -2,10 +2,10 @@
 
 #include "./render-stage.hpp"
 
-#include "../buffer-holder.hpp"
-#include "../descriptor-holder.hpp"
-#include "../image-holder.hpp"
-#include "../ubo-holder.hpp"
+#include "../holders/buffer-holder.hpp"
+#include "../holders/descriptor-holder.hpp"
+#include "../holders/image-holder.hpp"
+#include "../holders/ubo-holder.hpp"
 
 namespace lava::magma {
     /**

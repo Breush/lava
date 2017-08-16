@@ -9,6 +9,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "./helpers/queue.hpp"
+#include "./holders/swapchain-holder.hpp"
 #include "./meshes/mesh-impl.hpp"
 #include "./vertex.hpp"
 #include "./wrappers.hpp"

@@ -3,7 +3,7 @@
 #include <lava/magma/render-engine.hpp>
 #include <vulkan/vulkan.hpp>
 
-#include "./wrappers.hpp"
+#include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
     /**

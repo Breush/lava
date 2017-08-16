@@ -7,6 +7,7 @@
 #include <lava/crater/window.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "./holders/swapchain-holder.hpp"
 #include "./render-target-data.hpp"
 #include "./wrappers.hpp"
 

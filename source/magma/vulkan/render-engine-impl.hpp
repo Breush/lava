@@ -10,10 +10,12 @@
 #include <lava/magma/interfaces/render-target.hpp>
 #include <lava/magma/render-engine.hpp>
 
-#include "./device-holder.hpp"
-#include "./instance-holder.hpp"
+#include "./holders/device-holder.hpp"
+#include "./holders/instance-holder.hpp"
 #include "./render-target-data.hpp"
-#include "./stages.hpp"
+#include "./stages/epiphany.hpp"
+#include "./stages/g-buffer.hpp"
+#include "./stages/present.hpp"
 #include "./wrappers.hpp"
 
 namespace lava::magma {

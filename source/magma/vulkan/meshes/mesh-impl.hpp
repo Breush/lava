@@ -4,8 +4,8 @@
 #include <lava/magma/meshes/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
 
-#include "../buffer-holder.hpp"
-#include "../ubo-holder.hpp"
+#include "../holders/buffer-holder.hpp"
+#include "../holders/ubo-holder.hpp"
 #include "../vertex.hpp"
 
 namespace lava::magma {

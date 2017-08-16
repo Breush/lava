@@ -5,7 +5,7 @@
 #include <lava/magma/render-engine.hpp>
 #include <vulkan/vulkan.hpp>
 
-#include "../ubo-holder.hpp"
+#include "../holders/ubo-holder.hpp"
 
 namespace lava::magma {
     /**

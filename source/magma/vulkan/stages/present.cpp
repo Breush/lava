@@ -3,6 +3,7 @@
 #include <lava/chamber/logger.hpp>
 
 #include "../helpers/shader.hpp"
+#include "../holders/swapchain-holder.hpp"
 #include "../render-engine-impl.hpp"
 #include "../vertex.hpp"
 

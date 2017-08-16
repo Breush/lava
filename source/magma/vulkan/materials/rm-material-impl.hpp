@@ -4,8 +4,8 @@
 
 #include <lava/magma/render-engine.hpp>
 
-#include "../image-holder.hpp"
-#include "../ubo-holder.hpp"
+#include "../holders/image-holder.hpp"
+#include "../holders/ubo-holder.hpp"
 
 namespace lava::magma {
     /**

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./wrappers.hpp"
+#include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
     /**
