@@ -2,7 +2,7 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./image.hpp"
+#include "./helpers/buffer.hpp"
 #include "./render-engine-impl.hpp"
 
 using namespace lava::magma::vulkan;

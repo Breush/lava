@@ -2,8 +2,7 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./image.hpp"
-#include "./queue.hpp"
+#include "./helpers/queue.hpp"
 #include "./render-engine-impl.hpp"
 #include "./swapchain-support-details.hpp"
 
@@ -145,7 +144,19 @@ void SwapchainHolder::createImageViews()
     m_imageViews.resize(m_images.size(), vulkan::ImageView{m_engine.device()});
 
     for (uint32_t i = 0; i < m_images.size(); i++) {
-        createImageView(m_engine.device(), m_images[i], m_imageFormat, vk::ImageAspectFlagBits::eColor, m_imageViews[i]);
+        vk::ImageViewCreateInfo viewInfo;
+        viewInfo.image = m_images[i];
+        viewInfo.viewType = vk::ImageViewType::e2D;
+        viewInfo.format = m_imageFormat;
+        viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (m_engine.device().createImageView(&viewInfo, nullptr, m_imageViews[i].replace()) != vk::Result::eSuccess) {
+            logger.error("magma.vulkan.swapchain-holder") << "Failed to create image view." << std::endl;
+        }
     }
 }
 

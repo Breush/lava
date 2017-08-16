@@ -8,12 +8,8 @@
 #include <stb/stb_image.h>
 #include <vulkan/vulkan.hpp>
 
-#include "./buffer.hpp"
-#include "./image.hpp"
+#include "./helpers/queue.hpp"
 #include "./meshes/mesh-impl.hpp"
-#include "./queue.hpp"
-#include "./shader.hpp"
-#include "./tools.hpp"
 #include "./vertex.hpp"
 #include "./wrappers.hpp"
 

@@ -3,7 +3,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <lava/chamber/logger.hpp>
 
-#include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
 #include "../user-data-render.hpp"
 

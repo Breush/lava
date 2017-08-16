@@ -2,9 +2,8 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./queue.hpp"
+#include "./helpers/queue.hpp"
 #include "./swapchain-support-details.hpp"
-#include "./tools.hpp"
 
 using namespace lava;
 

@@ -5,7 +5,6 @@
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/interfaces/material.hpp>
 
-#include "../buffer.hpp"
 #include "../render-engine-impl.hpp"
 #include "../user-data-render.hpp"
 

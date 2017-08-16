@@ -2,8 +2,8 @@
 
 #include <lava/chamber/logger.hpp>
 
+#include "../helpers/shader.hpp"
 #include "../render-engine-impl.hpp"
-#include "../shader.hpp"
 #include "../user-data-render.hpp"
 #include "../vertex.hpp"
 

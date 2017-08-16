@@ -2,10 +2,8 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "../buffer.hpp"
-#include "../image.hpp"
+#include "../helpers/shader.hpp"
 #include "../render-engine-impl.hpp"
-#include "../shader.hpp"
 #include "../vertex.hpp"
 
 using namespace lava::magma;

@@ -2,7 +2,9 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "./image.hpp"
+#include "./helpers/command-buffer.hpp"
+#include "./helpers/buffer.hpp"
+#include "./helpers/device.hpp"
 #include "./render-engine-impl.hpp"
 
 using namespace lava::magma::vulkan;
@@ -20,31 +22,38 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
 {
     m_extent = extent;
 
-    vk::ImageAspectFlags imageAspectFlags;
-    vk::ImageUsageFlags imageUsageFlags;
+    vk::ImageAspectFlags aspectFlags;
+    vk::ImageUsageFlags usageFlags;
     vk::MemoryPropertyFlags memoryPropertyFlags;
+    vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+    vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+    vk::AccessFlags srcAccessMask;
+    vk::AccessFlags dstAccessMask;
     vk::ImageLayout oldLayout;
     vk::ImageLayout newLayout;
 
     // Depth
     if (imageAspect == vk::ImageAspectFlagBits::eDepth) {
-        imageAspectFlags = vk::ImageAspectFlagBits::eDepth;
-        imageUsageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-        // @todo Following is useful because present uses an image. Try removing it, and see.
-        // Better have this configurable in the function's interface
-        imageUsageFlags |= vk::ImageUsageFlagBits::eSampled;
+        aspectFlags = vk::ImageAspectFlagBits::eDepth;
+        usageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+        dstStageMask |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
+        dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         oldLayout = vk::ImageLayout::eUndefined;
         newLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
     }
     // Color
     else if (imageAspect == vk::ImageAspectFlagBits::eColor) {
-        imageAspectFlags = vk::ImageAspectFlagBits::eColor;
+        aspectFlags = vk::ImageAspectFlagBits::eColor;
         // @todo eColorAttachment is not always necessary... we should be able to control that
-        imageUsageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
-        // @todo Following is useful because present uses an image. Try removing it, and see.
-        imageUsageFlags |= vk::ImageUsageFlagBits::eSampled;
+        // And same goes for eSampled.
+        usageFlags =
+            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+        srcStageMask |= vk::PipelineStageFlagBits::eHost;
+        dstStageMask |= vk::PipelineStageFlagBits::eTransfer;
+        srcAccessMask = vk::AccessFlagBits::eHostWrite;
+        dstAccessMask = vk::AccessFlagBits::eTransferWrite;
         oldLayout = vk::ImageLayout::ePreinitialized;
         newLayout = vk::ImageLayout::eTransferDstOptimal;
     }
@@ -53,27 +62,87 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
                                                   << "Valid ones are currently eDepth or eColor." << std::endl;
     }
 
-    vulkan::createImage(m_engine.device(), m_engine.physicalDevice(), extent, format, vk::ImageTiling::eOptimal, imageUsageFlags,
-                        vk::MemoryPropertyFlagBits::eDeviceLocal, m_image, m_memory);
+    //----- Image
 
-    vulkan::createImageView(m_engine.device(), m_image, format, imageAspectFlags, m_view);
+    vk::ImageCreateInfo imageInfo;
+    imageInfo.imageType = vk::ImageType::e2D;
+    imageInfo.extent.width = m_extent.width;
+    imageInfo.extent.height = m_extent.height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format;
+    imageInfo.tiling = vk::ImageTiling::eOptimal;
+    imageInfo.initialLayout = vk::ImageLayout::ePreinitialized;
+    imageInfo.usage = usageFlags;
+    imageInfo.samples = vk::SampleCountFlagBits::e1;
+    imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
-    vulkan::transitionImageLayout(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), m_image, oldLayout,
-                                  newLayout);
+    if (m_engine.device().createImage(&imageInfo, nullptr, m_image.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.image-holder") << "Failed to create image." << std::endl;
+    }
+
+    //---- Memory
+
+    auto memRequirements = m_engine.device().getImageMemoryRequirements(m_image);
+
+    vk::MemoryAllocateInfo allocInfo;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex =
+        findMemoryType(m_engine.physicalDevice(), memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+    if (m_engine.device().allocateMemory(&allocInfo, nullptr, m_memory.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.image-holder") << "Failed to allocate image memory." << std::endl;
+    }
+
+    // @fixme Do we /really/ want to bind all image memories?
+    m_engine.device().bindImageMemory(m_image, m_memory, 0);
+
+    //----- Image view
+
+    vk::ImageViewCreateInfo viewInfo;
+    viewInfo.image = m_image;
+    viewInfo.viewType = vk::ImageViewType::e2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = aspectFlags;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    if (m_engine.device().createImageView(&viewInfo, nullptr, m_view.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.image") << "Failed to create image view." << std::endl;
+    }
+
+    //----- Transition
+
+    vk::ImageMemoryBarrier barrier;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.image = m_image;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.aspectMask = imageAspect;
+    barrier.srcAccessMask = srcAccessMask;
+    barrier.dstAccessMask = dstAccessMask;
+
+    auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
+    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
+    endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
 
 void ImageHolder::copy(const void* data, vk::DeviceSize size)
 {
     //----- Staging buffer
 
-    vulkan::Buffer stagingBuffer(m_engine.device());
-    vulkan::DeviceMemory stagingBufferMemory(m_engine.device());
+    Buffer stagingBuffer(m_engine.device());
+    DeviceMemory stagingBufferMemory(m_engine.device());
 
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
     vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
-    vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
-                         stagingBufferMemory);
+    createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
+                 stagingBufferMemory);
 
     //----- Copy indeed
 
@@ -83,8 +152,14 @@ void ImageHolder::copy(const void* data, vk::DeviceSize size)
     memcpy(targetData, data, size);
     m_engine.device().unmapMemory(stagingBufferMemory);
 
-    vulkan::copyBufferToImage(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), stagingBuffer, m_image,
-                              m_extent);
+    vk::BufferImageCopy bufferImageCopy;
+    bufferImageCopy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+    bufferImageCopy.imageSubresource.layerCount = 1;
+    bufferImageCopy.imageExtent = vk::Extent3D{m_extent.width, m_extent.height, 1};
+
+    auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
+    commandBuffer.copyBufferToImage(stagingBuffer, m_image, vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
+    endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
 
 void ImageHolder::setup(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)

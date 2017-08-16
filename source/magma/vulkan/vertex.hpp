@@ -1,8 +1,6 @@
 #pragma once
 
-#include <array>
 #include <glm/glm.hpp>
-#include <vulkan/vulkan.hpp>
 
 namespace lava::magma::vulkan {
     class Vertex {
