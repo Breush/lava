@@ -58,9 +58,11 @@ using namespace lava::chamber;
 std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, float radius)
 {
     return [tessellation, radius](Mesh& mesh) {
-        // @todo Reserve those
         std::vector<glm::vec3> positions;
         std::vector<uint16_t> indices;
+
+        // Reserving
+        positions.reserve(tessellation * (tessellation - 2u) + 2u);
 
         // South pole
         addPoleStrip(indices, tessellation, 1u, 0u, true);

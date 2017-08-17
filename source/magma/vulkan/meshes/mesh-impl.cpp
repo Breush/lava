@@ -6,6 +6,7 @@
 #include <lava/magma/interfaces/material.hpp>
 
 #include "../render-engine-impl.hpp"
+#include "../ubos.hpp"
 #include "../user-data-render.hpp"
 
 using namespace lava::chamber;
@@ -21,7 +22,7 @@ Mesh::Impl::Impl(RenderEngine& engine)
     m_descriptorSet = m_engine.meshDescriptorHolder().allocateSet();
 
     // Create uniform buffer
-    m_uboHolder.init(m_descriptorSet, {sizeof(MeshUbo)});
+    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::MeshUbo)});
 
     updateBindings();
 }
@@ -94,7 +95,7 @@ void Mesh::Impl::material(IMaterial& material)
 
 void Mesh::Impl::updateBindings()
 {
-    MeshUbo ubo;
+    vulkan::MeshUbo ubo;
     ubo.transform = m_worldTransform;
     m_uboHolder.copy(0, ubo);
 }
@@ -128,8 +129,8 @@ IMesh::UserData Mesh::Impl::render(IMesh::UserData data)
     if (m_material != nullptr) m_material->render(data);
 
     // Bind with the mesh descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, DESCRIPTOR_SET_INDEX, 1, &m_descriptorSet,
-                                     0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, vulkan::MESH_DESCRIPTOR_SET_INDEX, 1,
+                                     &m_descriptorSet, 0, nullptr);
 
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};

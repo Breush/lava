@@ -7,23 +7,12 @@
 namespace {
     EShLanguage findShaderLanguage(const std::string& filename)
     {
+        static std::map<std::string, EShLanguage> extensionMap = {{"vert", EShLangVertex},      {"frag", EShLangFragment},
+                                                                  {"tesc", EShLangTessControl}, {"tese", EShLangTessEvaluation},
+                                                                  {"geom", EShLangGeometry},    {"comp", EShLangCompute}};
+
         auto extension = filename.substr(filename.find_last_of(".") + 1u);
-
-        if (extension == "vert")
-            return EShLangVertex;
-        else if (extension == "tesc")
-            return EShLangTessControl;
-        else if (extension == "tese")
-            return EShLangTessEvaluation;
-        else if (extension == "geom")
-            return EShLangGeometry;
-        else if (extension == "frag")
-            return EShLangFragment;
-        else if (extension == "comp")
-            return EShLangCompute;
-
-        // @todo Error message
-        return EShLangVertex;
+        return extensionMap[extension];
     }
 
     TBuiltInResource& glslangResources()
@@ -136,7 +125,7 @@ std::vector<uint8_t> vulkan::readGlslShaderFile(const std::string& filename)
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open()) {
-        logger.warning("magma.vulkan.shader") << "Unable to find shader file " << filename << "." << std::endl;
+        logger.warning("magma.vulkan.helpers.shader") << "Unable to find shader file " << filename << "." << std::endl;
         return std::vector<uint8_t>();
     }
 
@@ -163,24 +152,24 @@ std::vector<uint8_t> vulkan::readGlslShaderFile(const std::string& filename)
     glslang::TShader shader(stage);
     shader.setStrings(&shaderString, 1);
     if (!shader.parse(&resources, 450, false, messages)) {
-        logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
-        logger.error("magma.vulkan.shader").tab(-1) << "Unable to parse shader." << std::endl;
+        logger.warning("magma.vulkan.helpers.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+        logger.error("magma.vulkan.helpers.shader").tab(-1) << "Unable to parse shader." << std::endl;
     }
 
     // Create program
     glslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(messages)) {
-        logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
-        logger.error("magma.vulkan.shader").tab(-1) << "Unable to link shader." << std::endl;
+        logger.warning("magma.vulkan.helpers.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+        logger.error("magma.vulkan.helpers.shader").tab(-1) << "Unable to link shader." << std::endl;
     }
 
     // Compile to SPIR-V
     std::vector<unsigned int> spirv;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv);
     if (spirv.size() == 0u) {
-        logger.warning("magma.vulkan.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
-        logger.error("magma.vulkan.shader").tab(-1) << "Unable to compile shader." << std::endl;
+        logger.warning("magma.vulkan.helpers.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+        logger.error("magma.vulkan.helpers.shader").tab(-1) << "Unable to compile shader." << std::endl;
     }
 
     // Copy to real buffer
@@ -204,7 +193,7 @@ vk::ShaderModule vulkan::createShaderModule(vk::Device device, const std::vector
 
     vk::ShaderModule module;
     if (device.createShaderModule(&createInfo, nullptr, &module) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.shader") << "Failed to create shader module." << std::endl;
+        logger.error("magma.vulkan.helpers.shader") << "Failed to create shader module." << std::endl;
     }
 
     return module;

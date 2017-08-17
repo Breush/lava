@@ -4,6 +4,7 @@
 #include <lava/chamber/logger.hpp>
 
 #include "../render-engine-impl.hpp"
+#include "../ubos.hpp"
 #include "../user-data-render.hpp"
 
 using namespace lava::magma;
@@ -17,7 +18,7 @@ OrbitCamera::Impl::Impl(RenderEngine& engine)
     m_descriptorSet = m_engine.cameraDescriptorHolder().allocateSet();
 
     // Create uniform buffer
-    m_uboHolder.init(m_descriptorSet, {sizeof(CameraUbo)});
+    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::CameraUbo)});
 
     updateBindings();
 }
@@ -35,8 +36,8 @@ ICamera::UserData OrbitCamera::Impl::render(ICamera::UserData data)
     const auto& pipelineLayout = *userData.pipelineLayout;
 
     // Bind with the camera descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, DESCRIPTOR_SET_INDEX, 1, &m_descriptorSet,
-                                     0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, vulkan::CAMERA_DESCRIPTOR_SET_INDEX, 1,
+                                     &m_descriptorSet, 0, nullptr);
 
     return nullptr;
 }
@@ -82,7 +83,7 @@ void OrbitCamera::Impl::updateProjectionTransform()
 
 void OrbitCamera::Impl::updateBindings()
 {
-    CameraUbo ubo;
+    vulkan::CameraUbo ubo;
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;
     m_uboHolder.copy(0, ubo);

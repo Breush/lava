@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "../render-engine-impl.hpp"
+#include "../ubos.hpp"
 #include "../user-data-render.hpp"
 
 #include <cstring>
@@ -90,7 +91,7 @@ void RmMaterial::Impl::init()
     m_descriptorSet = m_engine.materialDescriptorHolder().allocateSet();
 
     // Create uniform buffer
-    m_uboHolder.init(m_descriptorSet, {sizeof(MaterialUbo)});
+    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::MaterialUbo)});
 }
 
 void RmMaterial::Impl::roughness(float factor)
@@ -148,8 +149,8 @@ IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
     // __NOTE__: This presuppose that the correct shader is binded
 
     // Bind with the material descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, DESCRIPTOR_SET_INDEX, 1, &m_descriptorSet,
-                                     0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, vulkan::MATERIAL_DESCRIPTOR_SET_INDEX, 1,
+                                     &m_descriptorSet, 0, nullptr);
 
     return nullptr;
 }
@@ -159,7 +160,7 @@ IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
 void RmMaterial::Impl::updateBindings()
 {
     // MaterialUbo
-    MaterialUbo ubo;
+    vulkan::MaterialUbo ubo;
     ubo.roughnessFactor = m_roughnessFactor;
     ubo.metallicFactor = m_metallicFactor;
     m_uboHolder.copy(0, ubo);

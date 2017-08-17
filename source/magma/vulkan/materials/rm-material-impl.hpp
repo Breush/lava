@@ -12,13 +12,6 @@ namespace lava::magma {
      * Vulkan-based implementation of lava::RmMaterial.
      */
     class RmMaterial::Impl {
-        constexpr static const auto DESCRIPTOR_SET_INDEX = 1u;
-
-        struct MaterialUbo {
-            float roughnessFactor;
-            float metallicFactor;
-        };
-
     public:
         Impl(RenderEngine& engine);
         ~Impl();

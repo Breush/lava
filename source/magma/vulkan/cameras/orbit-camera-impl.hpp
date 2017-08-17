@@ -12,13 +12,6 @@ namespace lava::magma {
      * Implementation of lava::OrbitCamera.
      */
     class OrbitCamera::Impl {
-        // @todo This is all shader thing - Should it be in a ICamera::Impl?
-        constexpr static const auto DESCRIPTOR_SET_INDEX = 0u;
-        struct CameraUbo {
-            glm::mat4 view;
-            glm::mat4 projection;
-        };
-
     public:
         Impl(RenderEngine& engine);
         ~Impl();

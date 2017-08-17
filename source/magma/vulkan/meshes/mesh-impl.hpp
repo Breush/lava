@@ -13,12 +13,6 @@ namespace lava::magma {
      * Vulkan-based implementation of a mesh.
      */
     class Mesh::Impl {
-        constexpr static const auto DESCRIPTOR_SET_INDEX = 2u;
-
-        struct MeshUbo {
-            glm::mat4 transform;
-        };
-
     public:
         Impl(RenderEngine& engine);
 
