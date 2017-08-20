@@ -2,10 +2,11 @@
 
 #include <lava/chamber/logger.hpp>
 
+#include "../cameras/i-camera-impl.hpp"
 #include "../helpers/shader.hpp"
+#include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../user-data-render.hpp"
 #include "../vertex.hpp"
 
 namespace {
@@ -163,15 +164,12 @@ void GBuffer::stageRender(const vk::CommandBuffer& commandBuffer)
 
     //----- Render
 
-    UserDataRenderIn userData;
-    userData.commandBuffer = &commandBuffer;
-    userData.pipelineLayout = &m_pipelineLayout;
-
     // Draw all opaque meshes
+    // @todo We should have the camera index somewhere
     for (auto& camera : m_scene.cameras()) {
-        camera->render(&userData);
+        camera->interfaceImpl().render(commandBuffer, m_pipelineLayout, CAMERA_DESCRIPTOR_SET_INDEX);
         for (auto& mesh : m_scene.meshes()) {
-            mesh->render(&userData);
+            mesh->interfaceImpl().render(commandBuffer, m_pipelineLayout, MESH_DESCRIPTOR_SET_INDEX);
         }
 
         // @todo Handle multiple cameras?

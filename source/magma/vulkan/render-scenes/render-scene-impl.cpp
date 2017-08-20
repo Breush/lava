@@ -2,6 +2,10 @@
 
 #include <lava/chamber/logger.hpp>
 
+#include "../cameras/i-camera-impl.hpp"
+#include "../lights/i-light-impl.hpp"
+#include "../materials/i-material-impl.hpp"
+#include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 
 using namespace lava::magma;
@@ -37,7 +41,7 @@ void RenderScene::Impl::render(vk::CommandBuffer commandBuffer)
 void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
 {
     if (m_initialized) {
-        camera->init();
+        camera->interfaceImpl().init();
     }
 
     m_cameras.emplace_back(std::move(camera));
@@ -46,7 +50,7 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
 void RenderScene::Impl::add(std::unique_ptr<IMaterial>&& material)
 {
     if (m_initialized) {
-        material->init();
+        material->interfaceImpl().init();
     }
 
     m_materials.emplace_back(std::move(material));
@@ -55,19 +59,19 @@ void RenderScene::Impl::add(std::unique_ptr<IMaterial>&& material)
 void RenderScene::Impl::add(std::unique_ptr<IMesh>&& mesh)
 {
     if (m_initialized) {
-        mesh->init();
+        mesh->interfaceImpl().init();
     }
 
     m_meshes.emplace_back(std::move(mesh));
 }
 
-void RenderScene::Impl::add(std::unique_ptr<IPointLight>&& pointLight)
+void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
 {
     if (m_initialized) {
-        pointLight->init();
+        light->interfaceImpl().init();
     }
 
-    m_pointLights.emplace_back(std::move(pointLight));
+    m_lights.emplace_back(std::move(light));
 }
 
 //---- Internal
@@ -107,18 +111,18 @@ void RenderScene::Impl::updateStages()
 void RenderScene::Impl::initResources()
 {
     for (auto& camera : m_cameras) {
-        camera->init();
+        camera->interfaceImpl().init();
     }
 
     for (auto& material : m_materials) {
-        material->init();
+        material->interfaceImpl().init();
     }
 
     for (auto& mesh : m_meshes) {
-        mesh->init();
+        mesh->interfaceImpl().init();
     }
 
-    for (auto& pointLight : m_pointLights) {
-        pointLight->init();
+    for (auto& light : m_lights) {
+        light->interfaceImpl().init();
     }
 }

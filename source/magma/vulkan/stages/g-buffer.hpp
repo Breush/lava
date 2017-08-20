@@ -12,6 +12,10 @@ namespace lava::magma {
      * Pipeline layout for the G-Buffer construction.
      */
     class GBuffer final : public RenderStage {
+        constexpr static const uint32_t CAMERA_DESCRIPTOR_SET_INDEX = 0u;
+        constexpr static const uint32_t MATERIAL_DESCRIPTOR_SET_INDEX = 1u;
+        constexpr static const uint32_t MESH_DESCRIPTOR_SET_INDEX = 2u;
+
     public:
         GBuffer(RenderScene::Impl& scene);
 

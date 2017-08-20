@@ -1,9 +1,8 @@
 #pragma once
 
-#include <lava/magma/interfaces/mesh.hpp>
+#include <lava/magma/meshes/i-mesh.hpp>
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
 
@@ -23,8 +22,7 @@ namespace lava::magma {
         ~Mesh();
 
         // IMesh
-        void init() override final;
-        UserData render(UserData data) override final;
+        IMesh::Impl& interfaceImpl() override final;
 
         const glm::mat4& worldTransform() const;
         void positionAdd(const glm::vec3& delta);

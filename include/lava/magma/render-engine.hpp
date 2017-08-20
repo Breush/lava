@@ -9,7 +9,7 @@ namespace lava::magma {
     class ICamera;
     class IMaterial;
     class IMesh;
-    class IPointLight;
+    class ILight;
     class IRenderScene;
     class IRenderTarget;
 }

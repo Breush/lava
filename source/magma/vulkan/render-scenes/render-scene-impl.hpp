@@ -5,10 +5,10 @@
 #include "./i-render-scene-impl.hpp"
 
 #include <lava/chamber/macros.hpp>
-#include <lava/magma/interfaces/camera.hpp>
-#include <lava/magma/interfaces/material.hpp>
-#include <lava/magma/interfaces/mesh.hpp>
-#include <lava/magma/interfaces/point-light.hpp>
+#include <lava/magma/cameras/i-camera.hpp>
+#include <lava/magma/lights/i-light.hpp>
+#include <lava/magma/materials/i-material.hpp>
+#include <lava/magma/meshes/i-mesh.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/descriptor-holder.hpp"
@@ -34,7 +34,7 @@ namespace lava::magma {
         void extent(Extent2d extent) override final;
 
         void render(vk::CommandBuffer commandBuffer) override final;
-        vk::ImageView imageView() const override final { return m_epiphany.imageView(); }
+        vk::ImageView renderedImageView() const override final { return m_epiphany.imageView(); }
 
         /**
          * @name Adders
@@ -43,7 +43,7 @@ namespace lava::magma {
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<IMaterial>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
-        void add(std::unique_ptr<IPointLight>&& pointLight);
+        void add(std::unique_ptr<ILight>&& light);
         /// @}
 
         /**
@@ -59,15 +59,15 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
-        const ICamera& camera(uint32_t index) const { return *m_cameras[index]; }
-        const IMaterial& material(uint32_t index) const { return *m_materials[index]; }
-        const IMesh& mesh(uint32_t index) const { return *m_meshes[index]; }
-        const IPointLight& pointLight(uint32_t index) const { return *m_pointLights[index]; }
+        const ICamera::Impl& camera(uint32_t index) const { return m_cameras[index]->interfaceImpl(); }
+        const IMaterial::Impl& material(uint32_t index) const { return m_materials[index]->interfaceImpl(); }
+        const IMesh::Impl& mesh(uint32_t index) const { return m_meshes[index]->interfaceImpl(); }
+        const ILight::Impl& light(uint32_t index) const { return m_lights[index]->interfaceImpl(); }
 
         const std::vector<std::unique_ptr<ICamera>>& cameras() const { return m_cameras; }
         const std::vector<std::unique_ptr<IMaterial>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
-        const std::vector<std::unique_ptr<IPointLight>>& pointLights() const { return m_pointLights; }
+        const std::vector<std::unique_ptr<ILight>>& lights() const { return m_lights; }
         /// @}
 
     protected:
@@ -91,6 +91,6 @@ namespace lava::magma {
         std::vector<std::unique_ptr<ICamera>> m_cameras;
         std::vector<std::unique_ptr<IMaterial>> m_materials;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
-        std::vector<std::unique_ptr<IPointLight>> m_pointLights;
+        std::vector<std::unique_ptr<ILight>> m_lights;
     };
 }

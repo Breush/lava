@@ -13,7 +13,6 @@ RenderScene::RenderScene(RenderEngine& engine, Extent2d extent)
 }
 
 // IRenderScene
-$pimpl_method(RenderScene, void, init);
 $pimpl_property_v(RenderScene, Extent2d, extent);
 
 IRenderScene::Impl& RenderScene::interfaceImpl()
@@ -37,7 +36,7 @@ void RenderScene::add(std::unique_ptr<IMesh>&& mesh)
     m_impl->add(std::move(mesh));
 }
 
-void RenderScene::add(std::unique_ptr<IPointLight>&& pointLight)
+void RenderScene::add(std::unique_ptr<ILight>&& light)
 {
-    m_impl->add(std::move(pointLight));
+    m_impl->add(std::move(light));
 }

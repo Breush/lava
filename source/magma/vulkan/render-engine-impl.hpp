@@ -1,15 +1,15 @@
 #pragma once
 
+#include <lava/magma/render-engine.hpp>
+
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/macros.hpp>
 #include <lava/crater/window.hpp>
-#include <lava/magma/interfaces/render-scene.hpp>
-#include <lava/magma/interfaces/render-target.hpp>
-#include <lava/magma/render-engine.hpp>
+#include <lava/magma/render-scenes/i-render-scene.hpp>
+#include <lava/magma/render-targets/i-render-target.hpp>
 
 #include "./holders/device-holder.hpp"
 #include "./holders/instance-holder.hpp"
-#include "./render-target-data.hpp"
 #include "./stages/present.hpp"
 #include "./wrappers.hpp"
 
@@ -81,8 +81,6 @@ namespace lava::magma {
         struct RenderTargetBundle {
             std::unique_ptr<IRenderTarget> renderTarget;
             std::vector<vk::CommandBuffer> commandBuffers;
-
-            inline const DataRenderTarget& data() { return *reinterpret_cast<const DataRenderTarget*>(renderTarget->data()); }
         };
 
         /// A view bind a scene and a target.

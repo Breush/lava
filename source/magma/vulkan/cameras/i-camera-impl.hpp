@@ -1,27 +1,23 @@
 #pragma once
 
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
+#include <lava/magma/cameras/i-camera.hpp>
 
-namespace lava::magma {
-    class RenderScene;
-}
+#include <glm/glm.hpp>
+#include <vulkan/vulkan.hpp>
 
 namespace lava::magma {
     /**
      * Interface for cameras.
      */
-    class ICamera {
+    class ICamera::Impl {
     public:
-        using UserData = void*;
+        virtual ~Impl() = default;
 
     public:
-        virtual ~ICamera() = default;
-
         virtual void init() = 0;
 
-        /// Render the camera (bind it).
-        virtual UserData render(UserData data) = 0;
+        /// Render the camera.
+        virtual void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) = 0;
 
         /// Its world position.
         virtual const glm::vec3& position() const = 0;

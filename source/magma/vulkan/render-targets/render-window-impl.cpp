@@ -3,7 +3,7 @@
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/render-engine.hpp>
 
-#include "./render-engine-impl.hpp"
+#include "../render-engine-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::crater;
@@ -13,7 +13,6 @@ RenderWindow::Impl::Impl(RenderEngine& engine, VideoMode mode, const std::string
     : m_engine(engine.impl())
     , m_surface(m_engine.instance())
     , m_swapchainHolder(m_engine)
-    , m_renderTargetData({m_swapchainHolder, m_surface})
     , m_window(mode, title)
     , m_windowExtent{mode.width, mode.height}
 {
@@ -22,10 +21,9 @@ RenderWindow::Impl::Impl(RenderEngine& engine, VideoMode mode, const std::string
 
 //----- IRenderTarget
 
-void RenderWindow::Impl::init(IRenderTarget::UserData data)
+void RenderWindow::Impl::init(uint32_t id)
 {
-    const auto& initData = *reinterpret_cast<const InDataRenderTargetInit*>(data);
-    m_id = initData.id;
+    m_id = id;
 
     initSwapchain();
 }
@@ -42,15 +40,14 @@ void RenderWindow::Impl::prepare()
     }
 }
 
-void RenderWindow::Impl::draw(IRenderTarget::UserData data) const
+void RenderWindow::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
 {
-    const auto& drawData = *reinterpret_cast<const InDataRenderTargetDraw*>(data);
     const uint32_t imageIndex = m_swapchainHolder.currentIndex();
 
     // Submitting the image back to the swapchain
     vk::PresentInfoKHR presentInfo;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &drawData.renderFinishedSemaphore;
+    presentInfo.pWaitSemaphores = &renderFinishedSemaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;

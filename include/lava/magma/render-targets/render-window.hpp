@@ -1,12 +1,17 @@
 #pragma once
 
+#include <lava/magma/render-targets/i-render-target.hpp>
+
 #include <lava/chamber/macros.hpp>
 #include <lava/crater/event.hpp>
 #include <lava/crater/video-mode.hpp>
 #include <lava/crater/window-handle.hpp>
-#include <lava/magma/interfaces/render-target.hpp>
 
 #include <string>
+
+namespace lava::magma {
+    class RenderEngine;
+}
 
 namespace lava::magma {
     /**
@@ -18,10 +23,7 @@ namespace lava::magma {
         ~RenderWindow();
 
         // IRenderTarget
-        void init(UserData data) override final;
-        void prepare() override final;
-        void draw(UserData data) const override final;
-        UserData data() override final;
+        IRenderTarget::Impl& interfaceImpl() override final;
 
         bool pollEvent(crater::Event& event);
         void close();

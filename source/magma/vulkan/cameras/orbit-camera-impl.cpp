@@ -5,7 +5,6 @@
 
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
-#include "../user-data-render.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -31,17 +30,10 @@ void OrbitCamera::Impl::init()
     updateBindings();
 }
 
-ICamera::UserData OrbitCamera::Impl::render(ICamera::UserData data)
+void OrbitCamera::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
 {
-    auto& userData = *reinterpret_cast<UserDataRenderIn*>(data);
-    const auto& commandBuffer = *userData.commandBuffer;
-    const auto& pipelineLayout = *userData.pipelineLayout;
-
-    // Bind with the camera descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, vulkan::CAMERA_DESCRIPTOR_SET_INDEX, 1,
-                                     &m_descriptorSet, 0, nullptr);
-
-    return nullptr;
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
+                                     nullptr);
 }
 
 //----- OrbitCamera

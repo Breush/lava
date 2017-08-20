@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/interfaces/point-light.hpp>
+#include <lava/magma/lights/i-light.hpp>
 
 #include <glm/vec3.hpp>
 
@@ -12,17 +12,18 @@ namespace lava::magma {
     /**
      * An omnidirectional point light.
      */
-    class PointLight final : public IPointLight {
+    class PointLight final : public ILight {
     public:
         PointLight(RenderScene& scene);
         ~PointLight();
 
-        // IPointLight
-        void init() override final;
-        const glm::vec3& position() const override final;
-        float radius() const override final;
+        // ILight
+        ILight::Impl& interfaceImpl() override final;
 
+        const glm::vec3& position() const;
         void position(const glm::vec3& position);
+
+        float radius() const;
         void radius(float radius);
 
     public:

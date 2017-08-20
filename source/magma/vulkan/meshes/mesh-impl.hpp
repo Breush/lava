@@ -1,7 +1,10 @@
 #pragma once
 
-#include <lava/chamber/macros.hpp>
 #include <lava/magma/meshes/mesh.hpp>
+
+#include "./i-mesh-impl.hpp"
+
+#include <lava/chamber/macros.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/buffer-holder.hpp"
@@ -12,13 +15,14 @@ namespace lava::magma {
     /**
      * Vulkan-based implementation of a mesh.
      */
-    class Mesh::Impl {
+    class Mesh::Impl final : public IMesh::Impl {
     public:
         Impl(RenderScene& scene);
 
         // IMesh
-        void init();
-        IMesh::UserData render(IMesh::UserData data);
+        void init() override final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
+                    uint32_t descriptorSetIndex) override final;
 
         // Mesh
         const glm::mat4& worldTransform() const { return m_worldTransform; }

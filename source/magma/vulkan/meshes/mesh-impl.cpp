@@ -3,11 +3,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
-#include <lava/magma/interfaces/material.hpp>
 
+#include "../materials/i-material-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
-#include "../user-data-render.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
@@ -122,19 +121,18 @@ void Mesh::Impl::createIndexBuffer()
 
 // ----- IMesh -----
 
-IMesh::UserData Mesh::Impl::render(IMesh::UserData data)
+void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
 {
-    auto& userData = *reinterpret_cast<UserDataRenderIn*>(data);
-    const auto& commandBuffer = *userData.commandBuffer;
-    const auto& pipelineLayout = *userData.pipelineLayout;
-
     // Bind the material
     // @todo Have this in a more clever render loop, and not called by this mesh
-    if (m_material != nullptr) m_material->render(data);
+    // Fact is we shouldn't know about the correct descriptorSetIndex here
+    if (m_material != nullptr) {
+        m_material->interfaceImpl().render(commandBuffer, pipelineLayout, 1u);
+    }
 
     // Bind with the mesh descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, vulkan::MESH_DESCRIPTOR_SET_INDEX, 1,
-                                     &m_descriptorSet, 0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
+                                     nullptr);
 
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};
@@ -143,6 +141,4 @@ IMesh::UserData Mesh::Impl::render(IMesh::UserData data)
 
     // Draw
     commandBuffer.drawIndexed(m_indices.size(), 1, 0, 0, 0);
-
-    return nullptr;
 }

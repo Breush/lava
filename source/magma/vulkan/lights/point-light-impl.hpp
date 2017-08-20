@@ -2,6 +2,8 @@
 
 #include <lava/magma/lights/point-light.hpp>
 
+#include "./i-light-impl.hpp"
+
 #include <lava/chamber/macros.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
@@ -9,20 +11,21 @@ namespace lava::magma {
     /**
      * Implementation of magma::PointLight.
      */
-    class PointLight::Impl {
+    class PointLight::Impl : public ILight::Impl {
     public:
         Impl(RenderScene& scene);
         ~Impl() = default;
 
-        // IPointLight
-        void init();
+        // ILight::Impl
+        void init() override final;
+        LightType type() const override final { return LightType::Point; };
 
     private:
         // References
         RenderScene::Impl& m_scene;
         bool m_initialized = false;
 
-        // IPointLight
+        // ILight
         $property(glm::vec3, position);
         $property(float, radius, = 1.f);
     };

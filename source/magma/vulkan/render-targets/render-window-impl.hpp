@@ -1,26 +1,27 @@
 #pragma once
 
-#include <lava/magma/render-engine.hpp>
-#include <lava/magma/render-window.hpp>
+#include <lava/magma/render-targets/render-window.hpp>
+
+#include "./i-render-target-impl.hpp"
 
 #include <lava/chamber/macros.hpp>
 #include <lava/crater/window.hpp>
-#include <vulkan/vulkan.hpp>
+#include <lava/magma/render-engine.hpp>
 
-#include "./holders/swapchain-holder.hpp"
-#include "./render-target-data.hpp"
-#include "./wrappers.hpp"
+#include "../holders/swapchain-holder.hpp"
+#include "../wrappers.hpp"
 
 namespace lava::magma {
-    class RenderWindow::Impl {
+    class RenderWindow::Impl final : public IRenderTarget::Impl {
     public:
         Impl(RenderEngine& engine, crater::VideoMode mode, const std::string& title);
 
-        // IRenderTarget
-        void init(IRenderTarget::UserData data);
-        void prepare();
-        void draw(IRenderTarget::UserData data) const;
-        IRenderTarget::UserData data() const { return &m_renderTargetData; }
+        // IRenderTarget::Impl
+        void init(uint32_t id) override final;
+        void prepare() override final;
+        void draw(vk::Semaphore renderFinishedSemaphore) const override final;
+        const vulkan::SwapchainHolder& swapchainHolder() const override final { return m_swapchainHolder; }
+        vk::SurfaceKHR surface() const override final { return m_surface; }
 
         // crater::Window forwarding
         bool pollEvent(crater::Event& event);
@@ -45,7 +46,6 @@ namespace lava::magma {
         // Resources
         vulkan::SurfaceKHR m_surface;
         vulkan::SwapchainHolder m_swapchainHolder;
-        DataRenderTarget m_renderTargetData;
         crater::Window m_window;
         vk::Extent2D m_windowExtent;
     };

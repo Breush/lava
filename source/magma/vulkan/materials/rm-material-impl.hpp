@@ -2,6 +2,8 @@
 
 #include <lava/magma/materials/rm-material.hpp>
 
+#include "./i-material-impl.hpp"
+
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/image-holder.hpp"
@@ -11,14 +13,15 @@ namespace lava::magma {
     /**
      * Vulkan-based implementation of lava::RmMaterial.
      */
-    class RmMaterial::Impl {
+    class RmMaterial::Impl : public IMaterial::Impl {
     public:
         Impl(RenderScene& scene);
         ~Impl();
 
-        // IMaterial
-        void init();
-        IMaterial::UserData render(IMaterial::UserData data);
+        // IMaterial::Impl
+        void init() override final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
+                    uint32_t descriptorSetIndex) override final;
 
         // RmMaterial
         inline float roughness() const { return m_roughnessFactor; }

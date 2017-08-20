@@ -2,7 +2,10 @@
 
 #include <lava/chamber/logger.hpp>
 
+#include "../cameras/i-camera-impl.hpp"
 #include "../helpers/shader.hpp"
+#include "../lights/i-light-impl.hpp"
+#include "../lights/point-light-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../vertex.hpp"
@@ -14,7 +17,7 @@ namespace {
         glm::vec4 wPosition;
     };
 
-    struct LightUbo {
+    struct PointLightUbo {
         glm::vec4 wPosition;
         float radius;
     };
@@ -67,7 +70,7 @@ void Epiphany::stageInit()
 
     //----- Uniform buffers
 
-    m_uboHolder.init(m_descriptorSet, {sizeof(CameraUbo), sizeof(LightUbo)});
+    m_uboHolder.init(m_descriptorSet, {sizeof(CameraUbo), sizeof(PointLightUbo)});
 
     //----- Attachments
 
@@ -244,14 +247,18 @@ void Epiphany::updateUbos()
 
     //----- Light UBO
 
-    if (m_scene.pointLights().size() > 0) {
-        const auto& pointLight = m_scene.pointLight(0);
+    if (m_scene.lights().size() > 0) {
+        const auto& light = m_scene.light(0);
 
-        LightUbo ubo;
-        ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
-        ubo.radius = pointLight.radius();
+        if (light.type() == LightType::Point) {
+            const auto& pointLight = reinterpret_cast<const PointLight::Impl&>(light);
 
-        m_uboHolder.copy(1, ubo);
+            PointLightUbo ubo;
+            ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
+            ubo.radius = pointLight.radius();
+
+            m_uboHolder.copy(1, ubo);
+        }
     }
 }
 

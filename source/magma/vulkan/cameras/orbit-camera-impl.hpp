@@ -2,6 +2,8 @@
 
 #include <lava/magma/cameras/orbit-camera.hpp>
 
+#include "./i-camera-impl.hpp"
+
 #include <lava/magma/render-scenes/render-scene.hpp>
 #include <vulkan/vulkan.hpp>
 
@@ -11,17 +13,18 @@ namespace lava::magma {
     /**
      * Implementation of lava::OrbitCamera.
      */
-    class OrbitCamera::Impl {
+    class OrbitCamera::Impl final : public ICamera::Impl {
     public:
         Impl(RenderScene& scene);
         ~Impl();
 
-        // ICamera
-        void init();
-        ICamera::UserData render(ICamera::UserData data);
-        const glm::vec3& position() const { return m_position; }
-        const glm::mat4& viewTransform() const { return m_viewTransform; }
-        const glm::mat4& projectionTransform() const { return m_projectionTransform; }
+        // ICamera::Impl
+        void init() override final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
+                    uint32_t descriptorSetIndex) override final;
+        const glm::vec3& position() const override final { return m_position; }
+        const glm::mat4& viewTransform() const override final { return m_viewTransform; }
+        const glm::mat4& projectionTransform() const override final { return m_projectionTransform; }
 
         // OrbitCamera
         void position(const glm::vec3& position);

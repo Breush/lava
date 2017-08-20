@@ -19,7 +19,7 @@ namespace lava::magma {
     public:
         Present(RenderEngine::Impl& engine);
 
-        void bindSwapchainHolder(vulkan::SwapchainHolder& swapchainHolder);
+        void bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder);
         void imageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
 
     protected:
@@ -32,7 +32,7 @@ namespace lava::magma {
 
     private:
         // References
-        vulkan::SwapchainHolder* m_swapchainHolder = nullptr;
+        const vulkan::SwapchainHolder* m_swapchainHolder = nullptr;
 
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;

@@ -126,7 +126,7 @@ void Present::createFramebuffers()
     }
 }
 
-void Present::bindSwapchainHolder(vulkan::SwapchainHolder& swapchainHolder)
+void Present::bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder)
 {
     m_swapchainHolder = &swapchainHolder;
 }

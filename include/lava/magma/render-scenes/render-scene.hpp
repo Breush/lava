@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/interfaces/render-scene.hpp>
+#include <lava/magma/render-scenes/i-render-scene.hpp>
 
 #include <functional>
 #include <memory>
@@ -10,9 +10,7 @@ namespace lava::magma {
     class ICamera;
     class IMaterial;
     class IMesh;
-    class IPointLight;
-    class IRenderScene;
-    class IRenderTarget;
+    class ILight;
 }
 
 namespace lava::magma {
@@ -26,8 +24,6 @@ namespace lava::magma {
         ~RenderScene();
 
         // IRenderScene
-        void init() override final;
-
         Extent2d extent() const override final;
         void extent(Extent2d extent) override final;
 
@@ -64,7 +60,7 @@ namespace lava::magma {
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<IMaterial>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
-        void add(std::unique_ptr<IPointLight>&& pointLight);
+        void add(std::unique_ptr<ILight>&& light);
         /// @}
 
     public:

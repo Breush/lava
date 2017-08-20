@@ -1,8 +1,12 @@
 #pragma once
 
-#include <lava/magma/interfaces/camera.hpp>
+#include <lava/magma/cameras/i-camera.hpp>
 
 #include <glm/glm.hpp>
+
+namespace lava::magma {
+    class RenderScene;
+}
 
 namespace lava::magma {
     /**
@@ -14,17 +18,15 @@ namespace lava::magma {
         ~OrbitCamera();
 
         // ICamera
-        void init() override final;
-        UserData render(UserData data) override final;
-        const glm::vec3& position() const override final;
-        const glm::mat4& viewTransform() const override final;
-        const glm::mat4& projectionTransform() const override final;
+        ICamera::Impl& interfaceImpl();
 
-        // Control
+        // Attributes
+        const glm::vec3& position() const;
         void position(const glm::vec3& position);
 
         const glm::vec3& target() const;
         void target(const glm::vec3& target);
+
         float viewportRatio() const;
         void viewportRatio(float viewportRatio);
 

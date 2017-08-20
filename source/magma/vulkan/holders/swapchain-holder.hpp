@@ -27,13 +27,13 @@ namespace lava::magma::vulkan {
         uint32_t currentIndex() const { return m_currentIndex; }
 
         /// The semaphore used to signal the next image is available.
-        vulkan::Semaphore& imageAvailableSemaphore() { return m_imageAvailableSemaphore; }
+        vk::Semaphore imageAvailableSemaphore() const { return m_imageAvailableSemaphore; }
 
         /// The format chosen during initialization.
-        vk::Format& imageFormat() { return m_imageFormat; }
+        vk::Format imageFormat() const { return m_imageFormat; }
 
         /// All the image views.
-        std::vector<vulkan::ImageView>& imageViews() { return m_imageViews; }
+        const std::vector<vulkan::ImageView>& imageViews() const { return m_imageViews; }
 
         /// Count of all the images. Same as `imageViews().size()`.
         uint32_t imagesCount() const { return m_images.size(); }

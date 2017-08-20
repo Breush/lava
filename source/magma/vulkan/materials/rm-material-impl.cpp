@@ -6,7 +6,6 @@
 #include "../render-engine-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
-#include "../user-data-render.hpp"
 
 #include <cstring>
 
@@ -138,19 +137,13 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
 
 //----- IMaterial
 
-IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
+void RmMaterial::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
 {
-    auto& userData = *reinterpret_cast<UserDataRenderIn*>(data);
-    const auto& commandBuffer = *userData.commandBuffer;
-    const auto& pipelineLayout = *userData.pipelineLayout;
-
-    // __NOTE__: This presuppose that the correct shader is binded
+    // @note This presuppose that the correct shader is binded
 
     // Bind with the material descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, vulkan::MATERIAL_DESCRIPTOR_SET_INDEX, 1,
-                                     &m_descriptorSet, 0, nullptr);
-
-    return nullptr;
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
+                                     nullptr);
 }
 
 //----- Private

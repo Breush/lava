@@ -2,11 +2,11 @@
 
 #include <chrono>
 #include <lava/chamber/logger.hpp>
-#include <lava/magma/interfaces/render-target.hpp>
 
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
 #include "./render-scenes/i-render-scene-impl.hpp"
+#include "./render-targets/i-render-target-impl.hpp"
 #include "./wrappers.hpp"
 
 using namespace lava::magma;
@@ -29,17 +29,17 @@ void RenderEngine::Impl::draw()
     }
 
     auto& renderTargetBundle = m_renderTargetBundles[0];
-    auto& renderTarget = *renderTargetBundle.renderTarget;
-    const auto& data = renderTargetBundle.data();
+    auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
+    const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
 
-    renderTarget.prepare();
+    renderTargetImpl.prepare();
 
     // Record command buffer each frame
     device().waitIdle(); // @todo Better wait for a fence on the queue
-    auto& commandBuffer = recordCommandBuffer(0, data.swapchainHolder.currentIndex());
+    auto& commandBuffer = recordCommandBuffer(0, swapchainHolder.currentIndex());
 
     // Submit it to the queue
-    vk::Semaphore waitSemaphores[] = {data.swapchainHolder.imageAvailableSemaphore()};
+    vk::Semaphore waitSemaphores[] = {swapchainHolder.imageAvailableSemaphore()};
     vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
     vk::SubmitInfo submitInfo;
@@ -55,8 +55,7 @@ void RenderEngine::Impl::draw()
         logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
     }
 
-    InDataRenderTargetDraw drawData{m_renderFinishedSemaphore};
-    renderTarget.draw(&drawData);
+    renderTargetImpl.draw(m_renderFinishedSemaphore);
 }
 
 void RenderEngine::Impl::update()
@@ -68,17 +67,17 @@ uint32_t RenderEngine::Impl::addView(IRenderScene& renderScene, uint32_t /*rende
                                      Viewport /*viewport*/)
 {
     const auto& renderSceneImpl = renderScene.interfaceImpl();
-    const auto& dataRenderTarget = *reinterpret_cast<const DataRenderTarget*>(renderTarget.data());
+    const auto& swapchainHolder = renderTarget.interfaceImpl().swapchainHolder();
 
     m_renderViews.emplace_back();
     auto& renderView = m_renderViews.back();
     renderView.renderScene = &renderScene;
     renderView.renderTarget = &renderTarget;
     renderView.presentStage = std::make_unique<Present>(*this);
-    renderView.presentStage->bindSwapchainHolder(dataRenderTarget.swapchainHolder);
+    renderView.presentStage->bindSwapchainHolder(swapchainHolder);
     renderView.presentStage->init();
-    renderView.presentStage->update(dataRenderTarget.swapchainHolder.extent());
-    renderView.presentStage->imageView(renderSceneImpl.imageView(), m_dummySampler);
+    renderView.presentStage->update(swapchainHolder.extent());
+    renderView.presentStage->imageView(renderSceneImpl.renderedImageView(), m_dummySampler);
 
     return m_renderViews.size() - 1u;
 }
@@ -93,7 +92,7 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderScene>&& renderScene)
     // If no device yet, the scene initialization will be postponed
     // until it is created.
     if (m_deviceHolder.device()) {
-        renderScene->init();
+        renderScene->interfaceImpl().init();
     }
 
     m_renderScenes.emplace_back(std::move(renderScene));
@@ -106,7 +105,7 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     logger.info("magma.vulkan.render-engine") << "Adding render target " << m_renderTargetBundles.size() << "." << std::endl;
     logger.log().tab(1);
 
-    const auto& data = *reinterpret_cast<const DataRenderTarget*>(renderTarget->data());
+    auto& renderTargetImpl = renderTarget->interfaceImpl();
 
     // @todo This is probably not the right thing to do.
     // However - what can be the solution?
@@ -114,18 +113,17 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     // Thus, no window => unable to init the device.
     // So we init what's left of the engine write here, when adding a renderTarget.
     {
-        initVulkanDevice(data.surface); // As the render target below must have a valid device.
+        initVulkanDevice(renderTargetImpl.surface());
     }
 
-    InDataRenderTargetInit dataRenderTargetInit;
-    dataRenderTargetInit.id = m_renderTargetBundles.size();
-    renderTarget->init(&dataRenderTargetInit);
+    uint32_t renderTargetId = m_renderTargetBundles.size();
+    renderTargetImpl.init(renderTargetId);
 
     m_renderTargetBundles.emplace_back();
     auto& renderTargetBundle = m_renderTargetBundles.back();
     renderTargetBundle.renderTarget = std::move(renderTarget);
 
-    createCommandBuffers(dataRenderTargetInit.id);
+    createCommandBuffers(renderTargetId);
 
     logger.log().tab(-1);
 }
@@ -142,12 +140,12 @@ void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
     logger.log().tab(1);
 
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
-    const auto& data = renderTargetBundle.data();
-    const auto* renderTarget = renderTargetBundle.renderTarget.get();
+    auto* renderTarget = renderTargetBundle.renderTarget.get();
+    const auto& swapchainHolder = renderTarget->interfaceImpl().swapchainHolder();
 
     for (auto& renderView : m_renderViews) {
         if (renderView.renderTarget == renderTarget) {
-            renderView.presentStage->update(data.swapchainHolder.extent());
+            renderView.presentStage->update(swapchainHolder.extent());
         }
     }
 
@@ -242,7 +240,6 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetIndex)
 
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetIndex];
     auto& commandBuffers = renderTargetBundle.commandBuffers;
-    auto& swapchain = renderTargetBundle.data().swapchainHolder;
 
     // Free previous command buffers if any
     if (commandBuffers.size() > 0) {
@@ -250,7 +247,8 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetIndex)
     }
 
     // Allocate them all
-    commandBuffers.resize(swapchain.imagesCount());
+    const auto& swapchainHolder = renderTargetBundle.renderTarget->interfaceImpl().swapchainHolder();
+    commandBuffers.resize(swapchainHolder.imagesCount());
 
     vk::CommandBufferAllocateInfo allocateInfo;
     allocateInfo.commandPool = m_commandPool;
@@ -281,7 +279,7 @@ void RenderEngine::Impl::initRenderScenes()
     logger.log().tab(1);
 
     for (auto& renderScene : m_renderScenes) {
-        renderScene->init();
+        renderScene->interfaceImpl().init();
     }
 
     logger.log().tab(-1);
