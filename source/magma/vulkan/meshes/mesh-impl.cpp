@@ -5,25 +5,27 @@
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/interfaces/material.hpp>
 
-#include "../render-engine-impl.hpp"
+#include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
 #include "../user-data-render.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
 
-Mesh::Impl::Impl(RenderEngine& engine)
-    : m_engine(engine.impl())
-    , m_uboHolder(m_engine)
-    , m_vertexBufferHolder(m_engine)
-    , m_indexBufferHolder(m_engine)
+Mesh::Impl::Impl(RenderScene& scene)
+    : m_scene(scene.impl())
+    , m_uboHolder(m_scene.engine())
+    , m_vertexBufferHolder(m_scene.engine())
+    , m_indexBufferHolder(m_scene.engine())
 {
-    // Create descriptor set
-    m_descriptorSet = m_engine.meshDescriptorHolder().allocateSet();
+}
 
-    // Create uniform buffer
+void Mesh::Impl::init()
+{
+    m_descriptorSet = m_scene.meshDescriptorHolder().allocateSet();
     m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::MeshUbo)});
 
+    m_initialized = true;
     updateBindings();
 }
 
@@ -84,7 +86,7 @@ void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
     m_indices = indices;
     createIndexBuffer();
 
-    // @todo The engine should update the main command buffer every frame
+    // @todo The scene should update the main command buffer every frame
     // while we update our secondary command buffer right here
 }
 
@@ -95,6 +97,8 @@ void Mesh::Impl::material(IMaterial& material)
 
 void Mesh::Impl::updateBindings()
 {
+    if (!m_initialized) return;
+
     vulkan::MeshUbo ubo;
     ubo.transform = m_worldTransform;
     m_uboHolder.copy(0, ubo);

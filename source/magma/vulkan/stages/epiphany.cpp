@@ -4,6 +4,7 @@
 
 #include "../helpers/shader.hpp"
 #include "../render-engine-impl.hpp"
+#include "../render-scenes/render-scene-impl.hpp"
 #include "../vertex.hpp"
 
 namespace {
@@ -26,14 +27,15 @@ namespace {
 using namespace lava::magma;
 using namespace lava::chamber;
 
-Epiphany::Epiphany(RenderEngine::Impl& engine)
-    : RenderStage(engine)
-    , m_vertexShaderModule{engine.device()}
-    , m_fragmentShaderModule{engine.device()}
-    , m_imageHolder{engine}
-    , m_uboHolder(engine)
-    , m_descriptorHolder(engine)
-    , m_framebuffer{engine.device()}
+Epiphany::Epiphany(RenderScene::Impl& scene)
+    : RenderStage(scene.engine())
+    , m_scene(scene)
+    , m_vertexShaderModule{m_engine.device()}
+    , m_fragmentShaderModule{m_engine.device()}
+    , m_imageHolder{m_engine}
+    , m_uboHolder(m_engine)
+    , m_descriptorHolder(m_engine)
+    , m_framebuffer{m_engine.device()}
 {
 }
 
@@ -41,7 +43,7 @@ Epiphany::Epiphany(RenderEngine::Impl& engine)
 
 void Epiphany::stageInit()
 {
-    logger.log() << "Initializing Epiphany Stage." << std::endl;
+    logger.info("magma.vulkan.stages.epiphany") << "Initializing." << std::endl;
     logger.log().tab(1);
 
     //----- Shaders
@@ -79,7 +81,7 @@ void Epiphany::stageInit()
 
 void Epiphany::stageUpdate()
 {
-    logger.log() << "Updating Epiphany stage." << std::endl;
+    logger.info("magma.vulkan.stages.epiphany") << "Updating." << std::endl;
     logger.log().tab(1);
 
     createResources();
@@ -229,8 +231,8 @@ void Epiphany::updateUbos()
 {
     //----- Camera UBO
 
-    if (m_engine.cameras().size() > 0) {
-        const auto& camera = m_engine.camera(0);
+    if (m_scene.cameras().size() > 0) {
+        const auto& camera = m_scene.camera(0);
 
         CameraUbo ubo;
         ubo.invertedView = glm::inverse(camera.viewTransform());
@@ -242,8 +244,8 @@ void Epiphany::updateUbos()
 
     //----- Light UBO
 
-    if (m_engine.pointLights().size() > 0) {
-        const auto& pointLight = m_engine.pointLight(0);
+    if (m_scene.pointLights().size() > 0) {
+        const auto& pointLight = m_scene.pointLight(0);
 
         LightUbo ubo;
         ubo.wPosition = glm::vec4(pointLight.position(), 1.f);

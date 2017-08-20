@@ -2,7 +2,7 @@
 
 #include <lava/chamber/macros.hpp>
 #include <lava/magma/meshes/mesh.hpp>
-#include <lava/magma/render-engine.hpp>
+#include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/buffer-holder.hpp"
 #include "../holders/ubo-holder.hpp"
@@ -14,9 +14,10 @@ namespace lava::magma {
      */
     class Mesh::Impl {
     public:
-        Impl(RenderEngine& engine);
+        Impl(RenderScene& scene);
 
         // IMesh
+        void init();
         IMesh::UserData render(IMesh::UserData data);
 
         // Mesh
@@ -40,7 +41,8 @@ namespace lava::magma {
 
     private:
         // References
-        RenderEngine::Impl& m_engine;
+        RenderScene::Impl& m_scene;
+        bool m_initialized = false;
 
         // Data
         std::vector<vulkan::Vertex> m_vertices;

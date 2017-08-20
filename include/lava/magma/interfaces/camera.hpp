@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 
 namespace lava::magma {
-    class RenderEngine;
+    class RenderScene;
 }
 
 namespace lava::magma {
@@ -17,6 +17,8 @@ namespace lava::magma {
 
     public:
         virtual ~ICamera() = default;
+
+        virtual void init() = 0;
 
         /// Render the camera (bind it).
         virtual UserData render(UserData data) = 0;

@@ -9,6 +9,7 @@
 
 namespace lava::magma {
     class IMaterial;
+    class RenderScene;
 }
 
 namespace lava::magma {
@@ -17,11 +18,12 @@ namespace lava::magma {
      */
     class Mesh final : public IMesh {
     public:
-        Mesh(RenderEngine& engine);
-        Mesh(RenderEngine& engine, const std::string& fileName);
+        Mesh(RenderScene& scene);
+        Mesh(RenderScene& scene, const std::string& fileName);
         ~Mesh();
 
         // IMesh
+        void init() override final;
         UserData render(UserData data) override final;
 
         const glm::mat4& worldTransform() const;
@@ -44,6 +46,6 @@ namespace lava::magma {
 
     private:
         Impl* m_impl = nullptr;
-        RenderEngine& m_engine;
+        RenderScene& m_scene; // @todo We should not be aware of that here!
     };
 }

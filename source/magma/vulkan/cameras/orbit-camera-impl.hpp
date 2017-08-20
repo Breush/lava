@@ -2,7 +2,7 @@
 
 #include <lava/magma/cameras/orbit-camera.hpp>
 
-#include <lava/magma/render-engine.hpp>
+#include <lava/magma/render-scenes/render-scene.hpp>
 #include <vulkan/vulkan.hpp>
 
 #include "../holders/ubo-holder.hpp"
@@ -13,10 +13,11 @@ namespace lava::magma {
      */
     class OrbitCamera::Impl {
     public:
-        Impl(RenderEngine& engine);
+        Impl(RenderScene& scene);
         ~Impl();
 
         // ICamera
+        void init();
         ICamera::UserData render(ICamera::UserData data);
         const glm::vec3& position() const { return m_position; }
         const glm::mat4& viewTransform() const { return m_viewTransform; }
@@ -34,7 +35,8 @@ namespace lava::magma {
 
     private:
         // References
-        RenderEngine::Impl& m_engine;
+        RenderScene::Impl& m_scene;
+        bool m_initialized = false;
 
         // Descriptor
         vk::DescriptorSet m_descriptorSet;

@@ -5,7 +5,7 @@
 #include <glm/vec3.hpp>
 
 namespace lava::magma {
-    class RenderEngine;
+    class RenderScene;
 }
 
 namespace lava::magma {
@@ -14,10 +14,11 @@ namespace lava::magma {
      */
     class PointLight final : public IPointLight {
     public:
-        PointLight(RenderEngine& engine);
+        PointLight(RenderScene& scene);
         ~PointLight();
 
         // IPointLight
+        void init() override final;
         const glm::vec3& position() const override final;
         float radius() const override final;
 

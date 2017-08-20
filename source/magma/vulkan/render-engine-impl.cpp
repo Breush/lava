@@ -1,17 +1,12 @@
 #include "./render-engine-impl.hpp"
 
 #include <chrono>
-#include <glm/gtc/matrix_transform.hpp>
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
-#include <set>
-#include <stb/stb_image.h>
-#include <vulkan/vulkan.hpp>
 
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
-#include "./meshes/mesh-impl.hpp"
-#include "./vertex.hpp"
+#include "./render-scenes/i-render-scene-impl.hpp"
 #include "./wrappers.hpp"
 
 using namespace lava::magma;
@@ -68,6 +63,44 @@ void RenderEngine::Impl::update()
 {
 }
 
+// @todo Use viewport and renderSceneCameraIndex
+uint32_t RenderEngine::Impl::addView(IRenderScene& renderScene, uint32_t /*renderSceneCameraIndex*/, IRenderTarget& renderTarget,
+                                     Viewport /*viewport*/)
+{
+    const auto& renderSceneImpl = renderScene.interfaceImpl();
+    const auto& dataRenderTarget = *reinterpret_cast<const DataRenderTarget*>(renderTarget.data());
+
+    m_renderViews.emplace_back();
+    auto& renderView = m_renderViews.back();
+    renderView.renderScene = &renderScene;
+    renderView.renderTarget = &renderTarget;
+    renderView.presentStage = std::make_unique<Present>(*this);
+    renderView.presentStage->bindSwapchainHolder(dataRenderTarget.swapchainHolder);
+    renderView.presentStage->init();
+    renderView.presentStage->update(dataRenderTarget.swapchainHolder.extent());
+    renderView.presentStage->imageView(renderSceneImpl.imageView(), m_dummySampler);
+
+    return m_renderViews.size() - 1u;
+}
+
+//----- Adders
+
+void RenderEngine::Impl::add(std::unique_ptr<IRenderScene>&& renderScene)
+{
+    logger.info("magma.vulkan.render-engine") << "Adding render scene " << m_renderScenes.size() << "." << std::endl;
+    logger.log().tab(1);
+
+    // If no device yet, the scene initialization will be postponed
+    // until it is created.
+    if (m_deviceHolder.device()) {
+        renderScene->init();
+    }
+
+    m_renderScenes.emplace_back(std::move(renderScene));
+
+    logger.log().tab(-1);
+}
+
 void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 {
     logger.info("magma.vulkan.render-engine") << "Adding render target " << m_renderTargetBundles.size() << "." << std::endl;
@@ -88,15 +121,10 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     dataRenderTargetInit.id = m_renderTargetBundles.size();
     renderTarget->init(&dataRenderTargetInit);
 
-    RenderTargetBundle renderTargetBundle;
+    m_renderTargetBundles.emplace_back();
+    auto& renderTargetBundle = m_renderTargetBundles.back();
     renderTargetBundle.renderTarget = std::move(renderTarget);
-    renderTargetBundle.presentStage = std::make_unique<Present>(*this);
-    renderTargetBundle.presentStage->bindSwapchainHolder(data.swapchainHolder);
-    renderTargetBundle.presentStage->init();
-    renderTargetBundle.presentStage->imageView(m_epiphany.imageView(), m_dummySampler);
-    m_renderTargetBundles.emplace_back(std::move(renderTargetBundle));
 
-    updateRenderTarget(dataRenderTargetInit.id);
     createCommandBuffers(dataRenderTargetInit.id);
 
     logger.log().tab(-1);
@@ -110,37 +138,18 @@ void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
         return;
     }
 
+    logger.info("magma.vulkan.render-engine") << "Updating render target " << renderTargetId << "." << std::endl;
+    logger.log().tab(1);
+
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
     const auto& data = renderTargetBundle.data();
-    renderTargetBundle.presentStage->update(data.swapchainHolder.extent());
-}
+    const auto* renderTarget = renderTargetBundle.renderTarget.get();
 
-void RenderEngine::Impl::initStages()
-{
-    logger.info("magma.vulkan.render-engine") << "Initializing render stages." << std::endl;
-    logger.log().tab(1);
-
-    m_gBuffer.init();
-    m_epiphany.init();
-
-    logger.log().tab(-1);
-}
-
-void RenderEngine::Impl::updateStages()
-{
-    logger.info("magma.vulkan.render-engine") << "Updating render stages." << std::endl;
-    logger.log().tab(1);
-
-    // @todo The extent should be the one defined in the scene containing this
-    auto extent = vk::Extent2D(800u, 600u);
-    m_gBuffer.update(extent);
-    m_epiphany.update(extent);
-
-    // Set-up
-    m_epiphany.normalImageView(m_gBuffer.normalImageView(), m_dummySampler);
-    m_epiphany.albedoImageView(m_gBuffer.albedoImageView(), m_dummySampler);
-    m_epiphany.ormImageView(m_gBuffer.ormImageView(), m_dummySampler);
-    m_epiphany.depthImageView(m_gBuffer.depthImageView(), m_dummySampler);
+    for (auto& renderView : m_renderViews) {
+        if (renderView.renderTarget == renderTarget) {
+            renderView.presentStage->update(data.swapchainHolder.extent());
+        }
+    }
 
     logger.log().tab(-1);
 }
@@ -210,9 +219,15 @@ vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTarget
 
     //----- Render
 
-    m_gBuffer.render(commandBuffer);
-    m_epiphany.render(commandBuffer);
-    renderTargetBundle.presentStage->render(commandBuffer);
+    // @todo The scenes should know which cameras to render at any time.
+    // And render only those.
+    for (auto& renderScene : m_renderScenes) {
+        renderScene->interfaceImpl().render(commandBuffer);
+    }
+
+    for (auto& renderView : m_renderViews) {
+        renderView.presentStage->render(commandBuffer);
+    }
 
     //----- Epilogue
 
@@ -258,6 +273,20 @@ void RenderEngine::Impl::createSemaphores()
     }
 }
 
+void RenderEngine::Impl::initRenderScenes()
+{
+    if (m_renderScenes.size() == 0u) return;
+
+    logger.info("magma.vulkan.render-engine") << "Initializing render scenes." << std::endl;
+    logger.log().tab(1);
+
+    for (auto& renderScene : m_renderScenes) {
+        renderScene->init();
+    }
+
+    logger.log().tab(-1);
+}
+
 void RenderEngine::Impl::initVulkan()
 {
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
@@ -277,9 +306,9 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR surface)
 
     createCommandPool(surface);
     createDummyTextures();
-    initStages();
-    updateStages();
     createSemaphores();
+
+    initRenderScenes();
 
     logger.log().tab(-1);
 }

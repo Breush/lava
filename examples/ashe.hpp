@@ -10,6 +10,7 @@ namespace lava::ashe {
         Application(const std::string& title) { create(title); }
 
         magma::RenderEngine& engine() { return *m_engine; }
+        magma::RenderScene& scene() { return *m_scene; }
         magma::RenderWindow& window() { return *m_window; }
         magma::OrbitCamera& camera() { return *m_camera; }
         magma::PointLight& light() { return *m_light; }
@@ -25,16 +26,22 @@ namespace lava::ashe {
             // A window we can draw to.
             m_window = &m_engine->make<magma::RenderWindow>(crater::VideoMode{800, 600}, title);
 
+            // Render scene: holds what has to be drawn.
+            m_scene = &m_engine->make<magma::RenderScene>(magma::Extent2d{800, 600});
+
             // A camera.
-            m_camera = &m_engine->make<magma::OrbitCamera>();
+            m_camera = &m_scene->make<magma::OrbitCamera>();
             m_camera->position({0.f, 2.f, 0.75f});
             m_camera->target({0.f, 0.f, 0.5f});
             m_camera->viewportRatio(800.f / 600.f);
 
             // A light.
-            m_light = &m_engine->make<magma::PointLight>();
+            m_light = &m_scene->make<magma::PointLight>();
             m_light->position({5.f, 5.f, 0.f});
             m_light->radius(10.f);
+
+            // We decide to show the scene's camera "0" at a certain position in the window.
+            m_engine->addView(*m_scene, 0, *m_window, magma::Viewport{0, 0, 0.5, 0.5});
         }
 
         /// Simply run the main loop.
@@ -96,7 +103,7 @@ namespace lava::ashe {
             }
 
             case crater::Event::WindowResized: {
-                // m_scene->size({event.size.width, event.size.height});
+                m_scene->extent({event.size.width, event.size.height});
                 m_camera->viewportRatio(static_cast<float>(event.size.width) / static_cast<float>(event.size.height));
                 break;
             }
@@ -142,6 +149,7 @@ namespace lava::ashe {
 
     private:
         std::unique_ptr<magma::RenderEngine> m_engine = nullptr;
+        magma::RenderScene* m_scene = nullptr;
         magma::RenderWindow* m_window = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::PointLight* m_light = nullptr;

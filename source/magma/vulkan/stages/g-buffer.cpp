@@ -4,6 +4,7 @@
 
 #include "../helpers/shader.hpp"
 #include "../render-engine-impl.hpp"
+#include "../render-scenes/render-scene-impl.hpp"
 #include "../user-data-render.hpp"
 #include "../vertex.hpp"
 
@@ -36,18 +37,19 @@ namespace {
 using namespace lava::magma;
 using namespace lava::chamber;
 
-GBuffer::GBuffer(RenderEngine::Impl& engine)
-    : RenderStage(engine)
-    , m_vertexShaderModule{engine.device()}
-    , m_fragmentShaderModule{engine.device()}
-    , m_normalImageHolder{engine}
-    , m_albedoImageHolder{engine}
-    , m_ormImageHolder{engine}
-    , m_depthImageHolder{engine}
-    , m_cameraDescriptorHolder{engine}
-    , m_materialDescriptorHolder{engine}
-    , m_meshDescriptorHolder{engine}
-    , m_framebuffer{engine.device()}
+GBuffer::GBuffer(RenderScene::Impl& scene)
+    : RenderStage(scene.engine())
+    , m_scene(scene)
+    , m_vertexShaderModule{m_engine.device()}
+    , m_fragmentShaderModule{m_engine.device()}
+    , m_normalImageHolder{m_engine}
+    , m_albedoImageHolder{m_engine}
+    , m_ormImageHolder{m_engine}
+    , m_depthImageHolder{m_engine}
+    , m_cameraDescriptorHolder{m_engine}
+    , m_materialDescriptorHolder{m_engine}
+    , m_meshDescriptorHolder{m_engine}
+    , m_framebuffer{m_engine.device()}
 {
 }
 
@@ -55,7 +57,7 @@ GBuffer::GBuffer(RenderEngine::Impl& engine)
 
 void GBuffer::stageInit()
 {
-    logger.log() << "Initializing G-Buffer stage." << std::endl;
+    logger.info("magma.vulkan.stages.g-buffer") << "Initializing." << std::endl;
     logger.log().tab(1);
 
     //----- Shaders
@@ -126,7 +128,7 @@ void GBuffer::stageInit()
 
 void GBuffer::stageUpdate()
 {
-    logger.log() << "Updating G-Buffer stage." << std::endl;
+    logger.info("magma.vulkan.stages.g-buffer") << "Updating." << std::endl;
     logger.log().tab(1);
 
     createResources();
@@ -166,9 +168,9 @@ void GBuffer::stageRender(const vk::CommandBuffer& commandBuffer)
     userData.pipelineLayout = &m_pipelineLayout;
 
     // Draw all opaque meshes
-    for (auto& camera : m_engine.cameras()) {
+    for (auto& camera : m_scene.cameras()) {
         camera->render(&userData);
-        for (auto& mesh : m_engine.meshes()) {
+        for (auto& mesh : m_scene.meshes()) {
             mesh->render(&userData);
         }
 

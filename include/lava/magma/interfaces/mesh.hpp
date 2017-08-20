@@ -3,10 +3,6 @@
 #include <glm/mat4x4.hpp>
 
 namespace lava::magma {
-    class RenderEngine;
-}
-
-namespace lava::magma {
     /**
      * Interface for meshes.
      */
@@ -16,6 +12,8 @@ namespace lava::magma {
 
     public:
         virtual ~IMesh() = default;
+
+        virtual void init() = 0;
 
         /// Render the mesh.
         virtual UserData render(UserData data) = 0;

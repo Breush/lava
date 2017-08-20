@@ -48,6 +48,7 @@
     - RenderEngine: Make rendering dimensions independent to window ones
     - Clean up capsule.hpp
     - Replace useless const vk::Whatever& by vk::Whatever
+    - Move render-window.hpp to a render-targets/ folder
 - **improvement** 
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
     - Engine: update main command buffer every frame
@@ -74,7 +75,8 @@
     - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
-    - Scene: A scene holds some render stages an is binded to x render-targets
+    - RenderView: consider viewport
+    - RenderView: consider cameraIndex
     - Shader: Recompile on demand, removing the need to bind empty textures
     - Shader: ShaderManager to handle recompilation on the fly
     - Texture: Have the notion and a manager

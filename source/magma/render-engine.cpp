@@ -13,24 +13,14 @@ $pimpl_class(RenderEngine);
 $pimpl_method(RenderEngine, void, update);
 $pimpl_method(RenderEngine, void, draw);
 
-void RenderEngine::add(std::unique_ptr<ICamera>&& camera)
-{
-    m_impl->add(std::move(camera));
-}
+$pimpl_method(RenderEngine, uint32_t, addView, IRenderScene&, renderScene, uint32_t, renderSceneCameraIndex, IRenderTarget&,
+              renderTarget, Viewport, viewport);
 
-void RenderEngine::add(std::unique_ptr<IMaterial>&& material)
-{
-    m_impl->add(std::move(material));
-}
+//----- Adders
 
-void RenderEngine::add(std::unique_ptr<IMesh>&& mesh)
+void RenderEngine::add(std::unique_ptr<IRenderScene>&& renderScene)
 {
-    m_impl->add(std::move(mesh));
-}
-
-void RenderEngine::add(std::unique_ptr<IPointLight>&& pointLight)
-{
-    m_impl->add(std::move(pointLight));
+    m_impl->add(std::move(renderScene));
 }
 
 void RenderEngine::add(std::unique_ptr<IRenderTarget>&& renderTarget)

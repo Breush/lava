@@ -2,6 +2,8 @@
 
 #include "./render-stage.hpp"
 
+#include <lava/magma/render-scenes/render-scene.hpp>
+
 #include "../holders/buffer-holder.hpp"
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"
@@ -13,7 +15,7 @@ namespace lava::magma {
      */
     class Epiphany final : public RenderStage {
     public:
-        Epiphany(RenderEngine::Impl& engine);
+        Epiphany(RenderScene::Impl& scene);
 
         void normalImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
         void albedoImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
@@ -36,6 +38,9 @@ namespace lava::magma {
         void fillLll();
 
     private:
+        // References
+        const RenderScene::Impl& m_scene;
+
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;
         vulkan::ShaderModule m_fragmentShaderModule;

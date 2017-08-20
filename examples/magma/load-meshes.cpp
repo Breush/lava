@@ -10,7 +10,7 @@ int main(void)
 {
     ashe::Application app("ashe - magma | RmMaterial");
 
-    app.engine().make<magma::Mesh>("./assets/models/corset.glb");
+    app.scene().make<magma::Mesh>("./assets/models/corset.glb");
 
     app.run();
 

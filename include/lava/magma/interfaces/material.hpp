@@ -15,6 +15,8 @@ namespace lava::magma {
     public:
         virtual ~IMaterial() = default;
 
+        virtual void init() = 0;
+
         /// Render the material (bind it).
         virtual UserData render(UserData data) = 0;
     };

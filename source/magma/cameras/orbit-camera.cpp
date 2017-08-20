@@ -7,9 +7,10 @@
 
 using namespace lava::magma;
 
-$pimpl_class(OrbitCamera, RenderEngine&, engine);
+$pimpl_class(OrbitCamera, RenderScene&, scene);
 
 // ICamera
+$pimpl_method(OrbitCamera, void, init);
 $pimpl_method(OrbitCamera, ICamera::UserData, render, UserData, data);
 
 $pimpl_method_const(OrbitCamera, const glm::mat4&, viewTransform);

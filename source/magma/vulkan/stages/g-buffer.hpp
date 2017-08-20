@@ -2,6 +2,8 @@
 
 #include "./render-stage.hpp"
 
+#include <lava/magma/render-scenes/render-scene.hpp>
+
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"
 
@@ -11,7 +13,7 @@ namespace lava::magma {
      */
     class GBuffer final : public RenderStage {
     public:
-        GBuffer(RenderEngine::Impl& engine);
+        GBuffer(RenderScene::Impl& scene);
 
         vk::ImageView normalImageView() const { return m_normalImageHolder.view(); }
         vk::ImageView albedoImageView() const { return m_albedoImageHolder.view(); }
@@ -35,6 +37,9 @@ namespace lava::magma {
         void createFramebuffers();
 
     private:
+        // References
+        RenderScene::Impl& m_scene;
+
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;
         vulkan::ShaderModule m_fragmentShaderModule;

@@ -3,11 +3,14 @@
 #include <functional>
 #include <memory>
 
+#include <lava/magma/viewport.hpp>
+
 namespace lava::magma {
     class ICamera;
     class IMaterial;
     class IMesh;
     class IPointLight;
+    class IRenderScene;
     class IRenderTarget;
 }
 
@@ -27,16 +30,27 @@ namespace lava::magma {
         void update();
 
         /**
-         * @name Makers
-         * Make a new resource and add it to the engine.
-
-         * Arguments will be forwarded to the constructor.
-         * Any resource that match an adder (see below) can be made.
+         * Add a view of render scene's camera to a render-target.
+         * One can show multiple scenes to the same target
+         * or the same scene to multiple targets.
+         * Everything is possible.
          *
-         * ```
-         * auto& mesh = engine.make<Mesh>(); // Its lifetime is now managed by the engine.
-         * ```
+         * @return A unique identifier to the view generated.
          */
+        uint32_t addView(IRenderScene& renderScene, uint32_t renderSceneCameraIndex, IRenderTarget& renderTarget,
+                         Viewport viewport);
+
+        /**
+        * @name Makers
+        * Make a new resource and add it to the engine.
+
+        * Arguments will be forwarded to the constructor.
+        * Any resource that match an adder (see below) can be made.
+        *
+        * ```
+        * auto& scene = engine.make<RenderScene>(); // Its lifetime is now managed by the engine.
+        * ```
+        */
         /// @{
         /// Make a new resource directly.
         template <class T, class... Arguments>
@@ -54,10 +68,7 @@ namespace lava::magma {
          * For convenience, you usually want to use makers (see above).
          */
         /// @{
-        void add(std::unique_ptr<ICamera>&& camera);
-        void add(std::unique_ptr<IMaterial>&& material);
-        void add(std::unique_ptr<IMesh>&& mesh);
-        void add(std::unique_ptr<IPointLight>&& pointLight);
+        void add(std::unique_ptr<IRenderScene>&& renderScene);
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 

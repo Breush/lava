@@ -6,9 +6,10 @@
 
 using namespace lava::magma;
 
-$pimpl_class(RmMaterial, RenderEngine&, engine);
+$pimpl_class(RmMaterial, RenderScene&, scene);
 
 // IMaterial
+$pimpl_method(RmMaterial, void, init);
 $pimpl_method(RmMaterial, IMaterial::UserData, render, UserData, data);
 
 $pimpl_method_const(RmMaterial, float, roughness);

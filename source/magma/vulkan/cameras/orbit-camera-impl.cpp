@@ -3,24 +3,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <lava/chamber/logger.hpp>
 
-#include "../render-engine-impl.hpp"
+#include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
 #include "../user-data-render.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
-OrbitCamera::Impl::Impl(RenderEngine& engine)
-    : m_engine(engine.impl())
-    , m_uboHolder(m_engine)
+OrbitCamera::Impl::Impl(RenderScene& scene)
+    : m_scene(scene.impl())
+    , m_uboHolder(m_scene.engine())
 {
-    // Create descriptor set
-    m_descriptorSet = m_engine.cameraDescriptorHolder().allocateSet();
-
-    // Create uniform buffer
-    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::CameraUbo)});
-
-    updateBindings();
 }
 
 OrbitCamera::Impl::~Impl()
@@ -28,6 +21,15 @@ OrbitCamera::Impl::~Impl()
 }
 
 //----- ICamera
+
+void OrbitCamera::Impl::init()
+{
+    m_descriptorSet = m_scene.cameraDescriptorHolder().allocateSet();
+    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::CameraUbo)});
+
+    m_initialized = true;
+    updateBindings();
+}
 
 ICamera::UserData OrbitCamera::Impl::render(ICamera::UserData data)
 {
@@ -83,6 +85,8 @@ void OrbitCamera::Impl::updateProjectionTransform()
 
 void OrbitCamera::Impl::updateBindings()
 {
+    if (!m_initialized) return;
+
     vulkan::CameraUbo ubo;
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;

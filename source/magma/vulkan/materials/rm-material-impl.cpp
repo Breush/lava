@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "../render-engine-impl.hpp"
+#include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
 #include "../user-data-render.hpp"
 
@@ -63,19 +64,16 @@ namespace {
 using namespace lava::magma;
 using namespace lava::chamber;
 
-RmMaterial::Impl::Impl(RenderEngine& engine)
-    : m_engine(engine.impl())
-    , m_uboHolder(m_engine)
-    , m_normalImageHolder(m_engine)
-    , m_albedoImageHolder(m_engine)
-    , m_ormImageHolder(m_engine)
+RmMaterial::Impl::Impl(RenderScene& scene)
+    : m_scene(scene.impl())
+    , m_uboHolder(m_scene.engine())
+    , m_normalImageHolder(m_scene.engine())
+    , m_albedoImageHolder(m_scene.engine())
+    , m_ormImageHolder(m_scene.engine())
 {
     m_albedo.type = Attribute::Type::NONE;
     m_normal.type = Attribute::Type::NONE;
     m_orm.type = Attribute::Type::NONE;
-
-    init();
-    updateBindings();
 }
 
 RmMaterial::Impl::~Impl()
@@ -87,11 +85,11 @@ RmMaterial::Impl::~Impl()
 
 void RmMaterial::Impl::init()
 {
-    // Create descriptor set
-    m_descriptorSet = m_engine.materialDescriptorHolder().allocateSet();
-
-    // Create uniform buffer
+    m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet();
     m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::MaterialUbo)});
+
+    m_initialized = true;
+    updateBindings();
 }
 
 void RmMaterial::Impl::roughness(float factor)
@@ -159,6 +157,8 @@ IMaterial::UserData RmMaterial::Impl::render(IMaterial::UserData data)
 
 void RmMaterial::Impl::updateBindings()
 {
+    if (!m_initialized) return;
+
     // MaterialUbo
     vulkan::MaterialUbo ubo;
     ubo.roughnessFactor = m_roughnessFactor;
@@ -166,12 +166,12 @@ void RmMaterial::Impl::updateBindings()
     m_uboHolder.copy(0, ubo);
 
     // Samplers
-    bindTextureDescriptorSet(m_engine.device(), m_descriptorSet, 1u, m_engine.dummySampler(),
+    const auto& engine = m_scene.engine();
+    bindTextureDescriptorSet(engine.device(), m_descriptorSet, 1u, engine.dummySampler(),
                              (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view()
-                                                                         : m_engine.dummyNormalImageView());
-    bindTextureDescriptorSet(m_engine.device(), m_descriptorSet, 2u, m_engine.dummySampler(),
-                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view()
-                                                                         : m_engine.dummyImageView());
-    bindTextureDescriptorSet(m_engine.device(), m_descriptorSet, 3u, m_engine.dummySampler(),
-                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : m_engine.dummyImageView());
+                                                                         : engine.dummyNormalImageView());
+    bindTextureDescriptorSet(engine.device(), m_descriptorSet, 2u, engine.dummySampler(),
+                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view() : engine.dummyImageView());
+    bindTextureDescriptorSet(engine.device(), m_descriptorSet, 3u, engine.dummySampler(),
+                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : engine.dummyImageView());
 }

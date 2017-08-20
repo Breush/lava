@@ -23,7 +23,7 @@ Present::Present(RenderEngine::Impl& engine)
 
 void Present::stageInit()
 {
-    logger.log() << "Initializing Present Stage." << std::endl;
+    logger.info("magma.vulkan.stages.present") << "Initializing." << std::endl;
     logger.log().tab(1);
 
     if (!m_swapchainHolder) {
@@ -59,10 +59,9 @@ void Present::stageInit()
 
 void Present::stageUpdate()
 {
-    logger.log() << "Updating Present stage." << std::endl;
+    logger.info("magma.vulkan.stages.present") << "Updating." << std::endl;
     logger.log().tab(1);
 
-    createResources();
     createFramebuffers();
 
     logger.log().tab(-1);
@@ -103,11 +102,6 @@ void Present::stageRender(const vk::CommandBuffer& commandBuffer)
 }
 
 //----- Internal
-
-void Present::createResources()
-{
-    // __Note__: Nothing.
-}
 
 void Present::createFramebuffers()
 {

@@ -2,7 +2,7 @@
 
 #include <lava/magma/materials/rm-material.hpp>
 
-#include <lava/magma/render-engine.hpp>
+#include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/image-holder.hpp"
 #include "../holders/ubo-holder.hpp"
@@ -13,10 +13,11 @@ namespace lava::magma {
      */
     class RmMaterial::Impl {
     public:
-        Impl(RenderEngine& engine);
+        Impl(RenderScene& scene);
         ~Impl();
 
         // IMaterial
+        void init();
         IMaterial::UserData render(IMaterial::UserData data);
 
         // RmMaterial
@@ -31,8 +32,6 @@ namespace lava::magma {
         void metallicRoughnessColor(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
 
     protected:
-        void init();
-
         void updateBindings();
 
     public:
@@ -57,7 +56,8 @@ namespace lava::magma {
 
     private:
         // References
-        RenderEngine::Impl& m_engine;
+        RenderScene::Impl& m_scene;
+        bool m_initialized = false;
 
         // Descriptor
         vk::DescriptorSet m_descriptorSet;

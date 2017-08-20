@@ -3,7 +3,7 @@
 #include <lava/magma/lights/point-light.hpp>
 
 #include <lava/chamber/macros.hpp>
-#include <lava/magma/render-engine.hpp>
+#include <lava/magma/render-scenes/render-scene.hpp>
 
 namespace lava::magma {
     /**
@@ -11,12 +11,16 @@ namespace lava::magma {
      */
     class PointLight::Impl {
     public:
-        Impl(RenderEngine& engine);
+        Impl(RenderScene& scene);
         ~Impl() = default;
+
+        // IPointLight
+        void init();
 
     private:
         // References
-        RenderEngine::Impl& m_engine;
+        RenderScene::Impl& m_scene;
+        bool m_initialized = false;
 
         // IPointLight
         $property(glm::vec3, position);

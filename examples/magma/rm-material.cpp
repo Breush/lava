@@ -16,8 +16,8 @@ int main(void)
     const float spheresSideCountRange = SPHERES_SIDE_COUNT - 1u;
     for (auto i = 0u; i < SPHERES_SIDE_COUNT; ++i) {
         for (auto j = 0u; j < SPHERES_SIDE_COUNT; ++j) {
-            auto& sphereMesh = app.engine().make(magma::makers::sphereMeshMaker(32, 0.5));
-            auto& material = app.engine().make<magma::RmMaterial>();
+            auto& sphereMesh = app.scene().make(magma::makers::sphereMeshMaker(32, 0.5));
+            auto& material = app.scene().make<magma::RmMaterial>();
             material.roughness(i / spheresSideCountRange);
             material.metallic(j / spheresSideCountRange);
             sphereMesh.material(material);

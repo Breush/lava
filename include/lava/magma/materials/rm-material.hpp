@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/magma/interfaces/material.hpp>
+#include <lava/magma/render-scenes/render-scene.hpp>
 
 #include <cstdint>
 #include <vector>
@@ -11,10 +12,11 @@ namespace lava::magma {
      */
     class RmMaterial final : public IMaterial {
     public:
-        RmMaterial(RenderEngine& engine);
+        RmMaterial(RenderScene& scene);
         ~RmMaterial();
 
         // IMaterial
+        void init() override final;
         UserData render(UserData data) override final;
 
         /// Roughness factor that will be multiplied to the roughness map value.

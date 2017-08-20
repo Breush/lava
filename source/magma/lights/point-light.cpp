@@ -4,11 +4,10 @@
 
 using namespace lava::magma;
 
-$pimpl_class(PointLight, RenderEngine&, engine);
+$pimpl_class(PointLight, RenderScene&, scene);
 
 // IPointLight
-$pimpl_method_const(PointLight, const glm::vec3&, position);
-$pimpl_method_const(PointLight, float, radius);
+$pimpl_method(PointLight, void, init);
 
-$pimpl_method(PointLight, void, position, const glm::vec3&, position);
-$pimpl_method(PointLight, void, radius, float, radius);
+$pimpl_property(PointLight, glm::vec3, position);
+$pimpl_property_v(PointLight, float, radius);

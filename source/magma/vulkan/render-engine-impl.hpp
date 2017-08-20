@@ -3,18 +3,13 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/macros.hpp>
 #include <lava/crater/window.hpp>
-#include <lava/magma/interfaces/camera.hpp>
-#include <lava/magma/interfaces/material.hpp>
-#include <lava/magma/interfaces/mesh.hpp>
-#include <lava/magma/interfaces/point-light.hpp>
+#include <lava/magma/interfaces/render-scene.hpp>
 #include <lava/magma/interfaces/render-target.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "./holders/device-holder.hpp"
 #include "./holders/instance-holder.hpp"
 #include "./render-target-data.hpp"
-#include "./stages/epiphany.hpp"
-#include "./stages/g-buffer.hpp"
 #include "./stages/present.hpp"
 #include "./wrappers.hpp"
 
@@ -30,15 +25,14 @@ namespace lava::magma {
         // Main interface
         void draw();
         void update();
+        uint32_t addView(IRenderScene& renderScene, uint32_t renderSceneCameraIndex, IRenderTarget& renderTarget,
+                         Viewport viewport);
 
         /**
          * @name Adders
          */
         /// @{
-        void add(std::unique_ptr<ICamera>&& camera) { m_cameras.emplace_back(std::move(camera)); }
-        void add(std::unique_ptr<IMaterial>&& material) { m_materials.emplace_back(std::move(material)); }
-        void add(std::unique_ptr<IMesh>&& mesh) { m_meshes.emplace_back(std::move(mesh)); }
-        void add(std::unique_ptr<IPointLight>&& pointLight) { m_pointLights.emplace_back(std::move(pointLight)); }
+        void add(std::unique_ptr<IRenderScene>&& renderScene);
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 
@@ -51,10 +45,6 @@ namespace lava::magma {
         const vk::PhysicalDevice& physicalDevice() const { return m_deviceHolder.physicalDevice(); }
         const vk::Queue& graphicsQueue() const { return m_deviceHolder.graphicsQueue(); }
         const vk::Queue& presentQueue() const { return m_deviceHolder.presentQueue(); }
-
-        const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_gBuffer.cameraDescriptorHolder(); }
-        const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_gBuffer.materialDescriptorHolder(); }
-        const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_gBuffer.meshDescriptorHolder(); }
         /// @}
 
         /**
@@ -69,29 +59,16 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
-        const ICamera& camera(uint32_t index) const { return *m_cameras[index]; }
-        const IMaterial& material(uint32_t index) const { return *m_materials[index]; }
-        const IMesh& mesh(uint32_t index) const { return *m_meshes[index]; }
-        const IPointLight& pointLight(uint32_t index) const { return *m_pointLights[index]; }
-
-        const std::vector<std::unique_ptr<ICamera>>& cameras() const { return m_cameras; }
-        const std::vector<std::unique_ptr<IMaterial>>& materials() const { return m_materials; }
-        const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
-        const std::vector<std::unique_ptr<IPointLight>>& pointLights() const { return m_pointLights; }
-
         void updateRenderTarget(uint32_t renderTargetId);
         /// @}
 
     protected:
         void initVulkan();
         void initVulkanDevice(vk::SurfaceKHR surface);
+        void initRenderScenes();
 
-        // Pipelines
-        void initStages();
-        void updateStages();
+        // Resources
         void createSemaphores();
-
-        // Dummies
         void createDummyTextures();
 
         // Command buffers
@@ -103,20 +80,21 @@ namespace lava::magma {
         /// This bundle is what each render target needs.
         struct RenderTargetBundle {
             std::unique_ptr<IRenderTarget> renderTarget;
-            std::unique_ptr<Present> presentStage;
             std::vector<vk::CommandBuffer> commandBuffers;
 
             inline const DataRenderTarget& data() { return *reinterpret_cast<const DataRenderTarget*>(renderTarget->data()); }
         };
 
+        /// A view bind a scene and a target.
+        struct RenderView {
+            IRenderScene* renderScene = nullptr;
+            IRenderTarget* renderTarget = nullptr;
+            std::unique_ptr<Present> presentStage;
+        };
+
     private:
         vulkan::InstanceHolder m_instanceHolder;
         vulkan::DeviceHolder m_deviceHolder;
-
-        // Rendering stages
-        // @note We currently have only one scene, so these are standalone here.
-        GBuffer m_gBuffer{*this};
-        Epiphany m_epiphany{*this};
 
         // Commands
         $attribute(vulkan::CommandPool, commandPool, {device()});
@@ -139,10 +117,8 @@ namespace lava::magma {
         vulkan::Semaphore m_renderFinishedSemaphore{device()};
 
         // Data
-        std::vector<std::unique_ptr<ICamera>> m_cameras;
-        std::vector<std::unique_ptr<IMaterial>> m_materials;
-        std::vector<std::unique_ptr<IMesh>> m_meshes;
-        std::vector<std::unique_ptr<IPointLight>> m_pointLights;
+        std::vector<std::unique_ptr<IRenderScene>> m_renderScenes;
         std::vector<RenderTargetBundle> m_renderTargetBundles;
+        std::vector<RenderView> m_renderViews;
     };
 }

@@ -10,10 +10,11 @@ namespace lava::magma {
      */
     class OrbitCamera final : public ICamera {
     public:
-        OrbitCamera(RenderEngine& engine);
+        OrbitCamera(RenderScene& scene);
         ~OrbitCamera();
 
         // ICamera
+        void init() override final;
         UserData render(UserData data) override final;
         const glm::vec3& position() const override final;
         const glm::mat4& viewTransform() const override final;

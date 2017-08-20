@@ -12,14 +12,14 @@
 using namespace lava::magma;
 using namespace lava::chamber;
 
-Mesh::Mesh(RenderEngine& engine)
-    : m_engine(engine)
+Mesh::Mesh(RenderScene& scene)
+    : m_scene(scene)
 {
-    m_impl = new Impl(engine);
+    m_impl = new Impl(scene);
 }
 
-Mesh::Mesh(RenderEngine& engine, const std::string& fileName)
-    : Mesh(engine)
+Mesh::Mesh(RenderScene& scene, const std::string& fileName)
+    : Mesh(scene)
 {
     load(fileName);
 }
@@ -29,6 +29,7 @@ Mesh::~Mesh()
     delete m_impl;
 }
 
+$pimpl_method(Mesh, void, init);
 $pimpl_method(Mesh, IMesh::UserData, render, IMesh::UserData, data);
 $pimpl_method_const(Mesh, const glm::mat4&, worldTransform);
 
@@ -133,7 +134,7 @@ void Mesh::load(const std::string& fileName)
     // Material
     uint32_t materialIndex = primitive["material"];
     glb::PbrMetallicRoughnessMaterial material(materials[materialIndex]);
-    auto& rmMaterial = m_engine.make<RmMaterial>();
+    auto& rmMaterial = m_scene.make<RmMaterial>();
 
     // Material textures
     if (material.baseColorTextureIndex != -1u) {

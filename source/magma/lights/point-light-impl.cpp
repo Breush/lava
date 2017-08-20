@@ -2,7 +2,12 @@
 
 using namespace lava::magma;
 
-PointLight::Impl::Impl(RenderEngine& engine)
-    : m_engine(engine.impl())
+PointLight::Impl::Impl(RenderScene& scene)
+    : m_scene(scene.impl())
 {
+}
+
+void PointLight::Impl::init()
+{
+    m_initialized = true;
 }
