@@ -5,21 +5,21 @@ project "lava-chamber"
     files "chamber/**"
     excludes "chamber/call-stack/**"
 
-    if os.get() == "linux" then
+    if os.host() == "linux" then
         defines { "LAVA_CHAMBER_CALLSTACK_GCC" }
         files "chamber/call-stack/gcc/**"
 
-    elseif os.get() == "windows" then
+    elseif os.host() == "windows" then
         defines { "LAVA_CHAMBER_CALLSTACK_MINGW" }
         files "chamber/call-stack/mingw/**"
 
     else
-        error("Unsupported platform " + os.get())
+        error("Unsupported platform " + os.host())
 
     end
 
     function chamberDependencies()
-        if os.get() == "windows" then
+        if os.host() == "windows" then
             buildoptions { "-mwindows", "-municode" }
             links { "DbgHelp" }
         

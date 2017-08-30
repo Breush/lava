@@ -5,21 +5,21 @@ project "lava-crater"
     files "crater/**"
     excludes "crater/window/**"
 
-    if os.get() == "linux" then
+    if os.host() == "linux" then
         defines { "LAVA_CRATER_WINDOW_XCB" }
         files "crater/window/xcb/**"
 
-    elseif os.get() == "windows" then
+    elseif os.host() == "windows" then
         defines { "LAVA_CRATER_WINDOW_DWM" }
         files "crater/window/dwm/**"
 
     else
-        error("Unsupported platform " + os.get())
+        error("Unsupported platform " + os.host())
 
     end
 
     function craterDependencies()
-        if os.get() == "linux" then
+        if os.host() == "linux" then
             local libXCB = os.findlib "xcb"
             if not libXCB then
                 error "XCB dev files are required, please install libxcb1-dev libxcb-keysyms1-dev"
@@ -27,11 +27,11 @@ project "lava-crater"
             libdirs(libXCB)
             links { "xcb", "xcb-keysyms" }
 
-        elseif os.get() == "windows" then
+        elseif os.host() == "windows" then
             buildoptions { "-mwindows", "-municode" }
 
         else
-            error("Unsupported platform " + os.get())
+            error("Unsupported platform " + os.host())
 
         end
 

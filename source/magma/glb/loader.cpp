@@ -5,7 +5,7 @@ using namespace lava::glb;
 Image::Image(const typename nlohmann::json::basic_json& json)
 {
     bufferView = json["bufferView"];
-    mimeType = json["mimeType"];
+    mimeType = static_cast<std::string>(json["mimeType"]);
 }
 
 Texture::Texture(const typename nlohmann::json::basic_json& json)

@@ -5,14 +5,14 @@ project "lava-magma"
     files "magma/**"
 
     function magmaDependencies()
-        if os.get() == "linux" then
+        if os.host() == "linux" then
             defines { "VK_USE_PLATFORM_XCB_KHR" }
 
-        elseif os.get() == "windows" then
+        elseif os.host() == "windows" then
             defines { "VK_USE_PLATFORM_WIN32_KHR" }
 
         else
-            error("Unsupported platform " + os.get())
+            error("Unsupported platform " + os.host())
 
         end
 

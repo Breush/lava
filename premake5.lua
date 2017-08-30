@@ -12,14 +12,14 @@ workspace "lava-renderer"
     includedirs "include"
 
     filter { "configurations:debug" }
-        flags { "c++14" }
+        cppdialect "C++17"
         buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
         -- vulkan.hpp was not ready for that
         -- buildoptions { "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
         symbols "on"
 
     filter { "configurations:release" }
-        flags { "c++14" }
+        cppdialect "C++17"
         optimize "on"
 
         -- For release only, copy all the shared libs

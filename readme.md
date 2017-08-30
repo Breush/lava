@@ -50,7 +50,7 @@ The **lava** project is in fact a bundle of multiple projects.
 </table>
 
 The core principles of **lava** are:
-- Be *up-to-date* with C++ standard (currently set to C++14) to make your code-life easier ;
+- Be *up-to-date* with C++ standard (currently set to C++17) to make your code-life easier ;
 - Keep your *APIs clean* (each project has a public interface with no more information than needed) ;
 - *Decouple* as much as you can, keeping different concepts encapsulated.
 

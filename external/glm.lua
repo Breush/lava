@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "GLM"
-local VERSION = "0.9.8.4"
+local VERSION = "0.9.8.5"
 
 -- Download
 

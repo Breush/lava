@@ -11,7 +11,7 @@ if not fileValid(localFile) then
     os.execute("rm --recursive ./include/vulkan")
 
     local filename = "linux/vulkansdk-linux-x86_64-" .. VERSION .. ".run"
-    if os.get() == "windows" then
+    if os.host() == "windows" then
         filename = "windows/VulkanSDK-" .. VERSION .. ".run"
     end
     
@@ -35,7 +35,7 @@ end
 if not fileExists("./include/vulkan") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
 
-    if os.get() == "windows" then
+    if os.host() == "windows" then
         local installFolder = path.getabsolute("./.tmp/vulkan-sdk"):gsub("/", "\\")
         os.execute("mv " .. localFile .. " vulkan-sdk.exe")
         os.execute("vulkan-sdk.exe /S /D=" .. installFolder)
@@ -52,7 +52,7 @@ function useVulkanSdk()
     includedirs(externalPath .. "/include")
     libdirs(externalPath .. "/lib")
 
-    if os.get() == "windows" then 
+    if os.host() == "windows" then 
         links { "vulkan-1" }
     else
         links { "vulkan" }
