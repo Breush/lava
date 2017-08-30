@@ -4,50 +4,7 @@
 
 The **lava** project is in fact a bundle of multiple projects.
 
-<table>
-    <tr>
-        <td colspan="4">
-            <strong>chamber</strong><br/>
-            Cross-projects core tools
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2">
-            <strong>crater</strong><br/>
-            Window and events
-        </td>
-        <td rowspan="2">
-            <strong>dike</strong><br/>
-            Physics
-        </td>
-        <td rowspan="2">
-            <strong>flow</strong><br/>
-            Sound
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2">
-            <strong>magma</strong><br/>
-            Renderer
-        </td>
-    </tr>
-    <tr>
-        <td colspan="4">
-            <strong>sill</strong><br/>
-            Behaviour and engine interface
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2">
-            <strong>ashes</strong><br/>
-            Example applications
-        </td>
-        <td colspan="2">
-            <strong>caldera</strong><br/>
-            UI engine
-        </td>
-    </tr>
-</table>
+![lava composition](doc/images/lava-composition.png)
 
 The core principles of **lava** are:
 - Be *up-to-date* with C++ standard (currently set to C++17) to make your code-life easier ;
