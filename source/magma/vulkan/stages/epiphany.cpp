@@ -42,12 +42,23 @@ Epiphany::Epiphany(RenderScene::Impl& scene)
 {
 }
 
+void Epiphany::init(uint32_t cameraId)
+{
+    m_cameraId = cameraId;
+
+    RenderStage::init();
+}
+
 //----- RenderStage
 
 void Epiphany::stageInit()
 {
     logger.info("magma.vulkan.stages.epiphany") << "Initializing." << std::endl;
     logger.log().tab(1);
+
+    if (m_cameraId == -1u) {
+        logger.error("magma.vulkan.stages.epiphany") << "Initialized with no cameraId provided." << std::endl;
+    }
 
     //----- Shaders
 
@@ -63,7 +74,7 @@ void Epiphany::stageInit()
 
     // UBO: camera, light
     // CIS: normal, albedo, orm, depth
-    m_descriptorHolder.init(2, 4, 1, vk::ShaderStageFlagBits::eFragment);
+    m_descriptorHolder.init({1, 1}, {1, 1, 1, 1}, 1, vk::ShaderStageFlagBits::eFragment);
     add(m_descriptorHolder.setLayout());
 
     m_descriptorSet = m_descriptorHolder.allocateSet();
@@ -234,16 +245,14 @@ void Epiphany::updateUbos()
 {
     //----- Camera UBO
 
-    if (m_scene.cameras().size() > 0) {
-        const auto& camera = m_scene.camera(0);
+    const auto& camera = m_scene.camera(m_cameraId);
 
-        CameraUbo ubo;
-        ubo.invertedView = glm::inverse(camera.viewTransform());
-        ubo.invertedProjection = glm::inverse(camera.projectionTransform());
-        ubo.wPosition = glm::vec4(camera.position(), 1.f);
+    CameraUbo ubo;
+    ubo.invertedView = glm::inverse(camera.viewTransform());
+    ubo.invertedProjection = glm::inverse(camera.projectionTransform());
+    ubo.wPosition = glm::vec4(camera.position(), 1.f);
 
-        m_uboHolder.copy(0, ubo);
-    }
+    m_uboHolder.copy(0, ubo);
 
     //----- Light UBO
 

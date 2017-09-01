@@ -6,6 +6,7 @@
 
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"
+#include "../holders/ubo-holder.hpp"
 
 namespace lava::magma::vulkan {
     class SwapchainHolder;
@@ -20,7 +21,12 @@ namespace lava::magma {
         Present(RenderEngine::Impl& engine);
 
         void bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder);
-        void imageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
+
+        /// Render an image to binded swapchain in a specific viewport.
+        uint32_t addView(vk::ImageView imageView, vk::Sampler sampler, Viewport viewport);
+
+        /// Update the image of the specified view.
+        void updateView(uint32_t viewId, vk::ImageView imageView, vk::Sampler sampler);
 
     protected:
         // RenderStage
@@ -34,10 +40,14 @@ namespace lava::magma {
         // References
         const vulkan::SwapchainHolder* m_swapchainHolder = nullptr;
 
+        // Configuration
+        std::vector<Viewport> m_viewports;
+
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;
         vulkan::ShaderModule m_fragmentShaderModule;
         vulkan::DescriptorHolder m_descriptorHolder;
+        vulkan::UboHolder m_uboHolder;
         vk::DescriptorSet m_descriptorSet;
         std::vector<vulkan::Framebuffer> m_framebuffers;
     };

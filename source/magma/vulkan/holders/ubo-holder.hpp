@@ -2,27 +2,43 @@
 
 #include <lava/magma/render-engine.hpp>
 
-#include "./buffer-holder.hpp"
 #include "../wrappers.hpp"
+#include "./buffer-holder.hpp"
 
 namespace lava::magma::vulkan {
     /**
      * Simple wrapper to be used as uniform buffer objects.
      */
     class UboHolder {
+        struct UboSize {
+            vk::DeviceSize size;
+            uint32_t count;
+
+            UboSize(vk::DeviceSize size)
+                : UboSize(size, 1u)
+            {
+            }
+
+            UboSize(vk::DeviceSize size, uint32_t count)
+                : size(size)
+                , count(count)
+            {
+            }
+        };
+
     public:
         UboHolder() = delete;
         UboHolder(const RenderEngine::Impl& engine);
 
         /// Initialize the set to be used with all the sizes of the ubos.
-        void init(vk::DescriptorSet descriptorSet, const std::vector<uint32_t>& uboSizes);
+        void init(vk::DescriptorSet descriptorSet, const std::vector<UboSize>& uboSizes);
 
         /// Copy data to the specified buffer.
-        void copy(uint32_t bufferIndex, const void* data, vk::DeviceSize size);
+        void copy(uint32_t bufferIndex, const void* data, vk::DeviceSize size, uint32_t arrayIndex = 0u);
 
         /// Helper function to copy data to the specified buffer.
         template <class T>
-        void copy(uint32_t bufferIndex, const T& data);
+        void copy(uint32_t bufferIndex, const T& data, uint32_t arrayIndex = 0u);
 
     private:
         // References
@@ -31,6 +47,9 @@ namespace lava::magma::vulkan {
 
         // Resources
         std::vector<vulkan::BufferHolder> m_bufferHolders;
+
+        // Internals
+        vk::DeviceSize m_offsetAlignment;
     };
 }
 

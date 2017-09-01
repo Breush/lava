@@ -31,7 +31,7 @@ void RenderStage::update(const vk::Extent2D& extent)
             << "Skipping update with invalid extent " << extent.width << "x" << extent.height << "." << std::endl;
         return;
     }
-    else if (m_updateCleverlySkipped && (extent.width == m_extent.width || extent.height == m_extent.height)) {
+    else if (m_updateCleverlySkipped && (extent.width == m_extent.width && extent.height == m_extent.height)) {
         logger.info("magma.vulkan.stages.render-stage") << "Skipping update with same extent." << std::endl;
         return;
     }

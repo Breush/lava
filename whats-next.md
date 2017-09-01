@@ -27,6 +27,9 @@
 ## Magma
 
 - **up**
+    - Mesh: allow not to have to specify a material
+    - Fix top-view camera
+    - Fix duck.glb loading
     - Light Linked List Renderer
         - Fill linked list
             - Software depth test
@@ -54,7 +57,6 @@
     - GLB: pass factors and colors (with textures)
     - Mesh: compute tangents if not provided
     - Mesh: have own secondary buffers
-    - Mesh: allow not to have to specify a material (defaults to RmMaterial?)
     - Node: Hierarchy and update transforms
     - OrbitCamera: FOV and up-vector configurable
     - PBR: albedo color factors and such
@@ -64,6 +66,7 @@
     - RmMaterial: Clarify albedo/normalMap usage
     - SphereMesh: fix poles tangents
     - SphereMesh: uv mapping
+    - Viewport: specify region to be shown
 - **feature**
     - DirectionalLight
     - Light: Allow multiple lights (how many? how to optimize stationary ones?)
@@ -71,8 +74,6 @@
     - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
-    - RenderView: consider viewport
-    - RenderView: consider cameraIndex
     - Shader: Recompile on demand, removing the need to bind empty textures
     - Shader: ShaderManager to handle recompilation on the fly
     - Texture: Have the notion and a manager

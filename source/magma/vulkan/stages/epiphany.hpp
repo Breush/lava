@@ -17,6 +17,8 @@ namespace lava::magma {
     public:
         Epiphany(RenderScene::Impl& scene);
 
+        void init(uint32_t cameraId);
+
         void normalImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
         void albedoImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
         void ormImageView(const vk::ImageView& imageView, const vk::Sampler& sampler);
@@ -40,6 +42,7 @@ namespace lava::magma {
     private:
         // References
         const RenderScene::Impl& m_scene;
+        uint32_t m_cameraId = -1u;
 
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;

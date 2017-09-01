@@ -3,6 +3,7 @@
 #include <lava/chamber/logger.hpp>
 #include <vulkan/vulkan.h>
 
+#include "../helpers/descriptor.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
@@ -36,27 +37,6 @@ namespace {
 
         texture.pixels = new uint8_t[pixels.size()];
         memcpy(texture.pixels, pixels.data(), pixels.size());
-    }
-
-    void bindTextureDescriptorSet(vk::Device device, vk::DescriptorSet descriptorSet, uint32_t dstBinding, vk::Sampler sampler,
-                                  vk::ImageView imageView)
-    {
-        vk::DescriptorImageInfo imageInfo;
-        imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-        imageInfo.imageView = imageView;
-        imageInfo.sampler = sampler;
-
-        vk::WriteDescriptorSet descriptorWrite;
-        descriptorWrite.dstSet = descriptorSet;
-        descriptorWrite.dstBinding = dstBinding;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = nullptr;
-        descriptorWrite.pImageInfo = &imageInfo;
-        descriptorWrite.pTexelBufferView = nullptr;
-
-        device.updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
     }
 }
 
@@ -160,11 +140,17 @@ void RmMaterial::Impl::updateBindings()
 
     // Samplers
     const auto& engine = m_scene.engine();
-    bindTextureDescriptorSet(engine.device(), m_descriptorSet, 1u, engine.dummySampler(),
-                             (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view()
-                                                                         : engine.dummyNormalImageView());
-    bindTextureDescriptorSet(engine.device(), m_descriptorSet, 2u, engine.dummySampler(),
-                             (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view() : engine.dummyImageView());
-    bindTextureDescriptorSet(engine.device(), m_descriptorSet, 3u, engine.dummySampler(),
-                             (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : engine.dummyImageView());
+    const auto& sampler = engine.dummySampler();
+    const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+    const auto normalImageView =
+        (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view() : engine.dummyNormalImageView();
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, normalImageView, sampler, imageLayout, 1u);
+
+    const auto albedoImageView =
+        (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view() : engine.dummyImageView();
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, albedoImageView, sampler, imageLayout, 2u);
+
+    const auto ormImageView = (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : engine.dummyImageView();
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, ormImageView, sampler, imageLayout, 3u);
 }

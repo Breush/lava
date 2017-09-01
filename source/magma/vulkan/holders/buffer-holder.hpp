@@ -23,7 +23,7 @@ namespace lava::magma::vulkan {
         void create(vk::BufferUsageFlagBits usage, vk::DeviceSize size);
 
         /// Copy data to the buffer.
-        void copy(const void* data, vk::DeviceSize size);
+        void copy(const void* data, vk::DeviceSize size, vk::DeviceSize offset = 0u);
 
         /// Helper function to copy data to the buffer.
         template <class T>

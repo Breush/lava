@@ -47,11 +47,15 @@ GBuffer::GBuffer(RenderScene::Impl& scene)
     , m_albedoImageHolder{m_engine}
     , m_ormImageHolder{m_engine}
     , m_depthImageHolder{m_engine}
-    , m_cameraDescriptorHolder{m_engine}
-    , m_materialDescriptorHolder{m_engine}
-    , m_meshDescriptorHolder{m_engine}
     , m_framebuffer{m_engine.device()}
 {
+}
+
+void GBuffer::init(uint32_t cameraId)
+{
+    m_cameraId = cameraId;
+
+    RenderStage::init();
 }
 
 //----- RenderStage
@@ -60,6 +64,10 @@ void GBuffer::stageInit()
 {
     logger.info("magma.vulkan.stages.g-buffer") << "Initializing." << std::endl;
     logger.log().tab(1);
+
+    if (m_cameraId == -1u) {
+        logger.error("magma.vulkan.stages.g-buffer") << "Initialized with no cameraId provided." << std::endl;
+    }
 
     //----- Shaders
 
@@ -73,14 +81,10 @@ void GBuffer::stageInit()
 
     //----- Descriptor set layouts
 
-    m_cameraDescriptorHolder.init(1, 0, 1, vk::ShaderStageFlagBits::eVertex);
-    m_materialDescriptorHolder.init(1, 3, 128, vk::ShaderStageFlagBits::eFragment);
-    m_meshDescriptorHolder.init(1, 0, 128, vk::ShaderStageFlagBits::eVertex);
-
     // @note Ordering is important
-    add(m_cameraDescriptorHolder.setLayout());
-    add(m_materialDescriptorHolder.setLayout());
-    add(m_meshDescriptorHolder.setLayout());
+    add(m_scene.cameraDescriptorHolder().setLayout());
+    add(m_scene.materialDescriptorHolder().setLayout());
+    add(m_scene.meshDescriptorHolder().setLayout());
 
     //----- Attachments
 
@@ -164,17 +168,13 @@ void GBuffer::stageRender(const vk::CommandBuffer& commandBuffer)
 
     //----- Render
 
-    // Draw all opaque meshes
-    // @todo We should have the camera index somewhere
-    for (auto& camera : m_scene.cameras()) {
-        camera->interfaceImpl().render(commandBuffer, m_pipelineLayout, CAMERA_DESCRIPTOR_SET_INDEX);
-        for (auto& mesh : m_scene.meshes()) {
-            mesh->interfaceImpl().render(commandBuffer, m_pipelineLayout, MESH_DESCRIPTOR_SET_INDEX);
-        }
+    // Set the camera
+    auto& camera = m_scene.camera(m_cameraId);
+    camera.render(commandBuffer, m_pipelineLayout, CAMERA_DESCRIPTOR_SET_INDEX);
 
-        // @todo Handle multiple cameras?
-        // -> Probably not
-        break;
+    // Draw all opaque meshes
+    for (auto& mesh : m_scene.meshes()) {
+        mesh->interfaceImpl().render(commandBuffer, m_pipelineLayout, MESH_DESCRIPTOR_SET_INDEX);
     }
 
     //----- Epilogue

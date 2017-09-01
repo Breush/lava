@@ -58,6 +58,17 @@ namespace lava::magma {
         /// Set the depth/stencil attachment.
         void set(const DepthStencilAttachment& depthStencilAttachment);
 
+    protected:
+        //----- Pipeline creation defaults
+
+        virtual vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo();
+        virtual vk::PipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo();
+        virtual vk::PipelineViewportStateCreateInfo pipelineViewportStateCreateInfo();
+        virtual vk::PipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo();
+        virtual vk::PipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo();
+        virtual vk::PipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo();
+        virtual vk::PipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo();
+
     private:
         //----- Set-up
 
@@ -69,16 +80,6 @@ namespace lava::magma {
 
         /// Creates the pipeline. All shader stages must have been added.
         void updatePipeline();
-
-        //----- Pipeline creation defaults
-
-        virtual vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo();
-        virtual vk::PipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo();
-        virtual vk::PipelineViewportStateCreateInfo pipelineViewportStateCreateInfo();
-        virtual vk::PipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo();
-        virtual vk::PipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo();
-        virtual vk::PipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo();
-        virtual vk::PipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo();
 
     protected:
         RenderEngine::Impl& m_engine;
@@ -92,6 +93,10 @@ namespace lava::magma {
         vulkan::PipelineLayout m_pipelineLayout;
         vulkan::Pipeline m_pipeline;
 
+        // CreateInfo dependencies
+        vk::Rect2D m_scissor;
+        vk::Viewport m_viewport;
+
     private:
         // Configuration internals
         std::vector<ColorAttachment> m_colorAttachments;
@@ -99,7 +104,5 @@ namespace lava::magma {
         std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
         std::vector<vk::PipelineShaderStageCreateInfo> m_shaderStages;
         std::vector<vk::PipelineColorBlendAttachmentState> m_colorBlendAttachmentStates;
-        vk::Rect2D m_scissor;
-        vk::Viewport m_viewport;
     };
 }

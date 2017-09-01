@@ -12,8 +12,11 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/descriptor-holder.hpp"
-#include "../stages/epiphany.hpp"
-#include "../stages/g-buffer.hpp"
+
+namespace lava::magma {
+    class GBuffer;
+    class Epiphany;
+}
 
 namespace lava::magma {
     /**
@@ -22,19 +25,17 @@ namespace lava::magma {
     class RenderScene::Impl final : public IRenderScene::Impl {
     public:
         Impl(RenderEngine& engine);
+        ~Impl();
 
         /// Get the engine implementation.
         RenderEngine::Impl& engine() { return m_engine; }
         const RenderEngine::Impl& engine() const { return m_engine; }
 
         // IRenderScene
-        void init() override final;
-
-        Extent2d extent() const override final { return {m_extent.width, m_extent.height}; }
-        void extent(Extent2d extent) override final;
+        void init(uint32_t id) override final;
 
         void render(vk::CommandBuffer commandBuffer) override final;
-        vk::ImageView renderedImageView() const override final { return m_epiphany.imageView(); }
+        vk::ImageView renderedImageView(uint32_t cameraIndex) const override final;
 
         /**
          * @name Adders
@@ -50,21 +51,22 @@ namespace lava::magma {
          * @name Getters
          */
         /// @{
-        const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_gBuffer.cameraDescriptorHolder(); }
-        const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_gBuffer.materialDescriptorHolder(); }
-        const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_gBuffer.meshDescriptorHolder(); }
+        const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_cameraDescriptorHolder; }
+        const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
+        const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_meshDescriptorHolder; }
         /// @}
 
         /**
          * @name Internal interface
          */
         /// @{
-        const ICamera::Impl& camera(uint32_t index) const { return m_cameras[index]->interfaceImpl(); }
+        void updateCamera(uint32_t cameraID);
+
+        const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
         const IMaterial::Impl& material(uint32_t index) const { return m_materials[index]->interfaceImpl(); }
         const IMesh::Impl& mesh(uint32_t index) const { return m_meshes[index]->interfaceImpl(); }
         const ILight::Impl& light(uint32_t index) const { return m_lights[index]->interfaceImpl(); }
 
-        const std::vector<std::unique_ptr<ICamera>>& cameras() const { return m_cameras; }
         const std::vector<std::unique_ptr<IMaterial>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
         const std::vector<std::unique_ptr<ILight>>& lights() const { return m_lights; }
@@ -73,22 +75,28 @@ namespace lava::magma {
     protected:
         // Internal
         void initStages();
-        void updateStages();
         void initResources();
+        void updateStages(uint32_t cameraId);
+
+    protected:
+        struct CameraBundle {
+            std::unique_ptr<ICamera> camera;
+            std::unique_ptr<GBuffer> gBuffer;
+            std::unique_ptr<Epiphany> epiphany;
+        };
 
     private:
         RenderEngine::Impl& m_engine;
         bool m_initialized = false;
+        uint32_t m_id = -1u;
 
-        // IRenderScene
-        vk::Extent2D m_extent;
-
-        // Rendering stages
-        GBuffer m_gBuffer{*this};
-        Epiphany m_epiphany{*this};
+        // Resources
+        vulkan::DescriptorHolder m_cameraDescriptorHolder;
+        vulkan::DescriptorHolder m_materialDescriptorHolder;
+        vulkan::DescriptorHolder m_meshDescriptorHolder;
 
         // Data
-        std::vector<std::unique_ptr<ICamera>> m_cameras;
+        std::vector<CameraBundle> m_cameraBundles;
         std::vector<std::unique_ptr<IMaterial>> m_materials;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
         std::vector<std::unique_ptr<ILight>> m_lights;

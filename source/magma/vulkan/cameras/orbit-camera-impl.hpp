@@ -15,21 +15,25 @@ namespace lava::magma {
      */
     class OrbitCamera::Impl final : public ICamera::Impl {
     public:
-        Impl(RenderScene& scene);
-        ~Impl();
+        Impl(RenderScene& scene, Extent2d extent);
+
+        // ICamera
+        Extent2d extent() const { return {m_extent.width, m_extent.height}; }
+        void extent(Extent2d extent);
 
         // ICamera::Impl
-        void init() override final;
+        void init(uint32_t id) override final;
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                    uint32_t descriptorSetIndex) override final;
+                    uint32_t descriptorSetIndex) const override final;
+        vk::Extent2D renderExtent() const override final { return m_extent; }
         const glm::vec3& position() const override final { return m_position; }
         const glm::mat4& viewTransform() const override final { return m_viewTransform; }
         const glm::mat4& projectionTransform() const override final { return m_projectionTransform; }
+        vk::ImageView renderedImageView() const;
 
         // OrbitCamera
         void position(const glm::vec3& position);
         void target(const glm::vec3& target);
-        void viewportRatio(float viewportRatio);
 
     protected:
         void updateBindings();
@@ -39,6 +43,7 @@ namespace lava::magma {
     private:
         // References
         RenderScene::Impl& m_scene;
+        uint32_t m_id = -1u;
         bool m_initialized = false;
 
         // Descriptor
@@ -46,8 +51,8 @@ namespace lava::magma {
         vulkan::UboHolder m_uboHolder;
 
         // Configuration
+        vk::Extent2D m_extent;
         $attribute(glm::vec3, target);
-        $attribute(float, viewportRatio, = 16.f / 9.f);
 
         // Attributes
         glm::vec3 m_position;

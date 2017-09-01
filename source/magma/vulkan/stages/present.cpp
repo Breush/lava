@@ -2,6 +2,7 @@
 
 #include <lava/chamber/logger.hpp>
 
+#include "../helpers/descriptor.hpp"
 #include "../helpers/shader.hpp"
 #include "../holders/swapchain-holder.hpp"
 #include "../render-engine-impl.hpp"
@@ -10,13 +11,20 @@
 using namespace lava::magma;
 using namespace lava::chamber;
 
+namespace {
+    constexpr const auto MAX_VIEW_COUNT = 8u;
+}
+
 Present::Present(RenderEngine::Impl& engine)
     : RenderStage(engine)
     , m_vertexShaderModule{engine.device()}
     , m_fragmentShaderModule{engine.device()}
     , m_descriptorHolder(engine)
+    , m_uboHolder(m_engine)
 {
     updateCleverlySkipped(false); // As we're creating our framebuffers based on swapchain image views.
+
+    m_viewports.reserve(MAX_VIEW_COUNT);
 }
 
 //----- RenderStage
@@ -28,6 +36,11 @@ void Present::stageInit()
 
     if (!m_swapchainHolder) {
         logger.error("magma.vulkan.stages.present") << "No swapchain holder binded before initialization." << std::endl;
+    }
+
+    if (m_descriptorSet) {
+        logger.warning("magma.vulkan.stages.present") << "Already initialized." << std::endl;
+        return;
     }
 
     //----- Shaders
@@ -42,10 +55,22 @@ void Present::stageInit()
 
     //----- Descriptors
 
-    m_descriptorHolder.init(0, 1, 1, vk::ShaderStageFlagBits::eFragment);
+    m_descriptorHolder.init({1, MAX_VIEW_COUNT}, {MAX_VIEW_COUNT}, 1, vk::ShaderStageFlagBits::eFragment);
     add(m_descriptorHolder.setLayout());
 
     m_descriptorSet = m_descriptorHolder.allocateSet();
+
+    // Mock-up samplers
+    const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    const auto& dummySampler = m_engine.dummySampler();
+    const auto& dummyImageView = m_engine.dummyImageView();
+    for (auto i = 0u; i < MAX_VIEW_COUNT; ++i) {
+        vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, dummyImageView, dummySampler, imageLayout, 2u, i);
+    }
+
+    //----- Uniform buffers
+
+    m_uboHolder.init(m_descriptorSet, {sizeof(uint32_t), {sizeof(Viewport), MAX_VIEW_COUNT}});
 
     //----- Attachments
 
@@ -131,21 +156,37 @@ void Present::bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder
     m_swapchainHolder = &swapchainHolder;
 }
 
-void Present::imageView(const vk::ImageView& imageView, const vk::Sampler& sampler)
+uint32_t Present::addView(vk::ImageView imageView, vk::Sampler sampler, Viewport viewport)
 {
-    vk::DescriptorImageInfo imageInfo;
+    if (m_viewports.size() >= MAX_VIEW_COUNT) {
+        logger.warning("magma.vulkan.stages.present")
+            << "Cannot add another view. "
+            << "Maximum view count is currently set to " << MAX_VIEW_COUNT << "." << std::endl;
+        return -1u;
+    }
+
+    // Adding the view
+    const uint32_t viewId = m_viewports.size();
+    m_viewports.emplace_back(viewport);
+
+    //---- Descriptors
+
+    // Views count update
+    const uint32_t viewCount = m_viewports.size();
+    m_uboHolder.copy(0, viewCount);
+
+    // Viewports descriptor
+    m_uboHolder.copy(1, m_viewports.back(), viewId);
+
+    // Samplers descriptor
+    updateView(viewId, imageView, sampler);
+
+    return viewId;
+}
+
+void Present::updateView(uint32_t viewId, vk::ImageView imageView, vk::Sampler sampler)
+{
     // @note Correspond to the final layout specified at previous pass
-    imageInfo.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
-    imageInfo.imageView = imageView;
-    imageInfo.sampler = sampler;
-
-    vk::WriteDescriptorSet descriptorWrite;
-    descriptorWrite.dstSet = m_descriptorSet;
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
-
-    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+    const auto imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 2u, viewId);
 }

@@ -1,47 +1,85 @@
 #include "./ubo-holder.hpp"
 
+#include <lava/chamber/logger.hpp>
+
 #include "../render-engine-impl.hpp"
 
 using namespace lava::magma::vulkan;
+using namespace lava::chamber;
 
 UboHolder::UboHolder(const RenderEngine::Impl& engine)
     : m_engine(engine)
 {
 }
 
-void UboHolder::init(vk::DescriptorSet descriptorSet, const std::vector<uint32_t>& uboSizes)
+void UboHolder::init(vk::DescriptorSet descriptorSet, const std::vector<UboSize>& uboSizes)
 {
-    const uint32_t uboCount = uboSizes.size();
     m_descriptorSet = descriptorSet;
+
+    const auto physicalDeviceProperties = m_engine.physicalDevice().getProperties();
+    m_offsetAlignment = physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
 
     std::vector<vk::DescriptorBufferInfo> descriptorBufferInfos;
     std::vector<vk::WriteDescriptorSet> descriptorWrites;
 
-    m_bufferHolders.reserve(uboCount);
-    descriptorBufferInfos.resize(uboCount);
-    descriptorWrites.resize(uboCount);
+    const uint32_t bufferCount = uboSizes.size();
+    m_bufferHolders.reserve(bufferCount);
 
-    for (auto i = 0u; i < uboCount; ++i) {
+    uint32_t descriptorCount = 0u;
+    for (const auto& uboSize : uboSizes) {
+        descriptorCount += uboSize.count;
+    }
+
+    descriptorBufferInfos.reserve(descriptorCount);
+    descriptorWrites.reserve(descriptorCount);
+
+    for (auto bufferIndex = 0u; bufferIndex < bufferCount; ++bufferIndex) {
+        const auto& uboSize = uboSizes[bufferIndex];
+
+        vk::DeviceSize alignedSize = uboSize.size;
+        if (uboSize.count > 1 && alignedSize % m_offsetAlignment) {
+            alignedSize = (alignedSize / m_offsetAlignment + 1) * m_offsetAlignment;
+        }
+
         m_bufferHolders.emplace_back(m_engine);
-        auto& bufferHolder = m_bufferHolders[i];
-        bufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, uboSizes[i]);
+        auto& bufferHolder = m_bufferHolders[bufferIndex];
+        bufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, uboSize.count * alignedSize);
 
-        auto& descriptorBufferInfo = descriptorBufferInfos[i];
-        descriptorBufferInfo.buffer = bufferHolder.buffer();
-        descriptorBufferInfo.range = uboSizes[i];
+        for (auto arrayIndex = 0u; arrayIndex < uboSize.count; ++arrayIndex) {
+            descriptorBufferInfos.emplace_back();
+            auto& descriptorBufferInfo = descriptorBufferInfos.back();
+            descriptorBufferInfo.buffer = bufferHolder.buffer();
+            descriptorBufferInfo.offset = arrayIndex * alignedSize;
+            descriptorBufferInfo.range = uboSize.size;
 
-        auto& descriptorWrite = descriptorWrites[i];
-        descriptorWrite.dstSet = m_descriptorSet;
-        descriptorWrite.dstBinding = i;
-        descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &descriptorBufferInfo;
+            descriptorWrites.emplace_back();
+            auto& descriptorWrite = descriptorWrites.back();
+            descriptorWrite.dstSet = m_descriptorSet;
+            descriptorWrite.dstBinding = bufferIndex;
+            descriptorWrite.dstArrayElement = arrayIndex;
+            descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &descriptorBufferInfo;
+        }
     }
 
     m_engine.device().updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
 
-void UboHolder::copy(uint32_t bufferIndex, const void* data, vk::DeviceSize size)
+void UboHolder::copy(uint32_t bufferIndex, const void* data, vk::DeviceSize size, uint32_t arrayIndex)
 {
-    m_bufferHolders[bufferIndex].copy(data, size);
+    if (bufferIndex >= m_bufferHolders.size()) {
+        logger.error("magma.vulkan.ubo-holder") << "Copying to buffer index " << bufferIndex << " but holds only "
+                                                << m_bufferHolders.size() << " buffers." << std::endl;
+    }
+
+    // Realigning offset if needed
+    vk::DeviceSize alignedSize = size;
+    if (arrayIndex > 0 && alignedSize % m_offsetAlignment) {
+        alignedSize = (alignedSize / m_offsetAlignment + 1) * m_offsetAlignment;
+    }
+
+    // @todo We could have unaligned data in the staging buffer, but have it aligned
+    // to destination during the copy inside this call.
+    m_bufferHolders[bufferIndex].copy(data, size, arrayIndex * alignedSize);
 }

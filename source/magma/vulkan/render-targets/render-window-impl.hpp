@@ -20,6 +20,8 @@ namespace lava::magma {
         void init(uint32_t id) override final;
         void prepare() override final;
         void draw(vk::Semaphore renderFinishedSemaphore) const override final;
+
+        uint32_t id() const { return m_id; }
         const vulkan::SwapchainHolder& swapchainHolder() const override final { return m_swapchainHolder; }
         vk::SurfaceKHR surface() const override final { return m_surface; }
 

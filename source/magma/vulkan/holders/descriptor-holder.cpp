@@ -1,4 +1,4 @@
-#include "./buffer-holder.hpp"
+#include "./descriptor-holder.hpp"
 
 #include <lava/chamber/logger.hpp>
 
@@ -14,7 +14,8 @@ DescriptorHolder::DescriptorHolder(const RenderEngine::Impl& engine)
 {
 }
 
-void DescriptorHolder::init(uint32_t uniformBufferCount, uint32_t combinedImageSamplerCount, uint32_t maxSetCount,
+void DescriptorHolder::init(const std::vector<uint32_t>& uniformBufferSizes,
+                            const std::vector<uint32_t>& combinedImageSamplerSizes, uint32_t maxSetCount,
                             vk::ShaderStageFlags shaderStageFlags)
 {
     //----- Set layout
@@ -22,22 +23,26 @@ void DescriptorHolder::init(uint32_t uniformBufferCount, uint32_t combinedImageS
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings;
     uint32_t currentBinding = 0u;
 
-    for (auto i = 0u; i < uniformBufferCount; ++i) {
+    uint32_t uniformBufferDescriptorCount = 0u;
+    for (auto i = 0u; i < uniformBufferSizes.size(); ++i) {
         vk::DescriptorSetLayoutBinding setLayoutBinding;
         setLayoutBinding.binding = currentBinding++;
         setLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-        setLayoutBinding.descriptorCount = 1;
+        setLayoutBinding.descriptorCount = uniformBufferSizes[i];
         setLayoutBinding.stageFlags = shaderStageFlags;
         setLayoutBindings.emplace_back(setLayoutBinding);
+        uniformBufferDescriptorCount += uniformBufferSizes[i];
     }
 
-    for (auto i = 0u; i < combinedImageSamplerCount; ++i) {
+    uint32_t combinedImageSamplerDescriptorCount = 0u;
+    for (auto i = 0u; i < combinedImageSamplerSizes.size(); ++i) {
         vk::DescriptorSetLayoutBinding setLayoutBinding;
         setLayoutBinding.binding = currentBinding++;
         setLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        setLayoutBinding.descriptorCount = 1;
+        setLayoutBinding.descriptorCount = combinedImageSamplerSizes[i];
         setLayoutBinding.stageFlags = shaderStageFlags;
         setLayoutBindings.emplace_back(setLayoutBinding);
+        combinedImageSamplerDescriptorCount += combinedImageSamplerSizes[i];
     }
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
@@ -52,17 +57,17 @@ void DescriptorHolder::init(uint32_t uniformBufferCount, uint32_t combinedImageS
 
     std::vector<vk::DescriptorPoolSize> poolSizes;
 
-    if (uniformBufferCount > 0u) {
+    if (uniformBufferDescriptorCount > 0u) {
         vk::DescriptorPoolSize poolSize;
         poolSize.type = vk::DescriptorType::eUniformBuffer;
-        poolSize.descriptorCount = uniformBufferCount * maxSetCount;
+        poolSize.descriptorCount = uniformBufferDescriptorCount * maxSetCount;
         poolSizes.emplace_back(poolSize);
     }
 
-    if (combinedImageSamplerCount > 0u) {
+    if (combinedImageSamplerDescriptorCount > 0u) {
         vk::DescriptorPoolSize poolSize;
         poolSize.type = vk::DescriptorType::eCombinedImageSampler;
-        poolSize.descriptorCount = combinedImageSamplerCount * maxSetCount;
+        poolSize.descriptorCount = combinedImageSamplerDescriptorCount * maxSetCount;
         poolSizes.emplace_back(poolSize);
     }
 

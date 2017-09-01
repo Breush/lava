@@ -19,14 +19,12 @@ namespace lava::magma {
     public:
         GBuffer(RenderScene::Impl& scene);
 
+        void init(uint32_t cameraId);
+
         vk::ImageView normalImageView() const { return m_normalImageHolder.view(); }
         vk::ImageView albedoImageView() const { return m_albedoImageHolder.view(); }
         vk::ImageView ormImageView() const { return m_ormImageHolder.view(); }
         vk::ImageView depthImageView() const { return m_depthImageHolder.view(); }
-
-        const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_cameraDescriptorHolder; }
-        const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
-        const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_meshDescriptorHolder; }
 
     protected:
         // RenderStage
@@ -43,6 +41,7 @@ namespace lava::magma {
     private:
         // References
         RenderScene::Impl& m_scene;
+        uint32_t m_cameraId = -1u;
 
         // Resources
         vulkan::ShaderModule m_vertexShaderModule;
@@ -51,9 +50,6 @@ namespace lava::magma {
         vulkan::ImageHolder m_albedoImageHolder;
         vulkan::ImageHolder m_ormImageHolder;
         vulkan::ImageHolder m_depthImageHolder;
-        vulkan::DescriptorHolder m_cameraDescriptorHolder;
-        vulkan::DescriptorHolder m_materialDescriptorHolder;
-        vulkan::DescriptorHolder m_meshDescriptorHolder;
         vulkan::Framebuffer m_framebuffer;
 
         // Internal configuration

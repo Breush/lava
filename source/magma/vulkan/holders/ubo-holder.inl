@@ -2,8 +2,8 @@
 
 namespace lava::magma::vulkan {
     template <class T>
-    inline void UboHolder::copy(uint32_t bufferIndex, const T& data)
+    inline void UboHolder::copy(uint32_t bufferIndex, const T& data, uint32_t arrayIndex)
     {
-        copy(bufferIndex, &data, sizeof(T));
+        copy(bufferIndex, &data, sizeof(T), arrayIndex);
     }
 }

@@ -20,12 +20,7 @@ namespace lava::magma {
     class RenderScene final : public IRenderScene {
     public:
         RenderScene(RenderEngine& engine);
-        RenderScene(RenderEngine& engine, Extent2d extent);
         ~RenderScene();
-
-        // IRenderScene
-        Extent2d extent() const override final;
-        void extent(Extent2d extent) override final;
 
         IRenderScene::Impl& interfaceImpl() override final;
 

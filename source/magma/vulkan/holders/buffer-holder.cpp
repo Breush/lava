@@ -45,17 +45,18 @@ void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
     vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_buffer, m_memory);
 }
 
-void BufferHolder::copy(const void* data, vk::DeviceSize size)
+void BufferHolder::copy(const void* data, vk::DeviceSize size, vk::DeviceSize offset)
 {
     // Copy to staging
     void* targetData;
     vk::MemoryMapFlags memoryMapFlags;
-    m_engine.device().mapMemory(m_stagingMemory, 0, size, memoryMapFlags, &targetData);
+    m_engine.device().mapMemory(m_stagingMemory, offset, size, memoryMapFlags, &targetData);
     memcpy(targetData, data, size);
     m_engine.device().unmapMemory(m_stagingMemory);
 
     // And to final buffer
-    vulkan::copyBuffer(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), m_stagingBuffer, m_buffer, size);
+    vulkan::copyBuffer(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), m_stagingBuffer, m_buffer, size,
+                       offset);
 }
 
 // @todo Make some ImageDescriptor/BufferDescriptor?

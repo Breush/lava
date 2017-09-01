@@ -8,10 +8,15 @@
 #include <lava/magma/render-scenes/i-render-scene.hpp>
 #include <lava/magma/render-targets/i-render-target.hpp>
 
+#include "./holders/buffer-holder.hpp"
 #include "./holders/device-holder.hpp"
+#include "./holders/image-holder.hpp"
 #include "./holders/instance-holder.hpp"
-#include "./stages/present.hpp"
 #include "./wrappers.hpp"
+
+namespace lava::magma {
+    class Present;
+}
 
 namespace lava::magma {
     /**
@@ -25,8 +30,7 @@ namespace lava::magma {
         // Main interface
         void draw();
         void update();
-        uint32_t addView(IRenderScene& renderScene, uint32_t renderSceneCameraIndex, IRenderTarget& renderTarget,
-                         Viewport viewport);
+        uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
 
         /**
          * @name Adders
@@ -60,6 +64,7 @@ namespace lava::magma {
          */
         /// @{
         void updateRenderTarget(uint32_t renderTargetId);
+        void updateView(ICamera& camera);
         /// @}
 
     protected:
@@ -80,14 +85,15 @@ namespace lava::magma {
         /// This bundle is what each render target needs.
         struct RenderTargetBundle {
             std::unique_ptr<IRenderTarget> renderTarget;
+            std::unique_ptr<Present> presentStage;
             std::vector<vk::CommandBuffer> commandBuffers;
         };
 
         /// A view bind a scene and a target.
         struct RenderView {
-            IRenderScene* renderScene = nullptr;
-            IRenderTarget* renderTarget = nullptr;
-            std::unique_ptr<Present> presentStage;
+            ICamera* camera = nullptr;
+            uint32_t renderTargetId = -1u;
+            uint32_t presentViewId = -1u;
         };
 
     private:

@@ -9,17 +9,13 @@ namespace lava::magma {
     public:
         virtual ~Impl() = default;
 
-        // IRenderScene
-        virtual Extent2d extent() const = 0;
-        virtual void extent(Extent2d extent) = 0;
-
         /// Initialize the scene.
-        virtual void init() = 0;
+        virtual void init(uint32_t id) = 0;
 
         /// Render the scene.
         virtual void render(vk::CommandBuffer commandBuffer) = 0;
 
         /// The final rendered image view.
-        virtual vk::ImageView renderedImageView() const = 0;
+        virtual vk::ImageView renderedImageView(uint32_t cameraIndex) const = 0;
     };
 }

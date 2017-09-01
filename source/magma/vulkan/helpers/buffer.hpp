@@ -9,5 +9,5 @@ namespace lava::magma::vulkan {
 
     /// Copy a buffer to an other one.
     void copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool commandPool, const Buffer& srcBuffer,
-                    const Buffer& dstBuffer, vk::DeviceSize size);
+                    const Buffer& dstBuffer, vk::DeviceSize size, vk::DeviceSize offset = 0u);
 }

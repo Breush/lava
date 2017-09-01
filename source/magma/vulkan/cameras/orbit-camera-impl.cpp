@@ -9,20 +9,19 @@
 using namespace lava::magma;
 using namespace lava::chamber;
 
-OrbitCamera::Impl::Impl(RenderScene& scene)
+OrbitCamera::Impl::Impl(RenderScene& scene, Extent2d extent)
     : m_scene(scene.impl())
     , m_uboHolder(m_scene.engine())
 {
-}
-
-OrbitCamera::Impl::~Impl()
-{
+    this->extent(extent);
+    updateProjectionTransform();
 }
 
 //----- ICamera
 
-void OrbitCamera::Impl::init()
+void OrbitCamera::Impl::init(uint32_t id)
 {
+    m_id = id;
     m_descriptorSet = m_scene.cameraDescriptorHolder().allocateSet();
     m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::CameraUbo)});
 
@@ -30,10 +29,32 @@ void OrbitCamera::Impl::init()
     updateBindings();
 }
 
-void OrbitCamera::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
+void OrbitCamera::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
+                               uint32_t descriptorSetIndex) const
 {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
                                      nullptr);
+}
+
+void OrbitCamera::Impl::extent(Extent2d extent)
+{
+    // Ignoring resize with same extent
+    if (m_extent.width == extent.width && m_extent.height == extent.height) {
+        return;
+    }
+
+    m_extent.width = extent.width;
+    m_extent.height = extent.height;
+    updateProjectionTransform();
+
+    if (m_initialized) {
+        m_scene.updateCamera(m_id);
+    }
+}
+
+vk::ImageView OrbitCamera::Impl::renderedImageView() const
+{
+    return m_scene.renderedImageView(m_id);
 }
 
 //----- OrbitCamera
@@ -50,12 +71,6 @@ void OrbitCamera::Impl::target(const glm::vec3& target)
     updateViewTransform();
 }
 
-void OrbitCamera::Impl::viewportRatio(float viewportRatio)
-{
-    m_viewportRatio = viewportRatio;
-    updateProjectionTransform();
-}
-
 void OrbitCamera::Impl::updateViewTransform()
 {
     // @todo Make up vector configurable?
@@ -65,10 +80,12 @@ void OrbitCamera::Impl::updateViewTransform()
 
 void OrbitCamera::Impl::updateProjectionTransform()
 {
+    const auto viewportRatio = static_cast<float>(m_extent.width) / static_cast<float>(m_extent.height);
+
     // @todo FOV and clippings configurable?
     const auto nearClipping = 0.1f;
     const auto farClipping = 100.f;
-    m_projectionTransform = glm::perspective(glm::radians(45.f), m_viewportRatio, nearClipping, farClipping);
+    m_projectionTransform = glm::perspective(glm::radians(45.f), viewportRatio, nearClipping, farClipping);
     m_projectionTransform[1][1] *= -1;
     updateBindings();
 }

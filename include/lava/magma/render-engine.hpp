@@ -7,9 +7,6 @@
 
 namespace lava::magma {
     class ICamera;
-    class IMaterial;
-    class IMesh;
-    class ILight;
     class IRenderScene;
     class IRenderTarget;
 }
@@ -37,8 +34,7 @@ namespace lava::magma {
          *
          * @return A unique identifier to the view generated.
          */
-        uint32_t addView(IRenderScene& renderScene, uint32_t renderSceneCameraIndex, IRenderTarget& renderTarget,
-                         Viewport viewport);
+        uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
 
         /**
         * @name Makers

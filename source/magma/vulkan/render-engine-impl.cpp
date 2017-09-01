@@ -3,11 +3,12 @@
 #include <chrono>
 #include <lava/chamber/logger.hpp>
 
+#include "./cameras/i-camera-impl.hpp"
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
 #include "./render-scenes/i-render-scene-impl.hpp"
 #include "./render-targets/i-render-target-impl.hpp"
-#include "./wrappers.hpp"
+#include "./stages/present.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -24,60 +25,58 @@ RenderEngine::Impl::~Impl()
 
 void RenderEngine::Impl::draw()
 {
-    if (m_renderTargetBundles.size() != 1u) {
-        logger.error("magma.vulkan.render-engine") << "No or too many render targets added during draw." << std::endl;
+    for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
+        auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
+        auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
+        const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
+
+        renderTargetImpl.prepare();
+
+        // Record command buffer each frame
+        m_deviceHolder.device().waitIdle(); // @todo Better wait for a fence on each queue
+        auto& commandBuffer = recordCommandBuffer(renderTargetId, swapchainHolder.currentIndex());
+
+        // Submit it to the queue
+        vk::Semaphore waitSemaphores[] = {swapchainHolder.imageAvailableSemaphore()};
+        vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+        vk::SubmitInfo submitInfo;
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        if (graphicsQueue().submit(1, &submitInfo, nullptr) != vk::Result::eSuccess) {
+            logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
+        }
+
+        renderTargetImpl.draw(m_renderFinishedSemaphore);
     }
-
-    auto& renderTargetBundle = m_renderTargetBundles[0];
-    auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
-    const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
-
-    renderTargetImpl.prepare();
-
-    // Record command buffer each frame
-    device().waitIdle(); // @todo Better wait for a fence on the queue
-    auto& commandBuffer = recordCommandBuffer(0, swapchainHolder.currentIndex());
-
-    // Submit it to the queue
-    vk::Semaphore waitSemaphores[] = {swapchainHolder.imageAvailableSemaphore()};
-    vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-
-    vk::SubmitInfo submitInfo;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-
-    if (graphicsQueue().submit(1, &submitInfo, nullptr) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
-    }
-
-    renderTargetImpl.draw(m_renderFinishedSemaphore);
 }
 
 void RenderEngine::Impl::update()
 {
 }
 
-// @todo Use viewport and renderSceneCameraIndex
-uint32_t RenderEngine::Impl::addView(IRenderScene& renderScene, uint32_t /*renderSceneCameraIndex*/, IRenderTarget& renderTarget,
-                                     Viewport /*viewport*/)
+uint32_t RenderEngine::Impl::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
 {
-    const auto& renderSceneImpl = renderScene.interfaceImpl();
-    const auto& swapchainHolder = renderTarget.interfaceImpl().swapchainHolder();
+    // Find the render target bundle
+    uint32_t renderTargetId = renderTarget.interfaceImpl().id();
+    auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
 
+    // Create the new render view
     m_renderViews.emplace_back();
     auto& renderView = m_renderViews.back();
-    renderView.renderScene = &renderScene;
-    renderView.renderTarget = &renderTarget;
-    renderView.presentStage = std::make_unique<Present>(*this);
-    renderView.presentStage->bindSwapchainHolder(swapchainHolder);
-    renderView.presentStage->init();
-    renderView.presentStage->update(swapchainHolder.extent());
-    renderView.presentStage->imageView(renderSceneImpl.renderedImageView(), m_dummySampler);
+    renderView.camera = &camera;
+    renderView.renderTargetId = renderTargetId;
+
+    // Add a new view to the present stage
+    const auto& cameraImpl = camera.interfaceImpl();
+    auto imageView = cameraImpl.renderedImageView();
+    renderView.presentViewId = renderTargetBundle.presentStage->addView(imageView, m_dummySampler, viewport);
 
     return m_renderViews.size() - 1u;
 }
@@ -86,13 +85,15 @@ uint32_t RenderEngine::Impl::addView(IRenderScene& renderScene, uint32_t /*rende
 
 void RenderEngine::Impl::add(std::unique_ptr<IRenderScene>&& renderScene)
 {
-    logger.info("magma.vulkan.render-engine") << "Adding render scene " << m_renderScenes.size() << "." << std::endl;
+    const uint32_t renderSceneId = m_renderScenes.size();
+
+    logger.info("magma.vulkan.render-engine") << "Adding render scene " << renderSceneId << "." << std::endl;
     logger.log().tab(1);
 
     // If no device yet, the scene initialization will be postponed
     // until it is created.
     if (m_deviceHolder.device()) {
-        renderScene->interfaceImpl().init();
+        renderScene->interfaceImpl().init(renderSceneId);
     }
 
     m_renderScenes.emplace_back(std::move(renderScene));
@@ -112,18 +113,42 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     // Device creation requires a surface, which requires a windowHandle.
     // Thus, no window => unable to init the device.
     // So we init what's left of the engine write here, when adding a renderTarget.
-    {
+    if (!m_deviceHolder.device()) {
         initVulkanDevice(renderTargetImpl.surface());
     }
 
     uint32_t renderTargetId = m_renderTargetBundles.size();
     renderTargetImpl.init(renderTargetId);
 
+    const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
     m_renderTargetBundles.emplace_back();
     auto& renderTargetBundle = m_renderTargetBundles.back();
     renderTargetBundle.renderTarget = std::move(renderTarget);
+    renderTargetBundle.presentStage = std::make_unique<Present>(*this);
+    renderTargetBundle.presentStage->bindSwapchainHolder(swapchainHolder);
+    renderTargetBundle.presentStage->init();
+    renderTargetBundle.presentStage->update(swapchainHolder.extent());
 
     createCommandBuffers(renderTargetId);
+
+    logger.log().tab(-1);
+}
+
+void RenderEngine::Impl::updateView(ICamera& camera)
+{
+    logger.info("magma.vulkan.render-engine") << "Updating view." << std::endl;
+    logger.log().tab(1);
+
+    auto& cameraImpl = camera.interfaceImpl();
+
+    // The camera has changed, we update all image views we were using from it
+    for (auto& renderView : m_renderViews) {
+        if (renderView.camera != &camera) continue;
+        auto& renderTargetBundle = m_renderTargetBundles[renderView.renderTargetId];
+
+        auto imageView = cameraImpl.renderedImageView();
+        renderTargetBundle.presentStage->updateView(renderView.presentViewId, imageView, m_dummySampler);
+    }
 
     logger.log().tab(-1);
 }
@@ -140,14 +165,9 @@ void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
     logger.log().tab(1);
 
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
-    auto* renderTarget = renderTargetBundle.renderTarget.get();
-    const auto& swapchainHolder = renderTarget->interfaceImpl().swapchainHolder();
+    const auto& swapchainHolder = renderTargetBundle.renderTarget->interfaceImpl().swapchainHolder();
 
-    for (auto& renderView : m_renderViews) {
-        if (renderView.renderTarget == renderTarget) {
-            renderView.presentStage->update(swapchainHolder.extent());
-        }
-    }
+    renderTargetBundle.presentStage->update(swapchainHolder.extent());
 
     logger.log().tab(-1);
 }
@@ -197,10 +217,9 @@ void RenderEngine::Impl::createDummyTextures()
     }
 }
 
-vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex)
+vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTargetId, uint32_t bufferIndex)
 {
-
-    auto& renderTargetBundle = m_renderTargetBundles[renderTargetIndex];
+    auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
 
     if (bufferIndex >= renderTargetBundle.commandBuffers.size()) {
         logger.error("magma.vulkan.render-engine")
@@ -223,9 +242,7 @@ vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTarget
         renderScene->interfaceImpl().render(commandBuffer);
     }
 
-    for (auto& renderView : m_renderViews) {
-        renderView.presentStage->render(commandBuffer);
-    }
+    renderTargetBundle.presentStage->render(commandBuffer);
 
     //----- Epilogue
 
@@ -234,11 +251,11 @@ vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTarget
     return commandBuffer;
 }
 
-void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetIndex)
+void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
 {
-    logger.log() << "Creating command buffers for render target " << renderTargetIndex << "." << std::endl;
+    logger.log() << "Creating command buffers for render target " << renderTargetId << "." << std::endl;
 
-    auto& renderTargetBundle = m_renderTargetBundles[renderTargetIndex];
+    auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
     auto& commandBuffers = renderTargetBundle.commandBuffers;
 
     // Free previous command buffers if any
@@ -278,8 +295,9 @@ void RenderEngine::Impl::initRenderScenes()
     logger.info("magma.vulkan.render-engine") << "Initializing render scenes." << std::endl;
     logger.log().tab(1);
 
-    for (auto& renderScene : m_renderScenes) {
-        renderScene->interfaceImpl().init();
+    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
+        auto& renderSceneImpl = m_renderScenes[renderSceneId]->interfaceImpl();
+        renderSceneImpl.init(renderSceneId);
     }
 
     logger.log().tab(-1);

@@ -35,7 +35,7 @@ void vulkan::createBuffer(vk::Device device, vk::PhysicalDevice physicalDevice, 
 }
 
 void vulkan::copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool commandPool, const Buffer& srcBuffer,
-                        const Buffer& dstBuffer, vk::DeviceSize size)
+                        const Buffer& dstBuffer, vk::DeviceSize size, vk::DeviceSize offset)
 {
     // Temporary command buffer
     vk::CommandBufferAllocateInfo allocInfo;
@@ -54,6 +54,8 @@ void vulkan::copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool comm
 
     vk::BufferCopy copyRegion;
     copyRegion.size = size;
+    copyRegion.srcOffset = offset;
+    copyRegion.dstOffset = offset;
     commandBuffer.copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
 
     commandBuffer.end();

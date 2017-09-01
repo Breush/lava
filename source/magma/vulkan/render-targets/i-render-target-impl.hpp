@@ -26,6 +26,9 @@ namespace lava::magma {
         /// Draw.
         virtual void draw(vk::Semaphore renderFinishedSemaphore) const = 0;
 
+        /// The id used as initialization.
+        virtual uint32_t id() const = 0;
+
         /// The swapchain holder used.
         virtual const vulkan::SwapchainHolder& swapchainHolder() const = 0;
 

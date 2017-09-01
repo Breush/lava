@@ -6,15 +6,7 @@ using namespace lava::magma;
 
 $pimpl_class(RenderScene, RenderEngine&, engine);
 
-RenderScene::RenderScene(RenderEngine& engine, Extent2d extent)
-    : RenderScene(engine)
-{
-    m_impl->extent(extent);
-}
-
 // IRenderScene
-$pimpl_property_v(RenderScene, Extent2d, extent);
-
 IRenderScene::Impl& RenderScene::interfaceImpl()
 {
     return *m_impl;

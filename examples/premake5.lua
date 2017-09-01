@@ -11,3 +11,8 @@ project "magma-rm-material"
     kind "WindowedApp"
     files "magma/rm-material.cpp"
     useMagma()
+
+project "magma-scenes-and-windows"
+    kind "WindowedApp"
+    files "magma/scenes-and-windows.cpp"
+    useMagma()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/magma/render-engine.hpp>
+#include <vector>
 #include <vulkan/vulkan.hpp>
 
 #include "../wrappers.hpp"
@@ -14,8 +15,8 @@ namespace lava::magma::vulkan {
         DescriptorHolder() = delete;
         DescriptorHolder(const RenderEngine::Impl& engine);
 
-        void init(uint32_t uniformBufferCount, uint32_t combinedImageSamplerCount, uint32_t maxSetCount,
-                  vk::ShaderStageFlags shaderStageFlags);
+        void init(const std::vector<uint32_t>& uniformBufferSizes, const std::vector<uint32_t>& combinedImageSamplerSizes,
+                  uint32_t maxSetCount, vk::ShaderStageFlags shaderStageFlags);
 
         /// Allocate a single set from the associated pool.
         vk::DescriptorSet allocateSet() const;

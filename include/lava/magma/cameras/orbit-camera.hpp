@@ -14,10 +14,13 @@ namespace lava::magma {
      */
     class OrbitCamera final : public ICamera {
     public:
-        OrbitCamera(RenderScene& scene);
+        OrbitCamera(RenderScene& scene, Extent2d extent);
         ~OrbitCamera();
 
         // ICamera
+        Extent2d extent() const;
+        void extent(Extent2d extent);
+
         ICamera::Impl& interfaceImpl();
 
         // Attributes
@@ -26,9 +29,6 @@ namespace lava::magma {
 
         const glm::vec3& target() const;
         void target(const glm::vec3& target);
-
-        float viewportRatio() const;
-        void viewportRatio(float viewportRatio);
 
         void radius(float radius);
 

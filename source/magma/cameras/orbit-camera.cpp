@@ -7,9 +7,11 @@
 
 using namespace lava::magma;
 
-$pimpl_class(OrbitCamera, RenderScene&, scene);
+$pimpl_class(OrbitCamera, RenderScene&, scene, Extent2d, extent);
 
 // ICamera
+$pimpl_property_v(OrbitCamera, Extent2d, extent);
+
 ICamera::Impl& OrbitCamera::interfaceImpl()
 {
     return *m_impl;
@@ -17,7 +19,6 @@ ICamera::Impl& OrbitCamera::interfaceImpl()
 
 $pimpl_property(OrbitCamera, glm::vec3, position);
 $pimpl_property(OrbitCamera, glm::vec3, target);
-$pimpl_property_v(OrbitCamera, float, viewportRatio);
 
 void OrbitCamera::radius(float radius)
 {
