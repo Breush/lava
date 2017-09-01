@@ -95,13 +95,8 @@ void Epiphany::stageInit()
 
 void Epiphany::stageUpdate()
 {
-    logger.info("magma.vulkan.stages.epiphany") << "Updating." << std::endl;
-    logger.log().tab(1);
-
     createResources();
     createFramebuffers();
-
-    logger.log().tab(-1);
 }
 
 void Epiphany::stageRender(const vk::CommandBuffer& commandBuffer)

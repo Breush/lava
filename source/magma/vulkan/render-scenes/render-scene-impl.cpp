@@ -118,15 +118,10 @@ vk::ImageView RenderScene::Impl::renderedImageView(uint32_t cameraIndex) const
 
 void RenderScene::Impl::updateCamera(uint32_t cameraId)
 {
-    logger.info("magma.vulkan.render-scenes.render-scene") << "Updating camera " << cameraId << "." << std::endl;
-    logger.log().tab(1);
-
     updateStages(cameraId);
 
     // Present stage of RenderEngine is not right anymore, has the renderedImageView is no more
     m_engine.updateView(*m_cameraBundles[cameraId].camera);
-
-    logger.log().tab(-1);
 }
 
 //---- Internal

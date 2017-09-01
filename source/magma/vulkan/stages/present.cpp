@@ -84,12 +84,7 @@ void Present::stageInit()
 
 void Present::stageUpdate()
 {
-    logger.info("magma.vulkan.stages.present") << "Updating." << std::endl;
-    logger.log().tab(1);
-
     createFramebuffers();
-
-    logger.log().tab(-1);
 }
 
 void Present::stageRender(const vk::CommandBuffer& commandBuffer)

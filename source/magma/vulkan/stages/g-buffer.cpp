@@ -133,13 +133,8 @@ void GBuffer::stageInit()
 
 void GBuffer::stageUpdate()
 {
-    logger.info("magma.vulkan.stages.g-buffer") << "Updating." << std::endl;
-    logger.log().tab(1);
-
     createResources();
     createFramebuffers();
-
-    logger.log().tab(-1);
 }
 
 void GBuffer::stageRender(const vk::CommandBuffer& commandBuffer)

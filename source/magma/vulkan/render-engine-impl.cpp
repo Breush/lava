@@ -136,9 +136,6 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 
 void RenderEngine::Impl::updateView(ICamera& camera)
 {
-    logger.info("magma.vulkan.render-engine") << "Updating view." << std::endl;
-    logger.log().tab(1);
-
     auto& cameraImpl = camera.interfaceImpl();
 
     // The camera has changed, we update all image views we were using from it
@@ -149,8 +146,6 @@ void RenderEngine::Impl::updateView(ICamera& camera)
         auto imageView = cameraImpl.renderedImageView();
         renderTargetBundle.presentStage->updateView(renderView.presentViewId, imageView, m_dummySampler);
     }
-
-    logger.log().tab(-1);
 }
 
 void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
@@ -161,15 +156,10 @@ void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
         return;
     }
 
-    logger.info("magma.vulkan.render-engine") << "Updating render target " << renderTargetId << "." << std::endl;
-    logger.log().tab(1);
-
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
     const auto& swapchainHolder = renderTargetBundle.renderTarget->interfaceImpl().swapchainHolder();
 
     renderTargetBundle.presentStage->update(swapchainHolder.extent());
-
-    logger.log().tab(-1);
 }
 
 void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR surface)
