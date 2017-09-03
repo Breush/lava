@@ -99,20 +99,38 @@ void Mesh::load(const std::string& fileName)
     }
 
     // Normals
-    uint32_t normalsAccessorIndex = attributes["NORMAL"];
-    glb::Accessor normalsAccessor(accessors[normalsAccessorIndex]);
-    auto normals = normalsAccessor.get<glm::vec3>(bufferViews, binChunk.data);
+    std::vector<glm::vec3> normals;
+    if (attributes.find("NORMAL") != attributes.end()) {
+        uint32_t normalsAccessorIndex = attributes["NORMAL"];
+        glb::Accessor normalsAccessor(accessors[normalsAccessorIndex]);
+        normals = normalsAccessor.get<glm::vec3>(bufferViews, binChunk.data);
+
+        // Fixing axes conventions
+        for (auto& v : normals) {
+            auto z = v.z;
+            v.z = v.y;
+            v.y = -z;
+        }
+    }
+    else {
+        // @todo Compute flat normals
+        logger.error("magma.mesh") << "No normals found. Currently not generating flat normals." << std::endl;
+    }
 
     // Tangents
-    uint32_t tangentsAccessorIndex = attributes["TANGENT"];
-    glb::Accessor tangentsAccessor(accessors[tangentsAccessorIndex]);
-    auto tangents = tangentsAccessor.get<glm::vec4>(bufferViews, binChunk.data);
+    std::vector<glm::vec4> tangents;
+    if (attributes.find("TANGENT") != attributes.end()) {
+        uint32_t tangentsAccessorIndex = attributes["TANGENT"];
+        glb::Accessor tangentsAccessor(accessors[tangentsAccessorIndex]);
+        tangents = tangentsAccessor.get<glm::vec4>(bufferViews, binChunk.data);
 
-    // Fixing axes conventions
-    for (auto& v : normals) {
-        auto z = v.z;
-        v.z = v.y;
-        v.y = -z;
+        // @todo Don't we need to fix axes conventions?
+    }
+    else {
+        // @todo Otherwise, auto compute tangents nicely
+        for (auto& v : normals) {
+            tangents.emplace_back(-v.y, v.x, v.z, 1);
+        }
     }
 
     // UVs

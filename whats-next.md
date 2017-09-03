@@ -28,7 +28,6 @@
 
 - **up**
     - Fix top-view camera
-    - Fix duck.glb loading
     - Light Linked List Renderer
         - Fill linked list
             - Software depth test
@@ -55,6 +54,7 @@
     - Engine: remove mesh animation from the engine - have timeElapsed passed (thanks to caldera)?
     - GLB: pass factors and colors (with textures)
     - Mesh: compute tangents if not provided
+    - Mesh: compute normals if not provided
     - Mesh: have own secondary buffers
     - Node: Hierarchy and update transforms
     - OrbitCamera: FOV and up-vector configurable
