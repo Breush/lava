@@ -61,9 +61,6 @@ namespace lava::ashe {
                     handleEvent(event);
                 }
 
-                // Update the logic.
-                m_engine->update();
-
                 // Render the scene.
                 m_engine->draw();
             }

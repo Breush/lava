@@ -29,7 +29,6 @@ namespace lava::magma {
 
         // Main interface
         void draw();
-        void update();
         uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
 
         /**

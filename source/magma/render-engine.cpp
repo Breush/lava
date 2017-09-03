@@ -8,7 +8,6 @@ using namespace lava::magma;
 
 $pimpl_class(RenderEngine);
 
-$pimpl_method(RenderEngine, void, update);
 $pimpl_method(RenderEngine, void, draw);
 
 $pimpl_method(RenderEngine, uint32_t, addView, ICamera&, camera, IRenderTarget&, renderTarget, Viewport, viewport);

@@ -57,10 +57,6 @@ void RenderEngine::Impl::draw()
     }
 }
 
-void RenderEngine::Impl::update()
-{
-}
-
 uint32_t RenderEngine::Impl::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
 {
     // Find the render target bundle

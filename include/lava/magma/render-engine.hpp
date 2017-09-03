@@ -23,9 +23,6 @@ namespace lava::magma {
         /// Render the current state to all the targets.
         void draw();
 
-        /// Update the internal state, mainly animations.
-        void update();
-
         /**
          * Add a view of render scene's camera to a render-target.
          * One can show multiple scenes to the same target

@@ -27,7 +27,7 @@
 ## Magma
 
 - **up**
-    - Fix top-view camera
+    - Shader: ShaderManager to handle recompilation on the fly
     - Light Linked List Renderer
         - Fill linked list
             - Software depth test
@@ -38,54 +38,54 @@
             - PBR Epiphany (keep for last step)
         - ---Custom Materials---
         - Alpha
-    - Add semaphores (fences?) to wait between each step
+- **bug**
+    - Fix top-view camera
 - **refacto**
-    - Have user documentation
-    - Forward used in API symbols `namespace magma { using Event = crater::Event; }` (or completing wrap them to have no external reference in the API?)
-    - Make some ImageDescriptor/BufferDescriptor?
+    - Remove references to crater from the public API
     - Remove useless descriptor pools
     - RenderStage: A good design shouldn't need virtual functions for create infos
-    - Clean up capsule.hpp
     - Replace useless const vk::Whatever& by vk::Whatever
+    - Split magma's RenderWindow so that magma does not depend on crater anymore (make the other a part of sill)
 - **improvement** 
+    - Have user documentation
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
-    - Engine: update main command buffer every frame
     - Engine: allow to free descriptor set (and do it in mesh, etc) - see descriptor pool flags
-    - Engine: remove mesh animation from the engine - have timeElapsed passed (thanks to caldera)?
     - GLB: pass factors and colors (with textures)
-    - Mesh: compute tangents if not provided
-    - Mesh: compute normals if not provided
     - Mesh: have own secondary buffers
     - Node: Hierarchy and update transforms
     - OrbitCamera: FOV and up-vector configurable
     - PBR: albedo color factors and such
     - PBR: Use define to know whether there is a texture (compile shaders within the engine)
-    - PBR: Remove Vertex Color attribute
     - PBR: what is the meaning of the 0.5 * ambientColor?
     - RmMaterial: Clarify albedo/normalMap usage
-    - SphereMesh: fix poles tangents
-    - SphereMesh: uv mapping
     - Viewport: specify region to be shown
 - **feature**
     - DirectionalLight
     - Light: Allow multiple lights (how many? how to optimize stationary ones?)
     - Light: Shadows
-    - PBR: [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
+    - PBR: Convert to specular-glossiness only [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
     - Shader: Recompile on demand, removing the need to bind empty textures
-    - Shader: ShaderManager to handle recompilation on the fly
     - Texture: Have the notion and a manager
 - **faroff**
     - Shader: have own wrapper around glslang...
-    - GLB: should that loader really be in magma? That's not rendering *per se*. (Same goes for MeshMakers) - It should be another layer
     - Think about inlining in code data (shaders mainly, but debug texture too)
 
 ## Sill
 
-- Everything's left!
-- OrbitCameraController
-- Render loop controled by this lib?
+- **refacto**
+    - crater should be internal use and not be seen in public API includes
+- **feature**
+    - Animation
+    - GLB: take loader from magma as that's not rendering *per se*. (Same goes for MeshMakers)
+    - Main loop (elapsed time)
+    - Mesh: compute tangents if not provided
+    - Mesh: compute normals if not provided
+    - OrbitCameraController
+    - RenderWindow: Take from magma - so that it does not depend on crater anymore
+    - SphereMesh: Take from magma 
+    - SphereMesh: uv mapping
 
 ## Dike
 

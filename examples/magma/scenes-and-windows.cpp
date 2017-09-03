@@ -33,7 +33,7 @@ int main(void)
         upCamera.position({0, 0, 5.f});
         upCamera.target({0, 0, 0});
 
-        // @fixme camera.addView(target, viewport) ?
+        // @todo camera.addView(target, viewport) ?
         engine.addView(frontCamera, smallWindow, {0.5, 0, 0.5, 1});
         engine.addView(leftCamera, smallWindow, {0, 0, 0.5, 0.5});
         engine.addView(upCamera, smallWindow, {0, 0.5, 0.5, 0.5});
@@ -77,7 +77,6 @@ int main(void)
             }
         }
 
-        engine.update();
         engine.draw();
     }
 
