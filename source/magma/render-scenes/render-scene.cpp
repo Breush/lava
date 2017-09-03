@@ -2,9 +2,23 @@
 
 #include "../vulkan/render-scenes/render-scene-impl.hpp"
 
+#include <lava/magma/materials/rm-material.hpp>
+
 using namespace lava::magma;
 
-$pimpl_class(RenderScene, RenderEngine&, engine);
+RenderScene::RenderScene(RenderEngine& engine)
+{
+    m_impl = new Impl(engine);
+
+    // Fallback material
+    auto fallbackMaterial = std::make_unique<RmMaterial>(*this);
+    m_impl->fallbackMaterial(std::move(fallbackMaterial));
+}
+
+RenderScene::~RenderScene()
+{
+    delete m_impl;
+}
 
 // IRenderScene
 IRenderScene::Impl& RenderScene::interfaceImpl()

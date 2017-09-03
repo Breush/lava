@@ -44,10 +44,7 @@ int main(void)
     // Sphere scene setup
     {
         auto& sphereScene = engine.make<magma::RenderScene>();
-
-        auto& mesh = sphereScene.make(magma::makers::sphereMeshMaker(32, 0.5));
-        // @todo Currently can't have a mesh with no material
-        mesh.material(sphereScene.make<magma::RmMaterial>());
+        sphereScene.make(magma::makers::sphereMeshMaker(32, 0.5));
 
         auto& light = sphereScene.make<magma::PointLight>();
         light.position({-2.f, -2.f, 5.f});

@@ -129,6 +129,9 @@ void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipe
     if (m_material != nullptr) {
         m_material->interfaceImpl().render(commandBuffer, pipelineLayout, 1u);
     }
+    else {
+        m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, 1u);
+    }
 
     // Bind with the mesh descriptor set
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,

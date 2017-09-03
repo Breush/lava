@@ -124,6 +124,15 @@ void RenderScene::Impl::updateCamera(uint32_t cameraId)
     m_engine.updateView(*m_cameraBundles[cameraId].camera);
 }
 
+void RenderScene::Impl::fallbackMaterial(std::unique_ptr<IMaterial>&& material)
+{
+    m_fallbackMaterial = std::move(material);
+
+    if (m_initialized) {
+        m_fallbackMaterial->interfaceImpl().init();
+    }
+}
+
 //---- Internal
 
 void RenderScene::Impl::initStages()
@@ -146,6 +155,10 @@ void RenderScene::Impl::initResources()
     for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
         auto& cameraBundle = m_cameraBundles[cameraId];
         cameraBundle.camera->interfaceImpl().init(cameraId);
+    }
+
+    if (m_fallbackMaterial != nullptr) {
+        m_fallbackMaterial->interfaceImpl().init();
     }
 
     for (auto& material : m_materials) {

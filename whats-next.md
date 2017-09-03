@@ -27,7 +27,6 @@
 ## Magma
 
 - **up**
-    - Mesh: allow not to have to specify a material
     - Fix top-view camera
     - Fix duck.glb loading
     - Light Linked List Renderer

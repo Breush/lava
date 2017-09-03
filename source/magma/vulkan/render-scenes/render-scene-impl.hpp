@@ -62,6 +62,9 @@ namespace lava::magma {
         /// @{
         void updateCamera(uint32_t cameraID);
 
+        IMaterial::Impl& fallbackMaterial() { return m_fallbackMaterial->interfaceImpl(); }
+        void fallbackMaterial(std::unique_ptr<IMaterial>&& material);
+
         const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
         const IMaterial::Impl& material(uint32_t index) const { return m_materials[index]->interfaceImpl(); }
         const IMesh::Impl& mesh(uint32_t index) const { return m_meshes[index]->interfaceImpl(); }
@@ -91,6 +94,7 @@ namespace lava::magma {
         uint32_t m_id = -1u;
 
         // Resources
+        std::unique_ptr<IMaterial> m_fallbackMaterial;
         vulkan::DescriptorHolder m_cameraDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
         vulkan::DescriptorHolder m_meshDescriptorHolder;
