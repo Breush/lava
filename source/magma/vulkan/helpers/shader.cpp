@@ -5,14 +5,17 @@
 #include <lava/chamber/logger.hpp>
 
 namespace {
-    EShLanguage findShaderLanguage(const std::string& filename)
+    EShLanguage findShaderLanguage(lava::magma::ShaderType shaderType)
     {
-        static std::map<std::string, EShLanguage> extensionMap = {{"vert", EShLangVertex},      {"frag", EShLangFragment},
-                                                                  {"tesc", EShLangTessControl}, {"tese", EShLangTessEvaluation},
-                                                                  {"geom", EShLangGeometry},    {"comp", EShLangCompute}};
-
-        auto extension = filename.substr(filename.find_last_of(".") + 1u);
-        return extensionMap[extension];
+        switch (shaderType) {
+        case lava::magma::ShaderType::Vertex: return EShLangVertex;
+        case lava::magma::ShaderType::Fragment: return EShLangFragment;
+        case lava::magma::ShaderType::TessellationControl: return EShLangTessControl;
+        case lava::magma::ShaderType::TessellationEvaluation: return EShLangTessEvaluation;
+        case lava::magma::ShaderType::Geometry: return EShLangGeometry;
+        case lava::magma::ShaderType::Compute: return EShLangCompute;
+        default: return EShLangVertex;
+        }
     }
 
     TBuiltInResource& glslangResources()
@@ -120,33 +123,15 @@ namespace {
 using namespace lava::magma;
 using namespace lava::chamber;
 
-std::vector<uint8_t> vulkan::readGlslShaderFile(const std::string& filename)
+std::vector<uint8_t> vulkan::spvFromGlsl(ShaderType shaderType, const std::string& textCode)
 {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-    if (!file.is_open()) {
-        logger.warning("magma.vulkan.helpers.shader") << "Unable to find shader file " << filename << "." << std::endl;
-        return std::vector<uint8_t>();
-    }
-
-    size_t fileSize = file.tellg();
-    std::vector<uint8_t> buffer(fileSize);
-    file.seekg(0);
-    file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
-    file.close();
-
-    // Null-terminated string
-    buffer.emplace_back(0);
-
-    logger.log() << "Reading GLSL shader file '" << filename << "' (" << fileSize << "B)." << std::endl;
-
     glslang::InitializeProcess();
 
     // Vulkan and SPIR-V Rules
     EShMessages messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
-    auto stage = findShaderLanguage(filename);
+    auto stage = findShaderLanguage(shaderType);
     auto& resources = glslangResources();
-    const char* shaderString = reinterpret_cast<char*>(buffer.data());
+    const char* shaderString = textCode.c_str();
 
     // Parse file
     glslang::TShader shader(stage);
@@ -173,6 +158,7 @@ std::vector<uint8_t> vulkan::readGlslShaderFile(const std::string& filename)
     }
 
     // Copy to real buffer
+    std::vector<uint8_t> buffer;
     buffer.resize(spirv.size() * sizeof(unsigned int));
     memcpy(buffer.data(), spirv.data(), buffer.size());
 

@@ -27,7 +27,6 @@
 ## Magma
 
 - **up**
-    - Shader: ShaderManager to handle recompilation on the fly
     - Light Linked List Renderer
         - Fill linked list
             - Software depth test

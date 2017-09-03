@@ -45,8 +45,8 @@ namespace lava::magma {
         uint32_t m_cameraId = -1u;
 
         // Resources
-        vulkan::ShaderModule m_vertexShaderModule;
-        vulkan::ShaderModule m_fragmentShaderModule;
+        vk::ShaderModule m_vertexShaderModule = nullptr;
+        vk::ShaderModule m_fragmentShaderModule = nullptr;
         vulkan::ImageHolder m_imageHolder;
         vulkan::UboHolder m_uboHolder;
         vulkan::DescriptorHolder m_descriptorHolder;

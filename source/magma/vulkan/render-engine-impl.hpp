@@ -12,6 +12,7 @@
 #include "./holders/device-holder.hpp"
 #include "./holders/image-holder.hpp"
 #include "./holders/instance-holder.hpp"
+#include "./shaders-manager.hpp"
 #include "./wrappers.hpp"
 
 namespace lava::magma {
@@ -48,6 +49,8 @@ namespace lava::magma {
         const vk::PhysicalDevice& physicalDevice() const { return m_deviceHolder.physicalDevice(); }
         const vk::Queue& graphicsQueue() const { return m_deviceHolder.graphicsQueue(); }
         const vk::Queue& presentQueue() const { return m_deviceHolder.presentQueue(); }
+
+        ShadersManager& shadersManager() { return m_shadersManager; }
         /// @}
 
         /**
@@ -101,6 +104,9 @@ namespace lava::magma {
 
         // Commands
         $attribute(vulkan::CommandPool, commandPool, {device()});
+
+        /// Shaders.
+        ShadersManager m_shadersManager{device()};
 
         /**
          * @name Textures

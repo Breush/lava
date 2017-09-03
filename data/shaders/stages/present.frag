@@ -1,8 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-// @todo How to be sure it is in sync with the CPP code?
-#define MAX_VIEW_COUNT 8
+#lava:define MAX_VIEW_COUNT // How many simultaneous views can be enabled at the same time
 
 layout(set = 0, binding = 0) uniform ViewsUbo {
     uint count;

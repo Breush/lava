@@ -44,8 +44,8 @@ namespace lava::magma {
         std::vector<Viewport> m_viewports;
 
         // Resources
-        vulkan::ShaderModule m_vertexShaderModule;
-        vulkan::ShaderModule m_fragmentShaderModule;
+        vk::ShaderModule m_vertexShaderModule = nullptr;
+        vk::ShaderModule m_fragmentShaderModule = nullptr;
         vulkan::DescriptorHolder m_descriptorHolder;
         vulkan::UboHolder m_uboHolder;
         vk::DescriptorSet m_descriptorSet;

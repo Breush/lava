@@ -3,7 +3,6 @@
 #include <lava/chamber/logger.hpp>
 
 #include "../cameras/i-camera-impl.hpp"
-#include "../helpers/shader.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../lights/point-light-impl.hpp"
 #include "../render-engine-impl.hpp"
@@ -33,8 +32,6 @@ using namespace lava::chamber;
 Epiphany::Epiphany(RenderScene::Impl& scene)
     : RenderStage(scene.engine())
     , m_scene(scene)
-    , m_vertexShaderModule{m_engine.device()}
-    , m_fragmentShaderModule{m_engine.device()}
     , m_imageHolder{m_engine}
     , m_uboHolder(m_engine)
     , m_descriptorHolder(m_engine)
@@ -62,12 +59,10 @@ void Epiphany::stageInit()
 
     //----- Shaders
 
-    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/epiphany.vert");
-    m_vertexShaderModule = vulkan::createShaderModule(m_engine.device(), vertexShaderCode);
+    m_vertexShaderModule = m_engine.shadersManager().module("./data/shaders/stages/epiphany.vert");
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
-    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/epiphany-phong.frag");
-    m_fragmentShaderModule = vulkan::createShaderModule(m_engine.device(), fragmentShaderCode);
+    m_fragmentShaderModule = m_engine.shadersManager().module("./data/shaders/stages/epiphany-phong.frag");
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptors

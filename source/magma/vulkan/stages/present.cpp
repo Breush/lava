@@ -3,7 +3,6 @@
 #include <lava/chamber/logger.hpp>
 
 #include "../helpers/descriptor.hpp"
-#include "../helpers/shader.hpp"
 #include "../holders/swapchain-holder.hpp"
 #include "../render-engine-impl.hpp"
 #include "../vertex.hpp"
@@ -13,12 +12,11 @@ using namespace lava::chamber;
 
 namespace {
     constexpr const auto MAX_VIEW_COUNT = 8u;
+    constexpr const auto MAX_VIEW_COUNT_STRING = "8";
 }
 
 Present::Present(RenderEngine::Impl& engine)
     : RenderStage(engine)
-    , m_vertexShaderModule{engine.device()}
-    , m_fragmentShaderModule{engine.device()}
     , m_descriptorHolder(engine)
     , m_uboHolder(m_engine)
 {
@@ -45,12 +43,11 @@ void Present::stageInit()
 
     //----- Shaders
 
-    auto vertexShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/present.vert");
-    m_vertexShaderModule = vulkan::createShaderModule(m_engine.device(), vertexShaderCode);
+    m_vertexShaderModule = m_engine.shadersManager().module("./data/shaders/stages/present.vert");
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
 
-    auto fragmentShaderCode = vulkan::readGlslShaderFile("./data/shaders/stages/present.frag");
-    m_fragmentShaderModule = vulkan::createShaderModule(m_engine.device(), fragmentShaderCode);
+    m_fragmentShaderModule =
+        m_engine.shadersManager().module("./data/shaders/stages/present.frag", {{"MAX_VIEW_COUNT", MAX_VIEW_COUNT_STRING}});
     add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
 
     //----- Descriptors
