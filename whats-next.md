@@ -27,6 +27,7 @@
 ## Magma
 
 - **up**
+    - Node: Complete transform (rotation, ...) - and derive mesh from it  
     - Light Linked List Renderer
         - Fill linked list
             - Software depth test
