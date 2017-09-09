@@ -26,6 +26,7 @@ namespace lava::magma {
 
         const glm::mat4& worldTransform() const;
         void positionAdd(const glm::vec3& delta);
+        void rotationAdd(const glm::vec3& axis, float angleDelta);
 
         void load(const std::string& fileName);
         void verticesCount(const uint32_t count);

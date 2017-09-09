@@ -27,6 +27,7 @@ namespace lava::magma {
         // Mesh
         const glm::mat4& worldTransform() const { return m_worldTransform; }
         void positionAdd(const glm::vec3& delta);
+        void rotationAdd(const glm::vec3& axis, float angleDelta);
 
         void verticesCount(const uint32_t count);
         void verticesPositions(const std::vector<glm::vec3>& positions);

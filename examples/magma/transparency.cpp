@@ -16,7 +16,7 @@ int main(void)
         blueMaterial.baseColor({0u, 0u, 255u, 120u}, 1u, 1u, 4u);
 
         auto& blueMesh = app.scene().make(magma::makers::planeMeshMaker({1, 1}));
-        // blueMesh.rotate(math::PI_2);
+        blueMesh.rotationAdd({0.f, 1.f, 0.f}, 1.6f);
         blueMesh.material(blueMaterial);
     }
 

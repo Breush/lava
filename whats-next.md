@@ -27,7 +27,6 @@
 ## Magma
 
 - **up**
-    - Node: Complete transform (rotation, ...) - and derive mesh from it  
     - Light Linked List Renderer
         - Fill linked list
             - Software depth test
@@ -82,6 +81,7 @@
     - Main loop (elapsed time)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
+    - Node: hierarchy of GameObjects
     - OrbitCameraController
     - RenderWindow: Take from magma - so that it does not depend on crater anymore
     - SphereMesh: Take from magma 

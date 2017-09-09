@@ -35,6 +35,12 @@ void Mesh::Impl::positionAdd(const glm::vec3& delta)
     updateBindings();
 }
 
+void Mesh::Impl::rotationAdd(const glm::vec3& axis, float angleDelta)
+{
+    m_worldTransform = glm::rotate(m_worldTransform, angleDelta, axis);
+    updateBindings();
+}
+
 void Mesh::Impl::verticesCount(const uint32_t count)
 {
     m_vertices.resize(count);
