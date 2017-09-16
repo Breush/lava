@@ -23,7 +23,7 @@ void OrbitCamera::Impl::init(uint32_t id)
 {
     m_id = id;
     m_descriptorSet = m_scene.cameraDescriptorHolder().allocateSet();
-    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::CameraUbo)});
+    m_uboHolder.init(m_descriptorSet, m_scene.cameraDescriptorHolder().uniformBufferBindingOffset(), {sizeof(vulkan::CameraUbo)});
 
     m_initialized = true;
     updateBindings();
@@ -99,5 +99,6 @@ void OrbitCamera::Impl::updateBindings()
     vulkan::CameraUbo ubo;
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;
+    ubo.wPosition = glm::vec4(m_position, 1.f);
     m_uboHolder.copy(0, ubo);
 }

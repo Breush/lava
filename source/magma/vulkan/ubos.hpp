@@ -7,6 +7,7 @@ namespace lava::magma::vulkan {
     struct CameraUbo {
         glm::mat4 view;
         glm::mat4 projection;
+        glm::vec4 wPosition;
     };
 
     /// Material UBO used by GBuffer stage.

@@ -12,9 +12,10 @@ UboHolder::UboHolder(const RenderEngine::Impl& engine)
 {
 }
 
-void UboHolder::init(vk::DescriptorSet descriptorSet, const std::vector<UboSize>& uboSizes)
+void UboHolder::init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, const std::vector<UboSize>& uboSizes)
 {
     m_descriptorSet = descriptorSet;
+    m_bindingOffset = bindingOffset;
 
     const auto physicalDeviceProperties = m_engine.physicalDevice().getProperties();
     m_offsetAlignment = physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
@@ -55,7 +56,7 @@ void UboHolder::init(vk::DescriptorSet descriptorSet, const std::vector<UboSize>
             descriptorWrites.emplace_back();
             auto& descriptorWrite = descriptorWrites.back();
             descriptorWrite.dstSet = m_descriptorSet;
-            descriptorWrite.dstBinding = bufferIndex;
+            descriptorWrite.dstBinding = bindingOffset + bufferIndex;
             descriptorWrite.dstArrayElement = arrayIndex;
             descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
             descriptorWrite.descriptorCount = 1;

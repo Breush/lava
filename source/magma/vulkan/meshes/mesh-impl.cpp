@@ -22,7 +22,7 @@ Mesh::Impl::Impl(RenderScene& scene)
 void Mesh::Impl::init()
 {
     m_descriptorSet = m_scene.meshDescriptorHolder().allocateSet();
-    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::MeshUbo)});
+    m_uboHolder.init(m_descriptorSet, m_scene.meshDescriptorHolder().uniformBufferBindingOffset(), {sizeof(vulkan::MeshUbo)});
 
     m_initialized = true;
     updateBindings();

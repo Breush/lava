@@ -65,7 +65,8 @@ RmMaterial::Impl::~Impl()
 void RmMaterial::Impl::init()
 {
     m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet();
-    m_uboHolder.init(m_descriptorSet, {sizeof(vulkan::MaterialUbo)});
+    m_uboHolder.init(m_descriptorSet, m_scene.materialDescriptorHolder().uniformBufferBindingOffset(),
+                     {sizeof(vulkan::MaterialUbo)});
 
     m_initialized = true;
     updateBindings();

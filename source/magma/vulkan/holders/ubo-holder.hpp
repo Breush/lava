@@ -4,6 +4,7 @@
 
 #include "../wrappers.hpp"
 #include "./buffer-holder.hpp"
+#include "./descriptor-holder.hpp"
 
 namespace lava::magma::vulkan {
     /**
@@ -31,7 +32,7 @@ namespace lava::magma::vulkan {
         UboHolder(const RenderEngine::Impl& engine);
 
         /// Initialize the set to be used with all the sizes of the ubos.
-        void init(vk::DescriptorSet descriptorSet, const std::vector<UboSize>& uboSizes);
+        void init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, const std::vector<UboSize>& uboSizes);
 
         /// Copy data to the specified buffer.
         void copy(uint32_t bufferIndex, const void* data, vk::DeviceSize size, uint32_t arrayIndex = 0u);
@@ -44,6 +45,7 @@ namespace lava::magma::vulkan {
         // References
         const RenderEngine::Impl& m_engine;
         vk::DescriptorSet m_descriptorSet = nullptr;
+        uint32_t m_bindingOffset = 0u;
 
         // Resources
         std::vector<vulkan::BufferHolder> m_bufferHolders;
