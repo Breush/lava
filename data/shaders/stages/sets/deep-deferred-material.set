@@ -1,0 +1,8 @@
+layout(set = 2, binding = 0) uniform MaterialUbo {
+    float roughnessFactor;
+    float metallicFactor;
+} material;
+
+layout(set = 2, binding = 1) uniform sampler2D tNormalSampler;
+layout(set = 2, binding = 2) uniform sampler2D albedoSampler;
+layout(set = 2, binding = 3) uniform sampler2D ormSampler;

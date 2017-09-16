@@ -7,8 +7,7 @@
 #include "../materials/i-material-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
-#include "../stages/epiphany.hpp"
-#include "../stages/g-buffer.hpp"
+#include "../stages/deep-deferred-stage.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -30,10 +29,16 @@ void RenderScene::Impl::init(uint32_t id)
     m_id = id;
     m_initialized = true;
 
-    // GBuffer common descriptors
-    m_cameraDescriptorHolder.init({1}, {}, 16, vk::ShaderStageFlagBits::eVertex);
-    m_materialDescriptorHolder.init({1}, {1, 1, 1}, 128, vk::ShaderStageFlagBits::eFragment);
-    m_meshDescriptorHolder.init({1}, {}, 128, vk::ShaderStageFlagBits::eVertex);
+    // Deep deferred renderer common descriptors
+    m_cameraDescriptorHolder.uniformBufferSizes({1});
+    m_cameraDescriptorHolder.init(16, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
+
+    m_materialDescriptorHolder.uniformBufferSizes({1});
+    m_materialDescriptorHolder.combinedImageSamplerSizes({1, 1, 1});
+    m_materialDescriptorHolder.init(128, vk::ShaderStageFlagBits::eFragment);
+
+    m_meshDescriptorHolder.uniformBufferSizes({1});
+    m_meshDescriptorHolder.init(128, vk::ShaderStageFlagBits::eVertex);
 
     initStages();
     initResources();
@@ -42,8 +47,7 @@ void RenderScene::Impl::init(uint32_t id)
 void RenderScene::Impl::render(vk::CommandBuffer commandBuffer)
 {
     for (const auto& cameraBundle : m_cameraBundles) {
-        cameraBundle.gBuffer->render(commandBuffer);
-        cameraBundle.epiphany->render(commandBuffer);
+        cameraBundle.deepDeferredStage->render(commandBuffer);
     }
 }
 
@@ -57,13 +61,11 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
     m_cameraBundles.emplace_back();
     auto& cameraBundle = m_cameraBundles.back();
     cameraBundle.camera = std::move(camera);
-    cameraBundle.gBuffer = std::make_unique<GBuffer>(*this);
-    cameraBundle.epiphany = std::make_unique<Epiphany>(*this);
+    cameraBundle.deepDeferredStage = std::make_unique<DeepDeferredStage>(*this);
 
     if (m_initialized) {
         cameraBundle.camera->interfaceImpl().init(cameraId);
-        cameraBundle.gBuffer->init(cameraId);
-        cameraBundle.epiphany->init(cameraId);
+        cameraBundle.deepDeferredStage->init(cameraId);
         updateStages(cameraId);
     }
 
@@ -111,7 +113,7 @@ vk::ImageView RenderScene::Impl::renderedImageView(uint32_t cameraIndex) const
         return nullptr;
     }
 
-    return m_cameraBundles[cameraIndex].epiphany->imageView();
+    return m_cameraBundles[cameraIndex].deepDeferredStage->imageView();
 }
 
 //---- Internal interface
@@ -142,8 +144,7 @@ void RenderScene::Impl::initStages()
 
     for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
         auto& cameraBundle = m_cameraBundles[cameraId];
-        cameraBundle.gBuffer->init(cameraId);
-        cameraBundle.epiphany->init(cameraId);
+        cameraBundle.deepDeferredStage->init(cameraId);
         updateCamera(cameraId);
     }
 
@@ -177,17 +178,9 @@ void RenderScene::Impl::initResources()
 void RenderScene::Impl::updateStages(uint32_t cameraId)
 {
     auto& cameraBundle = m_cameraBundles[cameraId];
-    auto& gBuffer = *cameraBundle.gBuffer;
-    auto& epiphany = *cameraBundle.epiphany;
+    auto& deepDeferredStage = *cameraBundle.deepDeferredStage;
 
     // Extent update
     const auto& extent = cameraBundle.camera->interfaceImpl().renderExtent();
-    gBuffer.update(extent);
-    epiphany.update(extent);
-
-    // Image views set-up
-    epiphany.normalImageView(gBuffer.normalImageView(), m_engine.dummySampler());
-    epiphany.albedoImageView(gBuffer.albedoImageView(), m_engine.dummySampler());
-    epiphany.ormImageView(gBuffer.ormImageView(), m_engine.dummySampler());
-    epiphany.depthImageView(gBuffer.depthImageView(), m_engine.dummySampler());
+    deepDeferredStage.update(extent);
 }

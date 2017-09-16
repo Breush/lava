@@ -1,11 +1,11 @@
 #pragma once
 
-#include "./render-stage.hpp"
-
 #include <vector>
 
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"
+#include "../holders/pipeline-holder.hpp"
+#include "../holders/render-pass-holder.hpp"
 #include "../holders/ubo-holder.hpp"
 
 namespace lava::magma::vulkan {
@@ -16,9 +16,13 @@ namespace lava::magma {
     /**
      * Pipeline layout for the final step of presenting to the screen.
      */
-    class Present final : public RenderStage {
+    class Present final {
     public:
         Present(RenderEngine::Impl& engine);
+
+        void init();
+        void update(vk::Extent2D extent);
+        void render(vk::CommandBuffer commandBuffer);
 
         void bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder);
 
@@ -29,23 +33,20 @@ namespace lava::magma {
         void updateView(uint32_t viewId, vk::ImageView imageView, vk::Sampler sampler);
 
     protected:
-        // RenderStage
-        void stageInit() override final;
-        void stageUpdate() override final;
-        void stageRender(const vk::CommandBuffer& commandBuffer) override final;
-
         void createFramebuffers();
 
     private:
         // References
+        RenderEngine::Impl& m_engine;
         const vulkan::SwapchainHolder* m_swapchainHolder = nullptr;
+        vk::Extent2D m_extent;
 
         // Configuration
         std::vector<Viewport> m_viewports;
 
         // Resources
-        vk::ShaderModule m_vertexShaderModule = nullptr;
-        vk::ShaderModule m_fragmentShaderModule = nullptr;
+        vulkan::RenderPassHolder m_renderPassHolder;
+        vulkan::PipelineHolder m_pipelineHolder;
         vulkan::DescriptorHolder m_descriptorHolder;
         vulkan::UboHolder m_uboHolder;
         vk::DescriptorSet m_descriptorSet;

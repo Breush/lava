@@ -2,8 +2,8 @@
 
 #include <lava/chamber/logger.hpp>
 
-#include "../helpers/command-buffer.hpp"
 #include "../helpers/buffer.hpp"
+#include "../helpers/command-buffer.hpp"
 #include "../helpers/device.hpp"
 #include "../render-engine-impl.hpp"
 

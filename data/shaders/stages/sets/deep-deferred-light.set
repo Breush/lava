@@ -1,0 +1,5 @@
+// @todo To be replaced by LLL
+layout(set = 2, binding = 0) uniform LightUbo {
+    vec4 wPosition;
+    float radius;
+} light;

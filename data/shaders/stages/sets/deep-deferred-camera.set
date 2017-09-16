@@ -1,0 +1,5 @@
+layout(set = 1, binding = 0) uniform CameraUbo {
+    mat4 viewTransform;
+    mat4 projectionTransform;
+    vec4 wPosition;
+} camera;

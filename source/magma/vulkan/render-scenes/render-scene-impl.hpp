@@ -14,8 +14,7 @@
 #include "../holders/descriptor-holder.hpp"
 
 namespace lava::magma {
-    class GBuffer;
-    class Epiphany;
+    class DeepDeferredStage;
 }
 
 namespace lava::magma {
@@ -84,8 +83,7 @@ namespace lava::magma {
     protected:
         struct CameraBundle {
             std::unique_ptr<ICamera> camera;
-            std::unique_ptr<GBuffer> gBuffer;
-            std::unique_ptr<Epiphany> epiphany;
+            std::unique_ptr<DeepDeferredStage> deepDeferredStage;
         };
 
     private:

@@ -20,6 +20,10 @@ namespace lava::magma {
         Impl(RenderScene& scene);
 
         // IMesh
+        bool translucent() const { return m_translucent; }
+        void translucent(bool translucent) { m_translucent = translucent; }
+
+        // IMesh::Impl
         void init() override final;
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
                     uint32_t descriptorSetIndex) override final;
@@ -50,6 +54,7 @@ namespace lava::magma {
         bool m_initialized = false;
 
         // Data
+        bool m_translucent = false;
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
         IMaterial* m_material = nullptr;

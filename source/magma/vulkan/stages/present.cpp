@@ -16,18 +16,16 @@ namespace {
 }
 
 Present::Present(RenderEngine::Impl& engine)
-    : RenderStage(engine)
+    : m_engine(engine)
+    , m_renderPassHolder(engine)
+    , m_pipelineHolder(engine)
     , m_descriptorHolder(engine)
-    , m_uboHolder(m_engine)
+    , m_uboHolder(engine)
 {
-    updateCleverlySkipped(false); // As we're creating our framebuffers based on swapchain image views.
-
     m_viewports.reserve(MAX_VIEW_COUNT);
 }
 
-//----- RenderStage
-
-void Present::stageInit()
+void Present::init()
 {
     logger.info("magma.vulkan.stages.present") << "Initializing." << std::endl;
     logger.log().tab(1);
@@ -43,17 +41,20 @@ void Present::stageInit()
 
     //----- Shaders
 
-    m_vertexShaderModule = m_engine.shadersManager().module("./data/shaders/stages/present.vert");
-    add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, m_vertexShaderModule, "main"});
+    auto vertexShaderModule = m_engine.shadersManager().module("./data/shaders/stages/fullscreen.vert");
+    m_pipelineHolder.add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
-    m_fragmentShaderModule =
+    auto fragmentShaderModule =
         m_engine.shadersManager().module("./data/shaders/stages/present.frag", {{"MAX_VIEW_COUNT", MAX_VIEW_COUNT_STRING}});
-    add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, m_fragmentShaderModule, "main"});
+    m_pipelineHolder.add(
+        {vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     //----- Descriptors
 
-    m_descriptorHolder.init({1, MAX_VIEW_COUNT}, {MAX_VIEW_COUNT}, 1, vk::ShaderStageFlagBits::eFragment);
-    add(m_descriptorHolder.setLayout());
+    m_descriptorHolder.uniformBufferSizes({1, MAX_VIEW_COUNT});
+    m_descriptorHolder.combinedImageSamplerSizes({MAX_VIEW_COUNT});
+    m_descriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
+    m_pipelineHolder.add(m_descriptorHolder.setLayout());
 
     m_descriptorSet = m_descriptorHolder.allocateSet();
 
@@ -67,24 +68,35 @@ void Present::stageInit()
 
     //----- Uniform buffers
 
-    m_uboHolder.init(m_descriptorSet, {sizeof(uint32_t), {sizeof(Viewport), MAX_VIEW_COUNT}});
+    m_uboHolder.init(m_descriptorSet, m_descriptorHolder.uniformBufferBindingOffset(),
+                     {sizeof(uint32_t), {sizeof(Viewport), MAX_VIEW_COUNT}});
 
     //----- Attachments
 
-    ColorAttachment presentColorAttachment;
+    vulkan::PipelineHolder::ColorAttachment presentColorAttachment;
     presentColorAttachment.format = m_swapchainHolder->imageFormat();
     presentColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-    add(presentColorAttachment);
+    m_pipelineHolder.add(presentColorAttachment);
+
+    //----- Render pass
+
+    m_renderPassHolder.add(m_pipelineHolder);
+    m_renderPassHolder.init();
+
+    m_pipelineHolder.init(0u);
 
     logger.log().tab(-1);
 }
 
-void Present::stageUpdate()
+void Present::update(vk::Extent2D extent)
 {
+    m_extent = extent;
+
+    m_pipelineHolder.update(extent);
     createFramebuffers();
 }
 
-void Present::stageRender(const vk::CommandBuffer& commandBuffer)
+void Present::render(vk::CommandBuffer commandBuffer)
 {
     const auto frameIndex = m_swapchainHolder->currentIndex();
 
@@ -95,7 +107,7 @@ void Present::stageRender(const vk::CommandBuffer& commandBuffer)
     // clearValues[0] does not matter
 
     vk::RenderPassBeginInfo renderPassInfo;
-    renderPassInfo.renderPass = m_renderPass;
+    renderPassInfo.renderPass = m_renderPassHolder.renderPass();
     renderPassInfo.framebuffer = m_framebuffers[frameIndex];
     renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
     renderPassInfo.renderArea.extent = m_extent;
@@ -107,10 +119,11 @@ void Present::stageRender(const vk::CommandBuffer& commandBuffer)
     //----- Render
 
     // Bind pipeline
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
 
     // Draw
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipelineLayout(), 0, 1, &m_descriptorSet,
+                                     0, nullptr);
     commandBuffer.draw(6, 1, 0, 0);
 
     //----- Epilogue
@@ -130,7 +143,7 @@ void Present::createFramebuffers()
         std::array<vk::ImageView, 1> attachments = {imageViews[i]};
 
         vk::FramebufferCreateInfo framebufferInfo;
-        framebufferInfo.renderPass = m_renderPass;
+        framebufferInfo.renderPass = m_renderPassHolder.renderPass();
         framebufferInfo.attachmentCount = attachments.size();
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = m_extent.width;

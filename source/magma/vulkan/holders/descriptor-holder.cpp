@@ -14,35 +14,44 @@ DescriptorHolder::DescriptorHolder(const RenderEngine::Impl& engine)
 {
 }
 
-void DescriptorHolder::init(const std::vector<uint32_t>& uniformBufferSizes,
-                            const std::vector<uint32_t>& combinedImageSamplerSizes, uint32_t maxSetCount,
-                            vk::ShaderStageFlags shaderStageFlags)
+void DescriptorHolder::init(uint32_t maxSetCount, vk::ShaderStageFlags shaderStageFlags)
 {
     //----- Set layout
 
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings;
     uint32_t currentBinding = 0u;
 
+    uint32_t storageBufferDescriptorCount = 0u;
+    for (auto i = 0u; i < m_storageBufferSizes.size(); ++i) {
+        vk::DescriptorSetLayoutBinding setLayoutBinding;
+        setLayoutBinding.binding = currentBinding++;
+        setLayoutBinding.descriptorType = vk::DescriptorType::eStorageBuffer;
+        setLayoutBinding.descriptorCount = m_storageBufferSizes[i];
+        setLayoutBinding.stageFlags = shaderStageFlags;
+        setLayoutBindings.emplace_back(setLayoutBinding);
+        storageBufferDescriptorCount += m_storageBufferSizes[i];
+    }
+
     uint32_t uniformBufferDescriptorCount = 0u;
-    for (auto i = 0u; i < uniformBufferSizes.size(); ++i) {
+    for (auto i = 0u; i < m_uniformBufferSizes.size(); ++i) {
         vk::DescriptorSetLayoutBinding setLayoutBinding;
         setLayoutBinding.binding = currentBinding++;
         setLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-        setLayoutBinding.descriptorCount = uniformBufferSizes[i];
+        setLayoutBinding.descriptorCount = m_uniformBufferSizes[i];
         setLayoutBinding.stageFlags = shaderStageFlags;
         setLayoutBindings.emplace_back(setLayoutBinding);
-        uniformBufferDescriptorCount += uniformBufferSizes[i];
+        uniformBufferDescriptorCount += m_uniformBufferSizes[i];
     }
 
     uint32_t combinedImageSamplerDescriptorCount = 0u;
-    for (auto i = 0u; i < combinedImageSamplerSizes.size(); ++i) {
+    for (auto i = 0u; i < m_combinedImageSamplerSizes.size(); ++i) {
         vk::DescriptorSetLayoutBinding setLayoutBinding;
         setLayoutBinding.binding = currentBinding++;
         setLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        setLayoutBinding.descriptorCount = combinedImageSamplerSizes[i];
+        setLayoutBinding.descriptorCount = m_combinedImageSamplerSizes[i];
         setLayoutBinding.stageFlags = shaderStageFlags;
         setLayoutBindings.emplace_back(setLayoutBinding);
-        combinedImageSamplerDescriptorCount += combinedImageSamplerSizes[i];
+        combinedImageSamplerDescriptorCount += m_combinedImageSamplerSizes[i];
     }
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
@@ -56,6 +65,13 @@ void DescriptorHolder::init(const std::vector<uint32_t>& uniformBufferSizes,
     //----- Pool
 
     std::vector<vk::DescriptorPoolSize> poolSizes;
+
+    if (storageBufferDescriptorCount > 0u) {
+        vk::DescriptorPoolSize poolSize;
+        poolSize.type = vk::DescriptorType::eStorageBuffer;
+        poolSize.descriptorCount = storageBufferDescriptorCount * maxSetCount;
+        poolSizes.emplace_back(poolSize);
+    }
 
     if (uniformBufferDescriptorCount > 0u) {
         vk::DescriptorPoolSize poolSize;
@@ -95,4 +111,41 @@ vk::DescriptorSet DescriptorHolder::allocateSet() const
     }
 
     return set;
+}
+
+void DescriptorHolder::updateSet(vk::DescriptorSet set, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t storageBufferIndex)
+{
+    vk::DescriptorBufferInfo descriptorBufferInfo;
+    descriptorBufferInfo.buffer = buffer;
+    descriptorBufferInfo.offset = 0;
+    descriptorBufferInfo.range = bufferSize;
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = set;
+    descriptorWrite.dstBinding = storageBufferBindingOffset() + storageBufferIndex;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eStorageBuffer;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &descriptorBufferInfo;
+
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+}
+
+void DescriptorHolder::updateSet(vk::DescriptorSet set, vk::ImageView imageView, vk::Sampler sampler, vk::ImageLayout imageLayout,
+                                 uint32_t combinedImageSamplerIndex)
+{
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.imageLayout = imageLayout;
+    imageInfo.imageView = imageView;
+    imageInfo.sampler = sampler;
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = set;
+    descriptorWrite.dstBinding = combinedImageSamplerBindingOffset() + combinedImageSamplerIndex;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
 }

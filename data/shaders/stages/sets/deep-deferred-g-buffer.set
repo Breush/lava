@@ -1,0 +1,22 @@
+#lava:define GBUFFER_MAX_NODE_DEPTH
+
+layout(std430, set = 0, binding = 0) buffer GBufferHeader {
+    uint width;
+    uint data[];
+} gBufferHeader;
+
+struct GBufferNode {
+    uint next;
+    float depth;
+    float opacity;
+    vec3 albedo;
+    vec3 normal;
+    float occlusion;
+    float roughness;
+    float metallic;
+};
+
+layout(std430, set = 0, binding = 1) buffer GBufferList {
+    uint counter;
+    GBufferNode data[];
+} gBufferList;

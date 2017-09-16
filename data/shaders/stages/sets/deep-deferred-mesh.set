@@ -1,0 +1,3 @@
+layout(set = 3, binding = 0) uniform MeshUbo {
+    mat4 transform;
+} mesh;

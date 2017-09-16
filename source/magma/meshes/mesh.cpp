@@ -30,6 +30,8 @@ Mesh::~Mesh()
 }
 
 // IMesh
+$pimpl_property_v(Mesh, bool, translucent);
+
 IMesh::Impl& Mesh::interfaceImpl()
 {
     return *m_impl;

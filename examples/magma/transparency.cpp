@@ -18,6 +18,7 @@ int main(void)
         auto& blueMesh = app.scene().make(magma::makers::planeMeshMaker({1, 1}));
         blueMesh.rotationAdd({0.f, 1.f, 0.f}, 1.6f);
         blueMesh.material(blueMaterial);
+        blueMesh.translucent(true);
     }
 
     // Red mesh
@@ -28,6 +29,7 @@ int main(void)
         auto& redMesh = app.scene().make(magma::makers::planeMeshMaker({1, 1}));
         redMesh.positionAdd({-0.25f, 0.f, 0.f});
         redMesh.material(redMaterial);
+        redMesh.translucent(true);
     }
 
     app.camera().position({2.f, 2.f, 2.f});
