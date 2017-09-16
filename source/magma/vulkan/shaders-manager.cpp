@@ -4,8 +4,10 @@
 #include "./helpers/shader.hpp"
 
 #include <iostream>
+#include <lava/chamber/logger.hpp>
 
 using namespace lava::magma;
+using namespace lava::chamber;
 
 ShadersManager::ShadersManager(const vk::Device& device)
     : m_device(device)
@@ -25,6 +27,9 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const std::
     // Load the file if it does not exists
     if (iModule == m_modules.end()) {
         auto textCode = adaptGlslFile(shaderId, defines);
+        logger.info("magma.vulkan.shaders-manager")
+            << "Reading GLSL shader file '" << shaderId << "' (" << textCode.size() << "B)." << std::endl;
+
         auto type = shaderType(shaderId);
         auto code = vulkan::spvFromGlsl(type, textCode);
         auto module = vulkan::createShaderModule(m_device, code);

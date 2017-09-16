@@ -55,7 +55,18 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
                     continue;
                 }
 
+                adaptedCode << "// #lava:define " << word << std::endl;
                 adaptedCode << "#define " << word << " " << definePair->second << " ";
+                continue;
+            }
+            // #lava:include
+            else if (word.find("#lava:include") != std::string::npos) {
+                lineStream >> word;
+
+                word = word.substr(1u, word.size() - 2u);
+                auto includeFilename = filename.substr(0u, filename.find_last_of("/") + 1u) + word;
+                adaptedCode << "// #lava:include \"" << word << "\"" << std::endl;
+                adaptedCode << adaptGlslFile(includeFilename, defines) << std::endl;
                 continue;
             }
 
@@ -66,9 +77,6 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
     }
 
     const auto textCode = adaptedCode.str();
-
-    logger.info("magma.helpers.shader") << "Reading GLSL shader file '" << filename << "' (" << textCode.size() << "B)."
-                                        << std::endl;
 
     return textCode;
 }
