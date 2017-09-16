@@ -39,6 +39,7 @@
         - Alpha
 - **bug**
     - Fix top-view camera
+    - Artifacts for opaque meshes with a lot of overlapping
 - **refacto**
     - Remove references to crater from the public API
     - Remove useless descriptor pools
