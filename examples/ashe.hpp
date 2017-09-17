@@ -36,8 +36,11 @@ namespace lava::ashe {
 
             // A light.
             m_light = &m_scene->make<magma::PointLight>();
-            m_light->position({5.f, 5.f, 0.f});
+            m_light->position({0.8f, 0.7f, 0.4f});
             m_light->radius(10.f);
+
+            m_lightSphere = &m_scene->make(magma::makers::sphereMeshMaker(12, 0.1f));
+            m_lightSphere->positionAdd(m_light->position());
 
             // We decide to show the scene's camera "0" at a certain position in the window.
             m_engine->addView(*m_camera, *m_window, magma::Viewport{0, 0, 1, 1});
@@ -79,22 +82,28 @@ namespace lava::ashe {
             }
 
             case crater::Event::KeyPressed: {
+                glm::vec3 lightDelta;
+
                 if (event.key.which == crater::input::Key::Escape) {
                     m_window->close();
                 }
                 // @todo Write better controls for the light
                 else if (event.key.which == crater::input::Key::Right) {
-                    m_light->position(m_light->position() - glm::vec3{0.1f, 0.f, 0.f});
+                    lightDelta = {-0.1f, 0.f, 0.f};
                 }
                 else if (event.key.which == crater::input::Key::Left) {
-                    m_light->position(m_light->position() + glm::vec3{0.1f, 0.f, 0.f});
+                    lightDelta = {0.1f, 0.f, 0.f};
                 }
                 else if (event.key.which == crater::input::Key::Up) {
-                    m_light->position(m_light->position() - glm::vec3{0.f, 0.1f, 0.f});
+                    lightDelta = {0.f, -0.1f, 0.f};
                 }
                 else if (event.key.which == crater::input::Key::Down) {
-                    m_light->position(m_light->position() + glm::vec3{0.f, 0.1f, 0.f});
+                    lightDelta = {0.f, 0.1f, 0.f};
                 }
+
+                m_light->position(m_light->position() + lightDelta);
+                m_lightSphere->positionAdd(lightDelta);
+
                 break;
             }
 
@@ -148,5 +157,6 @@ namespace lava::ashe {
         magma::RenderWindow* m_window = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::PointLight* m_light = nullptr;
+        magma::Mesh* m_lightSphere = nullptr;
     };
 }

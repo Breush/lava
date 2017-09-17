@@ -26,8 +26,29 @@
 
 ## Magma
 
-- **up**
-    - Light Linked List Renderer
+- **bug**
+    - Fix top-view camera
+    - Artifacts for opaque meshes with a lot of overlapping
+- **refacto**
+    - Remove references to crater from the public API
+    - Remove useless descriptor pools
+    - Replace useless const vk::Whatever& by vk::Whatever
+    - Split magma's RenderWindow so that magma does not depend on crater anymore (make the other a part of sill)
+- **improvement** 
+    - Have user documentation
+    - Engine: rework main loop - environment -> view -> shader -> material -> mesh
+    - Engine: allow to free descriptor set (and do it in mesh, etc) - see descriptor pool flags
+    - GLB: pass factors and colors (with textures)
+    - Mesh: have own secondary buffers
+    - OrbitCamera: FOV and up-vector configurable
+    - PBR: albedo color factors and such
+    - PBR: what is the meaning of the 0.5 * ambientColor?
+    - RmMaterial: Clarify albedo/normalMap usage
+    - Viewport: specify region to be shown
+- **feature**
+    - DirectionalLight
+    - Light: Shadows
+    - Light Linked List?
         - Fill linked list
             - Software depth test
             - Min/max depths
@@ -37,32 +58,7 @@
             - PBR Epiphany (keep for last step)
         - ---Custom Materials---
         - Alpha
-- **bug**
-    - Fix top-view camera
-    - Artifacts for opaque meshes with a lot of overlapping
-- **refacto**
-    - Remove references to crater from the public API
-    - Remove useless descriptor pools
-    - RenderStage: A good design shouldn't need virtual functions for create infos
-    - Replace useless const vk::Whatever& by vk::Whatever
-    - Split magma's RenderWindow so that magma does not depend on crater anymore (make the other a part of sill)
-- **improvement** 
-    - Have user documentation
-    - Engine: rework main loop - environment -> view -> shader -> material -> mesh
-    - Engine: allow to free descriptor set (and do it in mesh, etc) - see descriptor pool flags
-    - GLB: pass factors and colors (with textures)
-    - Mesh: have own secondary buffers
-    - Node: Hierarchy and update transforms
-    - OrbitCamera: FOV and up-vector configurable
-    - PBR: albedo color factors and such
-    - PBR: Use define to know whether there is a texture (compile shaders within the engine)
-    - PBR: what is the meaning of the 0.5 * ambientColor?
-    - RmMaterial: Clarify albedo/normalMap usage
-    - Viewport: specify region to be shown
-- **feature**
-    - DirectionalLight
-    - Light: Allow multiple lights (how many? how to optimize stationary ones?)
-    - Light: Shadows
+    - Material: Allow custom materials
     - PBR: Convert to specular-glossiness only [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
@@ -75,7 +71,7 @@
 ## Sill
 
 - **refacto**
-    - crater should be internal use and not be seen in public API includes
+    - magma should be internal use and not be seen in public API includes
 - **feature**
     - Animation
     - GLB: take loader from magma as that's not rendering *per se*. (Same goes for MeshMakers)
@@ -95,9 +91,5 @@
 
 ## Ashes
 
-- **bug**
-    - Track artefact in corset-back (magma-related)
-- **feature**
-    - Light: improve controls
 - **faroff**
     - A feature, an example
