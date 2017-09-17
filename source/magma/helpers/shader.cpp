@@ -43,30 +43,31 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
         std::string word;
         std::istringstream lineStream(line);
         while (lineStream >> word) {
-            // #lava:define
-            if (word.find("#lava:define") != std::string::npos) {
+            // #softdefine
+            if (word.find("#softdefine") != std::string::npos) {
                 lineStream >> word;
 
                 const auto definePair = defines.find(word);
                 if (definePair == defines.end()) {
                     logger.warning("magma.helpers.shader")
-                        << "Unable to find #lava:define " << word << " correspondance while reading GLSL file " << filename << "."
+                        << "Unable to find #softdefine " << word << " correspondance while reading GLSL file " << filename << "."
                         << std::endl;
                     continue;
                 }
 
-                adaptedCode << "// #lava:define " << word << std::endl;
+                adaptedCode << "// #softdefine " << word << std::endl;
                 adaptedCode << "#define " << word << " " << definePair->second << " ";
                 continue;
             }
-            // #lava:include
-            else if (word.find("#lava:include") != std::string::npos) {
+            // #include
+            else if (word.find("#include") != std::string::npos) {
                 lineStream >> word;
 
                 word = word.substr(1u, word.size() - 2u);
                 auto includeFilename = filename.substr(0u, filename.find_last_of("/") + 1u) + word;
-                adaptedCode << "// #lava:include \"" << word << "\"" << std::endl;
+                adaptedCode << "// BEGIN #include \"" << word << "\"" << std::endl;
                 adaptedCode << adaptGlslFile(includeFilename, defines) << std::endl;
+                adaptedCode << "// END #include \"" << word << "\"" << std::endl;
                 continue;
             }
 

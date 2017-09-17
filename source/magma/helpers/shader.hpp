@@ -18,7 +18,7 @@ namespace lava::magma {
      * Return the text of glsl file with all defines resolved.
      *
      * The defines list will change any line like:
-     *      #lava:define WHATEVER
+     *      #softdefine WHATEVER
      * to:
      *      #define WHATEVER <valueSpecified>
      */

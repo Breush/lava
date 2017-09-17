@@ -3,15 +3,15 @@
 
 layout(early_fragment_tests) in;
 
-#lava:include "./sets/deep-deferred-g-buffer.set"
-#lava:include "./sets/deep-deferred-material.set"
+#include "./sets/deep-deferred-g-buffer.set"
+#include "./sets/deep-deferred-material.set"
 
 //----- Fragment forwarded in
 
 layout(location = 0) in mat3 inTbn;
 layout(location = 3) in vec2 inUv;
 
-#lava:include "./modules/deep-deferred-geometry.smod"
+#include "./modules/deep-deferred-geometry.smod"
 
 //----- Program
 

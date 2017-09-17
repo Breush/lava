@@ -1,9 +1,9 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#lava:include "./sets/deep-deferred-g-buffer.set"
-#lava:include "./sets/deep-deferred-camera.set"
-#lava:include "./sets/deep-deferred-light.set"
+#include "./sets/deep-deferred-g-buffer.set"
+#include "./sets/deep-deferred-camera.set"
+#include "./sets/deep-deferred-light.set"
 
 //----- Fragment in
 

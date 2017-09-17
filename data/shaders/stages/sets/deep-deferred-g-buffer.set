@@ -1,4 +1,4 @@
-#lava:define GBUFFER_MAX_NODE_DEPTH
+#softdefine GBUFFER_MAX_NODE_DEPTH
 
 layout(std430, set = 0, binding = 0) buffer GBufferHeader {
     uint width;

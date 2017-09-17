@@ -1,8 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#lava:include "./sets/deep-deferred-camera.set"
-#lava:include "./sets/deep-deferred-mesh.set"
+#include "./sets/deep-deferred-camera.set"
+#include "./sets/deep-deferred-mesh.set"
 
 //----- Vertex data in
 
