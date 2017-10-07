@@ -30,6 +30,7 @@ namespace lava::magma {
 
         // Main interface
         void draw();
+        uint32_t registerMaterial(const std::string& shaderImplementation);
         uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
 
         /**
@@ -107,6 +108,7 @@ namespace lava::magma {
 
         /// Shaders.
         ShadersManager m_shadersManager{device()};
+        uint32_t m_registeredMaterialsCount = 0u;
 
         /**
          * @name Textures

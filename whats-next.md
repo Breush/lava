@@ -29,6 +29,7 @@
 - **bug**
     - Fix top-view camera
     - Artifacts for opaque meshes with a lot of overlapping
+    - See what to do about fallback material (as RmMaterial might not be registered)
 - **refacto**
     - Remove references to crater from the public API
     - Remove useless descriptor pools
@@ -76,6 +77,7 @@
     - Animation
     - GLB: take loader from magma as that's not rendering *per se*. (Same goes for MeshMakers)
     - Main loop (elapsed time)
+    - Materials: Have a way to define (and register) custom materials without creating a class
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
     - Node: hierarchy of GameObjects

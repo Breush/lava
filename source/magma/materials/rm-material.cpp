@@ -1,8 +1,21 @@
 #include <lava/magma/materials/rm-material.hpp>
 
+#include <fstream>
 #include <lava/chamber/macros.hpp>
+#include <sstream>
 
+#include "../macros.hpp"
 #include "../vulkan/materials/rm-material-impl.hpp"
+
+$magma_material(lava::magma::RmMaterial);
+
+std::string lava::magma::RmMaterial::shaderImplementation()
+{
+    std::ifstream fileStream("./data/shaders/materials/rm-material.simpl");
+    std::stringstream buffer;
+    buffer << fileStream.rdbuf();
+    return buffer.str();
+}
 
 using namespace lava::magma;
 

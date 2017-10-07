@@ -24,6 +24,16 @@ namespace lava::magma {
         void draw();
 
         /**
+         * Register a material to the engine.
+         *
+         * All materials have to be registered before adding anything,
+         * especially render scenes or render targets.
+         */
+        template <class TMaterial>
+        uint32_t registerMaterial();
+        uint32_t registerMaterial(const std::string& shaderImplementation);
+
+        /**
          * Add a view of render scene's camera to a render-target.
          * One can show multiple scenes to the same target
          * or the same scene to multiple targets.

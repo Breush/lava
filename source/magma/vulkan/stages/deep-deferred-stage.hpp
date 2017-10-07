@@ -24,14 +24,11 @@ namespace lava::magma {
         constexpr static const uint32_t EPIPHANY_DESCRIPTOR_SET_INDEX = 2u;
 
         struct GBufferNode {
-            uint next;
+            // 26 bits can handle 8K resolution
+            // 6 bits allows 64 different material shaders
+            uint32_t materialId6_next26;
             float depth;
-            float opacity;
-            glm::vec3 albedo;
-            glm::vec3 normal;
-            float occlusion;
-            float roughness;
-            float metallic;
+            uint32_t materialData[10];
         };
 
     public:

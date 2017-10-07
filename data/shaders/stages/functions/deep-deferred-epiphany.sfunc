@@ -1,0 +1,28 @@
+//----- Unpacking
+
+float gBufferUnpackFloat(GBufferNode node, inout uint startIndex) {
+    float value = uintBitsToFloat(node.materialData[startIndex]);
+    startIndex += 1;
+    return value;
+}
+
+vec3 gBufferUnpackVec3(GBufferNode node, inout uint startIndex) {
+    vec3 value;
+    value.x = uintBitsToFloat(node.materialData[startIndex]);
+    value.y = uintBitsToFloat(node.materialData[startIndex + 1]);
+    value.z = uintBitsToFloat(node.materialData[startIndex + 2]);
+    startIndex += 3;
+    return value;
+}
+
+//----- Tool functions
+
+mat4 viewTransformInverse = inverse(camera.viewTransform);
+mat4 projectionTransformInverse = inverse(camera.projectionTransform);
+
+vec3 wPositionFromDepth(float depth, vec2 coord) {
+    vec4 pPosition = vec4(2 * coord - 1, depth, 1);
+    vec4 vPosition = projectionTransformInverse * pPosition;
+    vPosition /= vPosition.w;
+    return (viewTransformInverse * vPosition).xyz;
+}

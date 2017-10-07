@@ -3,6 +3,7 @@
 #include <lava/magma/materials/i-material.hpp>
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace lava::magma {
@@ -19,6 +20,9 @@ namespace lava::magma {
         ~RmMaterial();
 
         // IMaterial
+        static std::string shaderImplementation();
+        static uint32_t materialId();
+        static void materialId(uint32_t materialId);
         IMaterial::Impl& interfaceImpl();
 
         /// Roughness factor that will be multiplied to the roughness map value.

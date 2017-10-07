@@ -9,6 +9,7 @@ using namespace lava;
 int main(void)
 {
     magma::RenderEngine engine;
+    engine.registerMaterial<magma::RmMaterial>();
 
     auto& smallWindow = engine.make<magma::RenderWindow>(crater::VideoMode{400, 400}, "ashe - magma | Scenes and windows I");
     auto& bigWindow = engine.make<magma::RenderWindow>(crater::VideoMode{800, 800}, "ashe - magma | Scenes and windows II");

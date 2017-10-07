@@ -135,8 +135,9 @@ void RmMaterial::Impl::updateBindings()
 
     // MaterialUbo
     vulkan::MaterialUbo ubo;
-    ubo.roughnessFactor = m_roughnessFactor;
-    ubo.metallicFactor = m_metallicFactor;
+    ubo.id = RmMaterial::materialId();
+    reinterpret_cast<float&>(ubo.data[0]) = m_roughnessFactor;
+    reinterpret_cast<float&>(ubo.data[1]) = m_metallicFactor;
     m_uboHolder.copy(0, ubo);
 
     // Samplers
@@ -144,14 +145,17 @@ void RmMaterial::Impl::updateBindings()
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
+    // sampler01
     const auto normalImageView =
         (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view() : engine.dummyNormalImageView();
     vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, normalImageView, sampler, imageLayout, 1u);
 
+    // sampler02
     const auto albedoImageView =
         (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view() : engine.dummyImageView();
     vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, albedoImageView, sampler, imageLayout, 2u);
 
+    // sampler03
     const auto ormImageView = (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : engine.dummyImageView();
     vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, ormImageView, sampler, imageLayout, 3u);
 }

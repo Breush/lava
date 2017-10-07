@@ -1,22 +1,19 @@
 #softdefine GBUFFER_MAX_NODE_DEPTH
 
+#define GBUFFER_MATERIALDATA_SIZE 10
+
 layout(std430, set = 0, binding = 0) buffer GBufferHeader {
     uint width;
-    uint data[];
+    uint listIndices[];
 } gBufferHeader;
 
 struct GBufferNode {
-    uint next;
+    uint materialId6_next26;
     float depth;
-    float opacity;
-    vec3 albedo;
-    vec3 normal;
-    float occlusion;
-    float roughness;
-    float metallic;
+    uint materialData[GBUFFER_MATERIALDATA_SIZE];
 };
 
 layout(std430, set = 0, binding = 1) buffer GBufferList {
     uint counter;
-    GBufferNode data[];
+    GBufferNode nodes[];
 } gBufferList;

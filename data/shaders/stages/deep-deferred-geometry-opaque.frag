@@ -11,19 +11,36 @@ layout(early_fragment_tests) in;
 layout(location = 0) in mat3 inTbn;
 layout(location = 3) in vec2 inUv;
 
-#include "./modules/deep-deferred-geometry.smod"
+//----- Functions
+
+#include "./functions/deep-deferred-geometry.sfunc"
+
+@magma:impl:paste geometry
 
 //----- Program
 
 void main()
 {
     uint headerIndex = uint(gl_FragCoord.y * gBufferHeader.width + gl_FragCoord.x);
-    uint listIndex = gBufferHeader.data[headerIndex];
+    uint listIndex = gBufferHeader.listIndices[headerIndex];
+    uint materialId = material.id;
 
     if (listIndex == 0) {
         listIndex = atomicAdd(gBufferList.counter, 1);
-        atomicExchange(gBufferHeader.data[headerIndex], listIndex);
+        atomicExchange(gBufferHeader.listIndices[headerIndex], listIndex);
     }
 
-    setGBufferNodeFromMaterial(listIndex, 0);
+    // Encoding materialId and next
+    // Keep next to 0 because there's nothing to link
+    GBufferNode node;
+    node.materialId6_next26 = materialId << 26;
+    node.depth = gl_FragCoord.z;
+
+    switch (materialId) {
+        @magma:impl:beginCases geometry
+            @magma:impl:call (node);
+        @magma:impl:endCases
+    }
+
+    gBufferList.nodes[listIndex] = node;
 }

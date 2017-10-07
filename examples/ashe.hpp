@@ -22,6 +22,7 @@ namespace lava::ashe {
         {
             // Render engine: the global manager.
             m_engine = std::make_unique<magma::RenderEngine>();
+            m_engine->registerMaterial<magma::RmMaterial>();
 
             // A window we can draw to.
             m_window = &m_engine->make<magma::RenderWindow>(crater::VideoMode{800, 600}, title);

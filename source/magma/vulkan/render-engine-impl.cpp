@@ -57,6 +57,12 @@ void RenderEngine::Impl::draw()
     }
 }
 
+uint32_t RenderEngine::Impl::registerMaterial(const std::string& shaderImplementation)
+{
+    m_shadersManager.registerImpls(shaderImplementation);
+    return m_registeredMaterialsCount++;
+}
+
 uint32_t RenderEngine::Impl::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
 {
     // Find the render target bundle

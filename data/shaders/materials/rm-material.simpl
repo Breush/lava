@@ -1,0 +1,107 @@
+// Roughness-metallic material.
+
+/**
+ *  Input
+ *  -----
+ *
+ *  data[0]     -   roughnessFactor
+ *  data[1]     -   metallicFactor
+ *
+ *  sampler01   -   tNormalSampler
+ *  sampler02   -   albedoSampler
+ *  sampler03   -   ormSampler
+ */
+
+@magma:impl:begin geometry
+
+void @magma:impl:main (inout GBufferNode node) {
+    vec3 normal = 2 * texture(sampler01, inUv).rgb - 1;
+    normal = normalize(inTbn * normal);
+    
+    vec4 albedo = texture(sampler02, inUv);
+    
+    vec4 orm = texture(sampler03, inUv);
+
+    float occlusion = 1;
+    occlusion *= orm.r;
+
+    float roughness = uintBitsToFloat(material.data[0]);
+    roughness *= orm.g;
+
+    float metallic = uintBitsToFloat(material.data[1]);
+    metallic *= orm.b;
+
+    uint startIndex = 0;
+    gBufferPackFloat(node, startIndex, albedo.a);
+    gBufferPackVec3(node, startIndex, albedo.rgb);
+    gBufferPackVec3(node, startIndex, normal);
+    gBufferPackFloat(node, startIndex, occlusion);
+    gBufferPackFloat(node, startIndex, roughness);
+    gBufferPackFloat(node, startIndex, metallic);
+}
+
+@magma:impl:end geometry
+
+@magma:impl:begin epiphany
+
+vec4 @magma:impl:main (GBufferNode node) {
+    uint startIndex = 0;
+    float opacity = gBufferUnpackFloat(node, startIndex);
+    vec3 albedo = gBufferUnpackVec3(node, startIndex);
+    vec3 normal = gBufferUnpackVec3(node, startIndex);
+
+    // No normal => flat shading
+    // (the normal should already be normalized)
+    if (dot(normal, normal) <= 0.5) {
+        return vec4(albedo, opacity);
+    }
+
+    float occlusion = gBufferUnpackFloat(node, startIndex);
+    float roughness = gBufferUnpackFloat(node, startIndex);
+    float metallic = gBufferUnpackFloat(node, startIndex);
+    
+    // General ambient
+    vec3 wPosition = wPositionFromDepth(node.depth, inUv);
+    vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
+    float ambient = 0.2;
+
+    // Material-specific
+    float ka = 1 - 0.2 * roughness;
+    float kd = 0.5 + 0.2 * roughness;
+    float ks = 0.25 - 0.23 * roughness;
+    float alpha = pow(2, 1 + 7 * metallic);
+
+    // For each light
+    // @note Distance should affect intensity
+    float id = 1;
+    float is = 1;
+
+    float diffuse = 0;
+    float specular = 0;
+
+    // Check whether the lighting should have an effect
+    vec3 lightVector = light.wPosition.xyz - wPosition.xyz;
+    float lightDistance = length(lightVector);
+    if (lightDistance < light.radius) {
+        float i = 1 - (lightDistance * lightDistance) / (light.radius * light.radius);
+
+        vec3 l = normalize(lightVector);
+        float cosTheta = dot(normal, l);
+        if (cosTheta > 0) {
+            diffuse += i * id * cosTheta;
+
+            vec3 r = normalize(2 * cosTheta * normal - l);
+            float cosOmega = dot(r, v);
+            if (cosOmega > 0) {
+                specular += i * is * pow(cosOmega, alpha);
+            }
+        }
+    }
+
+    // Combining all lights k
+    return vec4((ka * ambient + kd * occlusion * diffuse + ks * specular) * albedo, opacity);
+}
+
+@magma:impl:end epiphany
+
+ 

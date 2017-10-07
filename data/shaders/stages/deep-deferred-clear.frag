@@ -16,5 +16,5 @@ void main()
     gBufferList.counter = 1;
 
     uint headerIndex = uint(gl_FragCoord.y * gBufferHeader.width + gl_FragCoord.x);
-    gBufferHeader.data[headerIndex] = 0;
+    gBufferHeader.listIndices[headerIndex] = 0;
 }

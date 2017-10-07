@@ -1,0 +1,13 @@
+//----- Packing
+
+void gBufferPackFloat(inout GBufferNode node, inout uint startIndex, float value) {
+    node.materialData[startIndex] = floatBitsToUint(value);
+    startIndex += 1;
+}
+
+void gBufferPackVec3(inout GBufferNode node, inout uint startIndex, vec3 value) {
+    node.materialData[startIndex] = floatBitsToUint(value.x);
+    node.materialData[startIndex + 1] = floatBitsToUint(value.y);
+    node.materialData[startIndex + 2] = floatBitsToUint(value.z);
+    startIndex += 3;
+}

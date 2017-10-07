@@ -1,8 +1,13 @@
-layout(set = 2, binding = 0) uniform MaterialUbo {
-    float roughnessFactor;
-    float metallicFactor;
+layout(std140, set = 2, binding = 0) uniform MaterialUbo {
+    uint id;
+    uint data[8];
 } material;
 
-layout(set = 2, binding = 1) uniform sampler2D tNormalSampler;
-layout(set = 2, binding = 2) uniform sampler2D albedoSampler;
-layout(set = 2, binding = 3) uniform sampler2D ormSampler;
+layout(set = 2, binding = 1) uniform sampler2D sampler01;
+layout(set = 2, binding = 2) uniform sampler2D sampler02;
+layout(set = 2, binding = 3) uniform sampler2D sampler03;
+layout(set = 2, binding = 4) uniform sampler2D sampler04;
+layout(set = 2, binding = 5) uniform sampler2D sampler05;
+layout(set = 2, binding = 6) uniform sampler2D sampler06;
+layout(set = 2, binding = 7) uniform sampler2D sampler07;
+layout(set = 2, binding = 8) uniform sampler2D sampler08;
