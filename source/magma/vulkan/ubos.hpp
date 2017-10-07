@@ -16,7 +16,7 @@ namespace lava::magma::vulkan {
             uint32_t id;
             glm::vec4 __padding_id;
         };
-        uint32_t data[8];
+        glm::uvec4 data[8];
 
         MaterialUbo() {}
     };

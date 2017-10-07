@@ -136,26 +136,27 @@ void RmMaterial::Impl::updateBindings()
     // MaterialUbo
     vulkan::MaterialUbo ubo;
     ubo.id = RmMaterial::materialId();
-    reinterpret_cast<float&>(ubo.data[0]) = m_roughnessFactor;
-    reinterpret_cast<float&>(ubo.data[1]) = m_metallicFactor;
+    reinterpret_cast<float&>(ubo.data[0].x) = m_roughnessFactor;
+    reinterpret_cast<float&>(ubo.data[0].y) = m_metallicFactor;
     m_uboHolder.copy(0, ubo);
 
     // Samplers
     const auto& engine = m_scene.engine();
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    const auto offset = m_scene.materialDescriptorHolder().combinedImageSamplerBindingOffset();
 
     // sampler01
     const auto normalImageView =
         (m_normal.type == Attribute::Type::TEXTURE) ? m_normalImageHolder.view() : engine.dummyNormalImageView();
-    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, normalImageView, sampler, imageLayout, 1u);
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, normalImageView, sampler, imageLayout, offset);
 
     // sampler02
     const auto albedoImageView =
         (m_albedo.type == Attribute::Type::TEXTURE) ? m_albedoImageHolder.view() : engine.dummyImageView();
-    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, albedoImageView, sampler, imageLayout, 2u);
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, albedoImageView, sampler, imageLayout, offset + 1u);
 
     // sampler03
     const auto ormImageView = (m_orm.type == Attribute::Type::TEXTURE) ? m_ormImageHolder.view() : engine.dummyImageView();
-    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, ormImageView, sampler, imageLayout, 3u);
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, ormImageView, sampler, imageLayout, offset + 2u);
 }

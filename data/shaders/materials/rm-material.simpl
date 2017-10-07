@@ -4,8 +4,8 @@
  *  Input
  *  -----
  *
- *  data[0]     -   roughnessFactor
- *  data[1]     -   metallicFactor
+ *  data[0].x   -   roughnessFactor
+ *  data[0].y   -   metallicFactor
  *
  *  sampler01   -   tNormalSampler
  *  sampler02   -   albedoSampler
@@ -25,10 +25,10 @@ void @magma:impl:main (inout GBufferNode node) {
     float occlusion = 1;
     occlusion *= orm.r;
 
-    float roughness = uintBitsToFloat(material.data[0]);
+    float roughness = uintBitsToFloat(material.data[0].x);
     roughness *= orm.g;
 
-    float metallic = uintBitsToFloat(material.data[1]);
+    float metallic = uintBitsToFloat(material.data[0].y);
     metallic *= orm.b;
 
     uint startIndex = 0;
@@ -44,18 +44,12 @@ void @magma:impl:main (inout GBufferNode node) {
 
 @magma:impl:begin epiphany
 
+// @todo Make that a real PBR computation
 vec4 @magma:impl:main (GBufferNode node) {
     uint startIndex = 0;
     float opacity = gBufferUnpackFloat(node, startIndex);
     vec3 albedo = gBufferUnpackVec3(node, startIndex);
     vec3 normal = gBufferUnpackVec3(node, startIndex);
-
-    // No normal => flat shading
-    // (the normal should already be normalized)
-    if (dot(normal, normal) <= 0.5) {
-        return vec4(albedo, opacity);
-    }
-
     float occlusion = gBufferUnpackFloat(node, startIndex);
     float roughness = gBufferUnpackFloat(node, startIndex);
     float metallic = gBufferUnpackFloat(node, startIndex);
@@ -72,7 +66,6 @@ vec4 @magma:impl:main (GBufferNode node) {
     float alpha = pow(2, 1 + 7 * metallic);
 
     // For each light
-    // @note Distance should affect intensity
     float id = 1;
     float is = 1;
 
