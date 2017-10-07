@@ -1,6 +1,7 @@
 #include "./shader.hpp"
 
 #include <SPIRV/GlslangToSpv.h>
+#include <fstream>
 #include <glslang/MachineIndependent/localintermediate.h>
 #include <lava/chamber/logger.hpp>
 
@@ -135,9 +136,20 @@ std::vector<uint8_t> vulkan::spvFromGlsl(ShaderType shaderType, const std::strin
 
     // Parse file
     glslang::TShader shader(stage);
+    auto errorRoutine = [&textCode, &shader]() {
+        logger.warning("magma.vulkan.helpers.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+
+        std::ofstream file(".shader.tmp");
+        if (!file.is_open()) return;
+
+        file << textCode;
+        file.close();
+        logger.log() << "Shader code available to .shader.tmp." << std::endl;
+    };
+
     shader.setStrings(&shaderString, 1);
     if (!shader.parse(&resources, 450, false, messages)) {
-        logger.warning("magma.vulkan.helpers.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+        errorRoutine();
         logger.error("magma.vulkan.helpers.shader").tab(-1) << "Unable to parse shader." << std::endl;
     }
 
@@ -145,7 +157,7 @@ std::vector<uint8_t> vulkan::spvFromGlsl(ShaderType shaderType, const std::strin
     glslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(messages)) {
-        logger.warning("magma.vulkan.helpers.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+        errorRoutine();
         logger.error("magma.vulkan.helpers.shader").tab(-1) << "Unable to link shader." << std::endl;
     }
 
@@ -153,7 +165,7 @@ std::vector<uint8_t> vulkan::spvFromGlsl(ShaderType shaderType, const std::strin
     std::vector<unsigned int> spirv;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv);
     if (spirv.size() == 0u) {
-        logger.warning("magma.vulkan.helpers.shader").tab(1) << shader.getInfoLog() << shader.getInfoDebugLog();
+        errorRoutine();
         logger.error("magma.vulkan.helpers.shader").tab(-1) << "Unable to compile shader." << std::endl;
     }
 

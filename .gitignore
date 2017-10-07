@@ -10,3 +10,4 @@ source/_*
 Makefile
 *.make
 *.spv
+*.tmp
