@@ -1,8 +1,8 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 
-#include "../vulkan/render-scenes/render-scene-impl.hpp"
+#include "../materials/fallback-material.hpp"
 
-#include <lava/magma/materials/rm-material.hpp>
+#include "../vulkan/render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;
 
@@ -11,7 +11,7 @@ RenderScene::RenderScene(RenderEngine& engine)
     m_impl = new Impl(engine);
 
     // Fallback material
-    auto fallbackMaterial = std::make_unique<RmMaterial>(*this);
+    auto fallbackMaterial = std::make_unique<FallbackMaterial>(*this);
     m_impl->fallbackMaterial(std::move(fallbackMaterial));
 }
 

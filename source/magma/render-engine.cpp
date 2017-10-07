@@ -1,13 +1,22 @@
 #include <lava/magma/render-engine.hpp>
 
 #include <lava/chamber/macros.hpp>
-#include <lava/magma/materials/rm-material.hpp>
 
+#include "./materials/fallback-material.hpp"
 #include "./vulkan/render-engine-impl.hpp"
 
 using namespace lava::magma;
 
-$pimpl_class(RenderEngine);
+RenderEngine::RenderEngine()
+{
+    m_impl = new RenderEngine::Impl();
+
+    registerMaterial<magma::FallbackMaterial>();
+}
+
+RenderEngine::~RenderEngine()
+{
+}
 
 $pimpl_method(RenderEngine, void, draw);
 $pimpl_method(RenderEngine, uint32_t, registerMaterial, const std::string&, shaderImplementation);

@@ -13,6 +13,14 @@
 using namespace lava;
 
 namespace {
+    struct RmMaterialUbo {
+        magma::vulkan::MaterialUboHeader header;
+        float roughnessFactor;
+        float metallicFactor;
+
+        RmMaterialUbo() {}
+    };
+
     void cleanAttribute(magma::RmMaterial::Impl::Attribute& attribute)
     {
         if (attribute.type == magma::RmMaterial::Impl::Attribute::Type::TEXTURE) {
@@ -62,15 +70,25 @@ RmMaterial::Impl::~Impl()
     cleanAttribute(m_orm);
 }
 
+//----- IMaterial
+
 void RmMaterial::Impl::init()
 {
-    m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet();
-    m_uboHolder.init(m_descriptorSet, m_scene.materialDescriptorHolder().uniformBufferBindingOffset(),
-                     {sizeof(vulkan::MaterialUbo)});
+    m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet(true);
+
+    m_uboHolder.init(m_descriptorSet, m_scene.materialDescriptorHolder().uniformBufferBindingOffset(), {sizeof(RmMaterialUbo)});
 
     m_initialized = true;
     updateBindings();
 }
+
+void RmMaterial::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
+{
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
+                                     nullptr);
+}
+
+//----- RmMaterial
 
 void RmMaterial::Impl::roughness(float factor)
 {
@@ -116,17 +134,6 @@ void RmMaterial::Impl::metallicRoughnessColor(const std::vector<uint8_t>& pixels
     updateBindings();
 }
 
-//----- IMaterial
-
-void RmMaterial::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
-{
-    // @note This presuppose that the correct shader is binded
-
-    // Bind with the material descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
-                                     nullptr);
-}
-
 //----- Private
 
 void RmMaterial::Impl::updateBindings()
@@ -134,10 +141,10 @@ void RmMaterial::Impl::updateBindings()
     if (!m_initialized) return;
 
     // MaterialUbo
-    vulkan::MaterialUbo ubo;
-    ubo.id = RmMaterial::materialId();
-    reinterpret_cast<float&>(ubo.data[0].x) = m_roughnessFactor;
-    reinterpret_cast<float&>(ubo.data[0].y) = m_metallicFactor;
+    RmMaterialUbo ubo;
+    ubo.header.id = RmMaterial::materialId();
+    ubo.roughnessFactor = m_roughnessFactor;
+    ubo.metallicFactor = m_metallicFactor;
     m_uboHolder.copy(0, ubo);
 
     // Samplers

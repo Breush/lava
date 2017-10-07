@@ -29,7 +29,6 @@
 - **bug**
     - Fix top-view camera
     - Artifacts for opaque meshes with a lot of overlapping
-    - See what to do about fallback material (as RmMaterial might not be registered)
 - **refacto**
     - Remove references to crater from the public API
     - Remove useless descriptor pools

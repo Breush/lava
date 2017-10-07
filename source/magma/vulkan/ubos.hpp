@@ -11,14 +11,18 @@ namespace lava::magma::vulkan {
     };
 
     /// Material UBO used by GBuffer stage.
-    struct MaterialUbo {
+    struct MaterialUboHeader {
         union {
             uint32_t id;
             glm::vec4 __padding_id;
         };
-        glm::uvec4 data[8];
 
-        MaterialUbo() {}
+        MaterialUboHeader() {}
+    };
+
+    struct MaterialUbo {
+        MaterialUboHeader header;
+        glm::uvec4 data[8];
     };
 
     /// Mesh UBO used by GBuffer stage.

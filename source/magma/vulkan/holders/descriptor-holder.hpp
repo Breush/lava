@@ -4,6 +4,7 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+#include "../helpers/descriptor.hpp"
 #include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
@@ -25,7 +26,7 @@ namespace lava::magma::vulkan {
         }
 
         /// Allocate a single set from the associated pool.
-        vk::DescriptorSet allocateSet() const;
+        vk::DescriptorSet allocateSet(bool dummyBinding = false) const;
 
         /// Update the specified storage buffer component.
         void updateSet(vk::DescriptorSet set, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t storageBufferIndex);

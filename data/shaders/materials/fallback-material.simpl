@@ -1,0 +1,69 @@
+// Fallback material.
+// Used when no material is defined.
+
+/**
+ *  Input
+ *  -----
+ */
+
+@magma:impl:begin geometry
+
+void @magma:impl:main (inout GBufferNode node) {
+    vec3 normal = inTbn[2];
+
+    uint startIndex = 0;
+    gBufferPackVec3(node, startIndex, normal);
+}
+
+@magma:impl:end geometry
+
+@magma:impl:begin epiphany
+
+// Simple phong lighting on white surface
+vec4 @magma:impl:main (GBufferNode node) {
+    uint startIndex = 0;
+    vec3 normal = gBufferUnpackVec3(node, startIndex);
+
+    // General ambient
+    vec3 wPosition = wPositionFromDepth(node.depth, inUv);
+    vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
+    float ambient = 0.2;
+
+    // Material-specific
+    float kd = 0.8;
+    float ks = 0.75;
+    float alpha = 16;
+
+    // For each light
+    float id = 1;
+    float is = 0.2;
+
+    float diffuse = 0;
+    float specular = 0;
+
+    // Check whether the lighting should have an effect
+    vec3 lightVector = light.wPosition.xyz - wPosition.xyz;
+    float lightDistance = length(lightVector);
+    if (lightDistance < light.radius) {
+        float i = 1 - (lightDistance * lightDistance) / (light.radius * light.radius);
+
+        vec3 l = normalize(lightVector);
+        float cosTheta = dot(normal, l);
+        if (cosTheta > 0) {
+            diffuse += i * id * cosTheta;
+
+            vec3 r = normalize(2 * cosTheta * normal - l);
+            float cosOmega = dot(r, v);
+            if (cosOmega > 0) {
+                specular += i * is * pow(cosOmega, alpha);
+            }
+        }
+    }
+
+    // Combining all lights k
+    return vec4((ambient + kd * diffuse + ks * specular) * vec3(1), 1);
+}
+
+@magma:impl:end epiphany
+
+ 
