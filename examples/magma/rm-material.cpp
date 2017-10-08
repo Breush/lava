@@ -27,6 +27,7 @@ int main(void)
 
     // Move light
     app.light().position({-2.f, -2.f, 5.f});
+    app.light().radius(25.f);
 
     // Move camera
     app.camera().position({-3.f, -3.f, 5.f});

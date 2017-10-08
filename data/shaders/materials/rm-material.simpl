@@ -44,7 +44,61 @@ void @magma:impl:main (inout GBufferNode node) {
 
 @magma:impl:begin epiphany
 
-// @todo Make that a real PBR computation
+// D = Normal distribution (Distribution of the microfacets)
+float D_GGX(float dotNH, float roughness)
+{
+	float alpha = roughness * roughness;
+	float alpha2 = alpha * alpha;
+	float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
+	return alpha2 / (PI * denom * denom); 
+}
+
+// G = Geometric shadowing term (Microfacets shadowing)
+float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
+{
+	float r = (roughness + 1.0);
+	float k = (r*r) / 8.0;
+	float GL = dotNL / (dotNL * (1.0 - k) + k);
+	float GV = dotNV / (dotNV * (1.0 - k) + k);
+	return GL * GV;
+}
+
+// F = Fresnel factor (Reflectance depending on angle of incidence)
+vec3 F_Schlick(float cosTheta, vec3 F0)
+{
+	vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0); 
+	return F;     
+}
+
+// Bidirectionnal reflectance distribution function
+vec3 bdrf(vec3 L, vec3 V, vec3 N, vec3 F0, float roughness)
+{
+	// Precalculate vectors and dot products	
+	vec3 H = normalize (V + L);
+	float dotNV = clamp(dot(N, V), 0.0, 1.0);
+	float dotNL = clamp(dot(N, L), 0.0, 1.0);
+	float dotLH = clamp(dot(L, H), 0.0, 1.0);
+	float dotNH = clamp(dot(N, H), 0.0, 1.0);
+
+	// @todo Light color
+	vec3 lightColor = vec3(1.0);
+
+	vec3 color = vec3(0.0);
+
+	if (dotNL > 0.0) {
+		float rroughness = max(0.05, roughness);
+		float D = D_GGX(dotNH, rroughness); 
+		float G = G_SchlicksmithGGX(dotNL, dotNV, rroughness);
+		vec3 F = F_Schlick(dotNV, F0);
+
+		vec3 spec = D * F * G / (4.0 * dotNL * dotNV);
+
+		color += spec * dotNL * lightColor;
+	}
+
+	return color;
+}
+
 vec4 @magma:impl:main (GBufferNode node) {
     uint startIndex = 0;
     float opacity = gBufferUnpackFloat(node, startIndex);
@@ -54,45 +108,34 @@ vec4 @magma:impl:main (GBufferNode node) {
     float roughness = gBufferUnpackFloat(node, startIndex);
     float metallic = gBufferUnpackFloat(node, startIndex);
     
-    // General ambient
+    // Common variables
     vec3 wPosition = wPositionFromDepth(node.depth, inUv);
-    vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
-    float ambient = 0.2;
-
-    // Material-specific
-    float ka = 1 - 0.2 * roughness;
-    float kd = 0.5 + 0.2 * roughness;
-    float ks = 0.25 - 0.23 * roughness;
-    float alpha = pow(2, 1 + 7 * metallic);
+    vec3 cameraDirection = normalize(camera.wPosition.xyz - wPosition.xyz);
 
     // For each light
-    float id = 1;
-    float is = 1;
-
-    float diffuse = 0;
-    float specular = 0;
+    vec3 diffuseColor = vec3(0);
+    vec3 specularColor = vec3(0);
 
     // Check whether the lighting should have an effect
-    vec3 lightVector = light.wPosition.xyz - wPosition.xyz;
-    float lightDistance = length(lightVector);
+    vec3 lightColor = vec3(1); // @todo Have light color
+    vec3 lightDirection = light.wPosition.xyz - wPosition.xyz;
+    float lightDistance = length(lightDirection);
+    lightDirection = normalize(lightDirection);
     if (lightDistance < light.radius) {
-        float i = 1 - (lightDistance * lightDistance) / (light.radius * light.radius);
+        float lightIntensity = 1 - (lightDistance * lightDistance) / (light.radius * light.radius);
+        lightIntensity *= 0.8; // @todo light.intensity
 
-        vec3 l = normalize(lightVector);
-        float cosTheta = dot(normal, l);
-        if (cosTheta > 0) {
-            diffuse += i * id * cosTheta;
-
-            vec3 r = normalize(2 * cosTheta * normal - l);
-            float cosOmega = dot(r, v);
-            if (cosOmega > 0) {
-                specular += i * is * pow(cosOmega, alpha);
-            }
-        }
+        vec3 F0 = mix(vec3(0.04), albedo, metallic);
+        diffuseColor += lightIntensity * lightColor;
+        specularColor += lightIntensity * bdrf(lightDirection, cameraDirection, normal, F0, roughness);
     }
 
-    // Combining all lights k
-    return vec4((ka * ambient + kd * occlusion * diffuse + ks * specular) * albedo, opacity);
+    diffuseColor = vec3(0.2) + diffuseColor * 0.8; // @todo ambient light
+    diffuseColor = clamp(diffuseColor, vec3(0), vec3(1));
+
+    vec3 finalColor = occlusion * diffuseColor * albedo + specularColor;
+
+    return vec4(finalColor, opacity);
 }
 
 @magma:impl:end epiphany

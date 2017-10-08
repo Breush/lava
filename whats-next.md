@@ -46,6 +46,7 @@
     - RmMaterial: Clarify albedo/normalMap usage
     - Viewport: specify region to be shown
 - **feature**
+    - AmbientLight
     - DirectionalLight
     - Light: Shadows
     - Light Linked List?
