@@ -142,7 +142,7 @@ void RmMaterial::Impl::updateBindings()
 
     // MaterialUbo
     RmMaterialUbo ubo;
-    ubo.header.id = RmMaterial::materialId();
+    ubo.header.id = m_scene.engine().materialId(RmMaterial::hrid());
     ubo.roughnessFactor = m_roughnessFactor;
     ubo.metallicFactor = m_metallicFactor;
     m_uboHolder.copy(0, ubo);

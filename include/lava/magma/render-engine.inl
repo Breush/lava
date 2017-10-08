@@ -4,9 +4,7 @@ namespace lava::magma {
     template <class TMaterial>
     uint32_t RenderEngine::registerMaterial()
     {
-        const auto materialId = registerMaterial(TMaterial::shaderImplementation());
-        TMaterial::materialId(materialId);
-        return materialId;
+        return registerMaterial(TMaterial::hrid(), TMaterial::shaderImplementation());
     }
 
     template <class T, class... Arguments>

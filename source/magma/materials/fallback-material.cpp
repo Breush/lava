@@ -4,10 +4,12 @@
 #include <lava/chamber/macros.hpp>
 #include <sstream>
 
-#include "../macros.hpp"
 #include "../vulkan/materials/fallback-material-impl.hpp"
 
-$magma_material(lava::magma::FallbackMaterial);
+std::string lava::magma::FallbackMaterial::hrid()
+{
+    return "fallback";
+}
 
 std::string lava::magma::FallbackMaterial::shaderImplementation()
 {

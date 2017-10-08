@@ -30,8 +30,15 @@ namespace lava::magma {
 
         // Main interface
         void draw();
-        uint32_t registerMaterial(const std::string& shaderImplementation);
+        uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation);
         uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
+
+        /**
+         * @name Materials
+         */
+        /// @{
+        uint32_t materialId(const std::string& hrid) const { return m_registeredMaterialsMap.at(hrid); }
+        /// @}
 
         /**
          * @name Adders
@@ -108,7 +115,7 @@ namespace lava::magma {
 
         /// Shaders.
         ShadersManager m_shadersManager{device()};
-        uint32_t m_registeredMaterialsCount = 0u;
+        std::unordered_map<std::string, uint32_t> m_registeredMaterialsMap;
 
         /**
          * @name Textures

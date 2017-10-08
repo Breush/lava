@@ -31,7 +31,7 @@ namespace lava::magma {
          */
         template <class TMaterial>
         uint32_t registerMaterial();
-        uint32_t registerMaterial(const std::string& shaderImplementation);
+        uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation);
 
         /**
          * Add a view of render scene's camera to a render-target.

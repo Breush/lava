@@ -30,7 +30,7 @@ void FallbackMaterial::Impl::init()
     m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet(true);
     m_uboHolder.init(m_descriptorSet, m_scene.materialDescriptorHolder().uniformBufferBindingOffset(), {sizeof(uint32_t)});
 
-    uint32_t id = FallbackMaterial::materialId();
+    uint32_t id = m_scene.engine().materialId(FallbackMaterial::hrid());
     m_uboHolder.copy(0, id);
 }
 

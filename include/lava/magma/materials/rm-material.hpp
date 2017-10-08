@@ -20,9 +20,8 @@ namespace lava::magma {
         ~RmMaterial();
 
         // IMaterial
+        static std::string hrid();
         static std::string shaderImplementation();
-        static uint32_t materialId();
-        static void materialId(uint32_t materialId);
         IMaterial::Impl& interfaceImpl();
 
         /// Roughness factor that will be multiplied to the roughness map value.

@@ -4,10 +4,12 @@
 #include <lava/chamber/macros.hpp>
 #include <sstream>
 
-#include "../macros.hpp"
 #include "../vulkan/materials/rm-material-impl.hpp"
 
-$magma_material(lava::magma::RmMaterial);
+std::string lava::magma::RmMaterial::hrid()
+{
+    return "roughness-metallic";
+}
 
 std::string lava::magma::RmMaterial::shaderImplementation()
 {

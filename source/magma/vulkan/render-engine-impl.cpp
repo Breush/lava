@@ -57,10 +57,15 @@ void RenderEngine::Impl::draw()
     }
 }
 
-uint32_t RenderEngine::Impl::registerMaterial(const std::string& shaderImplementation)
+uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std::string& shaderImplementation)
 {
+    auto materialId = m_registeredMaterialsMap.size();
+
+    logger.info("magma.vulkan.render-engine") << "Registering material " << hrid << " as " << materialId << "." << std::endl;
+
     m_shadersManager.registerImpls(shaderImplementation);
-    return m_registeredMaterialsCount++;
+    m_registeredMaterialsMap[hrid] = materialId;
+    return materialId;
 }
 
 uint32_t RenderEngine::Impl::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
