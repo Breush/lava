@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include <lava/magma/viewport.hpp>
+#include <lava/core/viewport.hpp>
 
 namespace lava::magma {
     class ICamera;

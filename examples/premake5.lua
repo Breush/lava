@@ -2,16 +2,6 @@
 -- Ashes - Example applications --
 ----------------------------------
 
-project "magma-load-meshes"
-    kind "WindowedApp"
-    files "magma/load-meshes.cpp"
-    useMagma()
-
-project "magma-rm-material"
-    kind "WindowedApp"
-    files "magma/rm-material.cpp"
-    useMagma()
-
 project "magma-scenes-and-windows"
     kind "WindowedApp"
     files "magma/scenes-and-windows.cpp"
@@ -21,3 +11,8 @@ project "magma-transparency"
     kind "WindowedApp"
     files "magma/transparency.cpp"
     useMagma()
+
+project "sill-mesh-makers"
+    kind "WindowedApp"
+    files "sill/mesh-makers.cpp"
+    useSill()

@@ -99,6 +99,16 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
     m_lights.emplace_back(std::move(light));
 }
 
+void RenderScene::Impl::remove(const IMesh& mesh)
+{
+    for (auto iMesh = m_meshes.begin(); iMesh != m_meshes.end(); ++iMesh) {
+        if (iMesh->get() == &mesh) {
+            m_meshes.erase(iMesh);
+            break;
+        }
+    }
+}
+
 vk::ImageView RenderScene::Impl::renderedImageView(uint32_t cameraIndex) const
 {
     if (!m_initialized) {

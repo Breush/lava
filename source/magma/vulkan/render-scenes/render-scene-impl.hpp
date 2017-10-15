@@ -47,6 +47,13 @@ namespace lava::magma {
         /// @}
 
         /**
+         * @name Removers
+         */
+        /// @{
+        void remove(const IMesh& mesh);
+        /// @}
+
+        /**
          * @name Getters
          */
         /// @{

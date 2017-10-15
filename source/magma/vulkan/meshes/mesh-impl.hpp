@@ -29,7 +29,8 @@ namespace lava::magma {
                     uint32_t descriptorSetIndex) override final;
 
         // Mesh
-        const glm::mat4& worldTransform() const { return m_worldTransform; }
+        const glm::mat4& transform() const { return m_transform; }
+        void transform(const glm::mat4& transform);
         void positionAdd(const glm::vec3& delta);
         void rotationAdd(const glm::vec3& axis, float angleDelta);
 
@@ -60,7 +61,7 @@ namespace lava::magma {
         IMaterial* m_material = nullptr;
 
         // Node
-        glm::mat4 m_worldTransform;
+        glm::mat4 m_transform;
 
         // Descriptor
         vk::DescriptorSet m_descriptorSet;

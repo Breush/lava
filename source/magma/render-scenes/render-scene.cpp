@@ -46,3 +46,6 @@ void RenderScene::add(std::unique_ptr<ILight>&& light)
 {
     m_impl->add(std::move(light));
 }
+
+// Removers
+$pimpl_method(RenderScene, void, remove, const IMesh&, mesh);

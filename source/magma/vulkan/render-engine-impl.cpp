@@ -305,7 +305,7 @@ void RenderEngine::Impl::initVulkan()
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
     logger.log().tab(1);
 
-    m_instanceHolder.init(true);
+    m_instanceHolder.init(false);
 
     logger.log().tab(-1);
 }

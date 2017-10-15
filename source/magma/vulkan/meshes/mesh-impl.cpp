@@ -28,16 +28,22 @@ void Mesh::Impl::init()
     updateBindings();
 }
 
+void Mesh::Impl::transform(const glm::mat4& transform)
+{
+    m_transform = transform;
+    updateBindings();
+}
+
 void Mesh::Impl::positionAdd(const glm::vec3& delta)
 {
     // @todo Should use local one and dirtify the world one
-    m_worldTransform = glm::translate(m_worldTransform, delta);
+    m_transform = glm::translate(m_transform, delta);
     updateBindings();
 }
 
 void Mesh::Impl::rotationAdd(const glm::vec3& axis, float angleDelta)
 {
-    m_worldTransform = glm::rotate(m_worldTransform, angleDelta, axis);
+    m_transform = glm::rotate(m_transform, angleDelta, axis);
     updateBindings();
 }
 
@@ -105,7 +111,7 @@ void Mesh::Impl::updateBindings()
     if (!m_initialized) return;
 
     vulkan::MeshUbo ubo;
-    ubo.transform = m_worldTransform;
+    ubo.transform = m_transform;
     m_uboHolder.copy(0, ubo);
 }
 

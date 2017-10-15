@@ -2,6 +2,7 @@
 
 ## Cross-projects
 
+- Split into different git projects
 - Convert to C++17 (string_view, UTF8, filesystem, ...)
 - Removed useless folder when no namespace (and clean useless namespaces)
 
@@ -59,7 +60,6 @@
             - PBR Epiphany (keep for last step)
         - ---Custom Materials---
         - Alpha
-    - Material: Allow custom materials
     - PBR: Convert to specular-glossiness only [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
@@ -75,15 +75,14 @@
     - magma should be internal use and not be seen in public API includes
 - **feature**
     - Animation
-    - GLB: take loader from magma as that's not rendering *per se*. (Same goes for MeshMakers)
     - Main loop (elapsed time)
     - Materials: Have a way to define (and register) custom materials without creating a class
+        - Materials introspection (-- or own shading language)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
     - Node: hierarchy of GameObjects
     - OrbitCameraController
     - RenderWindow: Take from magma - so that it does not depend on crater anymore
-    - SphereMesh: Take from magma 
     - SphereMesh: uv mapping
 
 ## Dike

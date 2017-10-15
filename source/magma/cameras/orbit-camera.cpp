@@ -10,7 +10,7 @@ using namespace lava::magma;
 $pimpl_class(OrbitCamera, RenderScene&, scene, Extent2d, extent);
 
 // ICamera
-$pimpl_property_v(OrbitCamera, Extent2d, extent);
+$pimpl_property_v(OrbitCamera, lava::Extent2d, extent);
 
 ICamera::Impl& OrbitCamera::interfaceImpl()
 {

@@ -1,8 +1,8 @@
-#include <lava/magma/makers/sphere-mesh.hpp>
+#include <lava/sill/makers/sphere-mesh.hpp>
 
 #include <algorithm>
 #include <lava/chamber/math.hpp>
-#include <lava/magma/meshes/mesh.hpp>
+#include <lava/sill/components/mesh-component.hpp>
 
 using namespace lava;
 
@@ -52,12 +52,13 @@ namespace {
     }
 }
 
-using namespace lava::magma;
+using namespace lava::sill;
 using namespace lava::chamber;
 
-std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, float radius)
+std::function<void(MeshComponent& meshComponent)> makers::sphereMeshMaker(uint32_t tessellation, float diameter)
 {
-    return [tessellation, radius](Mesh& mesh) {
+    auto radius = diameter / 2;
+    return [tessellation, radius](MeshComponent& meshComponent) {
         std::vector<glm::vec3> positions;
         std::vector<uint16_t> indices;
 
@@ -112,10 +113,10 @@ std::function<void(Mesh& mesh)> makers::sphereMeshMaker(uint32_t tessellation, f
         }
         tangents.emplace_back(1.f, 0.f, 0.f, 1.f);
 
-        mesh.verticesCount(positions.size());
-        mesh.verticesPositions(positions);
-        mesh.verticesNormals(normals);
-        mesh.verticesTangents(tangents);
-        mesh.indices(indices);
+        meshComponent.verticesCount(positions.size());
+        meshComponent.verticesPositions(positions);
+        meshComponent.verticesNormals(normals);
+        meshComponent.verticesTangents(tangents);
+        meshComponent.indices(indices);
     };
 }

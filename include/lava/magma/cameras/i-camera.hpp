@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/extent.hpp>
+#include <lava/core/extent.hpp>
 
 namespace lava::magma {
     /**

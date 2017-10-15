@@ -1,12 +1,12 @@
-#include <lava/magma/makers/plane-mesh.hpp>
+#include <lava/sill/makers/plane-mesh.hpp>
 
-#include <lava/magma/meshes/mesh.hpp>
+#include <lava/sill/components/mesh-component.hpp>
 
-using namespace lava::magma;
+using namespace lava::sill;
 
-std::function<void(Mesh& mesh)> makers::planeMeshMaker(Extent2d dimensions)
+std::function<void(MeshComponent& mesh)> makers::planeMeshMaker(Extent2d dimensions)
 {
-    return [dimensions](Mesh& mesh) {
+    return [dimensions](MeshComponent& mesh) {
         std::vector<glm::vec3> positions(4);
         std::vector<glm::vec3> normals(4, {0.f, 0.f, 1.f});
         std::vector<glm::vec4> tangents(4, {1.f, 0.f, 0.f, 1.f});

@@ -1,8 +1,8 @@
 #pragma once
 
-namespace lava::magma {
+namespace lava::sill {
     template <class T, class... Arguments>
-    inline T& RenderScene::make(Arguments&&... arguments)
+    inline T& GameEngine::make(Arguments&&... arguments)
     {
         auto pResource = std::make_unique<T>(*this, std::forward<Arguments>(arguments)...);
         auto& resource = *pResource;

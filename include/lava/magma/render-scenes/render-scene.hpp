@@ -39,9 +39,6 @@ namespace lava::magma {
         /// Make a new resource directly.
         template <class T, class... Arguments>
         T& make(Arguments&&... arguments);
-        /// Make a new resource using a custom maker.
-        template <class T, class... Arguments>
-        T& make(std::function<void(T&)> maker, Arguments&&... arguments);
         /// @}
 
         /**
@@ -56,6 +53,14 @@ namespace lava::magma {
         void add(std::unique_ptr<IMaterial>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
         void add(std::unique_ptr<ILight>&& light);
+        /// @}
+
+        /**
+         * @name Removers
+         * Remove a previously added (or made) resource.
+         */
+        /// @{
+        void remove(const IMesh& mesh);
         /// @}
 
     public:

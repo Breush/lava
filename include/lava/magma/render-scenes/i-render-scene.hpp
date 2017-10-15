@@ -1,7 +1,5 @@
 #pragma once
 
-#include <lava/magma/extent.hpp>
-
 namespace lava::magma {
     /**
      * Interface for render scenes.

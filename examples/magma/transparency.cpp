@@ -2,7 +2,7 @@
  * Shows how transparency works using magma rendering-engine.
  */
 
-#include "../ashe.hpp"
+#include "./ashe.hpp"
 
 using namespace lava;
 
@@ -15,7 +15,7 @@ int main(void)
         auto& blueMaterial = app.scene().make<magma::RmMaterial>();
         blueMaterial.baseColor({0u, 0u, 255u, 120u}, 1u, 1u, 4u);
 
-        auto& blueMesh = app.scene().make(magma::makers::planeMeshMaker({1, 1}));
+        auto& blueMesh = app.makePlane({1, 1});
         blueMesh.rotationAdd({0.f, 1.f, 0.f}, 1.6f);
         blueMesh.material(blueMaterial);
         blueMesh.translucent(true);
@@ -26,7 +26,7 @@ int main(void)
         auto& redMaterial = app.scene().make<magma::RmMaterial>();
         redMaterial.baseColor({255u, 0u, 0u, 120u}, 1u, 1u, 4u);
 
-        auto& redMesh = app.scene().make(magma::makers::planeMeshMaker({1, 1}));
+        auto& redMesh = app.makePlane({1, 1});
         redMesh.positionAdd({-0.25f, 0.f, 0.f});
         redMesh.material(redMaterial);
         redMesh.translucent(true);
@@ -34,6 +34,8 @@ int main(void)
 
     app.camera().position({2.f, 2.f, 2.f});
     app.camera().target({0.f, 0.f, 0.f});
+
+    app.light().radius(1.1f);
 
     app.run();
 

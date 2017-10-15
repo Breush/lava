@@ -14,23 +14,19 @@ int main(void)
     auto& smallWindow = engine.make<magma::RenderWindow>(crater::VideoMode{400, 400}, "ashe - magma | Scenes and windows I");
     auto& bigWindow = engine.make<magma::RenderWindow>(crater::VideoMode{800, 800}, "ashe - magma | Scenes and windows II");
 
-    // Corset scene setup
+    // Left scene setup
     {
-        auto& corsetScene = engine.make<magma::RenderScene>();
-        corsetScene.make<magma::Mesh>("./assets/models/corset.glb");
+        auto& scene = engine.make<magma::RenderScene>();
 
-        auto& light = corsetScene.make<magma::PointLight>();
-        light.position({2.f, 2.f, 2.f});
-
-        auto& frontCamera = corsetScene.make<magma::OrbitCamera>(magma::Extent2d{400, 800});
+        auto& frontCamera = scene.make<magma::OrbitCamera>(Extent2d{400, 800});
         frontCamera.position({0, 3.f, 0.5f});
         frontCamera.target({0, 0, 0.5f});
 
-        auto& leftCamera = corsetScene.make<magma::OrbitCamera>(magma::Extent2d{200, 200});
+        auto& leftCamera = scene.make<magma::OrbitCamera>(Extent2d{200, 200});
         leftCamera.position({-5.f, 0, 0});
         leftCamera.target({0, 0, 0});
 
-        auto& upCamera = corsetScene.make<magma::OrbitCamera>(magma::Extent2d{200, 200});
+        auto& upCamera = scene.make<magma::OrbitCamera>(Extent2d{200, 200});
         upCamera.position({0, 0, 5.f});
         upCamera.target({0, 0, 0});
 
@@ -42,15 +38,11 @@ int main(void)
         engine.addView(frontCamera, bigWindow, {0, 0, 0.5, 1});
     }
 
-    // Sphere scene setup
+    // Right scene setup
     {
-        auto& sphereScene = engine.make<magma::RenderScene>();
-        sphereScene.make(magma::makers::sphereMeshMaker(32, 0.5));
+        auto& scene = engine.make<magma::RenderScene>();
 
-        auto& light = sphereScene.make<magma::PointLight>();
-        light.position({-2.f, -2.f, 5.f});
-
-        auto& frontCamera = sphereScene.make<magma::OrbitCamera>(magma::Extent2d{400, 800});
+        auto& frontCamera = scene.make<magma::OrbitCamera>(Extent2d{400, 800});
         frontCamera.position({0, 5.f, 0});
         frontCamera.target({0, 0, 0});
 
