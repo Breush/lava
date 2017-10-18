@@ -5,7 +5,7 @@
  *  -----
  *
  *  data[0].x   -   roughnessFactor
- *  data[0].y   -   metallicFactor
+ *  data[1].x   -   metallicFactor
  *
  *  sampler01   -   tNormalSampler
  *  sampler02   -   albedoSampler
@@ -28,7 +28,7 @@ void @magma:impl:main (inout GBufferNode node) {
     float roughness = uintBitsToFloat(material.data[0].x);
     roughness *= orm.g;
 
-    float metallic = uintBitsToFloat(material.data[0].y);
+    float metallic = uintBitsToFloat(material.data[1].x);
     metallic *= orm.b;
 
     uint startIndex = 0;

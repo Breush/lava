@@ -16,3 +16,8 @@ project "sill-mesh-makers"
     kind "WindowedApp"
     files "sill/mesh-makers.cpp"
     useSill()
+
+project "sill-rm-material"
+    kind "WindowedApp"
+    files "sill/rm-material.cpp"
+    useSill()

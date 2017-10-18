@@ -16,6 +16,9 @@ namespace lava::sill {
         GameEntity(GameEngine& engine);
         ~GameEntity();
 
+        GameEngine& engine() { return m_engine; }
+        const GameEngine& engine() const { return m_engine; }
+
         /// Check if the specified component exists within the entity.
         template <class ComponentClass>
         bool has() const;
@@ -50,6 +53,7 @@ namespace lava::sill {
         Impl& impl() { return *m_impl; }
 
     private:
+        GameEngine& m_engine;
         Impl* m_impl = nullptr;
     };
 }

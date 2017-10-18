@@ -8,9 +8,9 @@
 namespace lava::magma {
     class RenderEngine;
     class ICamera;
-    class IMaterial;
     class IMesh;
     class ILight;
+    class Material;
 }
 
 namespace lava::magma {
@@ -50,7 +50,7 @@ namespace lava::magma {
          */
         /// @{
         void add(std::unique_ptr<ICamera>&& camera);
-        void add(std::unique_ptr<IMaterial>&& material);
+        void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<IMesh>&& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
@@ -61,6 +61,7 @@ namespace lava::magma {
          */
         /// @{
         void remove(const IMesh& mesh);
+        void remove(const Material& material);
         /// @}
 
     public:

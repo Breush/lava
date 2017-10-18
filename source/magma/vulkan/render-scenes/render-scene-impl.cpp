@@ -4,7 +4,7 @@
 
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../materials/i-material-impl.hpp"
+#include "../material-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
@@ -72,10 +72,10 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
     logger.log().tab(-1);
 }
 
-void RenderScene::Impl::add(std::unique_ptr<IMaterial>&& material)
+void RenderScene::Impl::add(std::unique_ptr<Material>&& material)
 {
     if (m_initialized) {
-        material->interfaceImpl().init();
+        material->impl().init();
     }
 
     m_materials.emplace_back(std::move(material));
@@ -101,9 +101,21 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
 
 void RenderScene::Impl::remove(const IMesh& mesh)
 {
+    m_engine.device().waitIdle();
     for (auto iMesh = m_meshes.begin(); iMesh != m_meshes.end(); ++iMesh) {
         if (iMesh->get() == &mesh) {
             m_meshes.erase(iMesh);
+            break;
+        }
+    }
+}
+
+void RenderScene::Impl::remove(const Material& material)
+{
+    m_engine.device().waitIdle();
+    for (auto iMaterial = m_materials.begin(); iMaterial != m_materials.end(); ++iMaterial) {
+        if (iMaterial->get() == &material) {
+            m_materials.erase(iMaterial);
             break;
         }
     }
@@ -136,12 +148,12 @@ void RenderScene::Impl::updateCamera(uint32_t cameraId)
     m_engine.updateView(*m_cameraBundles[cameraId].camera);
 }
 
-void RenderScene::Impl::fallbackMaterial(std::unique_ptr<IMaterial>&& material)
+void RenderScene::Impl::fallbackMaterial(std::unique_ptr<Material>&& material)
 {
     m_fallbackMaterial = std::move(material);
 
     if (m_initialized) {
-        m_fallbackMaterial->interfaceImpl().init();
+        m_fallbackMaterial->impl().init();
     }
 }
 
@@ -169,11 +181,11 @@ void RenderScene::Impl::initResources()
     }
 
     if (m_fallbackMaterial != nullptr) {
-        m_fallbackMaterial->interfaceImpl().init();
+        m_fallbackMaterial->impl().init();
     }
 
     for (auto& material : m_materials) {
-        material->interfaceImpl().init();
+        material->impl().init();
     }
 
     for (auto& mesh : m_meshes) {

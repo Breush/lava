@@ -8,6 +8,7 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/render-targets/render-window.hpp>
 #include <lava/sill/game-entity.hpp>
+#include <lava/sill/material.hpp>
 #include <vector>
 
 namespace lava::sill {
@@ -18,6 +19,7 @@ namespace lava::sill {
         // GameEngine
         void run();
         void add(std::unique_ptr<GameEntity>&& gameEntity);
+        void add(std::unique_ptr<Material>&& material);
 
         // Getters
         magma::RenderEngine& renderEngine() { return *m_renderEngine; }
@@ -28,6 +30,7 @@ namespace lava::sill {
         const magma::RenderScene& renderScene() const { return *m_renderScene; }
 
     protected:
+        void registerMaterials();
         void handleEvent(crater::Event& event);
 
     private:
@@ -40,5 +43,6 @@ namespace lava::sill {
 
         // Entities
         std::vector<std::unique_ptr<GameEntity>> m_entities;
+        std::vector<std::unique_ptr<Material>> m_materials;
     };
 }

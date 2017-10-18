@@ -3,12 +3,11 @@
 #include <lava/sill/components/i-component.hpp>
 
 #include <glm/glm.hpp>
-#include <lava/magma/materials/i-material.hpp>
 #include <string>
 #include <vector>
 
 namespace lava::sill {
-    class GameEntity;
+    class Material;
 }
 
 namespace lava::sill {
@@ -38,8 +37,7 @@ namespace lava::sill {
         * @name Materials
         */
         /// @{
-        // @todo Find a way to remove magma reference here
-        void material(magma::IMaterial& material);
+        void material(Material& material);
         /// @}
 
     public:

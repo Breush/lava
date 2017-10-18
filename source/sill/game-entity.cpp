@@ -6,7 +6,15 @@
 
 using namespace lava::sill;
 
-$pimpl_class(GameEntity, GameEngine&, engine);
+GameEntity::GameEntity(GameEngine& engine)
+    : m_engine(engine)
+{
+    m_impl = new GameEntity::Impl(engine);
+}
+GameEntity::~GameEntity()
+{
+    delete m_impl;
+}
 
 $pimpl_method_const(GameEntity, bool, hasComponent, const std::string&, hrid);
 $pimpl_method(GameEntity, IComponent&, getComponent, const std::string&, hrid);

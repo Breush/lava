@@ -1,9 +1,9 @@
 #pragma once
 
 #include <functional>
-#include <memory>
-
 #include <lava/core/viewport.hpp>
+#include <lava/magma/uniform.hpp>
+#include <memory>
 
 namespace lava::magma {
     class ICamera;
@@ -29,9 +29,10 @@ namespace lava::magma {
          * All materials have to be registered before adding anything,
          * especially render scenes or render targets.
          */
-        template <class TMaterial>
-        uint32_t registerMaterial();
-        uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation);
+        // @todo These definitions could be extracted with some shader introspection.
+        // Have our own shading "language"?
+        uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
+                                  const UniformDefinitions& uniformDefinitions);
 
         /**
          * Add a view of render scene's camera to a render-target.

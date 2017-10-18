@@ -1,13 +1,30 @@
+//----- Material data unpacking
+
+vec4 materialUnpackVec4(inout uint startIndex) {
+    vec4 value;
+    value.x = uintBitsToFloat(material.data[startIndex].x);
+    value.y = uintBitsToFloat(material.data[startIndex].y);
+    value.z = uintBitsToFloat(material.data[startIndex].z);
+    value.w = uintBitsToFloat(material.data[startIndex].w);
+    startIndex += 1;
+    return value;
+}
+
 //----- Packing
 
 void gBufferPackFloat(inout GBufferNode node, inout uint startIndex, float value) {
-    node.materialData[startIndex] = floatBitsToUint(value);
-    startIndex += 1;
+    node.materialData[startIndex++] = floatBitsToUint(value);
 }
 
 void gBufferPackVec3(inout GBufferNode node, inout uint startIndex, vec3 value) {
-    node.materialData[startIndex] = floatBitsToUint(value.x);
-    node.materialData[startIndex + 1] = floatBitsToUint(value.y);
-    node.materialData[startIndex + 2] = floatBitsToUint(value.z);
-    startIndex += 3;
+    node.materialData[startIndex++] = floatBitsToUint(value.x);
+    node.materialData[startIndex++] = floatBitsToUint(value.y);
+    node.materialData[startIndex++] = floatBitsToUint(value.z);
+}
+
+void gBufferPackVec4(inout GBufferNode node, inout uint startIndex, vec4 value) {
+    node.materialData[startIndex++] = floatBitsToUint(value.x);
+    node.materialData[startIndex++] = floatBitsToUint(value.y);
+    node.materialData[startIndex++] = floatBitsToUint(value.z);
+    node.materialData[startIndex++] = floatBitsToUint(value.w);
 }

@@ -8,6 +8,7 @@
 
 namespace lava::sill {
     class TransformComponent;
+    class Material;
 }
 
 namespace lava::sill {
@@ -28,11 +29,12 @@ namespace lava::sill {
         void verticesTangents(const std::vector<glm::vec4>& tangents);
         void indices(const std::vector<uint16_t>& indices);
 
-        void material(magma::IMaterial& material);
+        void material(Material& material);
 
     private:
         // References
         TransformComponent& m_transformComponent;
+        Material* m_material = nullptr;
 
         // Resources
         magma::Mesh* m_mesh = nullptr;

@@ -1,8 +1,9 @@
 #include <lava/magma/render-engine.hpp>
 
+#include <fstream>
 #include <lava/chamber/macros.hpp>
+#include <sstream>
 
-#include "./materials/fallback-material.hpp"
 #include "./vulkan/render-engine-impl.hpp"
 
 using namespace lava::magma;
@@ -11,7 +12,12 @@ RenderEngine::RenderEngine()
 {
     m_impl = new RenderEngine::Impl();
 
-    registerMaterial<magma::FallbackMaterial>();
+    // Register fallback material
+    // @todo Should be inlined as const string somehow
+    std::ifstream fileStream("./data/shaders/materials/fallback-material.simpl");
+    std::stringstream buffer;
+    buffer << fileStream.rdbuf();
+    registerMaterial("fallback", buffer.str(), {});
 }
 
 RenderEngine::~RenderEngine()
@@ -19,7 +25,8 @@ RenderEngine::~RenderEngine()
 }
 
 $pimpl_method(RenderEngine, void, draw);
-$pimpl_method(RenderEngine, uint32_t, registerMaterial, const std::string&, hrid, const std::string&, shaderImplementation);
+$pimpl_method(RenderEngine, uint32_t, registerMaterial, const std::string&, hrid, const std::string&, shaderImplementation,
+              const UniformDefinitions&, uniformDefinitions);
 
 $pimpl_method(RenderEngine, uint32_t, addView, ICamera&, camera, IRenderTarget&, renderTarget, Viewport, viewport);
 

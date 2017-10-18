@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+// @todo What's vulkan?
 namespace lava::magma::vulkan {
     /// Camera UBO used by GBuffer stage.
     struct CameraUbo {
@@ -23,6 +24,8 @@ namespace lava::magma::vulkan {
     struct MaterialUbo {
         MaterialUboHeader header;
         glm::uvec4 data[8];
+
+        MaterialUbo() {}
     };
 
     /// Mesh UBO used by GBuffer stage.

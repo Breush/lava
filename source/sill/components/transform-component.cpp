@@ -6,7 +6,7 @@
 
 using namespace lava::sill;
 
-$pimpl_class(TransformComponent, GameEntity&, entity);
+$pimpl_class_base(TransformComponent, IComponent, GameEntity&, entity);
 
 // IComponent
 $pimpl_method(TransformComponent, void, update);

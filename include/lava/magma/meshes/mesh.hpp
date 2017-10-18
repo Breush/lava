@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace lava::magma {
-    class IMaterial;
+    class Material;
     class RenderScene;
 }
 
@@ -37,8 +37,8 @@ namespace lava::magma {
         void verticesTangents(const std::vector<glm::vec4>& tangents);
         void indices(const std::vector<uint16_t>& indices);
 
-        IMaterial& material();
-        void material(IMaterial& material);
+        Material& material();
+        void material(Material& material);
 
     public:
         class Impl;

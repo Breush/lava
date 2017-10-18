@@ -68,6 +68,22 @@ uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std
     return materialId;
 }
 
+uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
+                                              const UniformDefinitions& uniformDefinitions)
+{
+    auto materialId = m_registeredMaterialsMap.size();
+
+    logger.info("magma.vulkan.render-engine") << "Registering material " << hrid << " as " << materialId << "." << std::endl;
+
+    m_registeredMaterialsMap[hrid] = materialId;
+
+    m_shadersManager.registerImpls(shaderImplementation);
+    auto& materialInfo = m_materialInfos[hrid];
+    materialInfo.id = materialId;
+    materialInfo.uniformDefinitions = uniformDefinitions;
+    return materialId;
+}
+
 uint32_t RenderEngine::Impl::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
 {
     // Find the render target bundle

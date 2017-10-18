@@ -12,6 +12,7 @@
 #include "./holders/device-holder.hpp"
 #include "./holders/image-holder.hpp"
 #include "./holders/instance-holder.hpp"
+#include "./material-info.hpp"
 #include "./shaders-manager.hpp"
 #include "./wrappers.hpp"
 
@@ -29,8 +30,11 @@ namespace lava::magma {
         ~Impl();
 
         // Main interface
+        void stop();
         void draw();
         uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation);
+        uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
+                                  const UniformDefinitions& uniformDefinitions);
         uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
 
         /**
@@ -73,6 +77,8 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
+        const MaterialInfo& materialInfo(const std::string& hrid) const { return m_materialInfos.at(hrid); }
+
         void updateRenderTarget(uint32_t renderTargetId);
         void updateView(ICamera& camera);
         /// @}
@@ -115,6 +121,7 @@ namespace lava::magma {
 
         /// Shaders.
         ShadersManager m_shadersManager{device()};
+        std::unordered_map<std::string, MaterialInfo> m_materialInfos;
         std::unordered_map<std::string, uint32_t> m_registeredMaterialsMap;
 
         /**

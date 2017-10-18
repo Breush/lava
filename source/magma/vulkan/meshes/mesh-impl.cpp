@@ -4,7 +4,7 @@
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
 
-#include "../materials/i-material-impl.hpp"
+#include "../material-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
 
@@ -101,7 +101,7 @@ void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
     // while we update our secondary command buffer right here
 }
 
-void Mesh::Impl::material(IMaterial& material)
+void Mesh::Impl::material(Material& material)
 {
     m_material = &material;
 }
@@ -139,7 +139,7 @@ void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipe
     // @todo Have this in a more clever render loop, and not called by this mesh
     // Fact is we shouldn't know about the correct descriptorSetIndex here
     if (m_material != nullptr) {
-        m_material->interfaceImpl().render(commandBuffer, pipelineLayout, 2u);
+        m_material->impl().render(commandBuffer, pipelineLayout, 2u);
     }
     else {
         m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, 2u);

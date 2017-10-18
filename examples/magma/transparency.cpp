@@ -1,5 +1,5 @@
 /**
- * Shows how transparency works using magma rendering-engine.
+ * Shows how translucency works using magma rendering-engine.
  */
 
 #include "./ashe.hpp"
@@ -8,12 +8,12 @@ using namespace lava;
 
 int main(void)
 {
-    ashe::Application app("ashe - magma | Transparency");
+    ashe::Application app("ashe - magma | Translucency");
 
     // Blue mesh
     {
-        auto& blueMaterial = app.scene().make<magma::RmMaterial>();
-        blueMaterial.baseColor({0u, 0u, 255u, 120u}, 1u, 1u, 4u);
+        auto& blueMaterial = app.scene().make<magma::Material>("ashe");
+        blueMaterial.set("color", {0.f, 0.f, 1.f, 0.3f});
 
         auto& blueMesh = app.makePlane({1, 1});
         blueMesh.rotationAdd({0.f, 1.f, 0.f}, 1.6f);
@@ -23,8 +23,8 @@ int main(void)
 
     // Red mesh
     {
-        auto& redMaterial = app.scene().make<magma::RmMaterial>();
-        redMaterial.baseColor({255u, 0u, 0u, 120u}, 1u, 1u, 4u);
+        auto& redMaterial = app.scene().make<magma::Material>("ashe");
+        redMaterial.set("color", {1.f, 0.f, 0.f, 0.5f});
 
         auto& redMesh = app.makePlane({1, 1});
         redMesh.positionAdd({-0.25f, 0.f, 0.f});

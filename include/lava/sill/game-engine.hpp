@@ -4,6 +4,7 @@
 
 namespace lava::sill {
     class GameEntity;
+    class Material;
 }
 
 namespace lava::sill {
@@ -35,6 +36,7 @@ namespace lava::sill {
          */
         /// @{
         void add(std::unique_ptr<GameEntity>&& gameEntity);
+        void add(std::unique_ptr<Material>&& material);
         /// @}
 
         /// Main loop.

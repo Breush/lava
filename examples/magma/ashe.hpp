@@ -1,8 +1,9 @@
 #pragma once
 
-#include <iostream>
+#include <fstream>
 #include <lava/magma.hpp>
 #include <memory>
+#include <sstream>
 
 namespace lava::ashe {
     class Application {
@@ -22,7 +23,12 @@ namespace lava::ashe {
         {
             // Render engine: the global manager.
             m_engine = std::make_unique<magma::RenderEngine>();
-            m_engine->registerMaterial<magma::RmMaterial>();
+
+            // Custom material
+            std::ifstream fileStream("./examples/magma/ashe-material.simpl");
+            std::stringstream buffer;
+            buffer << fileStream.rdbuf();
+            m_engine->registerMaterial("ashe", buffer.str(), {{"color", magma::UniformType::VEC4, glm::vec4(1.f)}});
 
             // A window we can draw to.
             m_window = &m_engine->make<magma::RenderWindow>(crater::VideoMode{800, 600}, title);

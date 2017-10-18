@@ -6,7 +6,7 @@
 
 using namespace lava::sill;
 
-$pimpl_class(MeshComponent, GameEntity&, entity);
+$pimpl_class_base(MeshComponent, IComponent, GameEntity&, entity);
 
 // IComponent
 $pimpl_method(MeshComponent, void, update);
@@ -19,4 +19,4 @@ $pimpl_method(MeshComponent, void, verticesNormals, const std::vector<glm::vec3>
 $pimpl_method(MeshComponent, void, verticesTangents, const std::vector<glm::vec4>&, tangents);
 $pimpl_method(MeshComponent, void, indices, const std::vector<uint16_t>&, indices);
 
-$pimpl_method(MeshComponent, void, material, magma::IMaterial&, material);
+$pimpl_method(MeshComponent, void, material, Material&, material);

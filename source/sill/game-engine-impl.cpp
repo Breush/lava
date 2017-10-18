@@ -1,6 +1,8 @@
 #include "./game-engine-impl.hpp"
 
-#include <lava/magma/materials/rm-material.hpp>
+#include <fstream>
+#include <lava/magma/material.hpp>
+#include <sstream>
 
 #include "./game-entity-impl.hpp"
 
@@ -12,7 +14,7 @@ GameEngine::Impl::Impl()
 
     // Register our materials
     m_renderEngine = std::make_unique<magma::RenderEngine>();
-    m_renderEngine->registerMaterial<magma::RmMaterial>();
+    registerMaterials();
 
     m_renderWindow = &m_renderEngine->make<magma::RenderWindow>(crater::VideoMode{800, 600}, "sill");
     m_renderScene = &m_renderEngine->make<magma::RenderScene>();
@@ -24,8 +26,8 @@ GameEngine::Impl::Impl()
 
     // @todo Handle custom lights
     m_light = &m_renderScene->make<magma::PointLight>();
-    m_light->position({0.8f, 0.7f, 0.4f});
-    m_light->radius(10.f);
+    m_light->position({-1.f, -1.f, 0.7f});
+    m_light->radius(100.f);
 
     // @todo Handle custom views
     m_renderEngine->addView(*m_camera, *m_renderWindow, Viewport{0, 0, 1, 1});
@@ -60,7 +62,30 @@ void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
     m_entities.emplace_back(std::move(gameEntity));
 }
 
+void GameEngine::Impl::add(std::unique_ptr<Material>&& material)
+{
+    m_materials.emplace_back(std::move(material));
+}
+
 //----- Internals
+
+void GameEngine::Impl::registerMaterials()
+{
+    // Roughness-metallic material
+    {
+        std::ifstream fileStream("./data/shaders/materials/rm-material.simpl");
+        std::stringstream buffer;
+        buffer << fileStream.rdbuf();
+
+        // @fixme Find a way to set default values (notably for normal texture)
+        m_renderEngine->registerMaterial("roughness-metallic", buffer.str(),
+                                         {{"roughnessFactor", magma::UniformType::FLOAT, 1.f},
+                                          {"metallicFactor", magma::UniformType::FLOAT, 1.f},
+                                          {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
+                                          {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
+                                          {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
+    }
+}
 
 void GameEngine::Impl::handleEvent(crater::Event& event)
 {

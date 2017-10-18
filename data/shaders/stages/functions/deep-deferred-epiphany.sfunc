@@ -5,17 +5,24 @@ const float PI = 3.1415926535897932384626433832795;
 //----- Unpacking
 
 float gBufferUnpackFloat(GBufferNode node, inout uint startIndex) {
-    float value = uintBitsToFloat(node.materialData[startIndex]);
-    startIndex += 1;
+    float value = uintBitsToFloat(node.materialData[startIndex++]);
     return value;
 }
 
 vec3 gBufferUnpackVec3(GBufferNode node, inout uint startIndex) {
     vec3 value;
-    value.x = uintBitsToFloat(node.materialData[startIndex]);
-    value.y = uintBitsToFloat(node.materialData[startIndex + 1]);
-    value.z = uintBitsToFloat(node.materialData[startIndex + 2]);
-    startIndex += 3;
+    value.x = uintBitsToFloat(node.materialData[startIndex++]);
+    value.y = uintBitsToFloat(node.materialData[startIndex++]);
+    value.z = uintBitsToFloat(node.materialData[startIndex++]);
+    return value;
+}
+
+vec4 gBufferUnpackVec4(GBufferNode node, inout uint startIndex) {
+    vec4 value;
+    value.x = uintBitsToFloat(node.materialData[startIndex++]);
+    value.y = uintBitsToFloat(node.materialData[startIndex++]);
+    value.z = uintBitsToFloat(node.materialData[startIndex++]);
+    value.w = uintBitsToFloat(node.materialData[startIndex++]);
     return value;
 }
 

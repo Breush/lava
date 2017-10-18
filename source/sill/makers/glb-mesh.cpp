@@ -3,8 +3,7 @@
 #include <fstream>
 #include <glm/glm.hpp>
 #include <lava/chamber/logger.hpp>
-// @todo Should be defined in sill via a abstracted interface for materials (with no knowledge of vulkan's internals)
-#include <lava/magma/materials/rm-material.hpp>
+#include <lava/sill/material.hpp>
 #include <stb/stb_image.h>
 
 #include "../components/mesh-component-impl.hpp"
@@ -114,7 +113,7 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
         // Material
         uint32_t materialIndex = primitive["material"];
         glb::PbrMetallicRoughnessMaterial material(materials[materialIndex]);
-        auto& rmMaterial = meshComponent.impl().entity().engine().renderScene().make<magma::RmMaterial>();
+        auto& rmMaterial = meshComponent.entity().engine().make<Material>("roughness-metallic");
 
         // Material textures
         if (material.baseColorTextureIndex != -1u) {
@@ -129,7 +128,7 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
                 stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
             std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
             memmove(pixelsVector.data(), pixels, pixelsVector.size());
-            rmMaterial.baseColor(pixelsVector, texWidth, texHeight, 4);
+            rmMaterial.set("albedoMap", pixelsVector, texWidth, texHeight, 4);
             stbi_image_free(pixels);
         }
         if (material.normalTextureIndex != -1u) {
@@ -144,7 +143,7 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
                 stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
             std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
             memmove(pixelsVector.data(), pixels, pixelsVector.size());
-            rmMaterial.normal(pixelsVector, texWidth, texHeight, 4);
+            rmMaterial.set("normalMap", pixelsVector, texWidth, texHeight, 4);
             stbi_image_free(pixels);
         }
         if (material.metallicRoughnessTextureIndex != -1u) {
@@ -159,7 +158,7 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
                 stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
             std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
             memmove(pixelsVector.data(), pixels, pixelsVector.size());
-            rmMaterial.metallicRoughnessColor(pixelsVector, texWidth, texHeight, 4);
+            rmMaterial.set("ormMap", pixelsVector, texWidth, texHeight, 4);
             stbi_image_free(pixels);
         }
 

@@ -42,9 +42,6 @@
     - GLB: pass factors and colors (with textures)
     - Mesh: have own secondary buffers
     - OrbitCamera: FOV and up-vector configurable
-    - PBR: albedo color factors and such
-    - PBR: what is the meaning of the 0.5 * ambientColor?
-    - RmMaterial: Clarify albedo/normalMap usage
     - Viewport: specify region to be shown
 - **feature**
     - AmbientLight
@@ -58,7 +55,6 @@
         - Lighting G-buffer (Epiphany)
             - Access LLL
             - PBR Epiphany (keep for last step)
-        - ---Custom Materials---
         - Alpha
     - PBR: Convert to specular-glossiness only [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
@@ -76,13 +72,13 @@
 - **feature**
     - Animation
     - Main loop (elapsed time)
-    - Materials: Have a way to define (and register) custom materials without creating a class
-        - Materials introspection (-- or own shading language)
+    - Materials introspection (-- or own shading language)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
     - Node: hierarchy of GameObjects
     - OrbitCameraController
     - RenderWindow: Take from magma - so that it does not depend on crater anymore
+    - RmMaterial: albedo color
     - SphereMesh: uv mapping
 
 ## Dike

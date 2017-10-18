@@ -6,6 +6,13 @@ namespace lava::chamber::macros {
 #define $pimpl_class(Class, ...)                                                                                                 \
     Class::Class($parameter_merge(__VA_ARGS__)) { m_impl = new Impl($parameter_drop_types(__VA_ARGS__)); }                       \
     Class::~Class() { delete m_impl; }
+#define $pimpl_class_base(Class, BaseClass, ...)                                                                                 \
+    Class::Class($parameter_merge(__VA_ARGS__))                                                                                  \
+        : BaseClass($parameter_drop_types(__VA_ARGS__))                                                                          \
+    {                                                                                                                            \
+        m_impl = new Impl($parameter_drop_types(__VA_ARGS__));                                                                   \
+    }                                                                                                                            \
+    Class::~Class() { delete m_impl; }
 
 #define $pimpl_method(...)                                                                                                       \
     $pimpl_method_definition(__VA_ARGS__) { $pimpl_method_implementation(__VA_ARGS__) }

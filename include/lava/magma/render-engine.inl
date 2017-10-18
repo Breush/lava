@@ -1,12 +1,6 @@
 #pragma once
 
 namespace lava::magma {
-    template <class TMaterial>
-    uint32_t RenderEngine::registerMaterial()
-    {
-        return registerMaterial(TMaterial::hrid(), TMaterial::shaderImplementation());
-    }
-
     template <class T, class... Arguments>
     inline T& RenderEngine::make(Arguments&&... arguments)
     {

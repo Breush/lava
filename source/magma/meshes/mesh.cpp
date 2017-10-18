@@ -38,5 +38,5 @@ $pimpl_method(Mesh, void, verticesNormals, const std::vector<glm::vec3>&, normal
 $pimpl_method(Mesh, void, verticesTangents, const std::vector<glm::vec4>&, tangents);
 $pimpl_method(Mesh, void, indices, const std::vector<uint16_t>&, indices);
 
-$pimpl_method(Mesh, IMaterial&, material);
-$pimpl_method(Mesh, void, material, IMaterial&, material);
+$pimpl_method(Mesh, Material&, material);
+$pimpl_method(Mesh, void, material, Material&, material);

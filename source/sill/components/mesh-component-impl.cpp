@@ -4,6 +4,7 @@
 
 #include "../game-engine-impl.hpp"
 #include "../game-entity-impl.hpp"
+#include "../material-impl.hpp"
 
 using namespace lava::sill;
 
@@ -60,7 +61,7 @@ void MeshComponent::Impl::indices(const std::vector<uint16_t>& indices)
     m_mesh->indices(indices);
 }
 
-void MeshComponent::Impl::material(magma::IMaterial& material)
+void MeshComponent::Impl::material(Material& material)
 {
-    m_mesh->material(material);
+    m_mesh->material(material.impl().material());
 }
