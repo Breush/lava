@@ -28,7 +28,7 @@ namespace lava::magma {
             // 6 bits allows 64 different material shaders
             uint32_t materialId6_next26;
             float depth;
-            uint32_t materialData[10];
+            uint32_t materialData[9];
         };
 
     public:

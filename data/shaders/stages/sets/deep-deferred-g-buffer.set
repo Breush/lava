@@ -1,6 +1,6 @@
 #softdefine GBUFFER_MAX_NODE_DEPTH
 
-#define GBUFFER_MATERIALDATA_SIZE 10
+#define GBUFFER_MATERIALDATA_SIZE 9
 
 layout(std430, set = 0, binding = 0) buffer GBufferHeader {
     uint width;

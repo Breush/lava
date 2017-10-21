@@ -22,6 +22,15 @@ void gBufferPackVec3(inout GBufferNode node, inout uint startIndex, vec3 value) 
     node.materialData[startIndex++] = floatBitsToUint(value.z);
 }
 
+// Stored using spherical coordinates
+void gBufferPackVec3Normalized(inout GBufferNode node, inout uint startIndex, vec3 value) {
+    float phi = acos(value.z);
+    float theta = atan(value.y, value.x);
+
+    node.materialData[startIndex++] = floatBitsToUint(phi);
+    node.materialData[startIndex++] = floatBitsToUint(theta);
+}
+
 void gBufferPackVec4(inout GBufferNode node, inout uint startIndex, vec4 value) {
     node.materialData[startIndex++] = floatBitsToUint(value.x);
     node.materialData[startIndex++] = floatBitsToUint(value.y);

@@ -34,7 +34,7 @@ void @magma:impl:main (inout GBufferNode node) {
     uint startIndex = 0;
     gBufferPackFloat(node, startIndex, albedo.a);
     gBufferPackVec3(node, startIndex, albedo.rgb);
-    gBufferPackVec3(node, startIndex, normal);
+    gBufferPackVec3Normalized(node, startIndex, normal);
     gBufferPackFloat(node, startIndex, occlusion);
     gBufferPackFloat(node, startIndex, roughness);
     gBufferPackFloat(node, startIndex, metallic);
@@ -103,7 +103,7 @@ vec4 @magma:impl:main (GBufferNode node) {
     uint startIndex = 0;
     float opacity = gBufferUnpackFloat(node, startIndex);
     vec3 albedo = gBufferUnpackVec3(node, startIndex);
-    vec3 normal = gBufferUnpackVec3(node, startIndex);
+    vec3 normal = gBufferUnpackVec3Normalized(node, startIndex);
     float occlusion = gBufferUnpackFloat(node, startIndex);
     float roughness = gBufferUnpackFloat(node, startIndex);
     float metallic = gBufferUnpackFloat(node, startIndex);
