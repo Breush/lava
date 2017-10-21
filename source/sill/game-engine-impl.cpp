@@ -21,8 +21,8 @@ GameEngine::Impl::Impl()
 
     // @todo Handle custom cameras
     m_camera = &m_renderScene->make<magma::OrbitCamera>(Extent2d{800, 600});
-    m_camera->position({0.f, 2.f, 0.75f});
-    m_camera->target({0.f, 0.f, 0.5f});
+    m_camera->position({2.f, 3.f, 2.f});
+    m_camera->target({0.f, 0.f, 0.f});
 
     // @todo Handle custom lights
     m_light = &m_renderScene->make<magma::PointLight>();
