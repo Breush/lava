@@ -5,9 +5,43 @@
 #include "../helpers/queue.hpp"
 #include "../helpers/swapchain.hpp"
 
+// @note Instanciation of declared-only in vulkan.h.
+
+VkResult vkDebugMarkerSetObjectNameEXT(VkDevice device, const VkDebugMarkerObjectNameInfoEXT* pNameInfo)
+{
+    auto Function =
+        reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
+    return Function(device, pNameInfo);
+}
+
+void cmdDebugMarkerBeginEXT(VkDevice device, VkCommandBuffer commandBuffer, const VkDebugMarkerMarkerInfoEXT* pMarkerInfo)
+{
+    auto Function = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetDeviceProcAddr(device, "vkCmdDebugMarkerBeginEXT"));
+    return Function(commandBuffer, pMarkerInfo);
+}
+
+void cmdDebugMarkerEndEXT(VkDevice device, VkCommandBuffer commandBuffer)
+{
+    auto Function = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetDeviceProcAddr(device, "vkCmdDebugMarkerEndEXT"));
+    return Function(commandBuffer);
+}
+
 using namespace lava;
 
 namespace {
+    /**
+     * Checks if a device supports an extension.
+     */
+    inline bool deviceExtensionSupported(vk::PhysicalDevice physicalDevice, const std::string& deviceExtension)
+    {
+        auto extensions = physicalDevice.enumerateDeviceExtensionProperties();
+        return std::find_if(extensions.begin(), extensions.end(),
+                            [&deviceExtension](const vk::ExtensionProperties& extension) {
+                                return extension.extensionName == deviceExtension;
+                            })
+               != extensions.end();
+    }
+
     /**
      * Checks if a device supports the extensions.
      */
@@ -52,6 +86,39 @@ void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR surface)
 {
     pickPhysicalDevice(instance, surface);
     createLogicalDevice(surface);
+}
+
+void DeviceHolder::debugMarkerSetObjectName(uint64_t object, vk::DebugReportObjectTypeEXT objectType,
+                                            const std::string& name) const
+{
+    if (!m_debugMarkerExtensionEnabled) return;
+
+    vk::DebugMarkerObjectNameInfoEXT nameInfo;
+    nameInfo.objectType = objectType;
+    nameInfo.object = object;
+    nameInfo.pObjectName = name.c_str();
+    device().debugMarkerSetObjectNameEXT(nameInfo);
+}
+
+void DeviceHolder::debugMarkerSetObjectName(vk::CommandBuffer object, const std::string& name) const
+{
+    debugMarkerSetObjectName(reinterpret_cast<uint64_t&>(object), vk::DebugReportObjectTypeEXT::eCommandBuffer, name);
+}
+
+void DeviceHolder::debugMarkerBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const
+{
+    if (!m_debugMarkerExtensionEnabled) return;
+
+    vk::DebugMarkerMarkerInfoEXT markerInfo;
+    markerInfo.pMarkerName = name.c_str();
+    cmdDebugMarkerBeginEXT(m_device.vk(), commandBuffer, &reinterpret_cast<VkDebugMarkerMarkerInfoEXT&>(markerInfo));
+}
+
+void DeviceHolder::debugMarkerEndRegion(vk::CommandBuffer commandBuffer) const
+{
+    if (!m_debugMarkerExtensionEnabled) return;
+
+    cmdDebugMarkerEndEXT(m_device.vk(), commandBuffer);
 }
 
 void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface)
@@ -102,12 +169,23 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
     vk::PhysicalDeviceFeatures deviceFeatures;
     deviceFeatures.samplerAnisotropy = true;
 
+    // Extensions
+    auto enabledExtensions(m_extensions);
+
+    // Check if some optional extensions can be activated
+    if (deviceExtensionSupported(m_physicalDevice, VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
+        logger.info("magma.vulkan.device-holder")
+            << "Enabling optional device extension " << VK_EXT_DEBUG_MARKER_EXTENSION_NAME << "." << std::endl;
+        enabledExtensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+        m_debugMarkerExtensionEnabled = true;
+    }
+
     // Really create
     vk::DeviceCreateInfo createInfo;
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.queueCreateInfoCount = queueCreateInfos.size();
-    createInfo.enabledExtensionCount = m_extensions.size();
-    createInfo.ppEnabledExtensionNames = m_extensions.data();
+    createInfo.enabledExtensionCount = enabledExtensions.size();
+    createInfo.ppEnabledExtensionNames = enabledExtensions.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
 
     if (m_physicalDevice.createDevice(&createInfo, nullptr, m_device.replace()) != vk::Result::eSuccess) {

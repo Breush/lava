@@ -56,6 +56,7 @@ namespace lava::magma {
          * @name Getters
          */
         /// @{
+        const vulkan::DeviceHolder& deviceHolder() const { return m_deviceHolder; }
         const vk::Instance& instance() const { return m_instanceHolder.instance(); }
         const vk::Device& device() const { return m_deviceHolder.device(); }
         const vk::PhysicalDevice& physicalDevice() const { return m_deviceHolder.physicalDevice(); }

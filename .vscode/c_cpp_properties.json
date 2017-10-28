@@ -6,9 +6,12 @@
                 "${workspaceRoot}/external/include",
                 "${workspaceRoot}/include",
                 "/usr/include/x86_64-linux-gnu/c++/6",
+                "/usr/include/x86_64-linux-gnu/c++/7",
                 "/usr/include/c++/6",
+                "/usr/include/c++/7",
                 "/usr/local/include",
                 "/usr/lib/clang/4.0.0/include",
+                "/usr/lib/clang/4.0.1/include",
                 "/usr/include/x86_64-linux-gnu",
                 "/usr/include"
             ],
@@ -18,9 +21,12 @@
                 "path": [
                     "${workspaceRoot}",
                     "/usr/include/x86_64-linux-gnu/c++/6",
+                    "/usr/include/x86_64-linux-gnu/c++/7",
                     "/usr/include/c++/6",
+                    "/usr/include/c++/7",
                     "/usr/local/include",
                     "/usr/lib/clang/4.0.0/include",
+                    "/usr/lib/clang/4.0.1/include",
                     "/usr/include/x86_64-linux-gnu",
                     "/usr/include"
                 ],

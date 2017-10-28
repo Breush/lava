@@ -13,6 +13,12 @@ namespace lava::magma::vulkan {
     public:
         void init(vk::Instance instance, vk::SurfaceKHR surface);
 
+        void debugMarkerSetObjectName(uint64_t object, vk::DebugReportObjectTypeEXT objectType, const std::string& name) const;
+        void debugMarkerSetObjectName(vk::CommandBuffer object, const std::string& name) const;
+
+        void debugMarkerBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const;
+        void debugMarkerEndRegion(vk::CommandBuffer commandBuffer) const;
+
         // ----- Getters
 
         const vk::Device& device() const { return m_device; }
@@ -34,5 +40,6 @@ namespace lava::magma::vulkan {
         vk::Queue m_presentQueue = nullptr;
 
         const std::vector<const char*> m_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+        bool m_debugMarkerExtensionEnabled = false;
     };
 }

@@ -104,6 +104,9 @@ void DeepDeferredStage::update(vk::Extent2D extent)
 
 void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 {
+    const auto& deviceHolder = m_scene.engine().deviceHolder();
+    deviceHolder.debugMarkerBeginRegion(commandBuffer, "DeepDeferredStage");
+
     //----- Prologue
 
     // Set render pass
@@ -123,12 +126,18 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     //----- Clear pass
 
+    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Clear pass");
+
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipelineLayout(),
                                      GBUFFER_DESCRIPTOR_SET_INDEX, 1, &m_gBufferDescriptorSet, 0, nullptr);
     commandBuffer.draw(6, 1, 0, 0);
 
+    deviceHolder.debugMarkerEndRegion(commandBuffer);
+
     //----- Geometry opaque pass
+
+    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Geometry opaque pass");
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryOpaquePipelineHolder.pipeline());
@@ -147,7 +156,11 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
         }
     }
 
+    deviceHolder.debugMarkerEndRegion(commandBuffer);
+
     //----- Geometry translucent pass
+
+    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Geometry translucent pass");
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryTranslucentPipelineHolder.pipeline());
@@ -162,7 +175,11 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
         }
     }
 
+    deviceHolder.debugMarkerEndRegion(commandBuffer);
+
     //----- Epiphany pass
+
+    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Epiphany pass");
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipeline());
@@ -172,11 +189,15 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     // @todo With LLL subpass, this shouldn't be needed anymore
     updateEpiphanyUbo();
 
-    commandBuffer.draw(6, 1, 0, 0);
+    commandBuffer.draw(6, 1, 0, 1);
+
+    deviceHolder.debugMarkerEndRegion(commandBuffer);
 
     //----- Epilogue
 
     commandBuffer.endRenderPass();
+
+    deviceHolder.debugMarkerEndRegion(commandBuffer);
 }
 
 //----- Internal
