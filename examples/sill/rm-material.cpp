@@ -12,6 +12,20 @@ int main(void)
 {
     sill::GameEngine engine;
 
+    // Sky
+    // @todo Set sky in the engine
+    // @todo No depth buffer and always centered on the camera
+    auto& skyboxEntity = engine.make<sill::GameEntity>();
+    auto& skyboxMaterial = engine.make<sill::Material>("sky");
+    skyboxMaterial.set("texture", "./assets/skies/panorama-spherical_sichuan.jpg");
+    auto& skyboxMeshComponent = skyboxEntity.make<sill::MeshComponent>();
+    skyboxMeshComponent.material(skyboxMaterial);
+
+    sill::makers::SphereMeshOptions sphereMeshOptions;
+    sphereMeshOptions.siding = sill::SphereSiding::IN;
+    sphereMeshOptions.coordinatesSystem = sill::SphereCoordinatesSystem::PANORAMA_SPHERICAL;
+    sill::makers::sphereMeshMaker(64u, 100.f, sphereMeshOptions)(skyboxMeshComponent);
+
     // Create a bunch of spheres
     const float spheresSideCountRange = SPHERES_SIDE_COUNT - 1u;
     for (auto i = 0u; i < SPHERES_SIDE_COUNT; ++i) {

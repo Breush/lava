@@ -14,6 +14,14 @@ namespace lava::magma {
      * Vulkan-based implementation of magma::Material.
      */
     class Material::Impl {
+    private:
+        struct Attribute {
+            UniformType type = UniformType::UNKNOWN;
+            uint32_t offset = -1u;
+            bool enabled = false;
+            UniformFallback fallback;
+        };
+
     public:
         Impl(RenderScene& scene, const std::string& hrid);
 
@@ -28,15 +36,8 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex);
 
     protected:
+        Attribute& findAttribute(const std::string& uniformName);
         void updateBindings();
-
-    private:
-        struct Attribute {
-            UniformType type = UniformType::UNKNOWN;
-            uint32_t offset = -1u;
-            bool enabled = false;
-            UniformFallback fallback;
-        };
 
     private:
         // References

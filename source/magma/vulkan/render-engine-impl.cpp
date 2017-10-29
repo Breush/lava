@@ -171,6 +171,15 @@ void RenderEngine::Impl::updateView(ICamera& camera)
     }
 }
 
+const MaterialInfo& RenderEngine::Impl::materialInfo(const std::string& hrid) const
+{
+    const auto iMaterialInfo = m_materialInfos.find(hrid);
+    if (iMaterialInfo == m_materialInfos.end()) {
+        logger.error("magma.vulkan.render-engine") << "Material '" << hrid << "' has not been registered." << std::endl;
+    }
+    return iMaterialInfo->second;
+}
+
 void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
 {
     if (renderTargetId > m_renderTargetBundles.size()) {

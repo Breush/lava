@@ -13,3 +13,8 @@ float math::sin(float t)
 {
     return std::sin(t);
 }
+
+float math::atan2(float x, float y)
+{
+    return std::atan2(x, y);
+}

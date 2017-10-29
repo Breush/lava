@@ -78,7 +78,7 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
-        const MaterialInfo& materialInfo(const std::string& hrid) const { return m_materialInfos.at(hrid); }
+        const MaterialInfo& materialInfo(const std::string& hrid) const;
 
         void updateRenderTarget(uint32_t renderTargetId);
         void updateView(ICamera& camera);

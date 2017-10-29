@@ -72,14 +72,16 @@ void Material::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout 
 
 void Material::Impl::set(const std::string& uniformName, float value)
 {
-    auto offset = m_attributes[uniformName].offset;
+    auto& attribute = findAttribute(uniformName);
+    auto offset = attribute.offset;
     reinterpret_cast<float&>(m_ubo.data[offset]) = value;
     updateBindings();
 }
 
 void Material::Impl::set(const std::string& uniformName, const glm::vec4& value)
 {
-    auto offset = m_attributes[uniformName].offset;
+    auto& attribute = findAttribute(uniformName);
+    auto offset = attribute.offset;
     reinterpret_cast<glm::vec4&>(m_ubo.data[offset]) = value;
     updateBindings();
 }
@@ -88,13 +90,22 @@ void Material::Impl::set(const std::string& uniformName, const glm::vec4& value)
 void Material::Impl::set(const std::string& uniformName, const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
                          uint8_t channels)
 {
-    auto& attribute = m_attributes[uniformName];
+    auto& attribute = findAttribute(uniformName);
     attribute.enabled = true;
     m_imageHolders[attribute.offset]->setup(pixels, width, height, channels);
     updateBindings();
 }
 
 //----- Private
+
+Material::Impl::Attribute& Material::Impl::findAttribute(const std::string& uniformName)
+{
+    auto pAttribute = m_attributes.find(uniformName);
+    if (pAttribute == m_attributes.end()) {
+        logger.error("magma.vulkan.material") << "Attribute '" << uniformName << "' has not been defined." << std::endl;
+    }
+    return pAttribute->second;
+}
 
 void Material::Impl::updateBindings()
 {

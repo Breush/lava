@@ -14,6 +14,7 @@ namespace lava::sill {
         /// Material
         void set(const std::string& uniformName, float value);
         void set(const std::string& uniformName, const glm::vec4& value);
+        void set(const std::string& uniformName, const std::string& imagePath);
         void set(const std::string& uniformName, const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
                  uint8_t channels);
 

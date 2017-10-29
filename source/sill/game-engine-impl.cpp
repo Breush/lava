@@ -71,6 +71,17 @@ void GameEngine::Impl::add(std::unique_ptr<Material>&& material)
 
 void GameEngine::Impl::registerMaterials()
 {
+    // Sky material
+    {
+        std::ifstream fileStream("./data/shaders/materials/sky-material.simpl");
+        std::stringstream buffer;
+        buffer << fileStream.rdbuf();
+
+        // @fixme Find a way to set default values (notably for normal texture)
+        m_renderEngine->registerMaterial("sky", buffer.str(),
+                                         {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
+    }
+
     // Roughness-metallic material
     {
         std::ifstream fileStream("./data/shaders/materials/rm-material.simpl");
