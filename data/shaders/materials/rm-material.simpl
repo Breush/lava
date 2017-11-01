@@ -7,20 +7,23 @@
  *  data[0].x   -   roughnessFactor
  *  data[1].x   -   metallicFactor
  *
- *  sampler01   -   tNormalSampler
- *  sampler02   -   albedoSampler
- *  sampler03   -   ormSampler
+ *  sampler[0]  -   tNormalSampler
+ *  sampler[1]  -   albedoSampler
+ *  sampler[2]  -   ormSampler
+ *  sampler[3]  -   reflectionSampler
  */
 
 @magma:impl:begin geometry
 
+#define PI 3.14159265358979323846
+
 void @magma:impl:main (inout GBufferNode node) {
-    vec3 normal = 2 * texture(sampler01, inUv).rgb - 1;
+    vec3 normal = 2 * texture(samplers[0], inUv).rgb - 1;
     normal = normalize(inTbn * normal);
-    
-    vec4 albedo = texture(sampler02, inUv);
-    
-    vec4 orm = texture(sampler03, inUv);
+
+    vec4 albedo = texture(samplers[1], inUv);
+
+    vec4 orm = texture(samplers[2], inUv);
 
     float occlusion = 1;
     occlusion *= orm.r;

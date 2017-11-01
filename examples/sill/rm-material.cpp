@@ -12,12 +12,15 @@ int main(void)
 {
     sill::GameEngine engine;
 
+    // @todo TextureManager ?
+    auto& skyTexture = engine.make<sill::Texture>("./assets/skies/panorama-spherical_sichuan.jpg");
+
     // Sky
     // @todo Set sky in the engine
     // @todo No depth buffer and always centered on the camera
     auto& skyboxEntity = engine.make<sill::GameEntity>();
     auto& skyboxMaterial = engine.make<sill::Material>("sky");
-    skyboxMaterial.set("texture", "./assets/skies/panorama-spherical_sichuan.jpg");
+    skyboxMaterial.set("texture", skyTexture);
     auto& skyboxMeshComponent = skyboxEntity.make<sill::MeshComponent>();
     skyboxMeshComponent.material(skyboxMaterial);
 

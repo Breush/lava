@@ -67,6 +67,11 @@ void GameEngine::Impl::add(std::unique_ptr<Material>&& material)
     m_materials.emplace_back(std::move(material));
 }
 
+void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
+{
+    m_textures.emplace_back(std::move(texture));
+}
+
 //----- Internals
 
 void GameEngine::Impl::registerMaterials()

@@ -8,6 +8,7 @@
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
+#include "../texture-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -34,7 +35,7 @@ void RenderScene::Impl::init(uint32_t id)
     m_cameraDescriptorHolder.init(16, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
     m_materialDescriptorHolder.uniformBufferSizes({1});
-    m_materialDescriptorHolder.combinedImageSamplerSizes({1, 1, 1});
+    m_materialDescriptorHolder.combinedImageSamplerSizes({8});
     m_materialDescriptorHolder.init(128, vk::ShaderStageFlagBits::eFragment);
 
     m_meshDescriptorHolder.uniformBufferSizes({1});
@@ -81,6 +82,15 @@ void RenderScene::Impl::add(std::unique_ptr<Material>&& material)
     m_materials.emplace_back(std::move(material));
 }
 
+void RenderScene::Impl::add(std::unique_ptr<Texture>&& texture)
+{
+    if (m_initialized) {
+        texture->impl().init();
+    }
+
+    m_textures.emplace_back(std::move(texture));
+}
+
 void RenderScene::Impl::add(std::unique_ptr<IMesh>&& mesh)
 {
     if (m_initialized) {
@@ -116,6 +126,17 @@ void RenderScene::Impl::remove(const Material& material)
     for (auto iMaterial = m_materials.begin(); iMaterial != m_materials.end(); ++iMaterial) {
         if (iMaterial->get() == &material) {
             m_materials.erase(iMaterial);
+            break;
+        }
+    }
+}
+
+void RenderScene::Impl::remove(const Texture& texture)
+{
+    m_engine.device().waitIdle();
+    for (auto iTexture = m_textures.begin(); iTexture != m_textures.end(); ++iTexture) {
+        if (iTexture->get() == &texture) {
+            m_textures.erase(iTexture);
             break;
         }
     }

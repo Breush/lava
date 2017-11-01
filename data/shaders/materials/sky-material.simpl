@@ -4,13 +4,13 @@
  *  Input
  *  -----
  *
- *  sampler01   -   textureSampler
+ *  sampler[0]  -   textureSampler
  */
 
 @magma:impl:begin geometry
 
 void @magma:impl:main (inout GBufferNode node) {
-    vec4 color = texture(sampler01, inUv);
+    vec4 color = texture(samplers[0], inUv);
 
     uint startIndex = 0;
     gBufferPackVec3(node, startIndex, color.rgb);

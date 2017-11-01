@@ -7,6 +7,7 @@
 #include "./helpers/descriptor.hpp"
 #include "./render-engine-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"
+#include "./texture-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -19,6 +20,7 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
     m_ubo.header.id = materialInfo.id;
 
     auto basicUniformCount = 0u;
+    auto textureUniformCount = 0u;
     for (const auto& uniformDefinition : materialInfo.uniformDefinitions) {
         auto& attribute = m_attributes[uniformDefinition.name];
         attribute.type = uniformDefinition.type;
@@ -26,9 +28,7 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
 
         switch (attribute.type) {
         case UniformType::TEXTURE: {
-            attribute.offset = m_imageHolders.size();
-            auto imageHolder = std::make_unique<vulkan::ImageHolder>(m_scene.engine());
-            m_imageHolders.emplace_back(std::move(imageHolder));
+            attribute.offset = textureUniformCount++;
             break;
         }
         case UniformType::FLOAT: {
@@ -86,13 +86,10 @@ void Material::Impl::set(const std::string& uniformName, const glm::vec4& value)
     updateBindings();
 }
 
-// @todo This should be a reference to a texture (holding an ImageHolder), so that it can be shared between materials
-void Material::Impl::set(const std::string& uniformName, const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
-                         uint8_t channels)
+void Material::Impl::set(const std::string& uniformName, const Texture& texture)
 {
     auto& attribute = findAttribute(uniformName);
-    attribute.enabled = true;
-    m_imageHolders[attribute.offset]->setup(pixels, width, height, channels);
+    attribute.texture = &texture.impl();
     updateBindings();
 }
 
@@ -118,14 +115,14 @@ void Material::Impl::updateBindings()
     const auto& engine = m_scene.engine();
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    const auto offset = m_scene.materialDescriptorHolder().combinedImageSamplerBindingOffset();
+    const auto binding = m_scene.materialDescriptorHolder().combinedImageSamplerBindingOffset();
 
     for (const auto& attributePair : m_attributes) {
         const auto& attribute = attributePair.second;
         if (attribute.type == UniformType::TEXTURE) {
             vk::ImageView imageView = nullptr;
-            if (attribute.enabled) {
-                imageView = m_imageHolders[attribute.offset]->view();
+            if (attribute.texture) {
+                imageView = attribute.texture->imageView();
             }
             else if (attribute.fallback.textureTypeValue == UniformTextureType::WHITE) {
                 imageView = engine.dummyImageView();
@@ -136,8 +133,9 @@ void Material::Impl::updateBindings()
             else {
                 continue;
             }
-            vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout,
-                                        offset + attribute.offset);
+
+            vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, binding,
+                                        attribute.offset);
         }
     }
 }

@@ -19,3 +19,8 @@ void GameEngine::add(std::unique_ptr<Material>&& material)
 {
     m_impl->add(std::move(material));
 }
+
+void GameEngine::add(std::unique_ptr<Texture>&& texture)
+{
+    m_impl->add(std::move(texture));
+}

@@ -9,6 +9,7 @@
 #include <lava/magma/render-targets/render-window.hpp>
 #include <lava/sill/game-entity.hpp>
 #include <lava/sill/material.hpp>
+#include <lava/sill/texture.hpp>
 #include <vector>
 
 namespace lava::sill {
@@ -20,6 +21,7 @@ namespace lava::sill {
         void run();
         void add(std::unique_ptr<GameEntity>&& gameEntity);
         void add(std::unique_ptr<Material>&& material);
+        void add(std::unique_ptr<Texture>&& texture);
 
         // Getters
         magma::RenderEngine& renderEngine() { return *m_renderEngine; }
@@ -44,5 +46,6 @@ namespace lava::sill {
         // Entities
         std::vector<std::unique_ptr<GameEntity>> m_entities;
         std::vector<std::unique_ptr<Material>> m_materials;
+        std::vector<std::unique_ptr<Texture>> m_textures;
     };
 }

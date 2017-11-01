@@ -113,7 +113,8 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
         // Material
         uint32_t materialIndex = primitive["material"];
         glb::PbrMetallicRoughnessMaterial material(materials[materialIndex]);
-        auto& rmMaterial = meshComponent.entity().engine().make<Material>("roughness-metallic");
+        auto& engine = meshComponent.entity().engine();
+        auto& rmMaterial = engine.make<sill::Material>("roughness-metallic");
 
         // Material textures
         if (material.baseColorTextureIndex != -1u) {
@@ -128,7 +129,11 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
                 stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
             std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
             memmove(pixelsVector.data(), pixels, pixelsVector.size());
-            rmMaterial.set("albedoMap", pixelsVector, texWidth, texHeight, 4);
+
+            auto& rmTexture = engine.make<Texture>();
+            rmTexture.loadFromMemory(pixelsVector, texWidth, texHeight, 4u);
+            rmMaterial.set("albedoMap", rmTexture);
+
             stbi_image_free(pixels);
         }
         if (material.normalTextureIndex != -1u) {
@@ -143,7 +148,11 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
                 stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
             std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
             memmove(pixelsVector.data(), pixels, pixelsVector.size());
-            rmMaterial.set("normalMap", pixelsVector, texWidth, texHeight, 4);
+
+            auto& rmTexture = engine.make<Texture>();
+            rmTexture.loadFromMemory(pixelsVector, texWidth, texHeight, 4u);
+            rmMaterial.set("normalMap", rmTexture);
+
             stbi_image_free(pixels);
         }
         if (material.metallicRoughnessTextureIndex != -1u) {
@@ -158,7 +167,11 @@ std::function<void(MeshComponent& meshComponent)> makers::glbMeshMaker(const std
                 stbi_load_from_memory(imageData.data(), imageData.size(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
             std::vector<uint8_t> pixelsVector(texWidth * texHeight * 4);
             memmove(pixelsVector.data(), pixels, pixelsVector.size());
-            rmMaterial.set("ormMap", pixelsVector, texWidth, texHeight, 4);
+
+            auto& rmTexture = engine.make<Texture>();
+            rmTexture.loadFromMemory(pixelsVector, texWidth, texHeight, 4u);
+            rmMaterial.set("ormMap", rmTexture);
+
             stbi_image_free(pixels);
         }
 

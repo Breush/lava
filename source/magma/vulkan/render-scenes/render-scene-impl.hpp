@@ -10,6 +10,7 @@
 #include <lava/magma/material.hpp>
 #include <lava/magma/meshes/i-mesh.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
+#include <lava/magma/texture.hpp>
 
 #include "../holders/descriptor-holder.hpp"
 
@@ -42,6 +43,7 @@ namespace lava::magma {
         /// @{
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<Material>&& material);
+        void add(std::unique_ptr<Texture>&& texture);
         void add(std::unique_ptr<IMesh>&& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
@@ -51,7 +53,8 @@ namespace lava::magma {
          */
         /// @{
         void remove(const IMesh& mesh);
-        void remove(const Material& mesh);
+        void remove(const Material& material);
+        void remove(const Texture& texture);
         /// @}
 
         /**
@@ -78,6 +81,7 @@ namespace lava::magma {
         const ILight::Impl& light(uint32_t index) const { return m_lights[index]->interfaceImpl(); }
 
         const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
+        const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
         const std::vector<std::unique_ptr<ILight>>& lights() const { return m_lights; }
         /// @}
@@ -108,6 +112,7 @@ namespace lava::magma {
         // Data
         std::vector<CameraBundle> m_cameraBundles;
         std::vector<std::unique_ptr<Material>> m_materials;
+        std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
         std::vector<std::unique_ptr<ILight>> m_lights;
     };

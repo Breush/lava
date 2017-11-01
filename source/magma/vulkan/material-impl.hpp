@@ -3,6 +3,7 @@
 #include <lava/magma/material.hpp>
 
 #include <lava/magma/render-scenes/render-scene.hpp>
+#include <lava/magma/texture.hpp>
 #include <unordered_map>
 
 #include "./holders/image-holder.hpp"
@@ -17,9 +18,9 @@ namespace lava::magma {
     private:
         struct Attribute {
             UniformType type = UniformType::UNKNOWN;
-            uint32_t offset = -1u;
-            bool enabled = false;
             UniformFallback fallback;
+            uint32_t offset = -1u;
+            const Texture::Impl* texture = nullptr;
         };
 
     public:
@@ -28,8 +29,7 @@ namespace lava::magma {
         // Material
         void set(const std::string& uniformName, float value);
         void set(const std::string& uniformName, const glm::vec4& value);
-        void set(const std::string& uniformName, const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height,
-                 uint8_t channels);
+        void set(const std::string& uniformName, const Texture& texture);
 
         // Internal interface
         void init();
@@ -47,7 +47,6 @@ namespace lava::magma {
         // Descriptor
         vk::DescriptorSet m_descriptorSet;
         vulkan::UboHolder m_uboHolder;
-        std::vector<std::unique_ptr<vulkan::ImageHolder>> m_imageHolders;
 
         // Data
         vulkan::MaterialUbo m_ubo;
