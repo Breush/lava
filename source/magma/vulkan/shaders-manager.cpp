@@ -48,8 +48,7 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const std::
         logger.info("magma.vulkan.shaders-manager")
             << "Reading GLSL shader file '" << shaderId << "' (" << textCode.size() << "B)." << std::endl;
 
-        auto type = shaderType(shaderId);
-        auto code = vulkan::spvFromGlsl(type, textCode);
+        auto code = vulkan::spvFromGlsl(shaderId, textCode);
         auto module = vulkan::createShaderModule(m_device, code);
 
         auto result = m_modules.emplace(shaderId, m_device);

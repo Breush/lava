@@ -1,4 +1,5 @@
 #version 450
+#pragma shader_stage(fragment)
 #extension GL_ARB_separate_shader_objects : enable
 
 #softdefine MAX_VIEW_COUNT // How many simultaneous views can be enabled at the same time

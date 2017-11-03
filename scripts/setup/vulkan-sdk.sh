@@ -53,17 +53,18 @@ else
     cp -R ${FOLDER}/lib/* ../lib
     cp -R ${FOLDER}/layers ../source/vulkan
 
-    #===== glslang
+    #===== shaderc
 
-    FOLDER="VulkanSDK/${VERSION}/source/glslang"
+    FOLDER="VulkanSDK/${VERSION}/source/shaderc"
     cd "${ROOT_DIR}/.tmp/${FOLDER}"
+    ./update_shaderc_sources.py
+    cd src
     mkdir -p build
     cd build
     CXXFLAGS=-fPIC cmake .. -DCMAKE_MAKE_PROGRAM="${MAKE}" -G"Unix Makefiles"
-    ${MAKE} -j 2
+    ${MAKE} -j 2 shaderc
 
     cd "${ROOT_DIR}/.tmp"
-    cp -R ${FOLDER}/glslang ../include
-    cp -R ${FOLDER}/SPIRV ../include
+    cp -R ${FOLDER}/src/libshaderc/include/* ../include
     cp -R `find ${FOLDER} -type f \( -name *.a ! -wholename *CMakeFiles/* \)` ../lib
 fi

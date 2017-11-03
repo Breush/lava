@@ -7,8 +7,8 @@
 
 namespace lava::magma::vulkan {
     /// Read a Glsl shader text code and outputs SPIR-V bytes.
-    std::vector<uint8_t> spvFromGlsl(ShaderType shaderType, const std::string& textCode);
+    std::vector<uint32_t> spvFromGlsl(const std::string& hrid, const std::string& source);
 
     /// Create a vk::ShaderModule from SPIR-V bytes.
-    vk::ShaderModule createShaderModule(vk::Device device, const std::vector<uint8_t>& code);
+    vk::ShaderModule createShaderModule(vk::Device device, const std::vector<uint32_t>& code);
 }

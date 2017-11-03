@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Vulkan SDK"
-local VERSION = "1.0.61.1"
+local VERSION = "1.0.65.0"
 
 -- Download
 
@@ -58,10 +58,13 @@ function useVulkanSdk()
         links { "vulkan" }
     end
 
-    -- Dependency tree:
-    -- glslang  -> HLSL
-    --          -> OGLCompiler  -> OSDependent
-    links { "SPIRV", "glslang", "HLSL", "OGLCompiler", "OSDependent" }
+    links {
+        "shaderc", "shaderc_util",
+        "glslang", "OSDependent", "OGLCompiler",
+        "SPIRV", "SPIRV-Toolsd", "SPIRV-Tools-optd",
+        "SPVRemapper", "HLSL",       
+    }
+
     linkoptions("-pthread")
     
     filter { "configurations:debug" }

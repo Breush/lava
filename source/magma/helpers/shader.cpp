@@ -7,25 +7,6 @@
 using namespace lava;
 using namespace lava::chamber;
 
-magma::ShaderType magma::shaderType(const std::string& filename)
-{
-    static std::unordered_map<std::string, ShaderType> extensionMap = {{"vert", ShaderType::Vertex},
-                                                                       {"frag", ShaderType::Fragment},
-                                                                       {"tesc", ShaderType::TessellationControl},
-                                                                       {"tese", ShaderType::TessellationEvaluation},
-                                                                       {"geom", ShaderType::Geometry},
-                                                                       {"comp", ShaderType::Compute}};
-
-    auto extension = filename.substr(filename.find_last_of(".") + 1u);
-
-    const auto shaderTypePair = extensionMap.find(extension);
-    if (shaderTypePair == extensionMap.end()) {
-        return ShaderType::Unknown;
-    }
-
-    return shaderTypePair->second;
-}
-
 std::string magma::adaptGlslFile(const std::string& filename, const std::unordered_map<std::string, std::string>& defines)
 {
     std::ifstream file(filename);

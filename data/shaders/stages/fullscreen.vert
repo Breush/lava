@@ -1,4 +1,5 @@
 #version 450
+#pragma shader_stage(vertex)
 #extension GL_ARB_separate_shader_objects : enable
 
 //----- In setup
@@ -36,6 +37,5 @@ out gl_PerVertex {
 
 void main() {
     gl_Position = vec4(positions[gl_VertexIndex], 0, 1);
-
     outUv = uvs[gl_VertexIndex];
 }

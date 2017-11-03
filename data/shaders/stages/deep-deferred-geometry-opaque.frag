@@ -1,4 +1,5 @@
 #version 450
+#pragma shader_stage(fragment)
 #extension GL_ARB_separate_shader_objects : enable
 
 layout(early_fragment_tests) in;

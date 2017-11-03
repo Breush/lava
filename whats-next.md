@@ -62,7 +62,6 @@
     - Shader: Recompile on demand, removing the need to bind empty textures
     - Texture: Have the notion and a manager
 - **faroff**
-    - Shader: have own wrapper around glslang...
     - Think about inlining in code data (shaders mainly, but debug texture too)
 
 ## Sill
