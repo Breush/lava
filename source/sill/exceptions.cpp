@@ -2,6 +2,7 @@
 
 using namespace lava;
 
+#if defined(LAVA_CHAMBER_CALLSTACK_GCC)
 namespace {
     void logException(const std::string& exceptionName)
     {
@@ -27,3 +28,4 @@ void __cxa_throw(void* ex, void* info, void (*dest)(void*))
     rethrow(ex, info, dest);
 }
 }
+#endif

@@ -19,18 +19,17 @@ if [ `uname -o` == "Msys" ]; then
     mkdir -p ../etc/explicit_layer.d
     cp -R vulkan-sdk/Bin/*.{json,dll} ../etc/explicit_layer.d
 
-    #===== glslang
+    #===== shaderc
 
-    cd "${ROOT_DIR}/.tmp/vulkan-sdk/glslang"
+    FOLDER="./vulkan-sdk/shaderc"
+    cd "${ROOT_DIR}/.tmp/${FOLDER}"
     mkdir -p build
     cd build
     CXXFLAGS=-fPIC cmake .. -DCMAKE_MAKE_PROGRAM="${MAKE}" -G"Unix Makefiles"
-    ${MAKE} -j 2
+    ${MAKE} -j 2 shaderc
 
     cd "${ROOT_DIR}/.tmp"
-    FOLDER="./vulkan-sdk/glslang"
-    cp -R ${FOLDER}/glslang ../include
-    cp -R ${FOLDER}/SPIRV ../include
+    cp -R ${FOLDER}/libshaderc/include/* ../include
     cp -R `find ${FOLDER}/build -type f \( -name *.a ! -wholename *CMakeFiles/* \)` ../lib
 
 #===== Linux based
