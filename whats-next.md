@@ -60,7 +60,8 @@
     - PBR: Reflection cube maps
     - Reflection probes
     - Shader: Recompile on demand, removing the need to bind empty textures
-    - Texture: Have the notion and a manager
+    - Texture: Have a manager?
+    - Wireframe
 - **faroff**
     - Think about inlining in code data (shaders mainly, but debug texture too)
 
@@ -70,7 +71,6 @@
     - magma should be internal use and not be seen in public API includes
 - **feature**
     - Animation
-    - Main loop (elapsed time)
     - Materials introspection (-- or own shading language)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
@@ -79,6 +79,7 @@
     - RenderWindow: Take from magma - so that it does not depend on crater anymore
     - RmMaterial: albedo color
     - SphereMesh: uv mapping
+    - Shaders: on the fly update
 
 ## Dike
 

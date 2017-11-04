@@ -1,5 +1,6 @@
 #include "./game-engine-impl.hpp"
 
+#include <chrono>
 #include <fstream>
 #include <lava/magma/material.hpp>
 #include <sstream>
@@ -35,21 +36,34 @@ GameEngine::Impl::Impl()
 
 void GameEngine::Impl::run()
 {
+    static const std::chrono::nanoseconds updateTime(11111111); // 1/60s * 2/3
+    static auto currentTime = std::chrono::high_resolution_clock::now();
+    static std::chrono::nanoseconds updateTimeLag(0);
+
     // Keep running while the window is open.
     while (m_renderWindow->opened()) {
+        auto elapsedTime = std::chrono::high_resolution_clock::now() - currentTime;
+        updateTimeLag += elapsedTime;
+        currentTime += elapsedTime;
+
         // Treat all events since last frame.
         crater::Event event;
         while (m_renderWindow->pollEvent(event)) {
             handleEvent(event);
         }
 
-        // Update all entities.
-        for (auto& entity : m_entities) {
-            entity->impl().update();
-        }
+        // We play the game at a constant rate (updateTime)
+        while (updateTimeLag >= updateTime) {
+            // Update all entities.
+            for (auto& entity : m_entities) {
+                entity->impl().update();
+            }
 
-        for (auto& entity : m_entities) {
-            entity->impl().postUpdate();
+            for (auto& entity : m_entities) {
+                entity->impl().postUpdate();
+            }
+
+            updateTimeLag -= updateTime;
         }
 
         // Render the scene.
