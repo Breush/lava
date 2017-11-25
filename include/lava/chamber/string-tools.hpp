@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 inline std::string operator*(const std::string& word, uint32_t times)
 {
@@ -11,6 +12,9 @@ inline std::string operator*(const std::string& word, uint32_t times)
 }
 
 namespace lava::chamber {
-    /// Convert a CamelCaseString to a snake-case-string
+    /// Convert a CamelCaseString to a snake-case-string.
     std::string camelToSnakeCase(const std::string& camelCaseString, std::string separator = "-");
+
+    /// Split a string into a vector of string views.
+    std::vector<std::wstring_view> splitAsViews(const std::wstring& s, wchar_t c);
 }
