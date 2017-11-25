@@ -114,8 +114,8 @@ void TextMeshComponent::Impl::update()
     //----- Apply the geometry
 
     auto& engine = entity().engine().base();
-    auto& material = engine.make<Material>("sky");
-    material.set("texture", font.texture());
+    auto& material = engine.make<Material>("font");
+    material.set("fontTexture", font.texture());
 
     auto& meshComponent = reinterpret_cast<MeshComponent&>(entity().getComponent("mesh"));
     meshComponent.verticesCount(positions.size());

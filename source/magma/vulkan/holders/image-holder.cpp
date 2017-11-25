@@ -164,15 +164,23 @@ void ImageHolder::copy(const void* data, vk::DeviceSize size)
 
 void ImageHolder::setup(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
-    if (channels != 4u) {
-        logger.error("magma.vulkan.image-holder") << "Cannot handle image with " << static_cast<uint32_t>(channels)
-                                                  << " channels. Only 4 is currently supported." << std::endl;
+    vk::Format format = vk::Format::eUndefined;
+    if (channels == 1u) {
+        format = vk::Format::eR8Unorm;
+    }
+    else if (channels == 4u) {
+        format = vk::Format::eR8G8B8A8Unorm;
+    }
+    else {
+        logger.error("magma.vulkan.image-holder")
+            << "Cannot handle image with " << static_cast<uint32_t>(channels) << " channels. "
+            << "Currently supported: 1, 4." << std::endl;
     }
 
     //----- Create
 
     vk::Extent2D extent = {width, height};
-    create(vk::Format::eR8G8B8A8Unorm, extent, vk::ImageAspectFlagBits::eColor);
+    create(format, extent, vk::ImageAspectFlagBits::eColor);
 
     //----- Copy
 

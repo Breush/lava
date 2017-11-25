@@ -1,0 +1,35 @@
+// Font material.
+
+/**
+ *  Input
+ *  -----
+ *
+ *  sampler[0]  -   fontTextureSampler
+ */
+
+@magma:impl:begin geometry
+
+void @magma:impl:main (inout GBufferNode node) {
+    float opacity = texture(samplers[0], inUv).r;
+
+    if (opacity == 0) discard;
+
+    uint startIndex = 0;
+    gBufferPackFloat(node, startIndex, opacity);
+}
+
+@magma:impl:end geometry
+
+@magma:impl:begin epiphany
+
+vec4 @magma:impl:main (GBufferNode node) {
+    uint startIndex = 0;
+    float opacity = gBufferUnpackFloat(node, startIndex);
+
+    // @todo Handle colors?
+    return vec4(1, 1, 1, opacity);
+}
+
+@magma:impl:end epiphany
+
+ 

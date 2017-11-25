@@ -34,11 +34,9 @@ Font::Font(GameEngine& engine, const std::string& fontPath)
     stbtt_GetFontVMetrics(&m_stbFont, &m_glyphsAscent, 0, 0);
     m_glyphsAscent = m_glyphsAscent * m_glyphsScale;
 
-    // @todo Texture size should depend on
-    // @todo We could just store one channel!
     m_textureWidth = m_glyphMaxWidth * m_maxRenderedGlyphsCount;
     m_textureHeight = m_glyphMaxHeight;
-    m_pixels.resize(m_textureWidth * m_glyphMaxHeight * 4u);
+    m_pixels.resize(m_textureWidth * m_glyphMaxHeight);
 }
 
 std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
@@ -56,8 +54,6 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
         if (pGlyphInfo == m_glyphsInfos.end()) {
             newGlyphs = true;
 
-            // @todo
-            // std::cout << "Glyph " << std::hex << c << std::dec << " not registered." << std::endl;
             m_glyphsInfos[c] = packGlyph(c);
             pGlyphInfo = m_glyphsInfos.find(c);
         }
@@ -71,7 +67,7 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
     }
 
     if (newGlyphs) {
-        texture().loadFromMemory(m_pixels, m_textureWidth, m_glyphMaxHeight, 4u);
+        texture().loadFromMemory(m_pixels, m_textureWidth, m_glyphMaxHeight, 1u);
     }
 
     return glyphsInfos;
@@ -115,11 +111,8 @@ Font::GlyphInfo Font::packGlyph(wchar_t c)
     auto glyphStartPosition = m_renderedGlyphsCount * m_glyphMaxWidth;
     for (auto i = 0; i < width; ++i) {
         for (auto j = 0; j < height; ++j) {
-            auto index = 4u * (glyphStartPosition + (i + xOff) + (j + yOff) * m_textureWidth);
-            m_pixels[index] = 255u;
-            m_pixels[index + 1] = 255u;
-            m_pixels[index + 2] = 255u;
-            m_pixels[index + 3] = bitmap[i + j * width];
+            auto index = glyphStartPosition + (i + xOff) + (j + yOff) * m_textureWidth;
+            m_pixels[index] = bitmap[i + j * width];
         }
     }
 

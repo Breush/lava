@@ -106,6 +106,16 @@ void GameEngine::Impl::registerMaterials()
                                          {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
     }
 
+    // Font material
+    {
+        std::ifstream fileStream("./data/shaders/materials/font-material.simpl");
+        std::stringstream buffer;
+        buffer << fileStream.rdbuf();
+
+        m_renderEngine->registerMaterial("font", buffer.str(),
+                                         {{"fontTexture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
+    }
+
     // Roughness-metallic material
     {
         std::ifstream fileStream("./data/shaders/materials/rm-material.simpl");
