@@ -22,6 +22,7 @@ void @magma:impl:main (inout GBufferNode node) {
     normal = normalize(inTbn * normal);
 
     vec4 albedo = texture(samplers[1], inUv);
+    if (albedo.a == 0) discard;
 
     vec4 orm = texture(samplers[2], inUv);
 
