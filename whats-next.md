@@ -38,7 +38,6 @@
 - **improvement** 
     - Have user documentation
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
-    - Engine: allow to free descriptor set (and do it in mesh, etc) - see descriptor pool flags
     - GLB: pass factors and colors (with textures)
     - Mesh: have own secondary buffers
     - OrbitCamera: FOV and up-vector configurable

@@ -19,6 +19,13 @@ Mesh::Impl::Impl(RenderScene& scene)
 {
 }
 
+Mesh::Impl::~Impl()
+{
+    if (m_initialized) {
+        m_scene.meshDescriptorHolder().freeSet(m_descriptorSet);
+    }
+}
+
 void Mesh::Impl::init()
 {
     m_descriptorSet = m_scene.meshDescriptorHolder().allocateSet();

@@ -25,6 +25,7 @@ namespace lava::magma {
 
     public:
         Impl(RenderScene& scene, const std::string& hrid);
+        ~Impl();
 
         // Material
         void set(const std::string& uniformName, float value);

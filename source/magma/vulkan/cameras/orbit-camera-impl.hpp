@@ -16,6 +16,7 @@ namespace lava::magma {
     class OrbitCamera::Impl final : public ICamera::Impl {
     public:
         Impl(RenderScene& scene, Extent2d extent);
+        ~Impl();
 
         // ICamera
         Extent2d extent() const { return {m_extent.width, m_extent.height}; }

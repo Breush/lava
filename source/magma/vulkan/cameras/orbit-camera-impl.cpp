@@ -17,6 +17,13 @@ OrbitCamera::Impl::Impl(RenderScene& scene, Extent2d extent)
     updateProjectionTransform();
 }
 
+OrbitCamera::Impl::~Impl()
+{
+    if (m_initialized) {
+        m_scene.cameraDescriptorHolder().freeSet(m_descriptorSet);
+    }
+}
+
 //----- ICamera
 
 void OrbitCamera::Impl::init(uint32_t id)

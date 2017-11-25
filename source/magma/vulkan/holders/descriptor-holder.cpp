@@ -121,6 +121,11 @@ vk::DescriptorSet DescriptorHolder::allocateSet(bool dummyBinding) const
     return set;
 }
 
+void DescriptorHolder::freeSet(vk::DescriptorSet set) const
+{
+    m_engine.device().freeDescriptorSets(m_pool, 1, &set);
+}
+
 void DescriptorHolder::updateSet(vk::DescriptorSet set, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t storageBufferIndex)
 {
     vk::DescriptorBufferInfo descriptorBufferInfo;

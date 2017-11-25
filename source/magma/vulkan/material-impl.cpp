@@ -49,6 +49,13 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
     }
 }
 
+Material::Impl::~Impl()
+{
+    if (m_initialized) {
+        m_scene.materialDescriptorHolder().freeSet(m_descriptorSet);
+    }
+}
+
 //----- Internals
 
 void Material::Impl::init()

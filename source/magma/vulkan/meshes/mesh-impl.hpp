@@ -18,6 +18,7 @@ namespace lava::magma {
     class Mesh::Impl final : public IMesh::Impl {
     public:
         Impl(RenderScene& scene);
+        ~Impl();
 
         // IMesh
         bool translucent() const { return m_translucent; }
