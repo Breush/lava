@@ -21,3 +21,8 @@ project "sill-rm-material"
     kind "WindowedApp"
     files "sill/rm-material.cpp"
     useSill()
+
+project "text"
+    kind "WindowedApp"
+    files "sill/text.cpp"
+    useSill()
