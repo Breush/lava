@@ -135,6 +135,8 @@ void Mesh::Impl::createIndexBuffer()
 
 void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
 {
+    if (m_vertices.empty()) return;
+
     // Bind the material
     // @todo Have this in a more clever render loop, and not called by this mesh
     // Fact is we shouldn't know about the correct descriptorSetIndex here

@@ -37,6 +37,8 @@ namespace lava::sill {
         * @name Materials
         */
         /// @{
+        bool translucent() const;
+        void translucent(bool translucent);
         void material(Material& material);
         /// @}
 

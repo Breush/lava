@@ -15,7 +15,7 @@ namespace lava::magma {
          * @todo Move that notion to the material?
          */
         virtual bool translucent() const = 0;
-        virtual void translucent(bool opaque) = 0;
+        virtual void translucent(bool translucent) = 0;
 
         class Impl;
         virtual Impl& interfaceImpl() = 0;
