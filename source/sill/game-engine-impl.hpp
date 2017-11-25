@@ -12,16 +12,24 @@
 #include <lava/sill/texture.hpp>
 #include <vector>
 
+#include "./font-manager.hpp"
+
 namespace lava::sill {
     class GameEngine::Impl {
     public:
-        Impl();
+        Impl(GameEngine& engine);
+
+        GameEngine& base() { return m_base; }
+        const GameEngine& base() const { return m_base; }
 
         // GameEngine
         void run();
         void add(std::unique_ptr<GameEntity>&& gameEntity);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
+
+        // Fonts
+        Font& font(const std::string& hrid) { return m_fontManager.font(hrid); }
 
         // Getters
         magma::RenderEngine& renderEngine() { return *m_renderEngine; }
@@ -36,12 +44,17 @@ namespace lava::sill {
         void handleEvent(crater::Event& event);
 
     private:
+        GameEngine& m_base;
+
         // Rendering
         std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
         magma::RenderWindow* m_renderWindow = nullptr;
         magma::RenderScene* m_renderScene = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::PointLight* m_light = nullptr;
+
+        // Fonts
+        FontManager m_fontManager;
 
         // Entities
         std::vector<std::unique_ptr<GameEntity>> m_entities;

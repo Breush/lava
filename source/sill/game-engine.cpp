@@ -6,7 +6,7 @@
 
 using namespace lava::sill;
 
-$pimpl_class(GameEngine);
+$pimpl_class_forward(GameEngine);
 
 $pimpl_method(GameEngine, void, run);
 

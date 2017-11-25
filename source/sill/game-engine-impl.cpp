@@ -9,7 +9,9 @@
 
 using namespace lava::sill;
 
-GameEngine::Impl::Impl()
+GameEngine::Impl::Impl(GameEngine& base)
+    : m_base(base)
+    , m_fontManager(base)
 {
     //----- Initializing rendering
 
@@ -32,6 +34,10 @@ GameEngine::Impl::Impl()
 
     // @todo Handle custom views
     m_renderEngine->addView(*m_camera, *m_renderWindow, Viewport{0, 0, 1, 1});
+
+    //----- Initializing fonts
+
+    m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
 }
 
 void GameEngine::Impl::run()
@@ -96,7 +102,6 @@ void GameEngine::Impl::registerMaterials()
         std::stringstream buffer;
         buffer << fileStream.rdbuf();
 
-        // @fixme Find a way to set default values (notably for normal texture)
         m_renderEngine->registerMaterial("sky", buffer.str(),
                                          {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
     }
@@ -107,7 +112,6 @@ void GameEngine::Impl::registerMaterials()
         std::stringstream buffer;
         buffer << fileStream.rdbuf();
 
-        // @fixme Find a way to set default values (notably for normal texture)
         m_renderEngine->registerMaterial("roughness-metallic", buffer.str(),
                                          {{"roughnessFactor", magma::UniformType::FLOAT, 1.f},
                                           {"metallicFactor", magma::UniformType::FLOAT, 1.f},
