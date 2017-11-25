@@ -12,10 +12,8 @@ layout(location = 0) in vec2 inUv;
 
 void main()
 {
-    // If GBufferNode.next is 0, it means the end of the list.
-    // So we start this count at 1.
-    gBufferList.counter = 1;
+    gBufferList.counter = 0;
 
     uint headerIndex = uint(gl_FragCoord.y * gBufferHeader.width + gl_FragCoord.x);
-    gBufferHeader.listIndices[headerIndex] = 0;
+    gBufferHeader.nodeCount6_listIndex26[headerIndex] = 0;
 }

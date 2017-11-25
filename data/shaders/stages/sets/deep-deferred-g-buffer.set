@@ -4,7 +4,7 @@
 
 layout(std430, set = 0, binding = 0) buffer GBufferHeader {
     uint width;
-    uint listIndices[];
+    uint nodeCount6_listIndex26[];
 } gBufferHeader;
 
 struct GBufferNode {

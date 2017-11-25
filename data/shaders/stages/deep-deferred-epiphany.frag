@@ -29,10 +29,11 @@ void main()
     //----- Sorting fragments by depth.
     
     GBufferNode sortedNodes[GBUFFER_MAX_NODE_DEPTH];
-    uint listIndex = gBufferHeader.listIndices[headerIndex];
+    uint listIndex = gBufferHeader.nodeCount6_listIndex26[headerIndex] & 0x3FFFFFF;
+    uint nodeCount = gBufferHeader.nodeCount6_listIndex26[headerIndex] >> 26;
 
     uint sortedNodeCount = 0;
-    while (listIndex != 0 && sortedNodeCount < 5) {
+    while (sortedNodeCount < nodeCount) {
         GBufferNode node = gBufferList.nodes[listIndex];
         listIndex = node.materialId6_next26 & 0x3FFFFFF;
 
@@ -45,8 +46,7 @@ void main()
             insertionIndex += 1;
         }
 
-        uint lastIndex = min(GBUFFER_MAX_NODE_DEPTH - 1, sortedNodeCount);
-        for (uint i = lastIndex; i > insertionIndex; --i) {
+        for (uint i = sortedNodeCount; i > insertionIndex; --i) {
             sortedNodes[i] = sortedNodes[i - 1];
         }
 
