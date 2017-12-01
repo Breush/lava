@@ -26,7 +26,7 @@ namespace lava::magma {
         vk::SurfaceKHR surface() const override final { return m_surface; }
 
         // crater::Window forwarding
-        bool pollEvent(crater::Event& event);
+        std::optional<crater::Event> pollEvent();
         void close();
 
         crater::WindowHandle windowHandle() const;

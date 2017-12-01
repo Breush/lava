@@ -2,6 +2,8 @@
 
 #include <lava/crater/video-mode.hpp>
 #include <lava/crater/window-handle.hpp>
+
+#include <optional>
 #include <string>
 
 namespace lava::crater {
@@ -16,7 +18,7 @@ namespace lava::crater {
         virtual ~Window();
 
         void create(VideoMode mode, const std::string& title);
-        bool pollEvent(Event& event);
+        std::optional<Event> pollEvent();
         void close();
 
         bool opened() const;

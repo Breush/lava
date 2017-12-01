@@ -46,8 +46,8 @@ bool Window::opened() const
     return m_impl != nullptr;
 }
 
-bool Window::pollEvent(Event& event)
+std::optional<Event> Window::pollEvent()
 {
-    if (m_impl == nullptr) return false;
-    return m_impl->popEvent(event);
+    if (m_impl == nullptr) return std::nullopt;
+    return m_impl->popEvent();
 }

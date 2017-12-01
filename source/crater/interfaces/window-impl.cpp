@@ -9,20 +9,20 @@ IWindowImpl::IWindowImpl(const VideoMode& videoMode)
 {
 }
 
-bool IWindowImpl::IWindowImpl::popEvent(Event& event)
+std::optional<Event> IWindowImpl::IWindowImpl::popEvent()
 {
     if (m_events.empty()) {
         processEvents();
     }
 
     if (m_events.empty()) {
-        return false;
+        return std::nullopt;
     }
 
     // Get first event in queue
-    event = m_events.front();
+    auto event = m_events.front();
     m_events.pop();
-    return true;
+    return event;
 }
 
 void IWindowImpl::pushEvent(const Event& event)

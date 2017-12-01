@@ -63,9 +63,9 @@ namespace lava::ashe {
             while (m_window->opened()) {
                 // Treat all events since last frame.
                 crater::Event event;
-                while (m_window->pollEvent(event)) {
-                    eventHandler(event);
-                    handleEvent(event);
+                while (auto event = m_window->pollEvent()) {
+                    eventHandler(*event);
+                    handleEvent(*event);
                 }
 
                 // Render the scene.

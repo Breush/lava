@@ -50,16 +50,16 @@ int main(void)
 
     // Main loop
     while (smallWindow.opened() && bigWindow.opened()) {
-        crater::Event event;
-        while (smallWindow.pollEvent(event) || bigWindow.pollEvent(event)) {
-            switch (event.type) {
+        std::optional<crater::Event> event;
+        while ((event = smallWindow.pollEvent()) || (event = bigWindow.pollEvent())) {
+            switch (event->type) {
             case crater::Event::WindowClosed: {
                 smallWindow.close();
                 bigWindow.close();
                 break;
             }
             case crater::Event::KeyPressed: {
-                if (event.key.which == crater::input::Key::Escape) {
+                if (event->key.which == crater::input::Key::Escape) {
                     smallWindow.close();
                     bigWindow.close();
                 }

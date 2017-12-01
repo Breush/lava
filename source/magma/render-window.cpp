@@ -15,7 +15,7 @@ IRenderTarget::Impl& RenderWindow::interfaceImpl()
     return *m_impl;
 }
 
-$pimpl_method(RenderWindow, bool, pollEvent, Event&, event);
+$pimpl_method(RenderWindow, std::optional<Event>, pollEvent);
 $pimpl_method(RenderWindow, void, close);
 
 $pimpl_attribute_v(RenderWindow, WindowHandle, windowHandle);

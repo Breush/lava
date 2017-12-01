@@ -53,9 +53,8 @@ void GameEngine::Impl::run()
         currentTime += elapsedTime;
 
         // Treat all events since last frame.
-        crater::Event event;
-        while (m_renderWindow->pollEvent(event)) {
-            handleEvent(event);
+        while (auto event = m_renderWindow->pollEvent()) {
+            handleEvent(*event);
         }
 
         // We play the game at a constant rate (updateTime)

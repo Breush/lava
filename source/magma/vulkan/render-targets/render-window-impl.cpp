@@ -57,23 +57,26 @@ void RenderWindow::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
 
 //----- RenderWindow
 
-bool RenderWindow::Impl::pollEvent(Event& event)
+std::optional<Event> RenderWindow::Impl::pollEvent()
 {
-    auto foundEvent = m_window.pollEvent(event);
-    if (foundEvent && event.type == crater::Event::WindowResized) {
+    auto event = m_window.pollEvent();
+    if (!event) return event;
+
+    if (event->type == crater::Event::WindowResized) {
         // Ignore resize of same size
-        if (m_windowExtent.width == event.size.width && m_windowExtent.height == event.size.height) {
-            return false;
+        if (m_windowExtent.width == event->size.width && m_windowExtent.height == event->size.height) {
+            return std::nullopt;
         }
 
         // Or update swapchain
-        m_windowExtent.width = event.size.width;
-        m_windowExtent.height = event.size.height;
+        m_windowExtent.width = event->size.width;
+        m_windowExtent.height = event->size.height;
         recreateSwapchain();
 
         m_engine.updateRenderTarget(m_id);
     }
-    return foundEvent;
+
+    return event;
 }
 
 void RenderWindow::Impl::close()

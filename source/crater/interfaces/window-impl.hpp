@@ -3,6 +3,8 @@
 #include <lava/crater/event.hpp>
 #include <lava/crater/video-mode.hpp>
 #include <lava/crater/window-handle.hpp>
+
+#include <optional>
 #include <queue>
 #include <string>
 
@@ -16,7 +18,7 @@ namespace lava::crater {
         IWindowImpl(const VideoMode& videoMode);
         virtual ~IWindowImpl() = default;
 
-        bool popEvent(Event& event);
+        std::optional<Event> popEvent();
 
         virtual WindowHandle windowHandle() const = 0;
         const VideoMode& videoMode() const { return m_videoMode; }

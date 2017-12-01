@@ -7,6 +7,7 @@
 #include <lava/crater/video-mode.hpp>
 #include <lava/crater/window-handle.hpp>
 
+#include <optional>
 #include <string>
 
 namespace lava::magma {
@@ -25,7 +26,7 @@ namespace lava::magma {
         // IRenderTarget
         IRenderTarget::Impl& interfaceImpl() override final;
 
-        bool pollEvent(crater::Event& event);
+        std::optional<crater::Event> pollEvent();
         void close();
 
         crater::WindowHandle windowHandle() const;
