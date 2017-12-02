@@ -6,6 +6,7 @@ project "lava-chamber"
     excludes "chamber/call-stack/**"
 
     if os.host() == "linux" then
+        defines { "LAVA_CHAMBER_FILEWATCHER_INOTIFY" }
         defines { "LAVA_CHAMBER_CALLSTACK_GCC" }
         files "chamber/call-stack/gcc/**"
 
@@ -19,7 +20,10 @@ project "lava-chamber"
     end
 
     function chamberDependencies()
-        if os.host() == "windows" then
+        if os.host() == "linux" then
+            links { "dl" }
+
+        elseif os.host() == "windows" then
             buildoptions { "-mwindows", "-municode" }
             links { "DbgHelp" }
         

@@ -20,6 +20,8 @@
 - **feature**
     - Event: gave a way to access keyboard/mouse state (isKeyPressed)
     - Event: complex event handling (dragging, double click)
+    - FileWatcher: Multi-platform support
+        - Windows
     - Window: fullscreen
     - Window::Impl: have Wayland support
     - Window::Impl: DWM - complete all events

@@ -2,6 +2,17 @@
 -- Ashes - Example applications --
 ----------------------------------
 
+----------
+-- chamber --
+
+project "chamber-watcher"
+kind "WindowedApp"
+files "chamber/watcher.cpp"
+useChamber()
+
+-----------
+-- magma --
+
 project "magma-scenes-and-windows"
     kind "WindowedApp"
     files "magma/scenes-and-windows.cpp"
@@ -12,6 +23,9 @@ project "magma-transparency"
     files "magma/transparency.cpp"
     useMagma()
 
+----------
+-- sill --
+
 project "sill-mesh-makers"
     kind "WindowedApp"
     files "sill/mesh-makers.cpp"
@@ -21,7 +35,7 @@ project "sill-rm-material"
     kind "WindowedApp"
     files "sill/rm-material.cpp"
     useSill()
-
+    
 project "text"
     kind "WindowedApp"
     files "sill/text.cpp"
