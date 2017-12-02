@@ -62,7 +62,6 @@ namespace lava::ashe {
             // Keep running while the window is open.
             while (m_window->opened()) {
                 // Treat all events since last frame.
-                crater::Event event;
                 while (auto event = m_window->pollEvent()) {
                     eventHandler(*event);
                     handleEvent(*event);
