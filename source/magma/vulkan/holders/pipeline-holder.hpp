@@ -43,6 +43,7 @@ namespace lava::magma::vulkan {
 
         /// Register a shader stage.
         void add(const vk::PipelineShaderStageCreateInfo& shaderStage);
+        void removeShaderStages() { m_shaderStages.clear(); }
 
         /// Register a color attachment.
         void add(const ColorAttachment& colorAttachment);

@@ -217,8 +217,10 @@ void DeepDeferredStage::initClearPass()
     auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/fullscreen.vert");
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
-    auto fragmentShaderModule = m_scene.engine().shadersManager().module(
-        "./data/shaders/stages/deep-deferred-clear.frag", {{"GBUFFER_MAX_NODE_DEPTH", GBUFFER_MAX_NODE_DEPTH_STRING}});
+    ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
+    auto fragmentShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-clear.frag", moduleOptions);
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     //----- Descriptor set layouts
@@ -233,14 +235,7 @@ void DeepDeferredStage::initGeometryOpaquePass()
 
     //----- Shaders
 
-    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert");
-    m_geometryOpaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
-
-    auto fragmentShaderModule = m_scene.engine().shadersManager().module(
-        "./data/shaders/stages/deep-deferred-geometry-opaque.frag", {{"GBUFFER_MAX_NODE_DEPTH", GBUFFER_MAX_NODE_DEPTH_STRING}});
-    m_geometryOpaquePipelineHolder.add(
-        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+    updateGeometryOpaquePassShaders(true);
 
     //----- Descriptor set layouts
 
@@ -278,16 +273,7 @@ void DeepDeferredStage::initGeometryTranslucentPass()
 
     //----- Shaders
 
-    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert");
-    m_geometryTranslucentPipelineHolder.add(
-        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
-
-    auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry-translucent.frag",
-                                                 {{"GBUFFER_MAX_NODE_DEPTH", GBUFFER_MAX_NODE_DEPTH_STRING}});
-    m_geometryTranslucentPipelineHolder.add(
-        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+    updateGeometryTranslucentPassShaders(true);
 
     //----- Descriptor set layouts
 
@@ -316,13 +302,7 @@ void DeepDeferredStage::initEpiphanyPass()
 {
     //----- Shaders
 
-    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/fullscreen.vert");
-    m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
-
-    auto fragmentShaderModule = m_scene.engine().shadersManager().module(
-        "./data/shaders/stages/deep-deferred-epiphany.frag", {{"GBUFFER_MAX_NODE_DEPTH", GBUFFER_MAX_NODE_DEPTH_STRING}});
-    m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+    updateEpiphanyPassShaders(true);
 
     //----- Descriptors
 
@@ -347,6 +327,69 @@ void DeepDeferredStage::initEpiphanyPass()
     finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
     finalColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
     m_epiphanyPipelineHolder.add(finalColorAttachment);
+}
+
+void DeepDeferredStage::updateGeometryOpaquePassShaders(bool firstTime)
+{
+    m_geometryOpaquePipelineHolder.removeShaderStages();
+
+    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
+    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert");
+    m_geometryOpaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
+
+    ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
+    if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryOpaquePassShaders(false); };
+    auto fragmentShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry-opaque.frag", moduleOptions);
+    m_geometryOpaquePipelineHolder.add(
+        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+
+    if (!firstTime) {
+        m_geometryOpaquePipelineHolder.update(m_extent);
+    }
+}
+
+void DeepDeferredStage::updateGeometryTranslucentPassShaders(bool firstTime)
+{
+    m_geometryTranslucentPipelineHolder.removeShaderStages();
+
+    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
+    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert");
+    m_geometryTranslucentPipelineHolder.add(
+        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
+
+    ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
+    if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryTranslucentPassShaders(false); };
+    auto fragmentShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry-translucent.frag", moduleOptions);
+    m_geometryTranslucentPipelineHolder.add(
+        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+
+    if (!firstTime) {
+        m_geometryTranslucentPipelineHolder.update(m_extent);
+    }
+}
+
+void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
+{
+    m_epiphanyPipelineHolder.removeShaderStages();
+
+    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
+    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/fullscreen.vert");
+    m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
+
+    ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
+    if (firstTime) moduleOptions.updateCallback = [this]() { updateEpiphanyPassShaders(false); };
+    auto fragmentShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-epiphany.frag", moduleOptions);
+    m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+
+    if (!firstTime) {
+        m_epiphanyPipelineHolder.update(m_extent);
+    }
 }
 
 void DeepDeferredStage::createResources()

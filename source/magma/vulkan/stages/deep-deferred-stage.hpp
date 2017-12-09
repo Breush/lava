@@ -47,6 +47,10 @@ namespace lava::magma {
         void initGeometryTranslucentPass();
         void initEpiphanyPass();
 
+        void updateGeometryOpaquePassShaders(bool firstTime);
+        void updateGeometryTranslucentPassShaders(bool firstTime);
+        void updateEpiphanyPassShaders(bool firstTime);
+
         void createResources();
         void createFramebuffers();
 

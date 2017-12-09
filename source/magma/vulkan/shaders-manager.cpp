@@ -14,52 +14,80 @@ ShadersManager::ShadersManager(const vk::Device& device)
 {
 }
 
-uint32_t ShadersManager::registerImpl(const std::string& category, const std::string& implCode)
+void ShadersManager::registerImplGroup(const std::string& hrid, const std::string& rawCode)
 {
-    const uint32_t id = m_impls[category].size();
-    std::stringstream implTitle;
-    implTitle << category << id;
-    m_impls[category].emplace_back(resolve(implCode, implTitle.str()));
-    return id;
-}
+    auto& implGroup = m_implGroups[hrid];
 
-void ShadersManager::registerImpls(const std::string& rawCode)
-{
     auto impls = extractImpls(rawCode);
     for (const auto& impl : impls) {
-        registerImpl(impl.first, impl.second);
+        const auto implId = registerImpl(impl.first, impl.second);
+        implGroup.implIds[impl.first] = implId;
+    }
+}
+
+void ShadersManager::updateImplGroup(const std::string& hrid, const std::string& rawCode)
+{
+    auto& implGroup = m_implGroups.at(hrid);
+
+    auto impls = extractImpls(rawCode);
+    for (const auto& impl : impls) {
+        const auto implId = implGroup.implIds.at(impl.first);
+        updateImpl(impl.first, implId, impl.second);
     }
 }
 
 vk::ShaderModule ShadersManager::module(const std::string& shaderId)
 {
-    return module(shaderId, {});
+    ModuleOptions options;
+    return module(shaderId, options);
 }
 
-vk::ShaderModule ShadersManager::module(const std::string& shaderId, const std::unordered_map<std::string, std::string>& defines)
+vk::ShaderModule ShadersManager::module(const std::string& shaderId, const ModuleOptions& options)
 {
     auto iModule = m_modules.find(shaderId);
+    auto isModuleDirty = m_dirtyModules.find(shaderId) != m_dirtyModules.end();
+
     vk::ShaderModule shaderModule = nullptr;
 
-    // Load the file if it does not exists
-    if (iModule == m_modules.end()) {
-        auto textCode = adaptGlslFile(shaderId, defines);
-        textCode = resolve(textCode);
+    // Load the file if it does not exists or if it is dirty
+    if (iModule == m_modules.end() || isModuleDirty) {
+        auto textCode = adaptGlslFile(shaderId, options.defines);
+        auto resolvedShader = resolveShader(textCode);
+
         logger.info("magma.vulkan.shaders-manager")
-            << "Reading GLSL shader file '" << shaderId << "' (" << textCode.size() << "B)." << std::endl;
+            << "Reading GLSL shader file '" << shaderId << "' (" << resolvedShader.textCode.size() << "B)." << std::endl;
 
-        auto code = vulkan::spvFromGlsl(shaderId, textCode);
-        auto module = vulkan::createShaderModule(m_device, code);
-
-        auto result = m_modules.emplace(shaderId, m_device);
-        if (result.second) {
-            result.first->second = module;
-            shaderModule = module;
+        auto code = vulkan::spvFromGlsl(shaderId, resolvedShader.textCode);
+        if (code.empty()) {
+            if (iModule != m_modules.end()) {
+                return iModule->second.vk();
+            }
+            else {
+                logger.error("magma.vulkan.shaders-manager") << "No valid shader for " << shaderId << "." << std::endl;
+            }
+            return nullptr;
         }
+
+        auto module = vulkan::createShaderModule(m_device, code);
+        shaderModule = module;
+
+        // Adding the callback to all of his dependencies
+        for (const auto& category : resolvedShader.implsDependencies) {
+            if (options.updateCallback != nullptr) {
+                m_impls[category].updateCallbacks.emplace_back(options.updateCallback);
+            }
+            m_impls[category].dirtyShaderIds.emplace(shaderId);
+        }
+
+        // Adding the module
+        auto result = m_modules.emplace(shaderId, m_device);
+        if (result.second) result.first->second = module;
+
+        m_dirtyModules.erase(shaderId);
     }
     // Or just get it
     else {
-        shaderModule = iModule->second;
+        shaderModule = iModule->second.vk();
     }
 
     return shaderModule;
@@ -67,7 +95,51 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const std::
 
 //----- Internal
 
-std::string ShadersManager::resolve(const std::string& textCode, std::string annotationMain)
+void ShadersManager::dirtifyImpl(const std::string& category)
+{
+    // Remove modules that need to be updated
+    for (const auto& shaderId : m_impls[category].dirtyShaderIds) {
+        m_dirtyModules.emplace(shaderId);
+    }
+
+    // Calling all callbacks
+    // @fixme Do not call this directly during render engine update!
+    for (const auto& updateCallback : m_impls[category].updateCallbacks) {
+        updateCallback();
+    }
+}
+
+uint32_t ShadersManager::registerImpl(const std::string& category, const std::string& implCode)
+{
+    const uint32_t implId = m_impls[category].textCodes.size();
+    auto resolvedShader = resolveImpl(category, implId, implCode);
+    m_impls[category].textCodes.emplace_back(resolvedShader.textCode);
+
+    dirtifyImpl(category);
+
+    return implId;
+}
+
+void ShadersManager::updateImpl(const std::string& category, const uint32_t implId, const std::string& implCode)
+{
+    auto resolvedShader = resolveImpl(category, implId, implCode);
+
+    if (m_impls[category].textCodes[implId] != resolvedShader.textCode) {
+        m_impls[category].textCodes[implId] = resolvedShader.textCode;
+        dirtifyImpl(category);
+    }
+}
+
+ShadersManager::ResolvedShader ShadersManager::resolveImpl(const std::string& category, const uint32_t implId,
+                                                           const std::string& implCode)
+{
+    std::stringstream implTitle;
+    implTitle << category << implId;
+
+    return resolveShader(implCode, implTitle.str());
+}
+
+ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& textCode, std::string annotationMain)
 {
     std::stringstream textCodeStream(textCode);
     std::stringstream adaptedCode;
@@ -77,6 +149,8 @@ std::string ShadersManager::resolve(const std::string& textCode, std::string ann
     std::string casesBuffer;
     bool casesBuffering = false;
 
+    std::set<std::string> implsDependencies;
+
     while (std::getline(textCodeStream, line)) {
         std::string word;
         std::istringstream lineStream(line);
@@ -85,10 +159,11 @@ std::string ShadersManager::resolve(const std::string& textCode, std::string ann
             if (word.find("@magma:impl:paste") != std::string::npos) {
                 lineStream >> category;
                 adaptedCode << "// BEGIN @magma:impl:paste " << category << std::endl;
-                for (const auto& impl : m_impls[category]) {
-                    adaptedCode << impl << std::endl;
+                for (const auto& implTextCode : m_impls[category].textCodes) {
+                    adaptedCode << implTextCode << std::endl;
                 }
                 adaptedCode << "// END @magma:impl:paste " << category << std::endl;
+                implsDependencies.emplace(category);
                 continue;
             }
             // @magma:impl:main
@@ -102,6 +177,7 @@ std::string ShadersManager::resolve(const std::string& textCode, std::string ann
                 adaptedCode << "// BEGIN @magma:impl:beginCases " << category << std::endl;
                 casesBuffering = true;
                 casesBuffer = "";
+                implsDependencies.emplace(category);
                 continue;
             }
             // @magma:impl:endCases
@@ -110,7 +186,7 @@ std::string ShadersManager::resolve(const std::string& textCode, std::string ann
                 auto callMarkPos = casesBuffer.find(callMark);
                 auto callMarkSize = callMark.size();
 
-                for (uint32_t i = 0; i < m_impls[category].size(); ++i) {
+                for (uint32_t i = 0; i < m_impls[category].textCodes.size(); ++i) {
                     std::stringstream callStream;
                     callStream << category << i;
                     auto callString = callStream.str();
@@ -145,7 +221,11 @@ std::string ShadersManager::resolve(const std::string& textCode, std::string ann
         adaptedCode << std::endl;
     }
 
-    return adaptedCode.str();
+    ResolvedShader resolvedShader;
+    resolvedShader.textCode = adaptedCode.str();
+    resolvedShader.implsDependencies = implsDependencies;
+
+    return resolvedShader;
 }
 
 std::vector<std::pair<std::string, std::string>> ShadersManager::extractImpls(const std::string& rawCode)

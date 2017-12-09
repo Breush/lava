@@ -59,7 +59,6 @@
     - PBR: Convert to specular-glossiness only [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
-    - Shader: Recompile on demand, removing the need to bind empty textures
     - Texture: Have a manager?
     - Wireframe
 - **faroff**
@@ -79,7 +78,6 @@
     - RenderWindow: Take from magma - so that it does not depend on crater anymore
     - RmMaterial: albedo color
     - SphereMesh: uv mapping
-    - Shaders: on the fly update
 
 ## Dike
 

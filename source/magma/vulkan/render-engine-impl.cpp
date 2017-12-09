@@ -1,7 +1,9 @@
 #include "./render-engine-impl.hpp"
 
 #include <chrono>
+#include <fstream>
 #include <lava/chamber/logger.hpp>
+#include <sstream>
 
 #include "./cameras/i-camera-impl.hpp"
 #include "./helpers/queue.hpp"
@@ -21,6 +23,32 @@ RenderEngine::Impl::Impl()
 RenderEngine::Impl::~Impl()
 {
     device().waitIdle();
+}
+
+void RenderEngine::Impl::update()
+{
+    // Updating shaders
+    while (auto event = m_shadersWatcher.pollEvent()) {
+        if (event->type == chamber::FileWatchEvent::Type::Modified) {
+            auto materialPath = event->path;
+
+            logger.info("magma.render-engine") << "Material source file " << materialPath << " has changed." << std::endl;
+            logger.log().tab(1);
+
+            std::ifstream fileStream(materialPath);
+            std::stringstream buffer;
+            buffer << fileStream.rdbuf();
+
+            auto materialInfo =
+                std::find_if(m_materialInfos.begin(), m_materialInfos.end(), [&materialPath](const auto& materialInfo) {
+                    return materialInfo.second.sourcePath == materialPath;
+                });
+
+            m_shadersManager.updateImplGroup(materialInfo->first, buffer.str());
+
+            logger.log().tab(-1);
+        }
+    }
 }
 
 void RenderEngine::Impl::draw()
@@ -57,17 +85,6 @@ void RenderEngine::Impl::draw()
     }
 }
 
-uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std::string& shaderImplementation)
-{
-    auto materialId = m_registeredMaterialsMap.size();
-
-    logger.info("magma.vulkan.render-engine") << "Registering material " << hrid << " as " << materialId << "." << std::endl;
-
-    m_shadersManager.registerImpls(shaderImplementation);
-    m_registeredMaterialsMap[hrid] = materialId;
-    return materialId;
-}
-
 uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
                                               const UniformDefinitions& uniformDefinitions)
 {
@@ -77,10 +94,27 @@ uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std
 
     m_registeredMaterialsMap[hrid] = materialId;
 
-    m_shadersManager.registerImpls(shaderImplementation);
+    m_shadersManager.registerImplGroup(hrid, shaderImplementation);
     auto& materialInfo = m_materialInfos[hrid];
     materialInfo.id = materialId;
     materialInfo.uniformDefinitions = uniformDefinitions;
+    return materialId;
+}
+
+uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, const std::string& shaderPath,
+                                                      const UniformDefinitions& uniformDefinitions)
+{
+    // Read the file
+    std::ifstream fileStream(shaderPath);
+    std::stringstream buffer;
+    buffer << fileStream.rdbuf();
+
+    // Start watching the file
+    m_shadersWatcher.watch(shaderPath);
+
+    const auto materialId = registerMaterial(hrid, buffer.str(), uniformDefinitions);
+    m_materialInfos[hrid].sourcePath = shaderPath;
+
     return materialId;
 }
 

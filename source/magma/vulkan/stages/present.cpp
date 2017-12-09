@@ -44,8 +44,9 @@ void Present::init()
     auto vertexShaderModule = m_engine.shadersManager().module("./data/shaders/stages/fullscreen.vert");
     m_pipelineHolder.add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
-    auto fragmentShaderModule =
-        m_engine.shadersManager().module("./data/shaders/stages/present.frag", {{"MAX_VIEW_COUNT", MAX_VIEW_COUNT_STRING}});
+    ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["MAX_VIEW_COUNT"] = MAX_VIEW_COUNT_STRING;
+    auto fragmentShaderModule = m_engine.shadersManager().module("./data/shaders/stages/present.frag", moduleOptions);
     m_pipelineHolder.add(
         {vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 

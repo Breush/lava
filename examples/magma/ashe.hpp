@@ -68,6 +68,7 @@ namespace lava::ashe {
                 }
 
                 // Render the scene.
+                m_engine->update();
                 m_engine->draw();
             }
         }

@@ -3,6 +3,7 @@
 #include <lava/magma/render-engine.hpp>
 
 #include <glm/mat4x4.hpp>
+#include <lava/chamber/file-watcher.hpp>
 #include <lava/chamber/macros.hpp>
 #include <lava/crater/window.hpp>
 #include <lava/magma/render-scenes/i-render-scene.hpp>
@@ -30,11 +31,12 @@ namespace lava::magma {
         ~Impl();
 
         // Main interface
-        void stop();
+        void update();
         void draw();
-        uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation);
         uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
                                   const UniformDefinitions& uniformDefinitions);
+        uint32_t registerMaterialFromFile(const std::string& hrid, const std::string& shaderPath,
+                                          const UniformDefinitions& uniformDefinitions);
         uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
 
         /**
@@ -124,6 +126,7 @@ namespace lava::magma {
         ShadersManager m_shadersManager{device()};
         std::unordered_map<std::string, MaterialInfo> m_materialInfos;
         std::unordered_map<std::string, uint32_t> m_registeredMaterialsMap;
+        chamber::FileWatcher m_shadersWatcher;
 
         /**
          * @name Textures

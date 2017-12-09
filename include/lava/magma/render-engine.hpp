@@ -20,6 +20,9 @@ namespace lava::magma {
         RenderEngine();
         ~RenderEngine();
 
+        /// Update animations and internal state.
+        void update();
+
         /// Render the current state to all the targets.
         void draw();
 
@@ -33,6 +36,8 @@ namespace lava::magma {
         // Have our own shading "language"?
         uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
                                   const UniformDefinitions& uniformDefinitions);
+        uint32_t registerMaterialFromFile(const std::string& hrid, const std::string& shaderPath,
+                                          const UniformDefinitions& uniformDefinitions);
 
         /**
          * Add a view of render scene's camera to a render-target.

@@ -26,7 +26,8 @@ std::vector<uint32_t> vulkan::spvFromGlsl(const std::string& hrid, const std::st
             logger.log() << "Shader code available to .shader.tmp." << std::endl;
         }
 
-        logger.error("magma.vulkan.helpers.shader").tab(-1) << "Unable to compile shader " << hrid << "." << std::endl;
+        logger.warning("magma.vulkan.helpers.shader") << "Unable to compile shader " << hrid << "." << std::endl;
+        return {};
     }
 
     return {module.cbegin(), module.cend()};

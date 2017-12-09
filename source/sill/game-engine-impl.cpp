@@ -1,9 +1,7 @@
 #include "./game-engine-impl.hpp"
 
 #include <chrono>
-#include <fstream>
 #include <lava/magma/material.hpp>
-#include <sstream>
 
 #include "./game-entity-impl.hpp"
 
@@ -72,6 +70,7 @@ void GameEngine::Impl::run()
         }
 
         // Render the scene.
+        m_renderEngine->update();
         m_renderEngine->draw();
     }
 }
@@ -96,38 +95,20 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
 void GameEngine::Impl::registerMaterials()
 {
     // Sky material
-    {
-        std::ifstream fileStream("./data/shaders/materials/sky-material.simpl");
-        std::stringstream buffer;
-        buffer << fileStream.rdbuf();
-
-        m_renderEngine->registerMaterial("sky", buffer.str(),
-                                         {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
-    }
+    m_renderEngine->registerMaterialFromFile("sky", "./data/shaders/materials/sky-material.simpl",
+                                             {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
 
     // Font material
-    {
-        std::ifstream fileStream("./data/shaders/materials/font-material.simpl");
-        std::stringstream buffer;
-        buffer << fileStream.rdbuf();
-
-        m_renderEngine->registerMaterial("font", buffer.str(),
-                                         {{"fontTexture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
-    }
+    m_renderEngine->registerMaterialFromFile("font", "./data/shaders/materials/font-material.simpl",
+                                             {{"fontTexture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
 
     // Roughness-metallic material
-    {
-        std::ifstream fileStream("./data/shaders/materials/rm-material.simpl");
-        std::stringstream buffer;
-        buffer << fileStream.rdbuf();
-
-        m_renderEngine->registerMaterial("roughness-metallic", buffer.str(),
-                                         {{"roughnessFactor", magma::UniformType::FLOAT, 1.f},
-                                          {"metallicFactor", magma::UniformType::FLOAT, 1.f},
-                                          {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
-                                          {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
-                                          {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
-    }
+    m_renderEngine->registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.simpl",
+                                             {{"roughnessFactor", magma::UniformType::FLOAT, 1.f},
+                                             {"metallicFactor", magma::UniformType::FLOAT, 1.f},
+                                             {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
+                                             {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
+                                             {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
 }
 
 void GameEngine::Impl::handleEvent(crater::Event& event)
