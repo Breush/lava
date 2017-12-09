@@ -13,15 +13,30 @@ export VK_LAYER_PATH=`pwd`/external/etc/explicit_layer.d
 
 if [ $? -eq 0 ]; then
     # Find a file that match the name
-    EXECUTABLE=$(find ./build/debug/ -type f -executable -name "*$1*")
-    echo "Running ${EXECUTABLE}..."
+    EXECUTABLES=$(find ./build/debug/ -type f -executable -name "*$1*" -not -name "*.*")
+    EXECUTABLES=($EXECUTABLES)
+    EXECUTABLES_COUNT=${#EXECUTABLES[@]}
 
-    if [ "$2" == "debug" ]; then
-        echo "... in debug mode."
-        EXECUTABLE="gdb --quiet --directory=./external/source/vulkan/layers -ex run ${EXECUTABLE}*"
+    if [ ${EXECUTABLES_COUNT} -eq 1 ]; then
+        EXECUTABLE=${EXECUTABLES[0]}
+        echo -en "\e[33m"
+        echo "Running ${EXECUTABLE}..."
+
+        if [ "$2" == "debug" ]; then
+            echo "... in debug mode."
+            EXECUTABLE="gdb --quiet --directory=./external/source/vulkan/layers -ex run ${EXECUTABLE}*"
+        fi
+        echo -en "\e[39m"
+
+        ${EXECUTABLE}
+    else
+        echo -en "\e[33m"
+        echo "Found ${EXECUTABLES_COUNT} executables."
+        for EXECUTABLE in ${EXECUTABLES[@]}; do
+            echo ${EXECUTABLE}
+        done
+        echo -en "\e[39m"
     fi
-
-    ${EXECUTABLE}
 else
-    echo "Error during setup or build..."
+    echo -e "\e[31m\nError during setup or build...\e[39m"
 fi
