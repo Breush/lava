@@ -27,7 +27,7 @@ if [ ${EXECUTABLES_COUNT} -eq 1 ]; then
     
     echo -e "\e[35mBuilding ${MAKE_TARGET}...\e[39m"
     
-    ${MAKE_PROGRAM} ${MAKE_TARGET}
+    ${MAKE_PROGRAM} -j 2 ${MAKE_TARGET}
 
     # Run
     if [ $? -eq 0 ]; then
