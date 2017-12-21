@@ -4,7 +4,6 @@
 
 #include "../game-engine-impl.hpp"
 #include "../game-entity-impl.hpp"
-#include "../material-impl.hpp"
 
 using namespace lava::sill;
 
@@ -73,5 +72,5 @@ void MeshComponent::Impl::translucent(bool translucent)
 
 void MeshComponent::Impl::material(Material& material)
 {
-    m_mesh->material(material.impl().material());
+    m_mesh->material(material.original());
 }

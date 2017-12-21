@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+namespace lava::magma {
+    class Texture;
+}
+
 namespace lava::sill {
     class GameEngine;
 }
@@ -18,16 +22,14 @@ namespace lava::sill {
         Texture(GameEngine& engine, const std::string& imagePath);
         ~Texture();
 
-        /// Loaders
+        magma::Texture& original() { return *m_original; }
+        const magma::Texture& original() const { return *m_original; }
+
         void loadFromMemory(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void loadFromFile(const std::string& imagePath);
 
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
-        const Impl& impl() const { return *m_impl; }
-
     private:
-        Impl* m_impl = nullptr;
+        GameEngine& m_engine;
+        magma::Texture* m_original = nullptr;
     };
 }
