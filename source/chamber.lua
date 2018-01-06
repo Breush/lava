@@ -4,15 +4,21 @@ project "lava-chamber"
 
     files "chamber/**"
     excludes "chamber/call-stack/**"
+    excludes "chamber/file-watcher/**"
 
     if os.host() == "linux" then
-        defines { "LAVA_CHAMBER_FILEWATCHER_INOTIFY" }
         defines { "LAVA_CHAMBER_CALLSTACK_GCC" }
         files "chamber/call-stack/gcc/**"
+
+        defines { "LAVA_CHAMBER_FILEWATCHER_INOTIFY" }
+        files "chamber/file-watcher/inotify/**"
 
     elseif os.host() == "windows" then
         defines { "LAVA_CHAMBER_CALLSTACK_MINGW" }
         files "chamber/call-stack/mingw/**"
+
+        defines { "LAVA_CHAMBER_FILEWATCHER_WIN32" }
+        files "chamber/file-watcher/win32/**"
 
     else
         error("Unsupported platform " + os.host())
@@ -25,7 +31,7 @@ project "lava-chamber"
 
         elseif os.host() == "windows" then
             buildoptions { "-mwindows", "-municode" }
-            links { "DbgHelp" }
+            links { "DbgHelp", "stdc++fs" }
         
         end
 

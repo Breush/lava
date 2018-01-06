@@ -3,12 +3,20 @@
 #include <lava/chamber/file-watcher.hpp>
 
 #include <atomic>
+#include <experimental/filesystem>
 #include <queue>
 #include <thread>
-#include <unordered_map>
+#include <windows.h>
 
 namespace lava::chamber {
-    /// Inotify implementation of the FileWatcher.
+    struct WatchHandleInfo {
+        std::experimental::filesystem::path path;
+        bool directory = false;
+        HANDLE handle;
+        OVERLAPPED overlapped;
+    };
+
+    /// Win32 implementation of the FileWatcher.
     class FileWatcher::Impl {
     public:
         Impl();
@@ -19,9 +27,7 @@ namespace lava::chamber {
         std::optional<FileWatchEvent> popEvent();
 
     private:
-        uint32_t m_mask;
-        int m_fileDescriptor = -1;
-        std::unordered_map<int, std::string> m_watchDescriptors;
+        std::vector<WatchHandleInfo> m_watchHandlesInfos;
         std::queue<FileWatchEvent> m_eventsQueue;
 
         // Thread

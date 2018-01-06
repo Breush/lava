@@ -40,7 +40,7 @@ int main(void)
     // Watch a file
     {
         chamber::FileWatcher watcher;
-        watcher.watch("./data/tmp");
+        watcher.watch("./data/tmp/watcher.tmp");
 
         // Modify a file
         std::ofstream file("./data/tmp/watcher.tmp");

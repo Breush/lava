@@ -3,48 +3,34 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceRoot}/external/include",
-                "${workspaceRoot}/include",
-                "/usr/include/x86_64-linux-gnu/c++/6",
-                "/usr/include/x86_64-linux-gnu/c++/7",
-                "/usr/include/c++/6",
                 "/usr/include/c++/7",
+                "/usr/include/x86_64-linux-gnu/c++/7",
+                "/usr/include/c++/7/backward",
+                "/usr/lib/gcc/x86_64-linux-gnu/7/include",
                 "/usr/local/include",
-                "/usr/lib/clang/4.0.0/include",
-                "/usr/lib/clang/4.0.1/include",
+                "/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed",
                 "/usr/include/x86_64-linux-gnu",
-                "/usr/include"
-            ],
-            "defines": [],
-            "intelliSenseMode": "clang-x64",
-            "browse": {
-                "path": [
-                    "${workspaceRoot}",
-                    "/usr/include/x86_64-linux-gnu/c++/6",
-                    "/usr/include/x86_64-linux-gnu/c++/7",
-                    "/usr/include/c++/6",
-                    "/usr/include/c++/7",
-                    "/usr/local/include",
-                    "/usr/lib/clang/4.0.0/include",
-                    "/usr/lib/clang/4.0.1/include",
-                    "/usr/include/x86_64-linux-gnu",
-                    "/usr/include"
-                ],
-                "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": ""
-            }
-        },
-        {
-            "name": "Win32",
-            "includePath": [
-                "${workspaceRoot}/external/include",
+                "/usr/include",
+                "${workspaceRoot}",
                 "${workspaceRoot}/include"
             ],
-            "defines": [],
+            "defines": [
+                "LAVA_CHAMBER_FILEWATCHER_INOTIFY",
+                "LAVA_CHAMBER_CALLSTACK_GCC"
+            ],
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
-                    "${workspaceRoot}"
+                    "/usr/include/c++/7",
+                    "/usr/include/x86_64-linux-gnu/c++/7",
+                    "/usr/include/c++/7/backward",
+                    "/usr/lib/gcc/x86_64-linux-gnu/7/include",
+                    "/usr/local/include",
+                    "/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed",
+                    "/usr/include/x86_64-linux-gnu",
+                    "/usr/include",
+                    "${workspaceRoot}",
+                    "${workspaceRoot}/include"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""

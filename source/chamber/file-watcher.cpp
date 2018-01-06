@@ -5,6 +5,10 @@
 // @todo Multi-platform
 #if defined(LAVA_CHAMBER_FILEWATCHER_INOTIFY)
 #include "./file-watcher/inotify/file-watcher-impl.hpp"
+#elif defined(LAVA_CHAMBER_FILEWATCHER_WIN32)
+#include "./file-watcher/win32/file-watcher-impl.hpp"
+#else
+#error "[lava.chamber.file-watcher] Unsupported platform for file watching"
 #endif
 
 using namespace lava::chamber;

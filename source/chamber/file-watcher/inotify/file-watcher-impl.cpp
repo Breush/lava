@@ -11,7 +11,7 @@ using namespace lava;
 namespace {
     void waitEvents(int fileDescriptor, const std::atomic<bool>* watching,
                     const std::unordered_map<int, std::string>* watchDescriptors,
-                    std::queue<lava::chamber::FileWatchEvent>* eventsQueue)
+                    std::queue<chamber::FileWatchEvent>* eventsQueue)
     {
         constexpr const auto eventBufferSize = sizeof(inotify_event) + 512u + 1u;
         static char buffer[eventBufferSize];
@@ -21,7 +21,7 @@ namespace {
             if (!length || !*watching) break;
             auto& iEvent = *reinterpret_cast<inotify_event*>(buffer);
 
-            lava::chamber::FileWatchEvent event;
+            chamber::FileWatchEvent event;
             event.path = watchDescriptors->at(iEvent.wd);
 
             // @todo Would benefit from C++17 filesystem library
@@ -84,7 +84,7 @@ void FileWatcher::Impl::watch(const std::string& path)
     auto watchDescriptor = inotify_add_watch(m_fileDescriptor, path.c_str(), m_mask);
 
     if (watchDescriptor == -1) {
-        logger.warning("vent.file-watcher") << "Unable to watch " << path << "." << std::endl;
+        logger.warning("chamber.file-watcher") << "Unable to watch " << path << "." << std::endl;
         return;
     }
 
