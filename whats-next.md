@@ -3,7 +3,7 @@
 ## Cross-projects
 
 - Split into different git projects
-- Convert to C++17 (string_view, UTF8, filesystem, ...)
+- Convert to C++17 (string_view, UTF8, ...)
 - Removed useless folder when no namespace (and clean useless namespaces)
 
 ## Chamber

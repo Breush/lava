@@ -5,6 +5,8 @@
 using namespace lava;
 
 namespace {
+    static uint32_t sWatchId = 0u;
+
     static constexpr const auto fileNotifyFilter = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME |
                                                    // FILE_NOTIFY_CHANGE_ATTRIBUTES | // Ignored (nobody cares)
                                                    // FILE_NOTIFY_CHANGE_SIZE | // Ignored (LAST_WRITE does a better job)
@@ -44,30 +46,23 @@ namespace {
                     chamber::logger.warning("chamber.file-watcher") << "Might have lost some information..." << std::endl;
                 }
 
-                // @todo Shouldn't need wstring conversion as it should be std::filesystem::path,
-                // using OS structure.
-
                 // @note FileName is not null terminated
                 auto fileName = fileNotifyInformations[0].FileName;
-                std::wstring wPath(fileName, fileName + fileNotifyInformations[0].FileNameLength / sizeof(fileName[0]));
-                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wConverter;
+                fs::Path path(fileName, fileName + fileNotifyInformations[0].FileNameLength / sizeof(fileName[0]));
 
                 const auto& handleInfo = handlesInfos->at(waitStatus - WAIT_OBJECT_0);
                 if (!handleInfo.directory) {
                     // If watching a file, ignore other file change in this directory
-                    if (handleInfo.path.filename().c_str() != wPath) {
-                        break;
-                    }
-                    else {
-                        wPath = handleInfo.path.c_str();
-                    }
+                    if (handleInfo.path.filename() != path) break;
+                    path = handleInfo.path;
                 }
                 else {
-                    wPath = (handleInfo.path / wPath).c_str();
+                    path = handleInfo.path / path;
                 }
 
                 chamber::FileWatchEvent event;
-                event.path = wConverter.to_bytes(wPath);
+                event.path = path;
+                event.watchId = handleInfo.watchId;
 
                 switch (fileNotifyInformations[0].Action) {
                 case FILE_ACTION_ADDED: event.type = chamber::FileWatchEvent::Type::Created; break;
@@ -107,13 +102,12 @@ FileWatcher::Impl::~Impl()
     }
 }
 
-void FileWatcher::Impl::watch(const std::string& path)
+uint32_t FileWatcher::Impl::watch(const fs::Path& path)
 {
     WatchHandleInfo handleInfo;
 
-    // @todo Get a filesystem::path in the interface
-    handleInfo.path = path;
-    handleInfo.directory = std::experimental::filesystem::is_directory(handleInfo.path);
+    handleInfo.path = fs::canonical(path);
+    handleInfo.directory = fs::isDirectory(handleInfo.path);
 
     // If watching a file, watch its directory...
     auto watchedPath = handleInfo.directory ? handleInfo.path : handleInfo.path.parent_path();
@@ -123,13 +117,17 @@ void FileWatcher::Impl::watch(const std::string& path)
 
     if (handleInfo.handle == INVALID_HANDLE_VALUE) {
         logger.warning("chamber.file-watcher") << "Unable to watch " << path << "." << std::endl;
-        return;
+        return -1u;
     }
 
+    auto watchId = sWatchId++;
+
+    handleInfo.watchId = watchId;
     handleInfo.overlapped.OffsetHigh = 0;
     handleInfo.overlapped.hEvent = CreateEvent(nullptr, true, false, nullptr);
 
     m_watchHandlesInfos.emplace_back(handleInfo);
+    return watchId;
 }
 
 std::optional<FileWatchEvent> FileWatcher::Impl::popEvent()

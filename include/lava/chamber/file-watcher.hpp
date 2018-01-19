@@ -11,8 +11,8 @@ namespace lava::chamber {
         FileWatcher();
         ~FileWatcher();
 
-        /// Watch a file or a directory.
-        void watch(const std::string& path);
+        /// Watch a file or a directory. Returns a watch Id.
+        uint32_t watch(const fs::Path& path);
 
         /// Grab the next event if any.
         std::optional<FileWatchEvent> pollEvent();

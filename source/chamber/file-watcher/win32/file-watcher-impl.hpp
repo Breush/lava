@@ -10,7 +10,8 @@
 
 namespace lava::chamber {
     struct WatchHandleInfo {
-        std::experimental::filesystem::path path;
+        fs::Path path;
+        uint32_t watchId;
         bool directory = false;
         HANDLE handle;
         OVERLAPPED overlapped;
@@ -23,7 +24,7 @@ namespace lava::chamber {
         ~Impl();
 
         // FileWatcher
-        void watch(const std::string& path);
+        uint32_t watch(const fs::Path& path);
         std::optional<FileWatchEvent> popEvent();
 
     private:

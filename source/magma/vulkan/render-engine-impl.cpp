@@ -31,17 +31,18 @@ void RenderEngine::Impl::update()
     while (auto event = m_shadersWatcher.pollEvent()) {
         if (event->type == chamber::FileWatchEvent::Type::Modified) {
             auto materialPath = event->path;
+            auto watchId = event->watchId;
 
-            logger.info("magma.render-engine") << "Material source file " << materialPath << " has changed." << std::endl;
+            logger.info("magma.render-engine") << "Material source file " << event->path << " has changed." << std::endl;
             logger.log().tab(1);
 
-            std::ifstream fileStream(materialPath);
+            std::ifstream fileStream(materialPath.string());
             std::stringstream buffer;
             buffer << fileStream.rdbuf();
 
             auto materialInfo =
-                std::find_if(m_materialInfos.begin(), m_materialInfos.end(), [&materialPath](const auto& materialInfo) {
-                    return materialInfo.second.sourcePath == materialPath;
+                std::find_if(m_materialInfos.begin(), m_materialInfos.end(), [&watchId](const auto& materialInfo) {
+                    return materialInfo.second.watchId == watchId;
                 });
 
             m_shadersManager.updateImplGroup(materialInfo->first, buffer.str());
@@ -101,11 +102,11 @@ uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std
     return materialId;
 }
 
-uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, const std::string& shaderPath,
+uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath,
                                                       const UniformDefinitions& uniformDefinitions)
 {
     // Read the file
-    std::ifstream fileStream(shaderPath);
+    std::ifstream fileStream(shaderPath.string());
     std::stringstream buffer;
     buffer << fileStream.rdbuf();
 

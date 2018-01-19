@@ -28,7 +28,7 @@ $pimpl_method(RenderEngine, void, update);
 $pimpl_method(RenderEngine, void, draw);
 $pimpl_method(RenderEngine, uint32_t, registerMaterial, const std::string&, hrid, const std::string&, shaderImplementation,
               const UniformDefinitions&, uniformDefinitions);
-$pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const std::string&, shaderPath,
+$pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath,
               const UniformDefinitions&, uniformDefinitions);
 
 $pimpl_method(RenderEngine, uint32_t, addView, ICamera&, camera, IRenderTarget&, renderTarget, Viewport, viewport);

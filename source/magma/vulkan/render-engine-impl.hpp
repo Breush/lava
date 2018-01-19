@@ -35,7 +35,7 @@ namespace lava::magma {
         void draw();
         uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
                                   const UniformDefinitions& uniformDefinitions);
-        uint32_t registerMaterialFromFile(const std::string& hrid, const std::string& shaderPath,
+        uint32_t registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath,
                                           const UniformDefinitions& uniformDefinitions);
         uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
 

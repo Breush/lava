@@ -10,8 +10,7 @@ using namespace lava;
 
 namespace {
     void waitEvents(int fileDescriptor, const std::atomic<bool>* watching,
-                    const std::unordered_map<int, std::string>* watchDescriptors,
-                    std::queue<chamber::FileWatchEvent>* eventsQueue)
+                    const std::unordered_map<int, fs::Path>* watchDescriptors, std::queue<chamber::FileWatchEvent>* eventsQueue)
     {
         constexpr const auto eventBufferSize = sizeof(inotify_event) + 512u + 1u;
         static char buffer[eventBufferSize];
@@ -24,8 +23,7 @@ namespace {
             chamber::FileWatchEvent event;
             event.path = watchDescriptors->at(iEvent.wd);
 
-            // @todo Would benefit from C++17 filesystem library
-            if (iEvent.len) event.path = event.path + "/" + iEvent.name;
+            if (iEvent.len) event.path /= iEvent.name;
 
             switch (iEvent.mask) {
             case IN_ACCESS: continue;
@@ -77,18 +75,21 @@ FileWatcher::Impl::~Impl()
     close(m_fileDescriptor);
 }
 
-void FileWatcher::Impl::watch(const std::string& path)
+uint32_t FileWatcher::Impl::watch(const fs::Path& path)
 {
+    auto effectivePath = fs::canonical(path);
+
     // @note Can't make that descriptor non-blocking using fcntl for some reason.
     // This led us to us a thread.
-    auto watchDescriptor = inotify_add_watch(m_fileDescriptor, path.c_str(), m_mask);
+    auto watchDescriptor = inotify_add_watch(m_fileDescriptor, effectivePath.c_str(), m_mask);
 
     if (watchDescriptor == -1) {
         logger.warning("chamber.file-watcher") << "Unable to watch " << path << "." << std::endl;
-        return;
+        return -1u;
     }
 
-    m_watchDescriptors[watchDescriptor] = path;
+    m_watchDescriptors[watchDescriptor] = effectivePath;
+    return watchDescriptor;
 }
 
 std::optional<FileWatchEvent> FileWatcher::Impl::popEvent()

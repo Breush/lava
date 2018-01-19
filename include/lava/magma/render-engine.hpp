@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <lava/core/filesystem.hpp>
 #include <lava/core/viewport.hpp>
 #include <lava/magma/uniform.hpp>
 #include <memory>
@@ -36,7 +37,7 @@ namespace lava::magma {
         // Have our own shading "language"?
         uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
                                   const UniformDefinitions& uniformDefinitions);
-        uint32_t registerMaterialFromFile(const std::string& hrid, const std::string& shaderPath,
+        uint32_t registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath,
                                           const UniformDefinitions& uniformDefinitions);
 
         /**

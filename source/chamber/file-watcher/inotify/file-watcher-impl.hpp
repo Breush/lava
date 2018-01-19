@@ -15,13 +15,13 @@ namespace lava::chamber {
         ~Impl();
 
         // FileWatcher
-        void watch(const std::string& path);
+        uint32_t watch(const fs::Path& path);
         std::optional<FileWatchEvent> popEvent();
 
     private:
         uint32_t m_mask;
         int m_fileDescriptor = -1;
-        std::unordered_map<int, std::string> m_watchDescriptors;
+        std::unordered_map<int, fs::Path> m_watchDescriptors;
         std::queue<FileWatchEvent> m_eventsQueue;
 
         // Thread

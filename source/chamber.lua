@@ -31,7 +31,7 @@ project "lava-chamber"
 
         elseif os.host() == "windows" then
             buildoptions { "-mwindows", "-municode" }
-            links { "DbgHelp", "stdc++fs" }
+            links { "DbgHelp" }
         
         end
 
@@ -40,6 +40,9 @@ project "lava-chamber"
         useGlm()
         useStb()
     end
+
+    -- This is a static lib, thus it shouldn't be linked multiple times
+    links { "stdc++fs" }
 
     chamberDependencies()
 

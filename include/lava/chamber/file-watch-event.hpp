@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/core/filesystem.hpp>
 #include <string>
 
 namespace lava::chamber {
@@ -14,6 +15,7 @@ namespace lava::chamber {
         };
 
         Type type;
-        std::string path;
+        fs::Path path;
+        uint32_t watchId;
     };
 }
