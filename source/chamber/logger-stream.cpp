@@ -34,6 +34,7 @@ int LoggerStream::overflow(int c)
 {
     if (c == '\n') {
         stream() << resetString();
+        stream().flush();
         m_beenReset = true;
 
         if (m_autoExit) {
