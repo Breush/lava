@@ -25,7 +25,7 @@ if [ `uname -o` == "Msys" ]; then
     cd "${ROOT_DIR}/.tmp/${FOLDER}"
     mkdir -p build
     cd build
-    CXXFLAGS=-fPIC cmake .. -DCMAKE_MAKE_PROGRAM="${MAKE}" -G"Unix Makefiles"
+    CXXFLAGS=-fPIC cmake .. -G"Unix Makefiles" -DCMAKE_MAKE_PROGRAM="${MAKE}" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     ${MAKE} -j 2 shaderc
 
     cd "${ROOT_DIR}/.tmp"

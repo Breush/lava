@@ -22,6 +22,7 @@ RenderEngine::RenderEngine()
 
 RenderEngine::~RenderEngine()
 {
+    delete m_impl;
 }
 
 $pimpl_method(RenderEngine, void, update);
