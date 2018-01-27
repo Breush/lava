@@ -42,6 +42,8 @@
 - **feature**
     - AmbientLight
     - DirectionalLight
+    - ForwardRenderer
+    - VR integration
     - Light: Shadows
     - Light Linked List?
         - Fill linked list
@@ -52,7 +54,6 @@
             - Access LLL
             - PBR Epiphany (keep for last step)
         - Alpha
-    - PBR: Convert to specular-glossiness only [SgMaterial](https://github.com/KhronosGroup/glTF/tree/master/extensions/Khronos/KHR_materials_pbrSpecularGlossiness)
     - PBR: Reflection cube maps
     - Reflection probes
     - Texture: Have a manager?
@@ -60,12 +61,19 @@
 - **faroff**
     - Think about inlining in code data (shaders mainly, but debug texture too)
 
+## Dike
+
+- **feature**
+    - Have custom MotionState
+    - Other collision shapes
+
 ## Sill
 
 - **refacto**
     - magma should be internal use and not be seen in public API includes
 - **feature**
     - Animation
+    - dike integration
     - Materials introspection (-- or own shading language)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
@@ -74,11 +82,6 @@
     - RenderWindow: Take from magma - so that it does not depend on crater anymore
     - RmMaterial: albedo color
     - SphereMesh: uv mapping
-
-## Dike
-
-- Everything's left!
-- Wrap BulletPL into a nice API
 
 ## Ashes
 

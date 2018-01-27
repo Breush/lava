@@ -78,6 +78,8 @@
         "random": "cpp",
         "any": "cpp",
         "optional": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "numeric": "cpp",
+        "valarray": "cpp"
     }
 }

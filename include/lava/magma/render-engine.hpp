@@ -53,7 +53,7 @@ namespace lava::magma {
         /**
         * @name Makers
         * Make a new resource and add it to the engine.
-
+        *
         * Arguments will be forwarded to the constructor.
         * Any resource that match an adder (see below) can be made.
         *

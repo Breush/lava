@@ -29,6 +29,14 @@ project "magma-shader-watcher"
     useMagma()
 
 ----------
+-- dike --
+
+project "dike-bouncy-sphere"
+    kind "WindowedApp"
+    files "dike/bouncy-sphere.cpp"
+    useDike()
+
+----------
 -- sill --
 
 project "sill-mesh-makers"
