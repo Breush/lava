@@ -64,7 +64,9 @@
 ## Dike
 
 - **feature**
+    - Check deletion of everything in Colliders
     - Have custom MotionState
+    - Investigate the necessity of unique_ptr around btRigidBody
     - Other collision shapes
 
 ## Sill
@@ -73,7 +75,6 @@
     - magma should be internal use and not be seen in public API includes
 - **feature**
     - Animation
-    - dike integration
     - Materials introspection (-- or own shading language)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided

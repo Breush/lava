@@ -2,6 +2,7 @@
 
 #include <lava/sill/game-engine.hpp>
 
+#include <lava/dike/physics-engine.hpp>
 #include <lava/magma/cameras/orbit-camera.hpp>
 #include <lava/magma/lights/point-light.hpp>
 #include <lava/magma/render-engine.hpp>
@@ -39,6 +40,9 @@ namespace lava::sill {
         magma::RenderScene& renderScene() { return *m_renderScene; }
         const magma::RenderScene& renderScene() const { return *m_renderScene; }
 
+        dike::PhysicsEngine& physicsEngine() { return *m_physicsEngine; }
+        const dike::PhysicsEngine& physicsEngine() const { return *m_physicsEngine; }
+
     protected:
         void registerMaterials();
         void handleEvent(crater::Event& event);
@@ -52,6 +56,9 @@ namespace lava::sill {
         magma::RenderScene* m_renderScene = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::PointLight* m_light = nullptr;
+
+        // Physics
+        std::unique_ptr<dike::PhysicsEngine> m_physicsEngine = nullptr;
 
         // Fonts
         FontManager m_fontManager;

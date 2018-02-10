@@ -44,6 +44,12 @@ project "sill-mesh-makers"
     files "sill/mesh-makers.cpp"
     useSill()
 
+
+project "sill-physics-demo"
+    kind "WindowedApp"
+    files "sill/physics-demo.cpp"
+    useSill()
+
 project "sill-rm-material"
     kind "WindowedApp"
     files "sill/rm-material.cpp"

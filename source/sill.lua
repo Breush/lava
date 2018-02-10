@@ -6,6 +6,7 @@ project "lava-sill"
 
     function sillDependencies()
         useMagma()
+        useDike()
     end
 
     sillDependencies()

@@ -33,6 +33,11 @@ GameEngine::Impl::Impl(GameEngine& base)
     // @todo Handle custom views
     m_renderEngine->addView(*m_camera, *m_renderWindow, Viewport{0, 0, 1, 1});
 
+    //----- Initializing physics
+
+    m_physicsEngine = std::make_unique<dike::PhysicsEngine>();
+    m_physicsEngine->gravity({0, 0, -10});
+
     //----- Initializing fonts
 
     m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
@@ -57,6 +62,9 @@ void GameEngine::Impl::run()
 
         // We play the game at a constant rate (updateTime)
         while (updateTimeLag >= updateTime) {
+            // Update physics.
+            m_physicsEngine->update(std::chrono::duration<float>(updateTime).count());
+
             // Update all entities.
             for (auto& entity : m_entities) {
                 entity->impl().update();
@@ -105,10 +113,10 @@ void GameEngine::Impl::registerMaterials()
     // Roughness-metallic material
     m_renderEngine->registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.simpl",
                                              {{"roughnessFactor", magma::UniformType::FLOAT, 1.f},
-                                             {"metallicFactor", magma::UniformType::FLOAT, 1.f},
-                                             {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
-                                             {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
-                                             {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
+                                              {"metallicFactor", magma::UniformType::FLOAT, 1.f},
+                                              {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
+                                              {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
+                                              {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
 }
 
 void GameEngine::Impl::handleEvent(crater::Event& event)
