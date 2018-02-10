@@ -14,7 +14,7 @@ namespace lava::sill {
         ~TextMeshComponent();
 
         // IComponent
-        static std::string hrid() { return "text"; }
+        static std::string hrid() { return "text-mesh"; }
         void update() override final;
         void postUpdate() override final;
 
