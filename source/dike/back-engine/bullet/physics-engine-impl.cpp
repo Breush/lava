@@ -1,7 +1,5 @@
 #include "./physics-engine-impl.hpp"
 
-#include <iostream>
-
 using namespace lava::dike;
 
 PhysicsEngine::Impl::Impl()

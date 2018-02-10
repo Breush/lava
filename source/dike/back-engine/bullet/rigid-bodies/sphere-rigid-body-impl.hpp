@@ -23,9 +23,13 @@ namespace lava::dike {
         btScalar m_mass = 1.f;
         btVector3 m_inertia;
 
+        // @note We can't hold the RigidBody directly because,
+        // otherwise, the object won't be safe to move.
+        // This is likely a bullet physics bug, but hey.
         btSphereShape m_shape;
         btDefaultMotionState m_motionState;
-        btRigidBody m_rigidBody;
+        btRigidBody::btRigidBodyConstructionInfo m_constructionInfo;
+        std::unique_ptr<btRigidBody> m_rigidBody;
         btTransform m_transform;
     };
 }

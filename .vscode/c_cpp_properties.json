@@ -13,7 +13,8 @@
                 "/usr/include",
                 "${workspaceRoot}",
                 "${workspaceRoot}/include",
-                "${workspaceRoot}/external/include"
+                "${workspaceRoot}/external/include",
+                "${workspaceRoot}/external/include/bullet"
             ],
             "defines": [
                 "LAVA_CHAMBER_FILEWATCHER_INOTIFY",
