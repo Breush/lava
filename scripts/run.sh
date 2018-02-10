@@ -15,19 +15,22 @@ fi
 export LD_LIBRARY_PATH=`pwd`/external/lib:${LD_LIBRARY_PATH}
 export VK_LAYER_PATH=`pwd`/external/etc/explicit_layer.d
 
-# Find a file that match the name
-EXECUTABLES=$(find ./build/debug/ -type f -executable -name "*$1*" -not -name "*.so"  -not -name "*.dll")
-EXECUTABLES=($EXECUTABLES)
-EXECUTABLES_COUNT=${#EXECUTABLES[@]}
+echo -e "\e[35mSetuping dependencies...\e[39m"
+./scripts/setup.sh
 
-if [ ${EXECUTABLES_COUNT} -eq 1 ]; then
+# Find a make target that match the name
+TARGETS=$(make help | grep -P '^   (?!all|clean)' | grep "$1")
+TARGETS=($TARGETS)
+TARGETS_COUNT=${#TARGETS[@]}
+
+if [ ${TARGETS_COUNT} -eq 1 ]; then
     # Build
-    EXECUTABLE=${EXECUTABLES[0]}
-    MAKE_TARGET=$(basename "${EXECUTABLE}" | cut -d '.' -f 1)
+    TARGET=${TARGETS[0]}
+    EXECUTABLE="./build/debug/${TARGET}"
     
-    echo -e "\e[35mBuilding ${MAKE_TARGET}...\e[39m"
+    echo -e "\e[35mBuilding ${TARGET}...\e[39m"
     
-    ${MAKE_PROGRAM} -j 2 ${MAKE_TARGET}
+    ${MAKE_PROGRAM} -j 2 ${TARGET}
 
     # Run
     if [ $? -eq 0 ]; then
@@ -44,8 +47,8 @@ if [ ${EXECUTABLES_COUNT} -eq 1 ]; then
     fi
 else
     echo -en "\e[33m"
-    echo "Found ${EXECUTABLES_COUNT} executables."
-    for EXECUTABLE in ${EXECUTABLES[@]}; do
+    echo "Found ${TARGETS_COUNT} targets matching '$1'."
+    for EXECUTABLE in ${TARGETS[@]}; do
         echo ${EXECUTABLE}
     done
     echo -en "\e[39m"
