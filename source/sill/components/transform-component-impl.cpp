@@ -14,8 +14,38 @@ void TransformComponent::Impl::postUpdate()
     m_changed = false;
 }
 
-void TransformComponent::Impl::positionAdd(const glm::vec3& delta)
+void TransformComponent::Impl::positionAdd(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
 {
+    // @todo Can't we write an in-place operation?
     m_transform = glm::translate(m_transform, delta);
     m_changed = true;
+
+    callPositionChanged(changeReasonFlag);
+}
+
+void TransformComponent::Impl::position(const glm::vec3& position, ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = glm::translate(m_transform, position - this->position());
+    m_changed = true;
+
+    callPositionChanged(changeReasonFlag);
+}
+
+void TransformComponent::Impl::onPositionChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
+                                                 ChangeReasonFlags changeReasonFlags)
+{
+    m_positionChangedCallbacks.emplace_back(PositionChangedCallbackInfo{positionChangedCallback, changeReasonFlags});
+}
+
+//----- Internal
+
+void TransformComponent::Impl::callPositionChanged(ChangeReasonFlag changeReasonFlag) const
+{
+    auto position = glm::vec3(m_transform[3]);
+
+    for (const auto& positionChangedCallback : m_positionChangedCallbacks) {
+        if (positionChangedCallback.changeReasonFlags & changeReasonFlag) {
+            positionChangedCallback.callback(position);
+        }
+    }
 }
