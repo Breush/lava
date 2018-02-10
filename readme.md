@@ -38,6 +38,7 @@ In order to select the configuration (debug or release):
 Everything **lava** needs is downloaded during *Premake* phase to `external/`. 
 
 Current awesome dependencies are:
+- [Bullet Physics](https://github.com/bulletphysics/bullet3)
 - [Nlohman's JSON](https://github.com/nlohmann/json)
 - [Nothings.org STB Fonts](https://nothings.org/stb/font/)
 - [OpenGL Mathematics](http://glm.g-truc.net/)
