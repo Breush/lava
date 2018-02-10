@@ -6,9 +6,9 @@
 cd $(dirname "$0")/..
 
 # Find program indentified by the make alias
-MAKE_PROGRAM="make"
+MAKE="make"
 if [ `uname -o` == "Msys" ]; then
-    MAKE_PROGRAM="mingw32-make"
+    MAKE="mingw32-make"
 fi
 
 # These are needed for Vulkan validation layers to work
@@ -19,7 +19,7 @@ echo -e "\e[35mSetuping dependencies...\e[39m"
 ./scripts/setup.sh
 
 # Find a make target that match the name
-TARGETS=$(make help | grep -P '^   (?!all|clean)' | grep "$1")
+TARGETS=$(${MAKE} help | grep -P '^   (?!all|clean)' | grep "$1")
 TARGETS=($TARGETS)
 TARGETS_COUNT=${#TARGETS[@]}
 
@@ -30,7 +30,7 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
     
     echo -e "\e[35mBuilding ${TARGET}...\e[39m"
     
-    ${MAKE_PROGRAM} -j 2 ${TARGET}
+    ${MAKE} -j 2 ${TARGET}
 
     # Run
     if [ $? -eq 0 ]; then
