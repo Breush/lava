@@ -14,7 +14,6 @@ namespace lava::sill {
 
         // IComponent
         void update() override final;
-        void postUpdate() override final {}
 
         void text(const std::wstring& u16Text);
         void font(const std::string& hrid);

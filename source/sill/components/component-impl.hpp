@@ -11,7 +11,6 @@ namespace lava::sill {
 
         // IComponent
         virtual void update() = 0;
-        virtual void postUpdate() = 0;
 
         // Getters
         GameEntity::Impl& entity() { return m_entity; }

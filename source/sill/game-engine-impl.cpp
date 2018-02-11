@@ -1,11 +1,13 @@
 #include "./game-engine-impl.hpp"
 
 #include <chrono>
+#include <lava/chamber/logger.hpp>
 #include <lava/magma/material.hpp>
 
 #include "./game-entity-impl.hpp"
 
 using namespace lava::sill;
+using namespace lava::chamber;
 
 GameEngine::Impl::Impl(GameEngine& base)
     : m_base(base)
@@ -66,13 +68,7 @@ void GameEngine::Impl::run()
             m_physicsEngine->update(std::chrono::duration<float>(updateTime).count());
 
             // Update all entities.
-            for (auto& entity : m_entities) {
-                entity->impl().update();
-            }
-
-            for (auto& entity : m_entities) {
-                entity->impl().postUpdate();
-            }
+            updateEntities();
 
             updateTimeLag -= updateTime;
         }
@@ -85,7 +81,9 @@ void GameEngine::Impl::run()
 
 void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
 {
-    m_entities.emplace_back(std::move(gameEntity));
+    logger.info("sill.game-engine") << "Adding entity " << &gameEntity->impl() << "." << std::endl;
+
+    m_pendingAddedEntities.emplace_back(std::move(gameEntity));
 }
 
 void GameEngine::Impl::add(std::unique_ptr<Material>&& material)
@@ -99,6 +97,22 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
 }
 
 //----- Internals
+
+void GameEngine::Impl::updateEntities()
+{
+    // Add all new components
+    for (auto& entity : m_pendingAddedEntities) {
+        m_entities.emplace_back(std::move(entity));
+    }
+    m_pendingAddedEntities.clear();
+
+    // Indeed update entities
+    for (auto& entity : m_entities) {
+        entity->impl().update();
+    }
+
+    // @todo Remove pending removed entities
+}
 
 void GameEngine::Impl::registerMaterials()
 {

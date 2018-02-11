@@ -28,9 +28,7 @@ namespace lava::sill {
         /// IComponent
         static std::string hrid() { return "transform"; }
         void update() override final;
-        void postUpdate() override final;
 
-        bool changed() const;
         void positionAdd(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         glm::vec3 position() const;
         void position(const glm::vec3& position, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);

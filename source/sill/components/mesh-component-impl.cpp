@@ -12,6 +12,11 @@ MeshComponent::Impl::Impl(GameEntity& entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
     m_mesh = &m_entity.engine().renderScene().make<magma::Mesh>();
+
+    m_transformComponent.onPositionChanged([this](const glm::vec3&) { onTransformChanged(); });
+
+    // Init correctly on first creation
+    onTransformChanged();
 }
 
 MeshComponent::Impl::~Impl()
@@ -21,14 +26,6 @@ MeshComponent::Impl::~Impl()
 }
 
 //----- IComponent
-
-void MeshComponent::Impl::update()
-{
-    // If the transform of the entity moved, update the mesh world position
-    if (m_transformComponent.changed()) {
-        m_mesh->transform(m_transformComponent.worldTransform());
-    }
-}
 
 void MeshComponent::Impl::verticesCount(const uint32_t count)
 {
@@ -73,4 +70,11 @@ void MeshComponent::Impl::translucent(bool translucent)
 void MeshComponent::Impl::material(Material& material)
 {
     m_mesh->material(material.original());
+}
+
+// Internal
+
+void MeshComponent::Impl::onTransformChanged()
+{
+    m_mesh->transform(m_transformComponent.worldTransform());
 }

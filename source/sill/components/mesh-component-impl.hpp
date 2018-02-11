@@ -18,8 +18,7 @@ namespace lava::sill {
         ~Impl();
 
         // IComponent
-        void update() override final;
-        void postUpdate() override final {}
+        void update() override final {}
 
         // MeshComponent
         void verticesCount(const uint32_t count);
@@ -32,6 +31,9 @@ namespace lava::sill {
         bool translucent() const;
         void translucent(bool translucent);
         void material(Material& material);
+
+        // Callbacks
+        void onTransformChanged();
 
     private:
         // References

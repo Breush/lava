@@ -19,7 +19,6 @@ namespace lava::sill {
         // IComponent
         static std::string hrid() { return "mesh"; }
         void update() override final;
-        void postUpdate() override final;
 
         /**
         * @name Geometry

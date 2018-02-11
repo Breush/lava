@@ -10,7 +10,6 @@ $pimpl_class_base(TextMeshComponent, IComponent, GameEntity&, entity);
 
 // IComponent
 $pimpl_method(TextMeshComponent, void, update);
-$pimpl_method(TextMeshComponent, void, postUpdate);
 
 $pimpl_method(TextMeshComponent, void, text, const std::wstring&, u16Text);
 $pimpl_method(TextMeshComponent, void, font, const std::string&, hrid);

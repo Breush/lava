@@ -12,7 +12,7 @@ namespace lava::sill {
         Impl(GameEngine& engine);
 
         // GameEntity
-        bool hasComponent(const std::string& hrid) const { return m_components.find(hrid) != m_components.end(); }
+        bool hasComponent(const std::string& hrid) const;
         IComponent& getComponent(const std::string& hrid);
         const IComponent& getComponent(const std::string& hrid) const;
         void add(const std::string& hrid, std::unique_ptr<IComponent>&& component);
@@ -20,7 +20,6 @@ namespace lava::sill {
 
         // Forwarded to components.
         void update();
-        void postUpdate();
 
         GameEngine::Impl& engine() { return m_engine; }
         const GameEngine::Impl& engine() const { return m_engine; }
@@ -31,5 +30,6 @@ namespace lava::sill {
 
         // Storage
         std::unordered_map<std::string, std::unique_ptr<IComponent>> m_components;
+        std::unordered_map<std::string, std::unique_ptr<IComponent>> m_pendingAddedComponents;
     };
 }

@@ -44,6 +44,7 @@ namespace lava::sill {
         const dike::PhysicsEngine& physicsEngine() const { return *m_physicsEngine; }
 
     protected:
+        void updateEntities();
         void registerMaterials();
         void handleEvent(crater::Event& event);
 
@@ -65,6 +66,7 @@ namespace lava::sill {
 
         // Entities
         std::vector<std::unique_ptr<GameEntity>> m_entities;
+        std::vector<std::unique_ptr<GameEntity>> m_pendingAddedEntities;
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
     };

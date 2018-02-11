@@ -11,10 +11,8 @@ namespace lava::sill {
 
         // IComponent
         void update() override final {}
-        void postUpdate() override final;
 
         // TransformComponent
-        bool changed() const { return m_changed; }
         const glm::mat4& worldTransform() const { return m_transform; } // @todo Concept of nodes/worldTransform
         void positionAdd(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag);
         glm::vec3 position() const { return m_transform[3]; }
@@ -36,7 +34,6 @@ namespace lava::sill {
     private:
         // Data
         glm::mat4 m_transform;
-        bool m_changed = true;
 
         // Callbacks
         std::vector<PositionChangedCallbackInfo> m_positionChangedCallbacks;

@@ -9,25 +9,16 @@ TransformComponent::Impl::Impl(GameEntity& entity)
 {
 }
 
-void TransformComponent::Impl::postUpdate()
-{
-    m_changed = false;
-}
-
 void TransformComponent::Impl::positionAdd(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
 {
     // @todo Can't we write an in-place operation?
     m_transform = glm::translate(m_transform, delta);
-    m_changed = true;
-
     callPositionChanged(changeReasonFlag);
 }
 
 void TransformComponent::Impl::position(const glm::vec3& position, ChangeReasonFlag changeReasonFlag)
 {
     m_transform = glm::translate(m_transform, position - this->position());
-    m_changed = true;
-
     callPositionChanged(changeReasonFlag);
 }
 

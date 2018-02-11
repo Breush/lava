@@ -10,7 +10,6 @@ $pimpl_class_base(MeshComponent, IComponent, GameEntity&, entity);
 
 // IComponent
 $pimpl_method(MeshComponent, void, update);
-$pimpl_method(MeshComponent, void, postUpdate);
 
 $pimpl_method(MeshComponent, void, verticesCount, const uint32_t, count);
 $pimpl_method(MeshComponent, void, verticesPositions, const std::vector<glm::vec3>&, positions);

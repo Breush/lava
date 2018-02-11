@@ -14,7 +14,6 @@ namespace lava::sill {
 
         // IComponent
         void update() override final;
-        void postUpdate() override final {}
 
     protected:
         /// Callbacks
