@@ -4,6 +4,7 @@
 
 #include <lava/dike.hpp>
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -23,9 +24,12 @@ int main(void)
     sphere.positionAdd({0, 0, 1.f});
 
     // Simulating the world
-    for (auto i = 0u; i < 40u; i++) {
-        std::cout << "Time: " << std::fixed << std::setprecision(3) << i / 5.f << " | ";
-        std::cout << "Sphere height: " << sphere.position().z << std::endl;
+    for (auto i = 0u; i < 45u; i++) {
+        uint32_t distance = std::round(sphere.position().z * 80);
+        for (auto j = 1u; j < distance; ++j) {
+            std::cout << ' ';
+        }
+        std::cout << '*' << std::endl;
         engine.update(1 / 20.f);
     }
 }
