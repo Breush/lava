@@ -9,6 +9,7 @@ using namespace lava;
 int main(void)
 {
     sill::GameEngine engine;
+    uint8_t frameCounter = 0;
 
     // Ground
     {
@@ -21,18 +22,25 @@ int main(void)
         // We might want a PhysicsComponent holding general data
     }
 
-    // @fixme Generate spheres on right click
-
-    // A sphere
+    // Generate a sphere on each right click
     {
         auto& entity = engine.make<sill::GameEntity>();
-        auto& meshComponent = entity.make<sill::MeshComponent>();
-        sill::makers::sphereMeshMaker(32u, 0.1f)(meshComponent);
-        entity.get<sill::TransformComponent>().positionAdd({0.f, 0.f, 5.f});
-        entity.make<sill::SphereColliderComponent>();
+        auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
+        behaviorComponent.onUpdate([&engine, &frameCounter]() {
+            // @todo When input manager is here, remove this frame counter,
+            // and generate a sphere on right click
+            if (frameCounter++ == 0u) {
+                auto& entity = engine.make<sill::GameEntity>();
+                auto& meshComponent = entity.make<sill::MeshComponent>();
+                sill::makers::sphereMeshMaker(32u, 0.2f)(meshComponent);
+                auto offset = (rand() % 100) / 500.f;
+                entity.get<sill::TransformComponent>().positionAdd({offset, offset, 3.f});
+                entity.make<sill::SphereColliderComponent>();
+            }
+        });
+
+        engine.run();
+
+        return EXIT_SUCCESS;
     }
-
-    engine.run();
-
-    return EXIT_SUCCESS;
 }

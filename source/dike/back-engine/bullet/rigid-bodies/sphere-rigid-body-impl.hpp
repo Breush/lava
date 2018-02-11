@@ -14,21 +14,14 @@ namespace lava::dike {
         glm::vec3 position() const;
         void positionAdd(const glm::vec3& delta);
 
-    protected:
-        void reconstructRigidBody();
-
     private:
         PhysicsEngine::Impl& m_engine;
 
         btScalar m_mass = 1.f;
-        btVector3 m_inertia;
+        btVector3 m_inertia{0.f, 0.f, 0.f};
 
-        // @note We can't hold the RigidBody directly because,
-        // otherwise, the object won't be safe to move.
-        // This is likely a bullet physics bug, but hey.
         btSphereShape m_shape;
         btDefaultMotionState m_motionState;
-        btRigidBody::btRigidBodyConstructionInfo m_constructionInfo;
         std::unique_ptr<btRigidBody> m_rigidBody;
         btTransform m_transform;
     };
