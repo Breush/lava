@@ -72,6 +72,8 @@ namespace {
         case 0xff52: return crater::input::Key::Up;
         case 0xff53: return crater::input::Key::Right;
         case 0xff54: return crater::input::Key::Down;
+        case 0xffe9: return crater::input::Key::LeftAlt;
+        case 0xffea: return crater::input::Key::RightAlt;
         }
 
         return crater::input::Key::Unknown;

@@ -46,5 +46,7 @@ namespace lava::crater::input {
         F11,
         F12,
         Escape,
+        LeftAlt,
+        RightAlt,
     };
 }
