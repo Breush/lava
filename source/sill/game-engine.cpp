@@ -8,7 +8,7 @@ using namespace lava::sill;
 
 $pimpl_class_forward(GameEngine);
 
-$pimpl_method(GameEngine, void, run);
+$pimpl_method(GameEngine, InputManager&, input);
 
 void GameEngine::add(std::unique_ptr<GameEntity>&& gameEntity)
 {
@@ -24,3 +24,5 @@ void GameEngine::add(std::unique_ptr<Texture>&& texture)
 {
     m_impl->add(std::move(texture));
 }
+
+$pimpl_method(GameEngine, void, run);

@@ -9,7 +9,6 @@ using namespace lava;
 int main(void)
 {
     sill::GameEngine engine;
-    uint8_t frameCounter = 0;
 
     // Ground
     {
@@ -22,19 +21,20 @@ int main(void)
         // We might want a PhysicsComponent holding general data
     }
 
-    // Generate a sphere on each right click
+    // Generator entity
     {
         auto& entity = engine.make<sill::GameEntity>();
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-        behaviorComponent.onUpdate([&engine, &frameCounter]() {
-            // @todo When input manager is here, remove this frame counter,
-            // and generate a sphere on right click
-            if (frameCounter++ == 0u) {
+        behaviorComponent.onUpdate([&engine]() {
+            // Generate a sphere on each right click
+            if (engine.input().justDown("right-fire")) {
+                // @todo Have a way to instantiate this entity - so that it shares meshes and collision data
                 auto& entity = engine.make<sill::GameEntity>();
                 auto& meshComponent = entity.make<sill::MeshComponent>();
                 sill::makers::sphereMeshMaker(32u, 0.2f)(meshComponent);
-                auto offset = (rand() % 100) / 500.f;
-                entity.get<sill::TransformComponent>().positionAdd({offset, offset, 3.f});
+                auto xOffset = (rand() % 100) / 500.f;
+                auto yOffset = (rand() % 100) / 500.f;
+                entity.get<sill::TransformComponent>().positionAdd({xOffset, yOffset, 3.f});
                 entity.make<sill::SphereColliderComponent>();
             }
         });

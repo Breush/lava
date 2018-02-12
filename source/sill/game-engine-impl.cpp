@@ -43,6 +43,12 @@ GameEngine::Impl::Impl(GameEngine& base)
     //----- Initializing fonts
 
     m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
+
+    //----- Initializing inputs
+
+    m_inputManager.bindAction("right-fire", crater::input::Button::Right);
+    m_inputManager.bindAction("right-fire", crater::input::Key::LeftAlt);
+    m_inputManager.bindAction("right-fire", crater::input::Key::RightAlt);
 }
 
 void GameEngine::Impl::run()
@@ -57,13 +63,11 @@ void GameEngine::Impl::run()
         updateTimeLag += elapsedTime;
         currentTime += elapsedTime;
 
-        // Treat all events since last frame.
-        while (auto event = m_renderWindow->pollEvent()) {
-            handleEvent(*event);
-        }
-
-        // We play the game at a constant rate (updateTime)
+        // We play the game at a constant rate (updateTime).
         while (updateTimeLag >= updateTime) {
+            // Treat all inputs since last frame.
+            updateInput();
+
             // Update physics.
             m_physicsEngine->update(std::chrono::duration<float>(updateTime).count());
 
@@ -97,6 +101,19 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
 }
 
 //----- Internals
+
+void GameEngine::Impl::updateInput()
+{
+    m_inputManager.updateReset();
+    while (auto event = m_renderWindow->pollEvent()) {
+        // @fixme This handleEvent should be removed!
+        // We should provide an easy ashe camera control for sill.
+        // Moreover, have a camera object.
+        handleEvent(*event);
+
+        m_inputManager.update(*event);
+    }
+}
 
 void GameEngine::Impl::updateEntities()
 {

@@ -4,6 +4,7 @@
 
 namespace lava::sill {
     class GameEntity;
+    class InputManager;
     class Material;
     class Texture;
 }
@@ -19,6 +20,9 @@ namespace lava::sill {
     public:
         GameEngine();
         ~GameEngine();
+
+        /// Access input manager.
+        InputManager& input();
 
         /**
         * @name Makers
