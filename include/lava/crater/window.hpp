@@ -8,10 +8,6 @@
 #include <string>
 
 namespace lava::crater {
-    class Event;
-}
-
-namespace lava::crater {
     class Window {
     public:
         Window();
@@ -25,6 +21,7 @@ namespace lava::crater {
         bool opened() const;
         WsHandle handle() const;
         const VideoMode& videoMode() const;
+        Extent2d extent() const;
 
     public:
         class Impl;

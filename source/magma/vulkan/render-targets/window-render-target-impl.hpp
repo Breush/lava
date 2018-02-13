@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/render-targets/render-window.hpp>
+#include <lava/magma/render-targets/window-render-target.hpp>
 
 #include "./i-render-target-impl.hpp"
 
@@ -12,9 +12,9 @@
 #include "../wrappers.hpp"
 
 namespace lava::magma {
-    class RenderWindow::Impl final : public IRenderTarget::Impl {
+    class WindowRenderTarget::Impl final : public IRenderTarget::Impl {
     public:
-        Impl(RenderEngine& engine, crater::VideoMode mode, const std::string& title);
+        Impl(RenderEngine& engine, WsHandle handle, const Extent2d& extent);
 
         // IRenderTarget::Impl
         void init(uint32_t id) override final;
@@ -25,14 +25,10 @@ namespace lava::magma {
         const vulkan::SwapchainHolder& swapchainHolder() const override final { return m_swapchainHolder; }
         vk::SurfaceKHR surface() const override final { return m_surface; }
 
-        // crater::Window forwarding
-        std::optional<WsEvent> pollEvent();
-        void close();
-
-        WsHandle handle() const;
-        const crater::VideoMode& videoMode() const;
-        void videoMode(const crater::VideoMode& mode);
-        bool opened() const;
+        // WindowRenderTarget
+        inline Extent2d extent() const { return {m_windowExtent.width, m_windowExtent.height}; }
+        void extent(const Extent2d& extent);
+        WsHandle handle() const { return m_handle; }
 
     protected:
         // Internal
@@ -44,11 +40,11 @@ namespace lava::magma {
         // References
         RenderEngine::Impl& m_engine;
         uint32_t m_id = -1u;
+        WsHandle m_handle;
 
         // Resources
         vulkan::SurfaceKHR m_surface;
         vulkan::SwapchainHolder m_swapchainHolder;
-        crater::Window m_window;
         vk::Extent2D m_windowExtent;
     };
 }

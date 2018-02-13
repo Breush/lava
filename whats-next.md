@@ -24,10 +24,8 @@
     - Fix top-view camera
     - Artifacts for opaque meshes with a lot of overlapping
 - **refacto**
-    - Remove references to crater from the public API
     - Remove useless descriptor pools
     - Replace useless const vk::Whatever& by vk::Whatever
-    - Split magma's RenderWindow so that magma does not depend on crater anymore (make the other a part of sill)
 - **improvement** 
     - Have user documentation
     - Engine: rework main loop - environment -> view -> shader -> material -> mesh
@@ -68,15 +66,13 @@
 
 - **feature**
     - Animation
+    - Debounce system for window resizes
     - InputManager: handle axes 
     - Materials introspection (-- or own shading language)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
     - Node: hierarchy of GameObjects
     - OrbitCameraController
-    - RenderWindow: Take from magma - so that it does not depend on crater anymore
-        - But this has some vulkan-dependent implementation...
-        - So we should keep a RenderWindow in magma - but its interface takes a WsHandle.
     - RmMaterial: albedo color
     - SphereMesh: uv mapping
 

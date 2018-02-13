@@ -2,6 +2,7 @@
  * Shows how to set-up scenes and windows.
  */
 
+#include <lava/crater.hpp>
 #include <lava/magma.hpp>
 
 using namespace lava;
@@ -10,8 +11,11 @@ int main(void)
 {
     magma::RenderEngine engine;
 
-    auto& smallWindow = engine.make<magma::RenderWindow>(crater::VideoMode{400, 400}, "ashe - magma | Scenes and windows I");
-    auto& bigWindow = engine.make<magma::RenderWindow>(crater::VideoMode{800, 800}, "ashe - magma | Scenes and windows II");
+    crater::Window smallWindow(crater::VideoMode{400, 400}, "ashe - magma | Scenes and windows I");
+    auto& smallWindowRenderTarget = engine.make<magma::WindowRenderTarget>(smallWindow.handle(), smallWindow.extent());
+
+    crater::Window bigWindow(crater::VideoMode{800, 800}, "ashe - magma | Scenes and windows II");
+    auto& bigWindowRenderTarget = engine.make<magma::WindowRenderTarget>(bigWindow.handle(), bigWindow.extent());
 
     // Left scene setup
     {
@@ -30,11 +34,11 @@ int main(void)
         upCamera.target({0, 0, 0});
 
         // @todo camera.addView(target, viewport) ?
-        engine.addView(frontCamera, smallWindow, {0.5, 0, 0.5, 1});
-        engine.addView(leftCamera, smallWindow, {0, 0, 0.5, 0.5});
-        engine.addView(upCamera, smallWindow, {0, 0.5, 0.5, 0.5});
+        engine.addView(frontCamera, smallWindowRenderTarget, {0.5, 0, 0.5, 1});
+        engine.addView(leftCamera, smallWindowRenderTarget, {0, 0, 0.5, 0.5});
+        engine.addView(upCamera, smallWindowRenderTarget, {0, 0.5, 0.5, 0.5});
 
-        engine.addView(frontCamera, bigWindow, {0, 0, 0.5, 1});
+        engine.addView(frontCamera, bigWindowRenderTarget, {0, 0, 0.5, 1});
     }
 
     // Right scene setup
@@ -45,21 +49,21 @@ int main(void)
         frontCamera.position({0, 5.f, 0});
         frontCamera.target({0, 0, 0});
 
-        engine.addView(frontCamera, bigWindow, {0.5, 0, 0.5, 1});
+        engine.addView(frontCamera, bigWindowRenderTarget, {0.5, 0, 0.5, 1});
     }
 
     // Main loop
     while (smallWindow.opened() && bigWindow.opened()) {
-        std::optional<crater::Event> event;
+        std::optional<WsEvent> event;
         while ((event = smallWindow.pollEvent()) || (event = bigWindow.pollEvent())) {
             switch (event->type) {
-            case crater::Event::WindowClosed: {
+            case WsEvent::WindowClosed: {
                 smallWindow.close();
                 bigWindow.close();
                 break;
             }
-            case crater::Event::KeyPressed: {
-                if (event->key.which == crater::input::Key::Escape) {
+            case WsEvent::KeyPressed: {
+                if (event->key.which == Key::Escape) {
                     smallWindow.close();
                     bigWindow.close();
                 }

@@ -16,16 +16,19 @@ useChamber()
 project "magma-scenes-and-windows"
     kind "WindowedApp"
     files "magma/scenes-and-windows.cpp"
+    useCrater()
     useMagma()
     
 project "magma-transparency"
     kind "WindowedApp"
     files "magma/transparency.cpp"
+    useCrater()
     useMagma()
     
 project "magma-shader-watcher"
     kind "WindowedApp"
     files "magma/shader-watcher.cpp"
+    useCrater()
     useMagma()
 
 ----------

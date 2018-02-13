@@ -29,6 +29,12 @@ Window::~Window()
 $pimpl_attribute_v(Window, lava::WsHandle, handle);
 $pimpl_attribute(Window, VideoMode, videoMode);
 
+lava::Extent2d Window::extent() const
+{
+    const auto& mode = videoMode();
+    return {mode.width, mode.height};
+}
+
 void Window::create(VideoMode mode, const std::string& title)
 {
     close();

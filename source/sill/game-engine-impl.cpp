@@ -13,17 +13,22 @@ GameEngine::Impl::Impl(GameEngine& base)
     : m_base(base)
     , m_fontManager(base)
 {
+    //----- Initializing window
+
+    Extent2d windowExtent = {800, 600};
+    m_window = std::make_unique<crater::Window>(windowExtent, "sill");
+
     //----- Initializing rendering
 
     // Register our materials
     m_renderEngine = std::make_unique<magma::RenderEngine>();
     registerMaterials();
 
-    m_renderWindow = &m_renderEngine->make<magma::RenderWindow>(crater::VideoMode{800, 600}, "sill");
+    m_windowRenderTarget = &m_renderEngine->make<magma::WindowRenderTarget>(m_window->handle(), windowExtent);
     m_renderScene = &m_renderEngine->make<magma::RenderScene>();
 
     // @todo Handle custom cameras
-    m_camera = &m_renderScene->make<magma::OrbitCamera>(Extent2d{800, 600});
+    m_camera = &m_renderScene->make<magma::OrbitCamera>(windowExtent);
     m_camera->position({2.f, 3.f, 2.f});
     m_camera->target({0.f, 0.f, 0.f});
 
@@ -33,7 +38,7 @@ GameEngine::Impl::Impl(GameEngine& base)
     m_light->radius(100.f);
 
     // @todo Handle custom views
-    m_renderEngine->addView(*m_camera, *m_renderWindow, Viewport{0, 0, 1, 1});
+    m_renderEngine->addView(*m_camera, *m_windowRenderTarget, Viewport{0, 0, 1, 1});
 
     //----- Initializing physics
 
@@ -58,7 +63,7 @@ void GameEngine::Impl::run()
     static std::chrono::nanoseconds updateTimeLag(0);
 
     // Keep running while the window is open.
-    while (m_renderWindow->opened()) {
+    while (m_window->opened()) {
         auto elapsedTime = std::chrono::high_resolution_clock::now() - currentTime;
         updateTimeLag += elapsedTime;
         currentTime += elapsedTime;
@@ -105,7 +110,7 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
 void GameEngine::Impl::updateInput()
 {
     m_inputManager.updateReset();
-    while (auto event = m_renderWindow->pollEvent()) {
+    while (auto event = m_window->pollEvent()) {
         // @fixme This handleEvent should be removed!
         // We should provide an easy ashe camera control for sill.
         // Moreover, have a camera object.
@@ -157,20 +162,29 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
 
     switch (event.type) {
     case WsEvent::WindowClosed: {
-        m_renderWindow->close();
+        m_window->close();
         break;
     }
 
     case WsEvent::KeyPressed: {
         if (event.key.which == Key::Escape) {
-            m_renderWindow->close();
+            m_window->close();
         }
 
         break;
     }
 
     case WsEvent::WindowResized: {
-        m_camera->extent({event.windowSize.width, event.windowSize.height});
+        // Ignore resize of same size
+        Extent2d extent = {event.windowSize.width, event.windowSize.height};
+        if (m_windowRenderTarget->extent() == extent) {
+            break;
+        }
+
+        // @todo Might need to debounce that!
+        // Or update swapchain
+        m_windowRenderTarget->extent(extent);
+        m_camera->extent(extent);
         break;
     }
 

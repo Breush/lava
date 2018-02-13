@@ -2,12 +2,13 @@
 
 #include <lava/sill/game-engine.hpp>
 
+#include <lava/crater/window.hpp>
 #include <lava/dike/physics-engine.hpp>
 #include <lava/magma/cameras/orbit-camera.hpp>
 #include <lava/magma/lights/point-light.hpp>
 #include <lava/magma/render-engine.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
-#include <lava/magma/render-targets/render-window.hpp>
+#include <lava/magma/render-targets/window-render-target.hpp>
 #include <lava/sill/game-entity.hpp>
 #include <lava/sill/input-manager.hpp>
 #include <lava/sill/material.hpp>
@@ -38,8 +39,8 @@ namespace lava::sill {
         // Getters
         magma::RenderEngine& renderEngine() { return *m_renderEngine; }
         const magma::RenderEngine& renderEngine() const { return *m_renderEngine; }
-        magma::RenderWindow& renderWindow() { return *m_renderWindow; }
-        const magma::RenderWindow& renderWindow() const { return *m_renderWindow; }
+        magma::WindowRenderTarget& windowRenderTarget() { return *m_windowRenderTarget; }
+        const magma::WindowRenderTarget& windowRenderTarget() const { return *m_windowRenderTarget; }
         magma::RenderScene& renderScene() { return *m_renderScene; }
         const magma::RenderScene& renderScene() const { return *m_renderScene; }
 
@@ -56,8 +57,9 @@ namespace lava::sill {
         GameEngine& m_base;
 
         // Rendering
+        std::unique_ptr<crater::Window> m_window = nullptr;
         std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
-        magma::RenderWindow* m_renderWindow = nullptr;
+        magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
         magma::RenderScene* m_renderScene = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::PointLight* m_light = nullptr;

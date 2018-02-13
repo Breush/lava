@@ -1,4 +1,4 @@
-#include "./render-window-impl.hpp"
+#include "./window-render-target-impl.hpp"
 
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/render-engine.hpp>
@@ -9,38 +9,41 @@ using namespace lava::magma;
 using namespace lava::crater;
 using namespace lava::chamber;
 
-RenderWindow::Impl::Impl(RenderEngine& engine, VideoMode mode, const std::string& title)
+WindowRenderTarget::Impl::Impl(RenderEngine& engine, WsHandle handle, const Extent2d& extent)
     : m_engine(engine.impl())
+    , m_handle(handle)
     , m_surface(m_engine.instance())
     , m_swapchainHolder(m_engine)
-    , m_window(mode, title)
-    , m_windowExtent{mode.width, mode.height}
 {
+    m_windowExtent.width = extent.width;
+    m_windowExtent.height = extent.height;
+
     initSurface();
 }
 
 //----- IRenderTarget
 
-void RenderWindow::Impl::init(uint32_t id)
+void WindowRenderTarget::Impl::init(uint32_t id)
 {
     m_id = id;
 
     initSwapchain();
 }
 
-void RenderWindow::Impl::prepare()
+void WindowRenderTarget::Impl::prepare()
 {
     auto result = m_swapchainHolder.acquireNextImage();
 
     if (result == vk::Result::eErrorOutOfDateKHR) {
-        logger.warning("magma.vulkan.render-window") << "Seems like nobody cares about a out of date swapchain." << std::endl;
+        logger.warning("magma.vulkan.window-render-target")
+            << "Seems like nobody cares about a out of date swapchain." << std::endl;
     }
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
-        logger.error("magma.vulkan.render-window") << "Failed to acquire swapchain image." << std::endl;
+        logger.error("magma.vulkan.window-render-target") << "Failed to acquire swapchain image." << std::endl;
     }
 }
 
-void RenderWindow::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
+void WindowRenderTarget::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
 {
     const uint32_t imageIndex = m_swapchainHolder.currentIndex();
 
@@ -55,60 +58,20 @@ void RenderWindow::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
     m_engine.presentQueue().presentKHR(presentInfo);
 }
 
-//----- RenderWindow
+//----- WindowRenderTarget
 
-std::optional<lava::WsEvent> RenderWindow::Impl::pollEvent()
+void WindowRenderTarget::Impl::extent(const Extent2d& extent)
 {
-    auto event = m_window.pollEvent();
-    if (!event) return event;
-
-    if (event->type == WsEvent::WindowResized) {
-        // Ignore resize of same size
-        if (m_windowExtent.width == event->windowSize.width && m_windowExtent.height == event->windowSize.height) {
-            return std::nullopt;
-        }
-
-        // Or update swapchain
-        m_windowExtent.width = event->windowSize.width;
-        m_windowExtent.height = event->windowSize.height;
-        recreateSwapchain();
-
-        m_engine.updateRenderTarget(m_id);
-    }
-
-    return event;
-}
-
-void RenderWindow::Impl::close()
-{
-    m_window.close();
-}
-
-lava::WsHandle RenderWindow::Impl::handle() const
-{
-    return m_window.handle();
-}
-
-const VideoMode& RenderWindow::Impl::videoMode() const
-{
-    return m_window.videoMode();
-}
-
-void RenderWindow::Impl::videoMode(const VideoMode& mode)
-{
-    m_windowExtent.width = mode.width;
-    m_windowExtent.height = mode.height;
+    m_windowExtent.width = extent.width;
+    m_windowExtent.height = extent.height;
     recreateSwapchain();
-}
 
-bool RenderWindow::Impl::opened() const
-{
-    return m_window.opened();
+    m_engine.updateRenderTarget(m_id);
 }
 
 //----- Internal
 
-void RenderWindow::Impl::initSurface()
+void WindowRenderTarget::Impl::initSurface()
 {
     vk::Result result;
 
@@ -133,12 +96,12 @@ void RenderWindow::Impl::initSurface()
     }
 }
 
-void RenderWindow::Impl::initSwapchain()
+void WindowRenderTarget::Impl::initSwapchain()
 {
     m_swapchainHolder.init(m_surface, m_windowExtent);
 }
 
-void RenderWindow::Impl::recreateSwapchain()
+void WindowRenderTarget::Impl::recreateSwapchain()
 {
     m_swapchainHolder.recreate(m_surface, m_windowExtent);
 }

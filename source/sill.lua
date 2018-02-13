@@ -5,6 +5,7 @@ project "lava-sill"
     files "sill/**"
 
     function sillDependencies()
+        useCrater()
         useMagma()
         useDike()
     end

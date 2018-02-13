@@ -16,7 +16,7 @@ project "lava-magma"
 
         end
 
-        useCrater()
+        useChamber()
         useVulkanSdk()
         useNlohmannJson()
     end
