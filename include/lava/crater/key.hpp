@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lava::crater::input {
+namespace lava::crater {
     enum class Key {
         Unknown,
         A,

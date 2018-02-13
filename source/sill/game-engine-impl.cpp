@@ -46,9 +46,9 @@ GameEngine::Impl::Impl(GameEngine& base)
 
     //----- Initializing inputs
 
-    m_inputManager.bindAction("right-fire", crater::input::Button::Right);
-    m_inputManager.bindAction("right-fire", crater::input::Key::LeftAlt);
-    m_inputManager.bindAction("right-fire", crater::input::Key::RightAlt);
+    m_inputManager.bindAction("right-fire", crater::MouseButton::Right);
+    m_inputManager.bindAction("right-fire", crater::Key::LeftAlt);
+    m_inputManager.bindAction("right-fire", crater::Key::RightAlt);
 }
 
 void GameEngine::Impl::run()
@@ -152,7 +152,7 @@ void GameEngine::Impl::registerMaterials()
 
 void GameEngine::Impl::handleEvent(crater::Event& event)
 {
-    static auto buttonPressed = crater::input::Button::Unknown;
+    static auto buttonPressed = crater::MouseButton::Unknown;
     static glm::vec2 lastDragPosition;
 
     switch (event.type) {
@@ -162,7 +162,7 @@ void GameEngine::Impl::handleEvent(crater::Event& event)
     }
 
     case crater::Event::KeyPressed: {
-        if (event.key.which == crater::input::Key::Escape) {
+        if (event.key.which == crater::Key::Escape) {
             m_renderWindow->close();
         }
 
@@ -184,7 +184,7 @@ void GameEngine::Impl::handleEvent(crater::Event& event)
     }
 
     case crater::Event::MouseButtonReleased: {
-        buttonPressed = crater::input::Button::Unknown;
+        buttonPressed = crater::MouseButton::Unknown;
         break;
     }
 
@@ -194,18 +194,18 @@ void GameEngine::Impl::handleEvent(crater::Event& event)
     }
 
     case crater::Event::MouseMoved: {
-        if (buttonPressed == crater::input::Button::Unknown) return;
+        if (buttonPressed == crater::MouseButton::Unknown) return;
 
         glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
         auto delta = (position - lastDragPosition) / 100.f;
         lastDragPosition = position;
 
         // Orbit with left button
-        if (buttonPressed == crater::input::Button::Left) {
+        if (buttonPressed == crater::MouseButton::Left) {
             m_camera->orbitAdd(-delta.x, -delta.y);
         }
         // Strafe with right button
-        else if (buttonPressed == crater::input::Button::Right) {
+        else if (buttonPressed == crater::MouseButton::Right) {
             m_camera->strafe(delta.x / 10.f, delta.y / 10.f);
         }
         break;

@@ -24,59 +24,59 @@ namespace {
     }
 
     // Got list from https://github.com/substack/node-keysym/blob/master/data/keysyms.txt
-    crater::input::Key keyEventToKey(xcb_key_press_event_t& keyEvent)
+    crater::Key keyEventToKey(xcb_key_press_event_t& keyEvent)
     {
         xcb_keysym_t keySym = xcb_key_press_lookup_keysym(g_keySymbols, &keyEvent, 0);
 
         switch (keySym) {
-        case 'a': return crater::input::Key::A;
-        case 'b': return crater::input::Key::B;
-        case 'c': return crater::input::Key::C;
-        case 'd': return crater::input::Key::D;
-        case 'e': return crater::input::Key::E;
-        case 'f': return crater::input::Key::F;
-        case 'g': return crater::input::Key::G;
-        case 'h': return crater::input::Key::H;
-        case 'i': return crater::input::Key::I;
-        case 'j': return crater::input::Key::J;
-        case 'k': return crater::input::Key::K;
-        case 'l': return crater::input::Key::L;
-        case 'm': return crater::input::Key::M;
-        case 'n': return crater::input::Key::N;
-        case 'o': return crater::input::Key::O;
-        case 'p': return crater::input::Key::P;
-        case 'q': return crater::input::Key::Q;
-        case 'r': return crater::input::Key::R;
-        case 's': return crater::input::Key::S;
-        case 't': return crater::input::Key::T;
-        case 'u': return crater::input::Key::U;
-        case 'v': return crater::input::Key::V;
-        case 'w': return crater::input::Key::W;
-        case 'x': return crater::input::Key::X;
-        case 'y': return crater::input::Key::Y;
-        case 'z': return crater::input::Key::Z;
-        case 0xff1b: return crater::input::Key::Escape;
-        case 0xffbe: return crater::input::Key::F1;
-        case 0xffbf: return crater::input::Key::F2;
-        case 0xffc0: return crater::input::Key::F3;
-        case 0xffc1: return crater::input::Key::F4;
-        case 0xffc2: return crater::input::Key::F5;
-        case 0xffc3: return crater::input::Key::F6;
-        case 0xffc4: return crater::input::Key::F7;
-        case 0xffc5: return crater::input::Key::F8;
-        case 0xffc6: return crater::input::Key::F9;
-        case 0xffc7: return crater::input::Key::F10;
-        case 0xffc8: return crater::input::Key::F11;
-        case 0xffc9: return crater::input::Key::F12;
-        case 0xff51: return crater::input::Key::Left;
-        case 0xff52: return crater::input::Key::Up;
-        case 0xff53: return crater::input::Key::Right;
-        case 0xff54: return crater::input::Key::Down;
-        case 0xffe9: return crater::input::Key::LeftAlt;
-        case 0xffea: return crater::input::Key::RightAlt;
+        case 'a': return crater::Key::A;
+        case 'b': return crater::Key::B;
+        case 'c': return crater::Key::C;
+        case 'd': return crater::Key::D;
+        case 'e': return crater::Key::E;
+        case 'f': return crater::Key::F;
+        case 'g': return crater::Key::G;
+        case 'h': return crater::Key::H;
+        case 'i': return crater::Key::I;
+        case 'j': return crater::Key::J;
+        case 'k': return crater::Key::K;
+        case 'l': return crater::Key::L;
+        case 'm': return crater::Key::M;
+        case 'n': return crater::Key::N;
+        case 'o': return crater::Key::O;
+        case 'p': return crater::Key::P;
+        case 'q': return crater::Key::Q;
+        case 'r': return crater::Key::R;
+        case 's': return crater::Key::S;
+        case 't': return crater::Key::T;
+        case 'u': return crater::Key::U;
+        case 'v': return crater::Key::V;
+        case 'w': return crater::Key::W;
+        case 'x': return crater::Key::X;
+        case 'y': return crater::Key::Y;
+        case 'z': return crater::Key::Z;
+        case 0xff1b: return crater::Key::Escape;
+        case 0xffbe: return crater::Key::F1;
+        case 0xffbf: return crater::Key::F2;
+        case 0xffc0: return crater::Key::F3;
+        case 0xffc1: return crater::Key::F4;
+        case 0xffc2: return crater::Key::F5;
+        case 0xffc3: return crater::Key::F6;
+        case 0xffc4: return crater::Key::F7;
+        case 0xffc5: return crater::Key::F8;
+        case 0xffc6: return crater::Key::F9;
+        case 0xffc7: return crater::Key::F10;
+        case 0xffc8: return crater::Key::F11;
+        case 0xffc9: return crater::Key::F12;
+        case 0xff51: return crater::Key::Left;
+        case 0xff52: return crater::Key::Up;
+        case 0xff53: return crater::Key::Right;
+        case 0xff54: return crater::Key::Down;
+        case 0xffe9: return crater::Key::LeftAlt;
+        case 0xffea: return crater::Key::RightAlt;
         }
 
-        return crater::input::Key::Unknown;
+        return crater::Key::Unknown;
     }
 }
 
@@ -199,9 +199,9 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
             event.type = Event::MouseButtonPressed;
             event.mouseButton.x = buttonEvent.event_x;
             event.mouseButton.y = buttonEvent.event_y;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = input::Button::Left;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = input::Button::Middle;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = input::Button::Right;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = MouseButton::Left;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = MouseButton::Middle;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = MouseButton::Right;
         }
         // Mouse wheel buttons
         else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
@@ -221,9 +221,9 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         event.type = Event::MouseButtonReleased;
         event.mouseButton.x = buttonEvent.event_x;
         event.mouseButton.y = buttonEvent.event_y;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = input::Button::Left;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = input::Button::Middle;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = input::Button::Right;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = MouseButton::Left;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = MouseButton::Middle;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = MouseButton::Right;
         pushEvent(event);
         break;
     }

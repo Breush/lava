@@ -1,7 +1,7 @@
 #pragma once
 
-namespace lava::crater::input {
-    enum class Button {
+namespace lava::crater {
+    enum class MouseButton {
         Unknown,
         Left,
         Right,

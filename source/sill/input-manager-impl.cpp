@@ -8,12 +8,12 @@ bool InputManager::Impl::justDown(const std::string& actionName) const
     return action.activeness > 0 && action.previousActiveness == 0;
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, crater::input::Button button)
+void InputManager::Impl::bindAction(const std::string& actionName, crater::MouseButton mouseButton)
 {
-    m_actions[actionName].mouseButtons.emplace(button);
+    m_actions[actionName].mouseButtons.emplace(mouseButton);
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, crater::input::Key key)
+void InputManager::Impl::bindAction(const std::string& actionName, crater::Key key)
 {
     m_actions[actionName].keys.emplace(key);
 }

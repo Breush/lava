@@ -82,7 +82,7 @@ bool Window::Impl::processEvent(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam)
     case WM_LBUTTONDOWN: {
         Event event;
         event.type = Event::MouseButtonPressed;
-        event.mouseButton.which = input::Button::Left;
+        event.mouseButton.which = MouseButton::Left;
         event.mouseButton.x = static_cast<int16_t>(LOWORD(lParam));
         event.mouseButton.y = static_cast<int16_t>(HIWORD(lParam));
         pushEvent(event);

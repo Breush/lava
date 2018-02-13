@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <lava/crater/input/button.hpp>
-#include <lava/crater/input/key.hpp>
+#include <lava/crater/key.hpp>
+#include <lava/crater/mouse-button.hpp>
 
 namespace lava::crater {
     /**
@@ -26,25 +26,25 @@ namespace lava::crater {
             uint16_t height;
         };
 
-        struct MouseButton {
+        struct MouseButtonData {
             int16_t x;
             int16_t y;
-            input::Button which;
+            MouseButton which;
         };
 
-        struct MouseMove {
+        struct MouseMoveData {
             int16_t x;
             int16_t y;
         };
 
-        struct MouseScroll {
+        struct MouseScrollData {
             int16_t x;
             int16_t y;
             int16_t delta;
         };
 
-        struct Key {
-            input::Key which;
+        struct KeyData {
+            Key which;
         };
 
         // -----
@@ -52,10 +52,10 @@ namespace lava::crater {
         Type type;
         union {
             Size size;
-            MouseButton mouseButton;
-            MouseMove mouseMove;
-            MouseScroll mouseScroll;
-            Key key;
+            MouseButtonData mouseButton;
+            MouseMoveData mouseMove;
+            MouseScrollData mouseScroll;
+            KeyData key;
         };
     };
 }

@@ -17,8 +17,8 @@ namespace lava::sill {
          * @name Binding
          */
         /// @{
-        void bindAction(const std::string& actionName, crater::input::Button button);
-        void bindAction(const std::string& actionName, crater::input::Key key);
+        void bindAction(const std::string& actionName, crater::MouseButton mouseButton);
+        void bindAction(const std::string& actionName, crater::Key key);
 
         // @todo Axes
         /// @}
