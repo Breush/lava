@@ -15,9 +15,9 @@ IRenderTarget::Impl& RenderWindow::interfaceImpl()
     return *m_impl;
 }
 
-$pimpl_method(RenderWindow, std::optional<Event>, pollEvent);
+$pimpl_method(RenderWindow, std::optional<lava::WsEvent>, pollEvent);
 $pimpl_method(RenderWindow, void, close);
 
-$pimpl_attribute_v(RenderWindow, WindowHandle, windowHandle);
+$pimpl_attribute_v(RenderWindow, lava::WsHandle, handle);
 $pimpl_attribute_v(RenderWindow, bool, opened);
 $pimpl_property(RenderWindow, VideoMode, videoMode);

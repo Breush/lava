@@ -1,8 +1,8 @@
 #pragma once
 
-#include <lava/crater/event.hpp>
+#include <lava/core/ws-event.hpp>
+#include <lava/core/ws-handle.hpp>
 #include <lava/crater/video-mode.hpp>
-#include <lava/crater/window-handle.hpp>
 
 #include <optional>
 #include <queue>
@@ -18,13 +18,13 @@ namespace lava::crater {
         IWindowImpl(const VideoMode& videoMode);
         virtual ~IWindowImpl() = default;
 
-        std::optional<Event> popEvent();
+        std::optional<WsEvent> popEvent();
 
-        virtual WindowHandle windowHandle() const = 0;
+        virtual WsHandle handle() const = 0;
         const VideoMode& videoMode() const { return m_videoMode; }
 
     protected:
-        void pushEvent(const Event& event);
+        void pushEvent(const WsEvent& event);
 
         /**
          * Add all events from the system.
@@ -32,7 +32,7 @@ namespace lava::crater {
         virtual void processEvents() = 0;
 
     private:
-        std::queue<Event> m_events;
+        std::queue<WsEvent> m_events;
         VideoMode m_videoMode;
     };
 }

@@ -18,7 +18,8 @@
             ],
             "defines": [
                 "LAVA_CHAMBER_FILEWATCHER_INOTIFY",
-                "LAVA_CHAMBER_CALLSTACK_GCC"
+                "LAVA_CHAMBER_CALLSTACK_GCC",
+                "LAVA_CRATER_WINDOW_XCB"
             ],
             "intelliSenseMode": "clang-x64",
             "browse": {

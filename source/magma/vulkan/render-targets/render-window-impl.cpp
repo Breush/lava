@@ -57,20 +57,20 @@ void RenderWindow::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
 
 //----- RenderWindow
 
-std::optional<Event> RenderWindow::Impl::pollEvent()
+std::optional<lava::WsEvent> RenderWindow::Impl::pollEvent()
 {
     auto event = m_window.pollEvent();
     if (!event) return event;
 
-    if (event->type == crater::Event::WindowResized) {
+    if (event->type == WsEvent::WindowResized) {
         // Ignore resize of same size
-        if (m_windowExtent.width == event->size.width && m_windowExtent.height == event->size.height) {
+        if (m_windowExtent.width == event->windowSize.width && m_windowExtent.height == event->windowSize.height) {
             return std::nullopt;
         }
 
         // Or update swapchain
-        m_windowExtent.width = event->size.width;
-        m_windowExtent.height = event->size.height;
+        m_windowExtent.width = event->windowSize.width;
+        m_windowExtent.height = event->windowSize.height;
         recreateSwapchain();
 
         m_engine.updateRenderTarget(m_id);
@@ -84,9 +84,9 @@ void RenderWindow::Impl::close()
     m_window.close();
 }
 
-WindowHandle RenderWindow::Impl::windowHandle() const
+lava::WsHandle RenderWindow::Impl::handle() const
 {
-    return m_window.windowHandle();
+    return m_window.handle();
 }
 
 const VideoMode& RenderWindow::Impl::videoMode() const
@@ -112,18 +112,18 @@ void RenderWindow::Impl::initSurface()
 {
     vk::Result result;
 
-    const auto handle = windowHandle();
+    const auto wsHandle = handle();
 
 #if defined(VK_USE_PLATFORM_XCB_KHR)
     vk::XcbSurfaceCreateInfoKHR createInfo;
-    createInfo.connection = handle.xcb.connection;
-    createInfo.window = handle.xcb.window;
+    createInfo.connection = wsHandle.xcb.connection;
+    createInfo.window = wsHandle.xcb.window;
 
     result = m_engine.instance().createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace());
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
     vk::Win32SurfaceCreateInfoKHR createInfo;
-    createInfo.hwnd = reinterpret_cast<HWND>(handle.dwm.hwnd);
-    createInfo.hinstance = reinterpret_cast<HINSTANCE>(handle.dwm.hinstance);
+    createInfo.hwnd = reinterpret_cast<HWND>(wsHandle.dwm.hwnd);
+    createInfo.hinstance = reinterpret_cast<HINSTANCE>(wsHandle.dwm.hinstance);
 
     result = m_engine.instance().createWin32SurfaceKHR(&createInfo, nullptr, m_surface.replace());
 #endif

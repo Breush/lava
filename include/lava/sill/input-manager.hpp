@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/crater/event.hpp>
+#include <lava/core/ws-event.hpp>
 #include <string>
 
 namespace lava::sill {
@@ -17,8 +17,8 @@ namespace lava::sill {
          * @name Binding
          */
         /// @{
-        void bindAction(const std::string& actionName, crater::MouseButton mouseButton);
-        void bindAction(const std::string& actionName, crater::Key key);
+        void bindAction(const std::string& actionName, MouseButton mouseButton);
+        void bindAction(const std::string& actionName, Key key);
 
         // @todo Axes
         /// @}
@@ -35,8 +35,8 @@ namespace lava::sill {
          */
         void updateReset();
 
-        /// Update the internal state according to the event.
-        void update(crater::Event& event);
+        /// Update the internal state according to the windowing system event.
+        void update(WsEvent& event);
         /// @}
 
     private:

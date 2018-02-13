@@ -46,9 +46,9 @@ GameEngine::Impl::Impl(GameEngine& base)
 
     //----- Initializing inputs
 
-    m_inputManager.bindAction("right-fire", crater::MouseButton::Right);
-    m_inputManager.bindAction("right-fire", crater::Key::LeftAlt);
-    m_inputManager.bindAction("right-fire", crater::Key::RightAlt);
+    m_inputManager.bindAction("right-fire", MouseButton::Right);
+    m_inputManager.bindAction("right-fire", Key::LeftAlt);
+    m_inputManager.bindAction("right-fire", Key::RightAlt);
 }
 
 void GameEngine::Impl::run()
@@ -150,62 +150,62 @@ void GameEngine::Impl::registerMaterials()
                                               {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
 }
 
-void GameEngine::Impl::handleEvent(crater::Event& event)
+void GameEngine::Impl::handleEvent(WsEvent& event)
 {
-    static auto buttonPressed = crater::MouseButton::Unknown;
+    static auto buttonPressed = MouseButton::Unknown;
     static glm::vec2 lastDragPosition;
 
     switch (event.type) {
-    case crater::Event::WindowClosed: {
+    case WsEvent::WindowClosed: {
         m_renderWindow->close();
         break;
     }
 
-    case crater::Event::KeyPressed: {
-        if (event.key.which == crater::Key::Escape) {
+    case WsEvent::KeyPressed: {
+        if (event.key.which == Key::Escape) {
             m_renderWindow->close();
         }
 
         break;
     }
 
-    case crater::Event::WindowResized: {
-        m_camera->extent({event.size.width, event.size.height});
+    case WsEvent::WindowResized: {
+        m_camera->extent({event.windowSize.width, event.windowSize.height});
         break;
     }
 
     // @todo Abstracted camera controls (make the OrbitCamera an Entity - and forward events)
 
-    case crater::Event::MouseButtonPressed: {
+    case WsEvent::MouseButtonPressed: {
         buttonPressed = event.mouseButton.which;
         lastDragPosition.x = event.mouseButton.x;
         lastDragPosition.y = event.mouseButton.y;
         break;
     }
 
-    case crater::Event::MouseButtonReleased: {
-        buttonPressed = crater::MouseButton::Unknown;
+    case WsEvent::MouseButtonReleased: {
+        buttonPressed = MouseButton::Unknown;
         break;
     }
 
-    case crater::Event::MouseScrolled: {
+    case WsEvent::MouseScrolled: {
         m_camera->radiusAdd(-event.mouseScroll.delta / 10.f);
         break;
     }
 
-    case crater::Event::MouseMoved: {
-        if (buttonPressed == crater::MouseButton::Unknown) return;
+    case WsEvent::MouseMoved: {
+        if (buttonPressed == MouseButton::Unknown) return;
 
         glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
         auto delta = (position - lastDragPosition) / 100.f;
         lastDragPosition = position;
 
         // Orbit with left button
-        if (buttonPressed == crater::MouseButton::Left) {
+        if (buttonPressed == MouseButton::Left) {
             m_camera->orbitAdd(-delta.x, -delta.y);
         }
         // Strafe with right button
-        else if (buttonPressed == crater::MouseButton::Right) {
+        else if (buttonPressed == MouseButton::Right) {
             m_camera->strafe(delta.x / 10.f, delta.y / 10.f);
         }
         break;

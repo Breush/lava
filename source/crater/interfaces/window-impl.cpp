@@ -1,7 +1,5 @@
 #include "./window-impl.hpp"
 
-#include <lava/crater/event.hpp>
-
 using namespace lava::crater;
 
 IWindowImpl::IWindowImpl(const VideoMode& videoMode)
@@ -9,7 +7,7 @@ IWindowImpl::IWindowImpl(const VideoMode& videoMode)
 {
 }
 
-std::optional<Event> IWindowImpl::IWindowImpl::popEvent()
+std::optional<lava::WsEvent> IWindowImpl::IWindowImpl::popEvent()
 {
     if (m_events.empty()) {
         processEvents();
@@ -25,7 +23,7 @@ std::optional<Event> IWindowImpl::IWindowImpl::popEvent()
     return event;
 }
 
-void IWindowImpl::pushEvent(const Event& event)
+void IWindowImpl::pushEvent(const WsEvent& event)
 {
     m_events.push(event);
 }

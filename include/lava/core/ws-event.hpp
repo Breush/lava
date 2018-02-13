@@ -1,14 +1,14 @@
 #pragma once
 
 #include <cstdint>
-#include <lava/crater/key.hpp>
-#include <lava/crater/mouse-button.hpp>
+#include <lava/core/key.hpp>
+#include <lava/core/mouse-button.hpp>
 
-namespace lava::crater {
+namespace lava {
     /**
-     * An window or input event.
+     * Windowing system event.
      */
-    struct Event {
+    struct WsEvent {
     public:
         enum Type {
             WindowClosed,
@@ -21,7 +21,7 @@ namespace lava::crater {
             KeyReleased,
         };
 
-        struct Size {
+        struct WindowSizeData {
             uint16_t width;
             uint16_t height;
         };
@@ -51,7 +51,7 @@ namespace lava::crater {
 
         Type type;
         union {
-            Size size;
+            WindowSizeData windowSize;
             MouseButtonData mouseButton;
             MouseMoveData mouseMove;
             MouseScrollData mouseScroll;

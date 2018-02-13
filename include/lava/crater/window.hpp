@@ -1,7 +1,8 @@
 #pragma once
 
+#include <lava/core/ws-event.hpp>
+#include <lava/core/ws-handle.hpp>
 #include <lava/crater/video-mode.hpp>
-#include <lava/crater/window-handle.hpp>
 
 #include <optional>
 #include <string>
@@ -18,11 +19,11 @@ namespace lava::crater {
         virtual ~Window();
 
         void create(VideoMode mode, const std::string& title);
-        std::optional<Event> pollEvent();
+        std::optional<WsEvent> pollEvent();
         void close();
 
         bool opened() const;
-        WindowHandle windowHandle() const;
+        WsHandle handle() const;
         const VideoMode& videoMode() const;
 
     public:

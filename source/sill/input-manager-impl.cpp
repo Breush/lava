@@ -8,12 +8,12 @@ bool InputManager::Impl::justDown(const std::string& actionName) const
     return action.activeness > 0 && action.previousActiveness == 0;
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, crater::MouseButton mouseButton)
+void InputManager::Impl::bindAction(const std::string& actionName, MouseButton mouseButton)
 {
     m_actions[actionName].mouseButtons.emplace(mouseButton);
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, crater::Key key)
+void InputManager::Impl::bindAction(const std::string& actionName, Key key)
 {
     m_actions[actionName].keys.emplace(key);
 }
@@ -26,10 +26,10 @@ void InputManager::Impl::updateReset()
     }
 }
 
-void InputManager::Impl::update(crater::Event& event)
+void InputManager::Impl::update(WsEvent& event)
 {
     // Mouse buttons
-    if (event.type == crater::Event::Type::MouseButtonPressed) {
+    if (event.type == WsEvent::Type::MouseButtonPressed) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end()) {
@@ -37,7 +37,7 @@ void InputManager::Impl::update(crater::Event& event)
             }
         }
     }
-    else if (event.type == crater::Event::Type::MouseButtonReleased) {
+    else if (event.type == WsEvent::Type::MouseButtonReleased) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end()) {
@@ -47,7 +47,7 @@ void InputManager::Impl::update(crater::Event& event)
     }
 
     // Keys
-    else if (event.type == crater::Event::Type::KeyPressed) {
+    else if (event.type == WsEvent::Type::KeyPressed) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.keys.find(event.key.which) != action.keys.end()) {
@@ -55,7 +55,7 @@ void InputManager::Impl::update(crater::Event& event)
             }
         }
     }
-    else if (event.type == crater::Event::Type::KeyReleased) {
+    else if (event.type == WsEvent::Type::KeyReleased) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.keys.find(event.key.which) != action.keys.end()) {

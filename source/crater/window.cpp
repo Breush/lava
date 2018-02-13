@@ -26,7 +26,7 @@ Window::~Window()
     close();
 }
 
-$pimpl_attribute_v(Window, WindowHandle, windowHandle);
+$pimpl_attribute_v(Window, lava::WsHandle, handle);
 $pimpl_attribute(Window, VideoMode, videoMode);
 
 void Window::create(VideoMode mode, const std::string& title)
@@ -46,7 +46,7 @@ bool Window::opened() const
     return m_impl != nullptr;
 }
 
-std::optional<Event> Window::pollEvent()
+std::optional<lava::WsEvent> Window::pollEvent()
 {
     if (m_impl == nullptr) return std::nullopt;
     return m_impl->popEvent();

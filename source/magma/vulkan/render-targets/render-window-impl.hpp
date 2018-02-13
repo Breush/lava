@@ -26,10 +26,10 @@ namespace lava::magma {
         vk::SurfaceKHR surface() const override final { return m_surface; }
 
         // crater::Window forwarding
-        std::optional<crater::Event> pollEvent();
+        std::optional<WsEvent> pollEvent();
         void close();
 
-        crater::WindowHandle windowHandle() const;
+        WsHandle handle() const;
         const crater::VideoMode& videoMode() const;
         void videoMode(const crater::VideoMode& mode);
         bool opened() const;

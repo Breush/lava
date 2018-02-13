@@ -15,7 +15,7 @@ namespace lava::crater {
         Impl(VideoMode mode, const std::string& title);
 
         // IWindowImpl
-        WindowHandle windowHandle() const override final;
+        WsHandle handle() const override final;
 
     protected:
         // IWindowImpl

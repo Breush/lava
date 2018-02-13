@@ -3,9 +3,11 @@
 #include <lava/magma/render-targets/i-render-target.hpp>
 
 #include <lava/chamber/macros.hpp>
-#include <lava/crater/event.hpp>
+#include <lava/core/ws-event.hpp>
+#include <lava/core/ws-handle.hpp>
+
+// @fixme These crater internals should not be exposed in magma public headers!
 #include <lava/crater/video-mode.hpp>
-#include <lava/crater/window-handle.hpp>
 
 #include <optional>
 #include <string>
@@ -26,10 +28,10 @@ namespace lava::magma {
         // IRenderTarget
         IRenderTarget::Impl& interfaceImpl() override final;
 
-        std::optional<crater::Event> pollEvent();
+        std::optional<WsEvent> pollEvent();
         void close();
 
-        crater::WindowHandle windowHandle() const;
+        WsHandle handle() const;
         const crater::VideoMode& videoMode() const;
         void videoMode(const crater::VideoMode& mode);
         bool opened() const;

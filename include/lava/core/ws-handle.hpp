@@ -2,15 +2,11 @@
 
 #include <cstdint>
 
-////////////////////////////////////////////////////////////
-// Headers
-////////////////////////////////////////////////////////////
-
 // Forward declarations
 struct xcb_connection_t;
 
-namespace lava::crater {
-    struct WindowHandle {
+namespace lava {
+    struct WsHandle {
         union {
             // XCB handle
             struct {

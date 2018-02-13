@@ -50,7 +50,7 @@ namespace lava::sill {
         void updateInput();
         void updateEntities();
         void registerMaterials();
-        void handleEvent(crater::Event& event);
+        void handleEvent(WsEvent& event);
 
     private:
         GameEngine& m_base;

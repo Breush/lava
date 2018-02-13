@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lava::crater {
+namespace lava {
     enum class Key {
         Unknown,
         A,

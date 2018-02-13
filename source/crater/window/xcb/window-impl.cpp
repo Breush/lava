@@ -24,59 +24,59 @@ namespace {
     }
 
     // Got list from https://github.com/substack/node-keysym/blob/master/data/keysyms.txt
-    crater::Key keyEventToKey(xcb_key_press_event_t& keyEvent)
+    Key keyEventToKey(xcb_key_press_event_t& keyEvent)
     {
         xcb_keysym_t keySym = xcb_key_press_lookup_keysym(g_keySymbols, &keyEvent, 0);
 
         switch (keySym) {
-        case 'a': return crater::Key::A;
-        case 'b': return crater::Key::B;
-        case 'c': return crater::Key::C;
-        case 'd': return crater::Key::D;
-        case 'e': return crater::Key::E;
-        case 'f': return crater::Key::F;
-        case 'g': return crater::Key::G;
-        case 'h': return crater::Key::H;
-        case 'i': return crater::Key::I;
-        case 'j': return crater::Key::J;
-        case 'k': return crater::Key::K;
-        case 'l': return crater::Key::L;
-        case 'm': return crater::Key::M;
-        case 'n': return crater::Key::N;
-        case 'o': return crater::Key::O;
-        case 'p': return crater::Key::P;
-        case 'q': return crater::Key::Q;
-        case 'r': return crater::Key::R;
-        case 's': return crater::Key::S;
-        case 't': return crater::Key::T;
-        case 'u': return crater::Key::U;
-        case 'v': return crater::Key::V;
-        case 'w': return crater::Key::W;
-        case 'x': return crater::Key::X;
-        case 'y': return crater::Key::Y;
-        case 'z': return crater::Key::Z;
-        case 0xff1b: return crater::Key::Escape;
-        case 0xffbe: return crater::Key::F1;
-        case 0xffbf: return crater::Key::F2;
-        case 0xffc0: return crater::Key::F3;
-        case 0xffc1: return crater::Key::F4;
-        case 0xffc2: return crater::Key::F5;
-        case 0xffc3: return crater::Key::F6;
-        case 0xffc4: return crater::Key::F7;
-        case 0xffc5: return crater::Key::F8;
-        case 0xffc6: return crater::Key::F9;
-        case 0xffc7: return crater::Key::F10;
-        case 0xffc8: return crater::Key::F11;
-        case 0xffc9: return crater::Key::F12;
-        case 0xff51: return crater::Key::Left;
-        case 0xff52: return crater::Key::Up;
-        case 0xff53: return crater::Key::Right;
-        case 0xff54: return crater::Key::Down;
-        case 0xffe9: return crater::Key::LeftAlt;
-        case 0xffea: return crater::Key::RightAlt;
+        case 'a': return Key::A;
+        case 'b': return Key::B;
+        case 'c': return Key::C;
+        case 'd': return Key::D;
+        case 'e': return Key::E;
+        case 'f': return Key::F;
+        case 'g': return Key::G;
+        case 'h': return Key::H;
+        case 'i': return Key::I;
+        case 'j': return Key::J;
+        case 'k': return Key::K;
+        case 'l': return Key::L;
+        case 'm': return Key::M;
+        case 'n': return Key::N;
+        case 'o': return Key::O;
+        case 'p': return Key::P;
+        case 'q': return Key::Q;
+        case 'r': return Key::R;
+        case 's': return Key::S;
+        case 't': return Key::T;
+        case 'u': return Key::U;
+        case 'v': return Key::V;
+        case 'w': return Key::W;
+        case 'x': return Key::X;
+        case 'y': return Key::Y;
+        case 'z': return Key::Z;
+        case 0xff1b: return Key::Escape;
+        case 0xffbe: return Key::F1;
+        case 0xffbf: return Key::F2;
+        case 0xffc0: return Key::F3;
+        case 0xffc1: return Key::F4;
+        case 0xffc2: return Key::F5;
+        case 0xffc3: return Key::F6;
+        case 0xffc4: return Key::F7;
+        case 0xffc5: return Key::F8;
+        case 0xffc6: return Key::F9;
+        case 0xffc7: return Key::F10;
+        case 0xffc8: return Key::F11;
+        case 0xffc9: return Key::F12;
+        case 0xff51: return Key::Left;
+        case 0xff52: return Key::Up;
+        case 0xff53: return Key::Right;
+        case 0xff54: return Key::Down;
+        case 0xffe9: return Key::LeftAlt;
+        case 0xffea: return Key::RightAlt;
         }
 
-        return crater::Key::Unknown;
+        return Key::Unknown;
     }
 }
 
@@ -141,7 +141,7 @@ void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
     xcb_map_window(m_connection, m_window);
 }
 
-WindowHandle Window::Impl::windowHandle() const
+WsHandle Window::Impl::handle() const
 {
     return {m_connection, m_window};
 }
@@ -168,8 +168,8 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         auto messageEvent = reinterpret_cast<xcb_client_message_event_t&>(windowEvent);
         if (messageEvent.data.data32[0] != m_atomWmDeleteWindow->atom) break;
 
-        Event event;
-        event.type = Event::WindowClosed;
+        WsEvent event;
+        event.type = WsEvent::WindowClosed;
         pushEvent(event);
         break;
     }
@@ -178,10 +178,10 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         auto configureEvent = reinterpret_cast<xcb_configure_notify_event_t&>(windowEvent);
         if (m_previousSize.x == configureEvent.width && m_previousSize.y == configureEvent.height) break;
 
-        Event event;
-        event.type = Event::Type::WindowResized;
-        event.size.width = configureEvent.width;
-        event.size.height = configureEvent.height;
+        WsEvent event;
+        event.type = WsEvent::Type::WindowResized;
+        event.windowSize.width = configureEvent.width;
+        event.windowSize.height = configureEvent.height;
         pushEvent(event);
 
         m_previousSize.x = configureEvent.width;
@@ -192,11 +192,11 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
     case XCB_BUTTON_PRESS: {
         auto buttonEvent = reinterpret_cast<xcb_button_press_event_t&>(windowEvent);
 
-        Event event;
+        WsEvent event;
 
         // Classic buttons
         if (buttonEvent.detail <= XCB_BUTTON_INDEX_3) {
-            event.type = Event::MouseButtonPressed;
+            event.type = WsEvent::MouseButtonPressed;
             event.mouseButton.x = buttonEvent.event_x;
             event.mouseButton.y = buttonEvent.event_y;
             if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = MouseButton::Left;
@@ -205,7 +205,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         }
         // Mouse wheel buttons
         else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
-            event.type = Event::MouseScrolled;
+            event.type = WsEvent::MouseScrolled;
             event.mouseScroll.x = buttonEvent.event_x;
             event.mouseScroll.y = buttonEvent.event_y;
             event.mouseScroll.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1 : -1;
@@ -217,8 +217,8 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
     case XCB_BUTTON_RELEASE: {
         auto buttonEvent = reinterpret_cast<xcb_button_release_event_t&>(windowEvent);
 
-        Event event;
-        event.type = Event::MouseButtonReleased;
+        WsEvent event;
+        event.type = WsEvent::MouseButtonReleased;
         event.mouseButton.x = buttonEvent.event_x;
         event.mouseButton.y = buttonEvent.event_y;
         if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = MouseButton::Left;
@@ -231,8 +231,8 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
     case XCB_MOTION_NOTIFY: {
         auto motionEvent = reinterpret_cast<xcb_motion_notify_event_t&>(windowEvent);
 
-        Event event;
-        event.type = Event::MouseMoved;
+        WsEvent event;
+        event.type = WsEvent::MouseMoved;
         event.mouseMove.x = motionEvent.event_x;
         event.mouseMove.y = motionEvent.event_y;
         pushEvent(event);
@@ -242,8 +242,8 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
     case XCB_KEY_PRESS: {
         auto keyEvent = reinterpret_cast<xcb_key_press_event_t&>(windowEvent);
 
-        Event event;
-        event.type = Event::KeyPressed;
+        WsEvent event;
+        event.type = WsEvent::KeyPressed;
         event.key.which = keyEventToKey(keyEvent);
         pushEvent(event);
     } break;
@@ -251,8 +251,8 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
     case XCB_KEY_RELEASE: {
         auto keyEvent = reinterpret_cast<xcb_key_release_event_t&>(windowEvent);
 
-        Event event;
-        event.type = Event::KeyReleased;
+        WsEvent event;
+        event.type = WsEvent::KeyReleased;
         event.key.which = keyEventToKey(keyEvent);
         pushEvent(event);
     } break;

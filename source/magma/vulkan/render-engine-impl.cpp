@@ -41,9 +41,8 @@ void RenderEngine::Impl::update()
             buffer << fileStream.rdbuf();
 
             auto materialInfo =
-                std::find_if(m_materialInfos.begin(), m_materialInfos.end(), [&watchId](const auto& materialInfo) {
-                    return materialInfo.second.watchId == watchId;
-                });
+                std::find_if(m_materialInfos.begin(), m_materialInfos.end(),
+                             [&watchId](const auto& materialInfo) { return materialInfo.second.watchId == watchId; });
 
             m_shadersManager.updateImplGroup(materialInfo->first, buffer.str());
 
@@ -168,7 +167,7 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 
     // @todo This is probably not the right thing to do.
     // However - what can be the solution?
-    // Device creation requires a surface, which requires a windowHandle.
+    // Device creation requires a surface, which requires a handle.
     // Thus, no window => unable to init the device.
     // So we init what's left of the engine write here, when adding a renderTarget.
     if (!m_deviceHolder.device()) {

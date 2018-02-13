@@ -14,8 +14,6 @@
 ## Crater
 
 - **feature**
-    - Event: gave a way to access keyboard/mouse state (isKeyPressed)
-    - Event: complex event handling (dragging, double click)
     - Window: fullscreen
     - Window::Impl: have Wayland support
     - Window::Impl: DWM - complete all events
@@ -68,8 +66,6 @@
 
 ## Sill
 
-- **refacto**
-    - magma should be internal use and not be seen in public API includes
 - **feature**
     - Animation
     - InputManager: handle axes 
@@ -79,6 +75,8 @@
     - Node: hierarchy of GameObjects
     - OrbitCameraController
     - RenderWindow: Take from magma - so that it does not depend on crater anymore
+        - But this has some vulkan-dependent implementation...
+        - So we should keep a RenderWindow in magma - but its interface takes a WsHandle.
     - RmMaterial: albedo color
     - SphereMesh: uv mapping
 

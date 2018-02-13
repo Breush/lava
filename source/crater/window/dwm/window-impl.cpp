@@ -41,12 +41,12 @@ Window::Impl::Impl(VideoMode mode, const std::string& /* title */)
     UpdateWindow(m_hwnd);
 }
 
-WindowHandle Window::Impl::windowHandle() const
+WsHandle Window::Impl::handle() const
 {
-    WindowHandle windowHandle;
-    windowHandle.dwm.hwnd = m_hwnd;
-    windowHandle.dwm.hinstance = m_hinstance;
-    return windowHandle;
+    WsHandle handle;
+    handle.dwm.hwnd = m_hwnd;
+    handle.dwm.hinstance = m_hinstance;
+    return handle;
 }
 
 void Window::Impl::processEvents()
@@ -67,8 +67,8 @@ bool Window::Impl::processEvent(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam)
     }
 
     case WM_CLOSE: {
-        Event event;
-        event.type = Event::WindowClosed;
+        WsEvent event;
+        event.type = WsEvent::WindowClosed;
         pushEvent(event);
         return true;
     }
@@ -80,8 +80,8 @@ bool Window::Impl::processEvent(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam)
     }
 
     case WM_LBUTTONDOWN: {
-        Event event;
-        event.type = Event::MouseButtonPressed;
+        WsEvent event;
+        event.type = WsEvent::MouseButtonPressed;
         event.mouseButton.which = MouseButton::Left;
         event.mouseButton.x = static_cast<int16_t>(LOWORD(lParam));
         event.mouseButton.y = static_cast<int16_t>(HIWORD(lParam));
@@ -96,8 +96,8 @@ bool Window::Impl::processEvent(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam)
         int x = static_cast<int16_t>(LOWORD(lParam));
         int y = static_cast<int16_t>(HIWORD(lParam));
 
-        Event event;
-        event.type = Event::MouseMoved;
+        WsEvent event;
+        event.type = WsEvent::MouseMoved;
         event.mouseMove.x = x;
         event.mouseMove.y = y;
         pushEvent(event);
