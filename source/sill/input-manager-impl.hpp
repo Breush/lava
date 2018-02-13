@@ -9,6 +9,7 @@ namespace lava::sill {
     class InputManager::Impl {
     public:
         // InputManager
+        bool down(const std::string& actionName) const;
         bool justDown(const std::string& actionName) const;
 
         void bindAction(const std::string& actionName, MouseButton mouseButton);

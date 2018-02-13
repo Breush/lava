@@ -10,6 +10,9 @@ namespace lava::sill {
         InputManager();
         ~InputManager();
 
+        /// Whether the specified action is held down.
+        bool down(const std::string& actionName) const;
+
         /// Whether the specified action has gone from up to down in last update block.
         bool justDown(const std::string& actionName) const;
 

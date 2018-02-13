@@ -2,6 +2,12 @@
 
 using namespace lava::sill;
 
+bool InputManager::Impl::down(const std::string& actionName) const
+{
+    const auto& action = m_actions.at(actionName);
+    return action.activeness > 0;
+}
+
 bool InputManager::Impl::justDown(const std::string& actionName) const
 {
     const auto& action = m_actions.at(actionName);
