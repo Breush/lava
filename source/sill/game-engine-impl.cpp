@@ -216,7 +216,7 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
 
         // Orbit with left button
         if (buttonPressed == MouseButton::Left) {
-            m_camera->orbitAdd(-delta.x, -delta.y);
+            m_camera->orbitAdd(-delta.x, delta.y);
         }
         // Strafe with right button
         else if (buttonPressed == MouseButton::Right) {

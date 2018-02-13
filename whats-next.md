@@ -21,7 +21,6 @@
 ## Magma
 
 - **bug**
-    - Fix top-view camera
     - Artifacts for opaque meshes with a lot of overlapping
 - **refacto**
     - Remove useless descriptor pools

@@ -2,10 +2,12 @@
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <lava/chamber/macros.hpp>
+#include <lava/chamber/math.hpp>
 
 #include "../vulkan/cameras/orbit-camera-impl.hpp"
 
 using namespace lava::magma;
+using namespace lava::chamber;
 
 $pimpl_class(OrbitCamera, RenderScene&, scene, Extent2d, extent);
 
@@ -52,6 +54,8 @@ void OrbitCamera::radiusAdd(float radiusDistance)
     const auto& target = m_impl->target();
     auto relativePosition = position - target;
     auto radius = glm::length(relativePosition) + radiusDistance;
+    radius = std::max(0.01f, radius);
+
     m_impl->position(target + glm::normalize(relativePosition) * radius);
 }
 
@@ -60,7 +64,15 @@ void OrbitCamera::orbitAdd(float longitudeAngle, float latitudeAngle)
     const auto& position = m_impl->position();
     const auto& target = m_impl->target();
     auto relativePosition = position - target;
-    auto axis = glm::vec3(-relativePosition.y, relativePosition.x, 0);
+    auto axis = glm::vec3(relativePosition.y, -relativePosition.x, 0);
+
+    auto currentLatitudeAngle = std::asin(relativePosition.z / glm::length(relativePosition));
+    if (currentLatitudeAngle + latitudeAngle > math::PI_OVER_TWO - 0.01) {
+        latitudeAngle = math::PI_OVER_TWO - 0.01 - currentLatitudeAngle;
+    }
+    else if (currentLatitudeAngle + latitudeAngle < -math::PI_OVER_TWO + 0.01) {
+        latitudeAngle = -math::PI_OVER_TWO + 0.01 - currentLatitudeAngle;
+    }
 
     auto longitudeDelta = glm::rotateZ(relativePosition, longitudeAngle) - relativePosition;
     auto latitudeDelta = glm::rotate(relativePosition, latitudeAngle, axis) - relativePosition;
