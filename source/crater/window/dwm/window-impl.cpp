@@ -41,7 +41,7 @@ Window::Impl::Impl(VideoMode mode, const std::string& /* title */)
     UpdateWindow(m_hwnd);
 }
 
-WsHandle Window::Impl::handle() const
+lava::WsHandle Window::Impl::handle() const
 {
     WsHandle handle;
     handle.dwm.hwnd = m_hwnd;
@@ -83,6 +83,36 @@ bool Window::Impl::processEvent(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam)
         WsEvent event;
         event.type = WsEvent::MouseButtonPressed;
         event.mouseButton.which = MouseButton::Left;
+        event.mouseButton.x = static_cast<int16_t>(LOWORD(lParam));
+        event.mouseButton.y = static_cast<int16_t>(HIWORD(lParam));
+        pushEvent(event);
+        break;
+    }
+
+    case WM_RBUTTONDOWN: {
+        WsEvent event;
+        event.type = WsEvent::MouseButtonPressed;
+        event.mouseButton.which = MouseButton::Right;
+        event.mouseButton.x = static_cast<int16_t>(LOWORD(lParam));
+        event.mouseButton.y = static_cast<int16_t>(HIWORD(lParam));
+        pushEvent(event);
+        break;
+    }
+
+    case WM_LBUTTONUP: {
+        WsEvent event;
+        event.type = WsEvent::MouseButtonReleased;
+        event.mouseButton.which = MouseButton::Left;
+        event.mouseButton.x = static_cast<int16_t>(LOWORD(lParam));
+        event.mouseButton.y = static_cast<int16_t>(HIWORD(lParam));
+        pushEvent(event);
+        break;
+    }
+
+    case WM_RBUTTONUP: {
+        WsEvent event;
+        event.type = WsEvent::MouseButtonReleased;
+        event.mouseButton.which = MouseButton::Right;
         event.mouseButton.x = static_cast<int16_t>(LOWORD(lParam));
         event.mouseButton.y = static_cast<int16_t>(HIWORD(lParam));
         pushEvent(event);

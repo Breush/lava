@@ -5,6 +5,7 @@ project "lava-dike"
     files "dike/**"
 
     function dikeDependencies()
+        useGlm()
         useChamber()
         useBullet()
     end

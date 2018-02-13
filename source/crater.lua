@@ -5,9 +5,6 @@ project "lava-crater"
     files "crater/**"
     excludes "crater/window/**"
 
-    -- No dependencies in the public interface
-    useGlm()
-
     if os.host() == "linux" then
         defines { "LAVA_CRATER_WINDOW_XCB" }
         files "crater/window/xcb/**"
@@ -37,6 +34,9 @@ project "lava-crater"
             error("Unsupported platform " + os.host())
 
         end
+
+        useGlm()
+        useChamber()
     end
 
     craterDependencies()
