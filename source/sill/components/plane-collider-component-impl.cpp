@@ -22,5 +22,4 @@ PlaneColliderComponent::Impl::Impl(GameEntity& entity, const glm::vec3& normal)
 
 PlaneColliderComponent::Impl::~Impl()
 {
-    // @fixme Remove
 }

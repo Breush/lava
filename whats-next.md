@@ -16,12 +16,18 @@
 - **feature**
     - Window: fullscreen
     - Window::Impl: have Wayland support
-    - Window::Impl: DWM - complete all events
+    - Window::Impl: DWM - complete all events (scroll/keys)
 
 ## Magma
 
 - **bug**
     - Artifacts for opaque meshes with a lot of overlapping
+        - Try having a RT as the GBufferHeader,
+          so that depth resolution is managed as expected by the GC.
+        - Have a new opaque epiphany to resolve the header into a RT.
+          This can be the RT used in transparent epiphany later. 
+        - Having that done, we can reset the GBufferHeader and counter,
+          so that transparent objects have a full GBufferList to fill.
 - **refacto**
     - Remove useless descriptor pools
     - Replace useless const vk::Whatever& by vk::Whatever
@@ -38,15 +44,7 @@
     - ForwardRenderer
     - VR integration
     - Light: Shadows
-    - Light Linked List?
-        - Fill linked list
-            - Software depth test
-            - Min/max depths
-            - Allocate LLL fragment
-        - Lighting G-buffer (Epiphany)
-            - Access LLL
-            - PBR Epiphany (keep for last step)
-        - Alpha
+    - Light Linked List
     - PBR: Reflection cube maps
     - Reflection probes
     - Texture: Have a manager?
@@ -66,8 +64,11 @@
 - **feature**
     - Animation
     - Debounce system for window resizes
+    - ColliderComponent: have a PhysicsComponent (holding if static)
+    - ColliderComponent: allow multiple times the same component
+    - GameEngine: remove the camera controls of `handleEvent`
     - InputManager: handle axes 
-    - Materials introspection (-- or own shading language)
+    - Materials introspection (or own shading language)
     - Mesh: compute tangents if not provided
     - Mesh: compute normals if not provided
     - Node: hierarchy of GameObjects

@@ -111,9 +111,6 @@ void GameEngine::Impl::updateInput()
 {
     m_inputManager.updateReset();
     while (auto event = m_window->pollEvent()) {
-        // @fixme This handleEvent should be removed!
-        // We should provide an easy ashe camera control for sill.
-        // Moreover, have a camera object.
         handleEvent(*event);
 
         m_inputManager.update(*event);
