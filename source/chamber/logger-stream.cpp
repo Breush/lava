@@ -38,6 +38,8 @@ int LoggerStream::overflow(int c)
         m_beenReset = true;
 
         if (m_autoExit) {
+            stream() << std::endl;
+
             CallStack callStack;
             callStack.refresh(4);
             m_stream->put(c);

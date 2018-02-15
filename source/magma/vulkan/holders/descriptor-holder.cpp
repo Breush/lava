@@ -91,6 +91,7 @@ void DescriptorHolder::init(uint32_t maxSetCount, vk::ShaderStageFlags shaderSta
     poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = maxSetCount;
+    poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
 
     if (m_engine.device().createDescriptorPool(&poolInfo, nullptr, m_pool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.descriptor-holder") << "Failed to create descriptor pool." << std::endl;
@@ -123,7 +124,9 @@ vk::DescriptorSet DescriptorHolder::allocateSet(bool dummyBinding) const
 
 void DescriptorHolder::freeSet(vk::DescriptorSet set) const
 {
-    m_engine.device().freeDescriptorSets(m_pool, 1, &set);
+    if (m_pool.vk()) {
+        m_engine.device().freeDescriptorSets(m_pool, 1, &set);
+    }
 }
 
 void DescriptorHolder::updateSet(vk::DescriptorSet set, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t storageBufferIndex)

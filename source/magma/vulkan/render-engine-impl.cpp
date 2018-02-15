@@ -78,7 +78,7 @@ void RenderEngine::Impl::draw()
         submitInfo.pCommandBuffers = &commandBuffer;
 
         if (graphicsQueue().submit(1, &submitInfo, nullptr) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.layer") << "Failed to submit draw command buffer." << std::endl;
+            logger.error("magma.vulkan.render-engine") << "Failed to submit draw command buffer." << std::endl;
         }
 
         renderTargetImpl.draw(m_renderFinishedSemaphore);
@@ -368,7 +368,7 @@ void RenderEngine::Impl::initVulkan()
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
     logger.log().tab(1);
 
-    m_instanceHolder.init(false);
+    m_instanceHolder.init(true);
 
     logger.log().tab(-1);
 }

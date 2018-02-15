@@ -123,16 +123,19 @@ void Material::Impl::updateBindings()
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     const auto binding = m_scene.materialDescriptorHolder().combinedImageSamplerBindingOffset();
+    auto imageView = engine.dummyImageView();
+
+    // Force all samplers to white image view by default.
+    // @note This 8u comes from number of samples in ./data/deep-deferred-material.set
+    for (auto i = 0u; i < 8u; ++i) {
+        vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, binding, i);
+    }
 
     for (const auto& attributePair : m_attributes) {
         const auto& attribute = attributePair.second;
         if (attribute.type == UniformType::TEXTURE) {
-            vk::ImageView imageView = nullptr;
             if (attribute.texture) {
                 imageView = attribute.texture->imageView();
-            }
-            else if (attribute.fallback.textureTypeValue == UniformTextureType::WHITE) {
-                imageView = engine.dummyImageView();
             }
             else if (attribute.fallback.textureTypeValue == UniformTextureType::NORMAL) {
                 imageView = engine.dummyNormalImageView();

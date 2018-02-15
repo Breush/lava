@@ -150,7 +150,7 @@ void InstanceHolder::initValidationLayers(vk::InstanceCreateInfo& instanceCreate
     if (!m_debugEnabled) return;
 
     if (!layersSupported(m_validationLayers)) {
-        logger.warning("magma.vulkan.layer") << "Validation layers enabled, but are not available." << std::endl;
+        logger.warning("magma.vulkan.instance-holder") << "Validation layers enabled, but are not available." << std::endl;
         m_debugEnabled = false;
         return;
     }
@@ -158,5 +158,5 @@ void InstanceHolder::initValidationLayers(vk::InstanceCreateInfo& instanceCreate
     instanceCreateInfo.enabledLayerCount = m_validationLayers.size();
     instanceCreateInfo.ppEnabledLayerNames = m_validationLayers.data();
 
-    logger.info("magma.vulkan.layer") << "Validation layers enabled." << std::endl;
+    logger.info("magma.vulkan.instance-holder") << "Validation layers enabled." << std::endl;
 }
