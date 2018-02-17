@@ -15,5 +15,5 @@ void main()
     gBufferList.counter = 0;
 
     uint headerIndex = uint(gl_FragCoord.y * gBufferHeader.width + gl_FragCoord.x);
-    gBufferHeader.nodeCount6_listIndex26[headerIndex] = 0;
+    gBufferHeader.listIndex[headerIndex] = 0;
 }

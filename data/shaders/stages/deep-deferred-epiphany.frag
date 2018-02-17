@@ -29,29 +29,28 @@ void main()
     //----- Sorting fragments by depth.
     
     GBufferNode sortedNodes[GBUFFER_MAX_NODE_DEPTH];
-    uint listIndex = gBufferHeader.nodeCount6_listIndex26[headerIndex] & 0x3FFFFFF;
-    uint nodeCount = gBufferHeader.nodeCount6_listIndex26[headerIndex] >> 26;
+    uint listIndex = gBufferHeader.listIndex[headerIndex];
 
-    uint sortedNodeCount = 0;
-    while (sortedNodeCount < nodeCount) {
+    uint nodeCount = 0;
+    while (listIndex != 0) {
         GBufferNode node = gBufferList.nodes[listIndex];
         listIndex = node.materialId6_next26 & 0x3FFFFFF;
 
         // Insertion sort
         uint insertionIndex = 0;
-        while (insertionIndex < sortedNodeCount) {
+        while (insertionIndex < nodeCount) {
             if (node.depth > sortedNodes[insertionIndex].depth) {
                 break;
             }
             insertionIndex += 1;
         }
 
-        for (uint i = sortedNodeCount; i > insertionIndex; --i) {
+        for (uint i = nodeCount; i > insertionIndex; --i) {
             sortedNodes[i] = sortedNodes[i - 1];
         }
 
         sortedNodes[insertionIndex] = node;
-        sortedNodeCount += 1;
+        nodeCount += 1;
     }
 
     //----- Compositing.
@@ -61,7 +60,7 @@ void main()
 
     // @todo Allow clear color to be configurable
     vec3 color = vec3(0.2, 0.6, 0.4);
-    for (uint i = 0; i < sortedNodeCount; ++i) {
+    for (uint i = 0; i < nodeCount; ++i) {
         GBufferNode node = sortedNodes[i];
         
         vec4 nodeColor = vec4(0);

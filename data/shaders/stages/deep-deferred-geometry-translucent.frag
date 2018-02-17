@@ -23,9 +23,6 @@ layout(location = 3) in vec2 inUv;
 void main()
 {
     uint headerIndex = uint(gl_FragCoord.y * gBufferHeader.width + gl_FragCoord.x);
-    uint nodeCount = gBufferHeader.nodeCount6_listIndex26[headerIndex] >> 26;
-
-    if (nodeCount == GBUFFER_MAX_NODE_DEPTH) discard;
 
     // Encoding materialId and next
     GBufferNode node;
@@ -40,10 +37,8 @@ void main()
 
     // Get the new node only if we have not been discarded
     uint listIndex = atomicAdd(gBufferList.counter, 1);
-    uint oldListIndex = atomicExchange(gBufferHeader.nodeCount6_listIndex26[headerIndex], listIndex) & 0x3FFFFFF;
-    atomicAdd(gBufferHeader.nodeCount6_listIndex26[headerIndex], (nodeCount + 1) << 26);
+    uint oldListIndex = atomicExchange(gBufferHeader.listIndex[headerIndex], listIndex);
 
-    node.materialId6_next26 = materialId << 26;
-    node.materialId6_next26 += oldListIndex;
+    node.materialId6_next26 = (materialId << 26) + oldListIndex;
     gBufferList.nodes[listIndex] = node;
 }

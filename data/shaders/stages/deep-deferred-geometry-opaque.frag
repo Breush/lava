@@ -22,8 +22,6 @@ layout(location = 3) in vec2 inUv;
 
 void main()
 {
-    uint headerIndex = uint(gl_FragCoord.y * gBufferHeader.width + gl_FragCoord.x);
-
     // Encoding materialId and next
     // Keep next to 0 because there's nothing to link
     GBufferNode node;
@@ -37,12 +35,11 @@ void main()
     }
 
     // As the fragment could have been discarded, we allocate the node only now
-    uint nodeCount = gBufferHeader.nodeCount6_listIndex26[headerIndex] >> 26;
-    uint listIndex = gBufferHeader.nodeCount6_listIndex26[headerIndex] & 0x3FFFFFF;
-    if (nodeCount == 0) {
+    uint headerIndex = uint(gl_FragCoord.y * gBufferHeader.width + gl_FragCoord.x);
+    uint listIndex = gBufferHeader.listIndex[headerIndex];
+    if (listIndex == 0) {
         listIndex = atomicAdd(gBufferList.counter, 1);
-        atomicExchange(gBufferHeader.nodeCount6_listIndex26[headerIndex], listIndex);
-        atomicAdd(gBufferHeader.nodeCount6_listIndex26[headerIndex], (nodeCount + 1) << 26);
+        atomicExchange(gBufferHeader.listIndex[headerIndex], listIndex);
     }
 
     node.materialId6_next26 = materialId << 26;
