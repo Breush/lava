@@ -26,8 +26,8 @@ namespace lava::magma {
 
         // IMesh::Impl
         void init() override final;
-        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                    uint32_t descriptorSetIndex) override final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
+                    uint32_t materialDescriptorSetIndex) override final;
 
         // Mesh
         const glm::mat4& transform() const { return m_transform; }

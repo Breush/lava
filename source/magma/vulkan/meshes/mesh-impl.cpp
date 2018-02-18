@@ -140,7 +140,8 @@ void Mesh::Impl::createIndexBuffer()
 
 // ----- IMesh -----
 
-void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
+void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
+                        uint32_t materialDescriptorSetIndex)
 {
     if (m_vertices.empty()) return;
 
@@ -148,10 +149,10 @@ void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipe
     // @todo Have this in a more clever render loop, and not called by this mesh
     // Fact is we shouldn't know about the correct descriptorSetIndex here
     if (m_material != nullptr) {
-        m_material->impl().render(commandBuffer, pipelineLayout, 2u);
+        m_material->impl().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
     else {
-        m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, 2u);
+        m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
 
     // Bind with the mesh descriptor set

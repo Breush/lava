@@ -15,6 +15,7 @@ namespace lava::magma {
         virtual void init() = 0;
 
         /// Render the mesh.
-        virtual void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) = 0;
+        virtual void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
+                            uint32_t materialDescriptorSetIndex) = 0;
     };
 }

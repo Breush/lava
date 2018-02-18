@@ -144,13 +144,13 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
-    camera.render(commandBuffer, m_geometryTranslucentPipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
+    camera.render(commandBuffer, m_geometryOpaquePipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
 
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
         if (!mesh->translucent()) {
-            mesh->interfaceImpl().render(commandBuffer, m_geometryTranslucentPipelineHolder.pipelineLayout(),
-                                         MESH_DESCRIPTOR_SET_INDEX);
+            mesh->interfaceImpl().render(commandBuffer, m_geometryOpaquePipelineHolder.pipelineLayout(),
+                                         MESH_DESCRIPTOR_SET_INDEX, MATERIAL_DESCRIPTOR_SET_INDEX);
             commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eBottomOfPipe,
                                           vk::DependencyFlags(), 0, nullptr, 0, nullptr, 0, nullptr);
         }
@@ -169,7 +169,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     for (auto& mesh : m_scene.meshes()) {
         if (mesh->translucent()) {
             mesh->interfaceImpl().render(commandBuffer, m_geometryTranslucentPipelineHolder.pipelineLayout(),
-                                         MESH_DESCRIPTOR_SET_INDEX);
+                                         MESH_DESCRIPTOR_SET_INDEX, MATERIAL_DESCRIPTOR_SET_INDEX);
             commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eBottomOfPipe,
                                           vk::DependencyFlags(), 0, nullptr, 0, nullptr, 0, nullptr);
         }
