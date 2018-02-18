@@ -23,7 +23,7 @@ void RenderPassHolder::add(PipelineHolder& pipelineHolder)
 void RenderPassHolder::init()
 {
     std::vector<vk::SubpassDescription> subpassDescriptions;
-    std::vector<std::vector<vk::AttachmentReference>> attachmentsReferences(m_pipelineHolders.size());
+    std::vector<std::vector<vk::AttachmentReference>> attachmentsReferences(3 * m_pipelineHolders.size());
     std::vector<vk::AttachmentDescription> attachmentDescriptions;
     std::vector<vk::SubpassDependency> subpassDependencies;
 
@@ -31,15 +31,15 @@ void RenderPassHolder::init()
         auto& pipelineHolder = *m_pipelineHolders[i];
         const auto& colorAttachments = pipelineHolder.colorAttachments();
         const auto& depthStencilAttachment = pipelineHolder.depthStencilAttachment();
-
-        auto& attachmentReferences = attachmentsReferences[i];
+        const auto& inputAttachments = pipelineHolder.inputAttachments();
 
         // Color attachments
+        auto& colorAttachmentReferences = attachmentsReferences[3 * i];
         for (const auto& colorAttachment : colorAttachments) {
             vk::AttachmentReference reference;
             reference.attachment = attachmentDescriptions.size();
             reference.layout = vk::ImageLayout::eColorAttachmentOptimal;
-            attachmentReferences.emplace_back(reference);
+            colorAttachmentReferences.emplace_back(reference);
 
             vk::AttachmentDescription description;
             description.format = colorAttachment.format;
@@ -49,15 +49,17 @@ void RenderPassHolder::init()
             description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
             description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
             description.finalLayout = colorAttachment.finalLayout;
+            description.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
             attachmentDescriptions.emplace_back(description);
         }
 
         // Depth stencil attachment
+        auto& depthStencilAttachmentReferences = attachmentsReferences[3 * i + 1];
         if (depthStencilAttachment) {
             vk::AttachmentReference reference;
             reference.attachment = attachmentDescriptions.size();
             reference.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-            attachmentReferences.emplace_back(reference);
+            depthStencilAttachmentReferences.emplace_back(reference);
 
             vk::AttachmentDescription description;
             description.format = depthStencilAttachment->format;
@@ -70,14 +72,36 @@ void RenderPassHolder::init()
             attachmentDescriptions.emplace_back(description);
         }
 
+        // Input attachments
+        auto& inputAttachmentReferences = attachmentsReferences[3 * i + 2];
+        for (const auto& inputAttachment : inputAttachments) {
+            vk::AttachmentReference reference;
+            reference.attachment = attachmentDescriptions.size();
+            reference.layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+            inputAttachmentReferences.emplace_back(reference);
+
+            vk::AttachmentDescription description;
+            description.format = inputAttachment.format;
+            description.samples = vk::SampleCountFlagBits::e1;
+            description.loadOp = vk::AttachmentLoadOp::eDontCare;
+            description.storeOp = vk::AttachmentStoreOp::eDontCare;
+            description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+            description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+            description.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+            description.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
+            attachmentDescriptions.emplace_back(description);
+        }
+
         // Subpass
         vk::SubpassDescription subpassDescription;
         subpassDescription.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
         subpassDescription.colorAttachmentCount = colorAttachments.size();
-        subpassDescription.pColorAttachments = attachmentReferences.data();
+        subpassDescription.pColorAttachments = colorAttachmentReferences.data();
         if (depthStencilAttachment) {
-            subpassDescription.pDepthStencilAttachment = attachmentReferences.data() + colorAttachments.size();
+            subpassDescription.pDepthStencilAttachment = depthStencilAttachmentReferences.data();
         }
+        subpassDescription.inputAttachmentCount = inputAttachments.size();
+        subpassDescription.pInputAttachments = inputAttachmentReferences.data();
         subpassDescriptions.emplace_back(subpassDescription);
 
         if (pipelineHolder.selfDependent()) {
@@ -96,7 +120,9 @@ void RenderPassHolder::init()
         subpassDependency.srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
         subpassDependency.dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
         subpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite
-                                          | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+                                          | vk::AccessFlagBits::eDepthStencilAttachmentWrite
+                                          | vk::AccessFlagBits::eInputAttachmentRead;
+        subpassDependency.dependencyFlags = vk::DependencyFlagBits::eByRegion;
         subpassDependencies.emplace_back(subpassDependency);
     }
 

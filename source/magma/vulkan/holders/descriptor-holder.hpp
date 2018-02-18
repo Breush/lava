@@ -24,6 +24,10 @@ namespace lava::magma::vulkan {
         {
             m_combinedImageSamplerSizes = combinedImageSamplerSizes;
         }
+        void inputAttachmentSizes(const std::vector<uint32_t>& inputAttachmentSizes)
+        {
+            m_inputAttachmentSizes = inputAttachmentSizes;
+        }
 
         /// Allocate a single set from the associated pool.
         vk::DescriptorSet allocateSet(bool dummyBinding = false) const;
@@ -38,6 +42,10 @@ namespace lava::magma::vulkan {
         void updateSet(vk::DescriptorSet set, vk::ImageView imageView, vk::Sampler sampler, vk::ImageLayout imageLayout,
                        uint32_t combinedImageSamplerIndex);
 
+        /// Update the specified input attachment component.
+        void updateSet(vk::DescriptorSet set, vk::ImageView imageView, vk::ImageLayout imageLayout,
+                       uint32_t inputAttachmentIndex);
+
         /// Get the set layout.
         vk::DescriptorSetLayout setLayout() const { return m_setLayout; }
 
@@ -48,6 +56,10 @@ namespace lava::magma::vulkan {
         uint32_t storageBufferBindingOffset() const { return 0u; }
         uint32_t uniformBufferBindingOffset() const { return m_storageBufferSizes.size(); }
         uint32_t combinedImageSamplerBindingOffset() const { return m_storageBufferSizes.size() + m_uniformBufferSizes.size(); }
+        uint32_t inputAttachmentBindingOffset() const
+        {
+            return m_storageBufferSizes.size() + m_uniformBufferSizes.size() + m_combinedImageSamplerSizes.size();
+        }
 
     protected:
         // References
@@ -57,6 +69,7 @@ namespace lava::magma::vulkan {
         std::vector<uint32_t> m_storageBufferSizes;
         std::vector<uint32_t> m_uniformBufferSizes;
         std::vector<uint32_t> m_combinedImageSamplerSizes;
+        std::vector<uint32_t> m_inputAttachmentSizes;
 
         // Resources
         vulkan::DescriptorSetLayout m_setLayout;

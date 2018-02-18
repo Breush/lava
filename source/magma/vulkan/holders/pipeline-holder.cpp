@@ -165,3 +165,8 @@ void PipelineHolder::set(const DepthStencilAttachment& depthStencilAttachment)
 {
     m_depthStencilAttachment = std::make_unique<DepthStencilAttachment>(depthStencilAttachment);
 }
+
+void PipelineHolder::add(const InputAttachment& inputAttachment)
+{
+    m_inputAttachments.emplace_back(inputAttachment);
+}

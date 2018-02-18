@@ -45,10 +45,10 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
     // Color
     else if (imageAspect == vk::ImageAspectFlagBits::eColor) {
         aspectFlags = vk::ImageAspectFlagBits::eColor;
-        // @todo eColorAttachment is not always necessary... we should be able to control that
+        // @fixme eColorAttachment is not always necessary... we should be able to control that
         // And same goes for eSampled.
-        usageFlags =
-            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
+        usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
+                     | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eInputAttachment;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
         srcStageMask |= vk::PipelineStageFlagBits::eHost;
         dstStageMask |= vk::PipelineStageFlagBits::eTransfer;

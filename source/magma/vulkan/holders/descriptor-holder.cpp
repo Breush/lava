@@ -54,6 +54,17 @@ void DescriptorHolder::init(uint32_t maxSetCount, vk::ShaderStageFlags shaderSta
         combinedImageSamplerDescriptorCount += m_combinedImageSamplerSizes[i];
     }
 
+    uint32_t inputAttachmentDescriptorCount = 0u;
+    for (auto i = 0u; i < m_inputAttachmentSizes.size(); ++i) {
+        vk::DescriptorSetLayoutBinding setLayoutBinding;
+        setLayoutBinding.binding = currentBinding++;
+        setLayoutBinding.descriptorType = vk::DescriptorType::eInputAttachment;
+        setLayoutBinding.descriptorCount = m_inputAttachmentSizes[i];
+        setLayoutBinding.stageFlags = shaderStageFlags;
+        setLayoutBindings.emplace_back(setLayoutBinding);
+        inputAttachmentDescriptorCount += m_inputAttachmentSizes[i];
+    }
+
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
     layoutInfo.bindingCount = setLayoutBindings.size();
     layoutInfo.pBindings = setLayoutBindings.data();
@@ -84,6 +95,13 @@ void DescriptorHolder::init(uint32_t maxSetCount, vk::ShaderStageFlags shaderSta
         vk::DescriptorPoolSize poolSize;
         poolSize.type = vk::DescriptorType::eCombinedImageSampler;
         poolSize.descriptorCount = combinedImageSamplerDescriptorCount * maxSetCount;
+        poolSizes.emplace_back(poolSize);
+    }
+
+    if (inputAttachmentDescriptorCount > 0u) {
+        vk::DescriptorPoolSize poolSize;
+        poolSize.type = vk::DescriptorType::eInputAttachment;
+        poolSize.descriptorCount = inputAttachmentDescriptorCount * maxSetCount;
         poolSizes.emplace_back(poolSize);
     }
 
@@ -160,6 +178,24 @@ void DescriptorHolder::updateSet(vk::DescriptorSet set, vk::ImageView imageView,
     descriptorWrite.dstBinding = combinedImageSamplerBindingOffset() + combinedImageSamplerIndex;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    m_engine.device().updateDescriptorSets(1u, &descriptorWrite, 0, nullptr);
+}
+
+void DescriptorHolder::updateSet(vk::DescriptorSet set, vk::ImageView imageView, vk::ImageLayout imageLayout,
+                                 uint32_t inputAttachmentIndex)
+{
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.imageLayout = imageLayout;
+    imageInfo.imageView = imageView;
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = set;
+    descriptorWrite.dstBinding = inputAttachmentBindingOffset() + inputAttachmentIndex;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eInputAttachment;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 

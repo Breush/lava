@@ -19,6 +19,10 @@ namespace lava::magma::vulkan {
             vk::Format format;
         };
 
+        struct InputAttachment {
+            vk::Format format;
+        };
+
         struct VertexInput {
             struct Attribute {
                 vk::Format format;
@@ -51,6 +55,9 @@ namespace lava::magma::vulkan {
         /// Set the depth/stencil attachment.
         void set(const DepthStencilAttachment& depthStencilAttachment);
 
+        /// Register an input attachment.
+        void add(const InputAttachment& inputAttachment);
+
         /// Set the vertex input.
         void set(const VertexInput& vertexInput) { m_vertexInput = vertexInput; }
 
@@ -68,6 +75,7 @@ namespace lava::magma::vulkan {
 
         const std::vector<ColorAttachment>& colorAttachments() const { return m_colorAttachments; }
         const std::unique_ptr<DepthStencilAttachment>& depthStencilAttachment() const { return m_depthStencilAttachment; }
+        const std::vector<InputAttachment>& inputAttachments() const { return m_inputAttachments; }
         bool selfDependent() const { return m_selfDependent; }
 
         // Internal API
@@ -91,6 +99,7 @@ namespace lava::magma::vulkan {
         std::vector<vk::PipelineShaderStageCreateInfo> m_shaderStages;
         std::vector<ColorAttachment> m_colorAttachments;
         std::unique_ptr<DepthStencilAttachment> m_depthStencilAttachment;
+        std::vector<InputAttachment> m_inputAttachments;
         VertexInput m_vertexInput;
         vk::CullModeFlags m_cullMode;
         bool m_selfDependent = false;
