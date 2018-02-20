@@ -9,13 +9,15 @@
 
 @magma:impl:begin geometry
 
-void @magma:impl:main (inout GBufferNode node) {
+bool @magma:impl:main (inout GBufferNode node) {
     float opacity = texture(samplers[0], inUv).r;
 
     if (opacity == 0) discard;
 
     uint startIndex = 0;
     gBufferPackFloat(node, startIndex, opacity);
+
+    return opacity < 1.0;
 }
 
 @magma:impl:end geometry

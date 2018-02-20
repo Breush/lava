@@ -9,13 +9,15 @@
 
 @magma:impl:begin geometry
 
-void @magma:impl:main (inout GBufferNode node) {
+bool @magma:impl:main (inout GBufferNode node) {
     vec4 color = texture(samplers[0], inUv);
 
     if (color.a == 0) discard;
 
     uint startIndex = 0;
     gBufferPackVec4(node, startIndex, color);
+
+    return false;
 }
 
 @magma:impl:end geometry

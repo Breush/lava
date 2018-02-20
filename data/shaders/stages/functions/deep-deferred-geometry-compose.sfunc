@@ -1,0 +1,15 @@
+#include "./deep-deferred-geometry.sfunc"
+
+@magma:impl:paste geometry
+
+// Returns whether the node should be considered translucent.
+bool composeGeometry(inout GBufferNode node)
+{
+    uint materialId = node.materialId6_next26 >> 26;
+    switch (materialId) {
+        @magma:impl:beginCases geometry
+            return @magma:impl:call (node);
+        @magma:impl:endCases
+    }
+    return false;
+}

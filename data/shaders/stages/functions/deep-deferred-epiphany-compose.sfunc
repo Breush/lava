@@ -1,0 +1,15 @@
+#include "./deep-deferred-epiphany.sfunc"
+
+@magma:impl:paste epiphany
+
+// Returns the color of the fragment at this node.
+vec4 composeEpiphany(GBufferNode node)
+{
+    uint materialId = node.materialId6_next26 >> 26;
+    switch (materialId) {
+        @magma:impl:beginCases epiphany
+            return @magma:impl:call (node);
+        @magma:impl:endCases
+    }
+    return vec4(0);
+}

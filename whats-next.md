@@ -20,14 +20,6 @@
 
 ## Magma
 
-- **bug**
-    - Artifacts for opaque meshes with a lot of overlapping
-        - Try having a RT as the GBufferHeader,
-          so that depth resolution is managed as expected by the GC.
-        - Have a new opaque epiphany to resolve the header into a RT.
-          This can be the RT used in transparent epiphany later. 
-        - Having that done, we can reset the GBufferHeader and counter,
-          so that transparent objects have a full GBufferList to fill.
 - **refacto**
     - Remove useless descriptor pools
     - Replace useless const vk::Whatever& by vk::Whatever

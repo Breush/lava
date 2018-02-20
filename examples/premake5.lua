@@ -19,9 +19,9 @@ project "magma-scenes-and-windows"
     useCrater()
     useMagma()
     
-project "magma-transparency"
+project "magma-translucency"
     kind "WindowedApp"
-    files "magma/transparency.cpp"
+    files "magma/translucency.cpp"
     useCrater()
     useMagma()
     

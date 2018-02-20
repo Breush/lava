@@ -16,12 +16,14 @@ namespace lava::magma {
      * It constructs a linked-list deep GBuffer.
      */
     class DeepDeferredStage final {
-        constexpr static const uint32_t GBUFFER_DESCRIPTOR_SET_INDEX = 0u;
-        constexpr static const uint32_t CAMERA_DESCRIPTOR_SET_INDEX = 1u;
-        constexpr static const uint32_t MATERIAL_DESCRIPTOR_SET_INDEX = 2u;
-        constexpr static const uint32_t MESH_DESCRIPTOR_SET_INDEX = 3u;
+        constexpr static const uint32_t GBUFFER_HEADER_DESCRIPTOR_SET_INDEX = 0u;
+        constexpr static const uint32_t GBUFFER_LIST_DESCRIPTOR_SET_INDEX = 1u;
+        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 2u;
 
-        constexpr static const uint32_t EPIPHANY_DESCRIPTOR_SET_INDEX = 2u;
+        constexpr static const uint32_t CAMERA_DESCRIPTOR_SET_INDEX = 3u;
+
+        constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 4u;
+        constexpr static const uint32_t GEOMETRY_MESH_DESCRIPTOR_SET_INDEX = 5u;
 
         struct GBufferNode {
             // 26 bits can handle 8K resolution
@@ -43,12 +45,11 @@ namespace lava::magma {
     protected:
         void initGBuffer();
         void initClearPass();
-        void initGeometryOpaquePass();
+        void initGeometryPass();
         void initGeometryTranslucentPass();
         void initEpiphanyPass();
 
-        void updateGeometryOpaquePassShaders(bool firstTime);
-        void updateGeometryTranslucentPassShaders(bool firstTime);
+        void updateGeometryPassShaders(bool firstTime);
         void updateEpiphanyPassShaders(bool firstTime);
 
         void createResources();
@@ -65,20 +66,23 @@ namespace lava::magma {
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;
         vulkan::PipelineHolder m_clearPipelineHolder;
-        vulkan::PipelineHolder m_geometryOpaquePipelineHolder;
-        vulkan::PipelineHolder m_geometryTranslucentPipelineHolder;
+        vulkan::PipelineHolder m_geometryPipelineHolder;
         vulkan::PipelineHolder m_epiphanyPipelineHolder;
 
-        // Epiphany
-        vulkan::DescriptorHolder m_epiphanyDescriptorHolder;
-        vk::DescriptorSet m_epiphanyDescriptorSet = nullptr;
-        vulkan::UboHolder m_epiphanyUboHolder;
+        // Lights
+        vulkan::DescriptorHolder m_lightsDescriptorHolder;
+        vk::DescriptorSet m_lightsDescriptorSet = nullptr;
+        vulkan::UboHolder m_lightsUboHolder;
 
         // GBuffer
-        vulkan::DescriptorHolder m_gBufferDescriptorHolder;
-        vk::DescriptorSet m_gBufferDescriptorSet = nullptr;
-        vulkan::BufferHolder m_gBufferHeaderBufferHolder;
-        vulkan::BufferHolder m_gBufferListBufferHolder;
+        vulkan::DescriptorHolder m_gBufferInputDescriptorHolder;
+        vk::DescriptorSet m_gBufferInputDescriptorSet = nullptr;
+        std::vector<vulkan::ImageHolder> m_gBufferInputNodeImageHolders;
+
+        vulkan::DescriptorHolder m_gBufferSsboDescriptorHolder;
+        vk::DescriptorSet m_gBufferSsboDescriptorSet = nullptr;
+        vulkan::BufferHolder m_gBufferSsboHeaderBufferHolder;
+        vulkan::BufferHolder m_gBufferSsboListBufferHolder;
 
         // Resources
         vulkan::ImageHolder m_finalImageHolder;

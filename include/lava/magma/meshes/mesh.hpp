@@ -21,8 +21,6 @@ namespace lava::magma {
         ~Mesh();
 
         // IMesh
-        virtual bool translucent() const override final;
-        virtual void translucent(bool translucent) override final;
         IMesh::Impl& interfaceImpl() override final;
 
         const glm::mat4& transform() const;

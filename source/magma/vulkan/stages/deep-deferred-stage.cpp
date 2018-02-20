@@ -51,14 +51,14 @@ DeepDeferredStage::DeepDeferredStage(RenderScene::Impl& scene)
     : m_scene(scene)
     , m_renderPassHolder(m_scene.engine())
     , m_clearPipelineHolder(m_scene.engine())
-    , m_geometryOpaquePipelineHolder(m_scene.engine())
-    , m_geometryTranslucentPipelineHolder(m_scene.engine())
+    , m_geometryPipelineHolder(m_scene.engine())
     , m_epiphanyPipelineHolder(m_scene.engine())
-    , m_epiphanyDescriptorHolder(m_scene.engine())
-    , m_epiphanyUboHolder(m_scene.engine())
-    , m_gBufferDescriptorHolder(m_scene.engine())
-    , m_gBufferHeaderBufferHolder(m_scene.engine())
-    , m_gBufferListBufferHolder(m_scene.engine())
+    , m_lightsDescriptorHolder(m_scene.engine())
+    , m_lightsUboHolder(m_scene.engine())
+    , m_gBufferInputDescriptorHolder(m_scene.engine()) 
+    , m_gBufferSsboDescriptorHolder(m_scene.engine())
+    , m_gBufferSsboHeaderBufferHolder(m_scene.engine())
+    , m_gBufferSsboListBufferHolder(m_scene.engine())
     , m_finalImageHolder(m_scene.engine())
     , m_depthImageHolder(m_scene.engine())
     , m_framebuffer(m_scene.engine().device())
@@ -74,15 +74,13 @@ void DeepDeferredStage::init(uint32_t cameraId)
 
     initGBuffer();
     initClearPass();
-    initGeometryOpaquePass();
-    initGeometryTranslucentPass();
+    initGeometryPass();
     initEpiphanyPass();
 
     //----- Render pass
 
     m_renderPassHolder.add(m_clearPipelineHolder);
-    m_renderPassHolder.add(m_geometryOpaquePipelineHolder);
-    m_renderPassHolder.add(m_geometryTranslucentPipelineHolder);
+    m_renderPassHolder.add(m_geometryPipelineHolder);
     m_renderPassHolder.add(m_epiphanyPipelineHolder);
     m_renderPassHolder.init();
 
@@ -94,8 +92,7 @@ void DeepDeferredStage::update(vk::Extent2D extent)
     m_extent = extent;
 
     m_clearPipelineHolder.update(extent);
-    m_geometryOpaquePipelineHolder.update(extent);
-    m_geometryTranslucentPipelineHolder.update(extent);
+    m_geometryPipelineHolder.update(extent);
     m_epiphanyPipelineHolder.update(extent);
 
     createResources();
@@ -110,9 +107,8 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     //----- Prologue
 
     // Set render pass
-    std::array<vk::ClearValue, 2> clearValues;
-    clearValues[0].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
-    // @note Not important - clearValues[1].color;
+    std::array<vk::ClearValue, 8> clearValues;
+    clearValues[3].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPassHolder.renderPass();
@@ -130,49 +126,28 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipelineLayout(),
-                                     GBUFFER_DESCRIPTOR_SET_INDEX, 1, &m_gBufferDescriptorSet, 0, nullptr);
+                                     GBUFFER_LIST_DESCRIPTOR_SET_INDEX, 1, &m_gBufferSsboDescriptorSet, 0, nullptr);
     commandBuffer.draw(6, 1, 0, 0);
 
     deviceHolder.debugMarkerEndRegion(commandBuffer);
 
-    //----- Geometry opaque pass
+    //----- Geometry pass
 
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Geometry opaque pass");
+    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Geometry pass");
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryOpaquePipelineHolder.pipeline());
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryPipelineHolder.pipeline());
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
+                                     LIGHTS_DESCRIPTOR_SET_INDEX, 1, &m_lightsDescriptorSet, 0, nullptr);
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
-    camera.render(commandBuffer, m_geometryOpaquePipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
+    camera.render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
 
-    // Draw all opaque meshes
+    // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
-        if (!mesh->translucent()) {
-            mesh->interfaceImpl().render(commandBuffer, m_geometryOpaquePipelineHolder.pipelineLayout(),
-                                         MESH_DESCRIPTOR_SET_INDEX, MATERIAL_DESCRIPTOR_SET_INDEX);
-            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eBottomOfPipe,
-                                          vk::DependencyFlags(), 0, nullptr, 0, nullptr, 0, nullptr);
-        }
-    }
-
-    deviceHolder.debugMarkerEndRegion(commandBuffer);
-
-    //----- Geometry translucent pass
-
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Geometry translucent pass");
-
-    commandBuffer.nextSubpass(vk::SubpassContents::eInline);
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryTranslucentPipelineHolder.pipeline());
-
-    // Draw all translucent meshes
-    for (auto& mesh : m_scene.meshes()) {
-        if (mesh->translucent()) {
-            mesh->interfaceImpl().render(commandBuffer, m_geometryTranslucentPipelineHolder.pipelineLayout(),
-                                         MESH_DESCRIPTOR_SET_INDEX, MATERIAL_DESCRIPTOR_SET_INDEX);
-            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eBottomOfPipe,
-                                          vk::DependencyFlags(), 0, nullptr, 0, nullptr, 0, nullptr);
-        }
+        mesh->interfaceImpl().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_DESCRIPTOR_SET_INDEX,
+                                     GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
     deviceHolder.debugMarkerEndRegion(commandBuffer);
@@ -184,7 +159,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
-                                     EPIPHANY_DESCRIPTOR_SET_INDEX, 1, &m_epiphanyDescriptorSet, 0, nullptr);
+                                     GBUFFER_HEADER_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0, nullptr);
 
     // @todo With LLL subpass, this shouldn't be needed anymore
     updateEpiphanyUbo();
@@ -204,9 +179,17 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
 void DeepDeferredStage::initGBuffer()
 {
-    m_gBufferDescriptorHolder.storageBufferSizes({1, 1});
-    m_gBufferDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
-    m_gBufferDescriptorSet = m_gBufferDescriptorHolder.allocateSet();
+    m_gBufferInputDescriptorHolder.inputAttachmentSizes({1, 1, 1});
+    m_gBufferInputDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
+    m_gBufferInputDescriptorSet = m_gBufferInputDescriptorHolder.allocateSet();
+
+    m_gBufferSsboDescriptorHolder.storageBufferSizes({1, 1});
+    m_gBufferSsboDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
+    m_gBufferSsboDescriptorSet = m_gBufferSsboDescriptorHolder.allocateSet();
+
+    m_lightsDescriptorHolder.uniformBufferSizes({1});
+    m_lightsDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
+    m_lightsDescriptorSet = m_lightsDescriptorHolder.allocateSet();
 }
 
 void DeepDeferredStage::initClearPass()
@@ -225,35 +208,44 @@ void DeepDeferredStage::initClearPass()
 
     //----- Descriptor set layouts
 
-    m_clearPipelineHolder.add(m_gBufferDescriptorHolder.setLayout());
+    m_clearPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
+    m_clearPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
 }
 
-void DeepDeferredStage::initGeometryOpaquePass()
+void DeepDeferredStage::initGeometryPass()
 {
-    // Allow using a pipelineBarrier during the rendering of the pass.
-    m_geometryOpaquePipelineHolder.selfDependent(true);
-
     //----- Shaders
 
-    updateGeometryOpaquePassShaders(true);
+    updateGeometryPassShaders(true);
 
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_geometryOpaquePipelineHolder.add(m_gBufferDescriptorHolder.setLayout());
-    m_geometryOpaquePipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
-    m_geometryOpaquePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_geometryOpaquePipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
+    m_geometryPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
+    m_geometryPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
+    m_geometryPipelineHolder.add(m_lightsDescriptorHolder.setLayout());
+    m_geometryPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
+    m_geometryPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
+    m_geometryPipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
 
     //----- Rasterization
 
-    m_geometryOpaquePipelineHolder.set(vk::CullModeFlagBits::eBack);
+    m_geometryPipelineHolder.set(vk::CullModeFlagBits::eBack);
 
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
     depthStencilAttachment.format = findDepthBufferFormat(m_scene.engine().physicalDevice());
-    m_geometryOpaquePipelineHolder.set(depthStencilAttachment);
+    m_geometryPipelineHolder.set(depthStencilAttachment);
+
+    vulkan::PipelineHolder::ColorAttachment gBufferNodeColorAttachment;
+    gBufferNodeColorAttachment.format = vk::Format::eR32G32B32A32Uint;
+    gBufferNodeColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+
+    // There are multiple nodes render targets
+    m_geometryPipelineHolder.add(gBufferNodeColorAttachment);
+    m_geometryPipelineHolder.add(gBufferNodeColorAttachment);
+    m_geometryPipelineHolder.add(gBufferNodeColorAttachment);
 
     //---- Vertex input
 
@@ -263,39 +255,7 @@ void DeepDeferredStage::initGeometryOpaquePass()
                               {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
                               {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
-    m_geometryOpaquePipelineHolder.set(vertexInput);
-}
-
-void DeepDeferredStage::initGeometryTranslucentPass()
-{
-    // Allow using a pipelineBarrier during the rendering of the pass.
-    m_geometryTranslucentPipelineHolder.selfDependent(true);
-
-    //----- Shaders
-
-    updateGeometryTranslucentPassShaders(true);
-
-    //----- Descriptor set layouts
-
-    // @note Ordering is important
-    m_geometryTranslucentPipelineHolder.add(m_gBufferDescriptorHolder.setLayout());
-    m_geometryTranslucentPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
-    m_geometryTranslucentPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_geometryTranslucentPipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
-
-    //----- Rasterization
-
-    m_geometryTranslucentPipelineHolder.set(vk::CullModeFlagBits::eBack);
-
-    //---- Vertex input
-
-    vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::Vertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
-                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
-                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
-                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
-    m_geometryTranslucentPipelineHolder.set(vertexInput);
+    m_geometryPipelineHolder.set(vertexInput);
 }
 
 void DeepDeferredStage::initEpiphanyPass()
@@ -306,22 +266,25 @@ void DeepDeferredStage::initEpiphanyPass()
 
     //----- Descriptors
 
-    m_epiphanyPipelineHolder.add(m_gBufferDescriptorHolder.setLayout());
+    m_epiphanyPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
+    m_epiphanyPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
+    m_epiphanyPipelineHolder.add(m_lightsDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
-
-    // UBO: EpiphanyLightUbo
-    m_epiphanyDescriptorHolder.uniformBufferSizes({1});
-    m_epiphanyDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
-    m_epiphanyPipelineHolder.add(m_epiphanyDescriptorHolder.setLayout());
-
-    m_epiphanyDescriptorSet = m_epiphanyDescriptorHolder.allocateSet();
 
     //----- Uniform buffers
 
-    m_epiphanyUboHolder.init(m_epiphanyDescriptorSet, m_epiphanyDescriptorHolder.uniformBufferBindingOffset(),
+    m_lightsUboHolder.init(m_lightsDescriptorSet, m_lightsDescriptorHolder.uniformBufferBindingOffset(),
                              {sizeof(EpiphanyPointLightUbo)});
 
     //----- Attachments
+
+    vulkan::PipelineHolder::InputAttachment gBufferInputNodeAttachment;
+    gBufferInputNodeAttachment.format = vk::Format::eR32G32B32A32Uint;
+
+    // There are multiple render targets
+    m_epiphanyPipelineHolder.add(gBufferInputNodeAttachment);
+    m_epiphanyPipelineHolder.add(gBufferInputNodeAttachment);
+    m_epiphanyPipelineHolder.add(gBufferInputNodeAttachment);
 
     vulkan::PipelineHolder::ColorAttachment finalColorAttachment;
     finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
@@ -329,46 +292,23 @@ void DeepDeferredStage::initEpiphanyPass()
     m_epiphanyPipelineHolder.add(finalColorAttachment);
 }
 
-void DeepDeferredStage::updateGeometryOpaquePassShaders(bool firstTime)
+void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
 {
-    m_geometryOpaquePipelineHolder.removeShaderStages();
+    m_geometryPipelineHolder.removeShaderStages();
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
     auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert");
-    m_geometryOpaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
+    m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
-    if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryOpaquePassShaders(false); };
+    if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryPassShaders(false); };
     auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry-opaque.frag", moduleOptions);
-    m_geometryOpaquePipelineHolder.add(
-        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.frag", moduleOptions);
+    m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     if (!firstTime) {
-        m_geometryOpaquePipelineHolder.update(m_extent);
-    }
-}
-
-void DeepDeferredStage::updateGeometryTranslucentPassShaders(bool firstTime)
-{
-    m_geometryTranslucentPipelineHolder.removeShaderStages();
-
-    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert");
-    m_geometryTranslucentPipelineHolder.add(
-        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
-
-    ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
-    if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryTranslucentPassShaders(false); };
-    auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry-translucent.frag", moduleOptions);
-    m_geometryTranslucentPipelineHolder.add(
-        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
-
-    if (!firstTime) {
-        m_geometryTranslucentPipelineHolder.update(m_extent);
+        m_geometryPipelineHolder.update(m_extent);
     }
 }
 
@@ -394,6 +334,31 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
 
 void DeepDeferredStage::createResources()
 {
+    // GBuffer Input
+    m_gBufferInputNodeImageHolders.clear();
+    m_gBufferInputNodeImageHolders.reserve(3u);
+    auto gBufferHeaderFormat = vk::Format::eR32G32B32A32Uint;
+    for (auto i = 0u; i < 3u; ++i) {
+        m_gBufferInputNodeImageHolders.emplace_back(m_scene.engine());
+        m_gBufferInputNodeImageHolders[i].create(gBufferHeaderFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+        m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet, m_gBufferInputNodeImageHolders[i].view(),
+                                                 vk::ImageLayout::eShaderReadOnlyOptimal, i);
+    }
+
+    // GBuffer SSBO
+    vk::DeviceSize headerSize = 1u * sizeof(uint32_t) + m_extent.width * m_extent.height * sizeof(uint32_t);
+    m_gBufferSsboHeaderBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, headerSize);
+    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboHeaderBufferHolder.buffer(), headerSize, 0);
+    m_gBufferSsboHeaderBufferHolder.copy(m_extent.width);
+
+    vk::DeviceSize listSize =
+        1u * sizeof(uint32_t) + GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferNode);
+    m_gBufferSsboListBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, listSize);
+    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
+
+    logger.info("magma.vulkan.stages.deep-deferred-stage")
+        << "GBuffer sizes | header: " << headerSize / 1000000.f << "Mo | list: " << listSize / 1000000.f << "Mo." << std::endl;
+
     // Final
     auto finalFormat = vk::Format::eR8G8B8A8Unorm;
     m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
@@ -401,26 +366,19 @@ void DeepDeferredStage::createResources()
     // Depth
     auto depthFormat = findDepthBufferFormat(m_scene.engine().physicalDevice());
     m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
-
-    // GBuffer
-    vk::DeviceSize gBufferHeaderSize = 1u * sizeof(uint32_t) + m_extent.width * m_extent.height * sizeof(uint32_t);
-    m_gBufferHeaderBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, gBufferHeaderSize);
-    m_gBufferDescriptorHolder.updateSet(m_gBufferDescriptorSet, m_gBufferHeaderBufferHolder.buffer(), gBufferHeaderSize, 0);
-    m_gBufferHeaderBufferHolder.copy(m_extent.width);
-
-    vk::DeviceSize gBufferListSize =
-        1u * sizeof(uint32_t) + GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferNode);
-    m_gBufferListBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, gBufferListSize);
-    m_gBufferDescriptorHolder.updateSet(m_gBufferDescriptorSet, m_gBufferListBufferHolder.buffer(), gBufferListSize, 1);
-
-    logger.info("magma.vulkan.stages.deep-deferred-stage") << "GBuffer sizes | header: " << gBufferHeaderSize / 1000000.f
-                                                           << "Mo | list: " << gBufferListSize / 1000000.f << "Mo." << std::endl;
 }
 
 void DeepDeferredStage::createFramebuffers()
 {
     // Framebuffer
-    std::array<vk::ImageView, 2> attachments = {m_depthImageHolder.view(), m_finalImageHolder.view()};
+    std::array<vk::ImageView, 8> attachments = {m_gBufferInputNodeImageHolders[0].view(),
+                                                m_gBufferInputNodeImageHolders[1].view(),
+                                                m_gBufferInputNodeImageHolders[2].view(),
+                                                m_depthImageHolder.view(),
+                                                m_finalImageHolder.view(),
+                                                m_gBufferInputNodeImageHolders[0].view(),
+                                                m_gBufferInputNodeImageHolders[1].view(),
+                                                m_gBufferInputNodeImageHolders[2].view()};
 
     vk::FramebufferCreateInfo framebufferInfo;
     framebufferInfo.renderPass = m_renderPassHolder.renderPass();
@@ -447,7 +405,7 @@ void DeepDeferredStage::updateEpiphanyUbo()
             ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
             ubo.radius = pointLight.radius();
 
-            m_epiphanyUboHolder.copy(0, ubo);
+            m_lightsUboHolder.copy(0, ubo);
         }
     }
 }

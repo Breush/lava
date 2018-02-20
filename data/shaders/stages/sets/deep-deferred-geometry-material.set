@@ -1,0 +1,6 @@
+layout(std140, set = 4, binding = 0) uniform MaterialUbo {
+    uint id;
+    uvec4 data[8];
+} material;
+
+layout(set = 4, binding = 1) uniform sampler2D samplers[8];

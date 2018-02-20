@@ -18,6 +18,4 @@ $pimpl_method(MeshComponent, void, verticesNormals, const std::vector<glm::vec3>
 $pimpl_method(MeshComponent, void, verticesTangents, const std::vector<glm::vec4>&, tangents);
 $pimpl_method(MeshComponent, void, indices, const std::vector<uint16_t>&, indices);
 
-$pimpl_method_const(MeshComponent, bool, translucent);
-$pimpl_method(MeshComponent, void, translucent, bool, translucent);
 $pimpl_method(MeshComponent, void, material, Material&, material);

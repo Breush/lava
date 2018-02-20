@@ -57,16 +57,6 @@ void MeshComponent::Impl::indices(const std::vector<uint16_t>& indices)
     m_mesh->indices(indices);
 }
 
-bool MeshComponent::Impl::translucent() const
-{
-    return m_mesh->translucent();
-}
-
-void MeshComponent::Impl::translucent(bool translucent)
-{
-    m_mesh->translucent(translucent);
-}
-
 void MeshComponent::Impl::material(Material& material)
 {
     m_mesh->material(material.original());

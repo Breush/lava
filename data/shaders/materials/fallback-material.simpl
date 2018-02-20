@@ -8,11 +8,14 @@
 
 @magma:impl:begin geometry
 
-void @magma:impl:main (inout GBufferNode node) {
+bool @magma:impl:main (inout GBufferNode node) {
     vec3 normal = inTbn[2];
 
     uint startIndex = 0;
     gBufferPackVec3(node, startIndex, normal);
+
+    // This is always considered opaque
+    return false;
 }
 
 @magma:impl:end geometry

@@ -1,0 +1,7 @@
+layout(set = 0, binding = 0, input_attachment_index = 0) uniform usubpassInput gBufferInputNode0;
+layout(set = 0, binding = 1, input_attachment_index = 1) uniform usubpassInput gBufferInputNode1;
+layout(set = 0, binding = 2, input_attachment_index = 2) uniform usubpassInput gBufferInputNode2;
+
+uvec4 gBufferNode0 = subpassLoad(gBufferInputNode0);
+uvec4 gBufferNode1 = subpassLoad(gBufferInputNode1);
+uvec4 gBufferNode2 = subpassLoad(gBufferInputNode2);

@@ -2,7 +2,7 @@
 
 #define GBUFFER_MATERIALDATA_SIZE 9
 
-layout(std430, set = 0, binding = 0) buffer GBufferHeader {
+layout(std430, set = 1, binding = 0) buffer GBufferHeader {
     uint width;
     uint listIndex[];
 } gBufferHeader;
@@ -13,7 +13,13 @@ struct GBufferNode {
     uint materialData[GBUFFER_MATERIALDATA_SIZE];
 };
 
-layout(std430, set = 0, binding = 1) buffer GBufferList {
+struct GBufferColorNode {
+    uint materialId6_next26;
+    float depth;
+    vec4 color;
+};
+
+layout(std430, set = 1, binding = 1) buffer GBufferList {
     uint counter;
-    GBufferNode nodes[];
+    GBufferColorNode nodes[];
 } gBufferList;

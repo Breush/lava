@@ -124,7 +124,6 @@ void TextMeshComponent::Impl::update()
     meshComponent.verticesNormals(normals);
     meshComponent.verticesUvs(uvs);
     meshComponent.material(material);
-    meshComponent.translucent(true);
 }
 
 //----- Main interface

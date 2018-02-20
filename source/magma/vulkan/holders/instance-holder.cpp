@@ -32,6 +32,13 @@ namespace {
         auto category = chamber::camelToSnakeCase(vk::to_string(vk_objType));
 
         if (vk_flags & vk::DebugReportFlagBitsEXT::eWarning) {
+            // @fixme This is a to prevent an unwanted warning in validation layer:
+            //      vkCmdBeginRenderPass(): Cannot read invalid region of memory allocation 0x54 for bound Image object 0x53,
+            //      please fill the memory before using.
+            if (category == "device-memory") {
+                return VK_FALSE;
+            }
+
             chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
         }
         else if (vk_flags & vk::DebugReportFlagBitsEXT::eError) {

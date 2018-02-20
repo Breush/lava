@@ -3,7 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #include "./sets/deep-deferred-camera.set"
-#include "./sets/deep-deferred-mesh.set"
+#include "./sets/deep-deferred-geometry-mesh.set"
 
 //----- Vertex data in
 

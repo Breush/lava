@@ -1,6 +1,0 @@
-layout(std140, set = 2, binding = 0) uniform MaterialUbo {
-    uint id;
-    uvec4 data[8];
-} material;
-
-layout(set = 2, binding = 1) uniform sampler2D samplers[8];

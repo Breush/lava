@@ -28,8 +28,6 @@ namespace lava::sill {
         void verticesTangents(const std::vector<glm::vec4>& tangents);
         void indices(const std::vector<uint16_t>& indices);
 
-        bool translucent() const;
-        void translucent(bool translucent);
         void material(Material& material);
 
         // Callbacks
