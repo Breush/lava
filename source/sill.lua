@@ -8,6 +8,7 @@ project "lava-sill"
         useCrater()
         useMagma()
         useDike()
+        useNlohmannJson()
     end
 
     sillDependencies()

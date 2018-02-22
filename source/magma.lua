@@ -18,7 +18,6 @@ project "lava-magma"
 
         useChamber()
         useVulkanSdk()
-        useNlohmannJson()
     end
 
     magmaDependencies()

@@ -1,10 +1,10 @@
-# lava - layered api for vulkan awesomeness
+# lava
 
 ## Project's composition
 
 The **lava** project is in fact a bundle of multiple projects.
 
-![lava composition](doc/images/lava-composition.png)
+![lava composition](doc/images/lava-composition.jpg)
 
 The core principles of **lava** are:
 - Be *up-to-date* with C++ standard (currently set to C++17) to make your code-life easier ;
@@ -13,35 +13,55 @@ The core principles of **lava** are:
 
 ## Contributing guide
 
-**lava** uses *Premake* as build configuration system.
+**lava** uses *Premake* as build configuration system,
+but some dependencies use [cmake](https://cmake.org/), so it is required too.
+Moreover, C++17 features are highly used, be sure to have a recent compiler (gcc >= 7).
 
 - download [Premake v5](https://premake.github.io/download.html#v5) and install it from your platform ;
-- run *Premake5* at project's root folder
-	- `premake5 gmake` for *Linux* makefiles (or MinGW/CygWin ones) ;
-	- `premake5 vs2017` for *Microsoft Visual Studio* solution (currently untested) ;
-	- `premake5 xcode3` for *Apple* Xcode solution (currenly untested) ;
-	- or check [this Premake5 wiki page](https://github.com/premake/premake-core/wiki/Using-Premake) for other solutions ;
-- your solution files have been generated to project's root folder.
+- run `./scripts/setup.sh` to install submodules and download dependencies ;
+- run `./scripts/build.sh` to compile everything (with examples) ;
+- find all executables in `build` folder.
 
-### Building
+__NOTE__ To compile on release, one can use `make config=release`.
 
-In order to select the configuration (debug or release):
-- `make config=release` for gmake.
+As a daily developper, one should use: `./scripts/run.sh <target-name> [debug]`.
+This will enable Vulkan's validation layer, check dependencies,
+compile only what's necessary, and run the associated executable.
+If you don't know any target name, run the command without any.
+Adding `debug` at the end of the command, will launch `gdb`.
+
+### Compiling on Windows
+
+In order to compile on *Windows*, you'll need to set-up a `bash` and `gcc` environment,
+so that the commands specified in the above section work too.
+Fact is, compiling the project with *Microsoft Visual Studio Compiler* has never been
+tested, and I personally won't even try. But have no fear, all the projects **are**
+cross-platform.
+
+- download and install some [git bash](https://gitforwindows.org/) environment for windows ;
+- download and install [MinGW](https://sourceforge.net/projects/mingw-w64/files/)
+(find some `x86_64-posix-seh` in the readme with a recent `gcc`) ;
+- be sure to have `cmake`, `bash` and `gcc` findable in your *PATH*.
+
+You can then follow the contributing guide with `./scripts/setup.sh && ./scripts/build.sh`.
+
+__NOTE__ During the set-up phase, on *Windows*, you might be prompt with *Vulkan SDK*
+confirmation dialog. You have to accept.
 
 ### Generating documentation
 
 - Have [doxygen](www.doxygen.org/) installed on your system ;
-- `cd doc && doxygen doxygen-config.xml` to generate documentation. 
+- `cd doc/technical && doxygen doxygen-config.xml` to generate technical documentation.
 
 ## Dependencies
 
-Everything **lava** needs is downloaded during *Premake* phase to `external/`. 
+Everything **lava** needs is downloaded via *Premake* to `external/`. 
 
 Current awesome dependencies are:
 - [Bullet Physics](https://github.com/bulletphysics/bullet3)
 - [Nlohman's JSON](https://github.com/nlohmann/json)
-- [Nothings.org STB Fonts](https://nothings.org/stb/font/)
 - [OpenGL Mathematics](http://glm.g-truc.net/)
+- [STB libraries](https://github.com/nothings/stb)
 - [VulkanSDK](https://vulkan.lunarg.com/)
 
 __NOTE__ The one guideline concerning dependencies is to not include within this repository any external source,

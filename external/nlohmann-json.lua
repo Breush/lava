@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Nlohmann JSON"
-local VERSION = "3.1.0"
+local VERSION = "3.1.1"
 
 -- Download
 
