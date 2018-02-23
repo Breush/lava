@@ -25,12 +25,12 @@ namespace lava::magma {
         constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 4u;
         constexpr static const uint32_t GEOMETRY_MESH_DESCRIPTOR_SET_INDEX = 5u;
 
-        struct GBufferNode {
+        struct GBufferColorNode {
             // 26 bits can handle 8K resolution
             // 6 bits allows 64 different material shaders
             uint32_t materialId6_next26;
             float depth;
-            uint32_t materialData[9];
+            glm::vec4 color;
         };
 
     public:

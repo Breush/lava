@@ -55,7 +55,7 @@ DeepDeferredStage::DeepDeferredStage(RenderScene::Impl& scene)
     , m_epiphanyPipelineHolder(m_scene.engine())
     , m_lightsDescriptorHolder(m_scene.engine())
     , m_lightsUboHolder(m_scene.engine())
-    , m_gBufferInputDescriptorHolder(m_scene.engine()) 
+    , m_gBufferInputDescriptorHolder(m_scene.engine())
     , m_gBufferSsboDescriptorHolder(m_scene.engine())
     , m_gBufferSsboHeaderBufferHolder(m_scene.engine())
     , m_gBufferSsboListBufferHolder(m_scene.engine())
@@ -274,7 +274,7 @@ void DeepDeferredStage::initEpiphanyPass()
     //----- Uniform buffers
 
     m_lightsUboHolder.init(m_lightsDescriptorSet, m_lightsDescriptorHolder.uniformBufferBindingOffset(),
-                             {sizeof(EpiphanyPointLightUbo)});
+                           {sizeof(EpiphanyPointLightUbo)});
 
     //----- Attachments
 
@@ -352,7 +352,7 @@ void DeepDeferredStage::createResources()
     m_gBufferSsboHeaderBufferHolder.copy(m_extent.width);
 
     vk::DeviceSize listSize =
-        1u * sizeof(uint32_t) + GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferNode);
+        1u * sizeof(uint32_t) + GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferColorNode);
     m_gBufferSsboListBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, listSize);
     m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
 
