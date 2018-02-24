@@ -4,8 +4,9 @@
  *  Input
  *  -----
  *
- *  data[0].x   -   roughnessFactor
- *  data[1].x   -   metallicFactor
+ *  data[0]     -   albedo color
+ *  data[1].x   -   roughnessFactor
+ *  data[2].x   -   metallicFactor
  *
  *  sampler[0]  -   tNormalSampler
  *  sampler[1]  -   albedoSampler
@@ -19,7 +20,9 @@ bool @magma:impl:main (inout GBufferNode node) {
     vec3 normal = 2 * texture(samplers[0], inUv).rgb - 1;
     normal = normalize(inTbn * normal);
 
-    vec4 albedo = texture(samplers[1], inUv);
+    uint startIndex = 0;
+    vec4 albedoColor = materialUnpackVec4(startIndex);
+    vec4 albedo = texture(samplers[1], inUv) * albedoColor;
     if (albedo.a == 0) discard;
 
     vec4 orm = texture(samplers[2], inUv);
@@ -27,13 +30,13 @@ bool @magma:impl:main (inout GBufferNode node) {
     float occlusion = 1;
     occlusion *= orm.r;
 
-    float roughness = uintBitsToFloat(material.data[0].x);
+    float roughness = uintBitsToFloat(material.data[1].x);
     roughness *= orm.g;
 
-    float metallic = uintBitsToFloat(material.data[1].x);
+    float metallic = uintBitsToFloat(material.data[2].x);
     metallic *= orm.b;
 
-    uint startIndex = 0;
+    startIndex = 0;
     gBufferPackFloat(node, startIndex, albedo.a);
     gBufferPackVec3(node, startIndex, albedo.rgb);
     gBufferPackVec3Normalized(node, startIndex, normal);
