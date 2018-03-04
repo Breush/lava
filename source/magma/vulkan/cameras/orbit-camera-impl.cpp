@@ -107,5 +107,6 @@ void OrbitCamera::Impl::updateBindings()
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;
     ubo.wPosition = glm::vec4(m_position, 1.f);
+    ubo.extent = glm::uvec2(m_extent.width, m_extent.height);
     m_uboHolder.copy(0, ubo);
 }

@@ -2,20 +2,19 @@
 
 #include <glm/glm.hpp>
 
-// @todo What's vulkan?
+// @fixme UBO definitions should not be in 'vulkan' namespace...
 namespace lava::magma::vulkan {
-    /// Camera UBO used by GBuffer stage.
     struct CameraUbo {
         glm::mat4 view;
         glm::mat4 projection;
         glm::vec4 wPosition;
+        glm::uvec2 extent;
     };
 
-    /// Material UBO used by GBuffer stage.
     struct MaterialUboHeader {
         union {
             uint32_t id;
-            glm::vec4 __padding_id;
+            glm::vec4 __padding;
         };
 
         MaterialUboHeader() {}
@@ -28,7 +27,6 @@ namespace lava::magma::vulkan {
         MaterialUbo() {}
     };
 
-    /// Mesh UBO used by GBuffer stage.
     struct MeshUbo {
         glm::mat4 transform;
     };
