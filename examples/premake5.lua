@@ -42,6 +42,11 @@ project "dike-bouncy-sphere"
 ----------
 -- sill --
 
+project "sill-matcap-material"
+kind "WindowedApp"
+files "sill/matcap-material.cpp"
+useSill()
+
 project "sill-mesh-makers"
     kind "WindowedApp"
     files "sill/mesh-makers.cpp"

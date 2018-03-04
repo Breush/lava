@@ -151,6 +151,10 @@ void GameEngine::Impl::registerMaterials()
                                               {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
                                               {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
                                               {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
+
+    // Matcap material
+    m_renderEngine->registerMaterialFromFile("matcap", "./data/shaders/materials/matcap-material.simpl",
+                                             {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
 }
 
 void GameEngine::Impl::handleEvent(WsEvent& event)
