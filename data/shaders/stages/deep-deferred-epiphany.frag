@@ -18,6 +18,7 @@ layout(location = 0) out vec3 outColor;
 //----- Functions
 
 #include "./functions/defines.sfunc"
+#include "./functions/deep-deferred-common.sfunc"
 #include "./functions/deep-deferred-epiphany-compose.sfunc"
 
 //----- Program

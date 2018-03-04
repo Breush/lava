@@ -20,6 +20,7 @@ layout (location = 0) out uvec4 outGBufferNodes[3];
 //----- Functions
 
 #include "./functions/defines.sfunc"
+#include "./functions/deep-deferred-common.sfunc"
 #include "./functions/deep-deferred-geometry-compose.sfunc"
 #include "./functions/deep-deferred-epiphany-compose.sfunc"
 
