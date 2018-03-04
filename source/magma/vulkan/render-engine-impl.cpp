@@ -110,10 +110,12 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     buffer << fileStream.rdbuf();
 
     // Start watching the file
-    m_shadersWatcher.watch(shaderPath);
-
     const auto materialId = registerMaterial(hrid, buffer.str(), uniformDefinitions);
+    const auto watchId = m_shadersWatcher.watch(shaderPath);
     m_materialInfos[hrid].sourcePath = shaderPath;
+    m_materialInfos[hrid].watchId = watchId;
+
+    std::cout << "WATCH ID: " << watchId << std::endl;
 
     return materialId;
 }

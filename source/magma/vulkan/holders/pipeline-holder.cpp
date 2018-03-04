@@ -23,6 +23,9 @@ void PipelineHolder::init(uint32_t subpassIndex)
 
 void PipelineHolder::update(vk::Extent2D extent)
 {
+    // Cannot reconstruct pipeline with an active GPU
+    m_engine.device().waitIdle();
+
     //--- Vertex input
 
     vk::PipelineVertexInputStateCreateInfo vertexInputState;

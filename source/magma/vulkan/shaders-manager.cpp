@@ -68,6 +68,11 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const Modul
             return nullptr;
         }
 
+        // Destroy previous module if any
+        if (isModuleDirty && iModule != m_modules.end()) {
+            m_modules.erase(iModule);
+        }
+
         auto module = vulkan::createShaderModule(m_device, code);
         shaderModule = module;
 

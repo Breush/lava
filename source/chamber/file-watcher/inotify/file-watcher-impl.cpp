@@ -22,6 +22,7 @@ namespace {
 
             chamber::FileWatchEvent event;
             event.path = watchDescriptors->at(iEvent.wd);
+            event.watchId = iEvent.wd;
 
             if (iEvent.len) event.path /= iEvent.name;
 
