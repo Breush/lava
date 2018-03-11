@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "GLM"
-local VERSION = "0.9.8.5"
+local VERSION = "0.9.9-a2"
 
 -- Download
 
@@ -9,7 +9,7 @@ local localFile = "./.tmp/glm_" .. VERSION .. ".zip"
 if not fileValid(localFile) then
     os.mkdir("./.tmp")
     os.execute("rm --recursive ./include/glm")
-    local url = "https://github.com/g-truc/glm/releases/download/" .. VERSION .. "/glm-" .. VERSION .. ".zip"
+    local url = "https://github.com/g-truc/glm/archive/" .. VERSION .. ".zip"
     
     downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
     local downloadResult = http.download(url, localFile, { progress = downloadProgress })
