@@ -8,7 +8,7 @@ local VERSION = "2.87"
 local localFile = "./.tmp/bullet_" .. VERSION .. ".zip";
 if not fileValid(localFile) then
     os.mkdir("./.tmp/")
-    os.execute("rm --recursive ./include/bullet")
+    os.execute("rm --recursive ./include/bullet 2> /dev/null")
 
     local url = "https://github.com/bulletphysics/bullet3/archive/" .. VERSION .. ".zip"
 

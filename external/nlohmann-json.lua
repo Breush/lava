@@ -5,11 +5,11 @@ local VERSION = "3.1.1"
 
 -- Download
 
-local localFile = "./.tmp/json_" .. VERSION .. ".hpp"
+local localFile = "./.tmp/nlhomann-json_" .. VERSION .. ".hpp"
 if not fileValid(localFile) then
     os.mkdir("./.tmp")
-    os.execute("rm --recursive ./include/nlohmann")
-    local url = "https://github.com/nlohmann/json/releases/download/v" .. VERSION.. "/json.hpp"
+    os.execute("rm --recursive ./include/nlohmann 2> /dev/null")
+    local url = "https://github.com/nlohmann/json/releases/download/v" .. VERSION .. "/json.hpp"
     
     downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
     local downloadResult = http.download(url, localFile, { progress = downloadProgress })

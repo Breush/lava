@@ -1,18 +1,19 @@
 -- Download
 
+local NAME = "STB libraries"
+local REPOSITORY = "git@github.com:nothings/stb.git"
+
 if not fileExists("./.tmp/stb") then
     os.mkdir("./.tmp")
-    os.execute("rm --recursive ./include/stb")
-
-    local url = "git@github.com:nothings/stb.git"
+    os.execute("rm --recursive ./include/stb 2> /dev/null")
     
-    downloadStart("Dependencies", "STB librairies")
-    local errorCode = os.execute("git clone --depth=1 " .. url .. " .tmp/stb")
+    downloadStart("Dependencies", NAME)
+    local success = os.execute("git clone --depth=1 " .. REPOSITORY .. " .tmp/stb")
 
-    if errorCode ~= 0 then
+    if not success then
         downloadStop()
-        print("[Dependencies] FAILURE while downloading STB librairies...")
-        print("If it persists, please try cloning " .. url .. " by yourself")
+        print("[Dependencies] FAILURE while downloading " .. NAME .. "...")
+        print("If it persists, please try cloning " .. REPOSITORY .. " by yourself")
         print("and move it to " .. path.getabsolute("./.tmp/stb"))
         os.exit(1)
     end
@@ -21,7 +22,7 @@ end
 -- Set up
 
 if not fileExists("./include/stb") then
-    print("[Dependencies] Setting STB librairies up...")
+    print("[Dependencies] Setting " .. NAME .. " up...")
 
     os.execute("bash ../scripts/setup/stb.sh")
 end
@@ -33,5 +34,5 @@ function useStb()
     includedirs(externalPath .. "/include")
 end
 
-print("[Dependencies] STB librairies are ready.")
+print("[Dependencies] " .. NAME .. " are ready.")
 

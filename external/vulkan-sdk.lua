@@ -8,7 +8,7 @@ local VERSION = "1.1.70.1"
 local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".run";
 if not fileValid(localFile) then
     os.mkdir("./.tmp/")
-    os.execute("rm --recursive ./include/vulkan")
+    os.execute("rm --recursive ./include/vulkan 2> /dev/null")
 
     local filename = "linux/vulkansdk-linux-x86_64-" .. VERSION .. ".run"
     if os.host() == "windows" then

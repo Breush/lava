@@ -8,7 +8,7 @@ local VERSION = "0.9.9-a2"
 local localFile = "./.tmp/glm_" .. VERSION .. ".zip"
 if not fileValid(localFile) then
     os.mkdir("./.tmp")
-    os.execute("rm --recursive ./include/glm")
+    os.execute("rm --recursive ./include/glm 2> /dev/null")
     local url = "https://github.com/g-truc/glm/archive/" .. VERSION .. ".zip"
     
     downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
