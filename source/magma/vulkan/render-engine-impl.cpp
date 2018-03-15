@@ -115,8 +115,6 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     m_materialInfos[hrid].sourcePath = shaderPath;
     m_materialInfos[hrid].watchId = watchId;
 
-    std::cout << "WATCH ID: " << watchId << std::endl;
-
     return materialId;
 }
 
