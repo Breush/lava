@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/lights/point-light.hpp>
+#include <lava/magma/lights/directional-light.hpp>
 
 #include "./i-light-impl.hpp"
 
@@ -9,23 +9,23 @@
 
 namespace lava::magma {
     /**
-     * Implementation of magma::PointLight.
+     * Implementation of magma::DirectionalLight.
      */
-    class PointLight::Impl : public ILight::Impl {
+    class DirectionalLight::Impl : public ILight::Impl {
     public:
         Impl(RenderScene& scene);
         ~Impl() = default;
 
         // ILight::Impl
         void init() override final;
-        LightType type() const override final { return LightType::Point; };
+        LightType type() const override final { return LightType::Directional; };
 
     private:
         // References
         RenderScene::Impl& m_scene;
 
-        // ILight
+        // IDirectionalLight
         $property(glm::vec3, position);
-        $property(float, radius, = 1.f);
+        $property(glm::vec3, direction);
     };
 }

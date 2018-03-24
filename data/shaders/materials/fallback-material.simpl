@@ -45,20 +45,17 @@ vec4 @magma:impl:main (GBufferNode node) {
     float specular = 0;
 
     // Check whether the lighting should have an effect
-    vec3 lightVector = light.wPosition.xyz - wPosition.xyz;
-    float lightDistance = length(lightVector);
-    if (lightDistance < light.radius) {
-        float i = 1 - (lightDistance * lightDistance) / (light.radius * light.radius);
-
-        vec3 l = normalize(lightVector);
-        float cosTheta = dot(normal, l);
+    vec3 lightDirection;
+    float lightIntensity;
+    if (epiphanyLight(wPosition, lightDirection, lightIntensity)) {
+        float cosTheta = dot(normal, lightDirection);
         if (cosTheta > 0) {
-            diffuse += i * id * cosTheta;
+            diffuse += lightIntensity * id * cosTheta;
 
-            vec3 r = normalize(2 * cosTheta * normal - l);
+            vec3 r = normalize(2 * cosTheta * normal - lightDirection);
             float cosOmega = dot(r, v);
             if (cosOmega > 0) {
-                specular += i * is * pow(cosOmega, alpha);
+                specular += lightIntensity * is * pow(cosOmega, alpha);
             }
         }
     }

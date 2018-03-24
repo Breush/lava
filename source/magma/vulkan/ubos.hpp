@@ -30,4 +30,16 @@ namespace lava::magma::vulkan {
     struct MeshUbo {
         glm::mat4 transform;
     };
+
+    struct LightUbo {
+        union {
+            uint32_t type;
+            glm::vec4 __padding;
+        };
+
+        glm::vec4 wPosition;
+        glm::uvec4 data[2];
+
+        LightUbo() {}
+    };
 }

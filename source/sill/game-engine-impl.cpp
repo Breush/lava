@@ -33,9 +33,9 @@ GameEngine::Impl::Impl(GameEngine& base)
     m_camera->target({0.f, 0.f, 0.f});
 
     // @todo Handle custom lights
-    m_light = &m_renderScene->make<magma::PointLight>();
-    m_light->position({-1.f, -1.f, 0.7f});
-    m_light->radius(100.f);
+    m_light = &m_renderScene->make<magma::DirectionalLight>();
+    m_light->position({0.f, 0.f, 10.f});
+    m_light->direction({-1.f, 1.f, 1.f});
 
     // @todo Handle custom views
     m_renderEngine->addView(*m_camera, *m_windowRenderTarget, Viewport{0, 0, 1, 1});

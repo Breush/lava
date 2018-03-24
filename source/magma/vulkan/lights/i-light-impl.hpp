@@ -6,7 +6,8 @@
 
 namespace lava::magma {
     enum class LightType {
-        Point,
+        Point = 0u,
+        Directional = 1u,
     };
 
     class ILight::Impl {

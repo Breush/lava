@@ -125,11 +125,9 @@ vec4 @magma:impl:main (GBufferNode node) {
 
     // Check whether the lighting should have an effect
     vec3 lightColor = vec3(1); // @todo Have light color
-    vec3 lightDirection = light.wPosition.xyz - wPosition.xyz;
-    float lightDistance = length(lightDirection);
-    lightDirection = normalize(lightDirection);
-    if (lightDistance < light.radius) {
-        float lightIntensity = 1 - (lightDistance * lightDistance) / (light.radius * light.radius);
+    vec3 lightDirection;
+    float lightIntensity;
+    if (epiphanyLight(wPosition, lightDirection, lightIntensity)) {
         lightIntensity *= 0.8; // @todo light.intensity
 
         vec3 F0 = mix(vec3(0.04), albedo, metallic);

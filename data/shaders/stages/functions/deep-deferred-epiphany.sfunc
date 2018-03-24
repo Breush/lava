@@ -33,3 +33,42 @@ vec4 gBufferUnpackVec4(GBufferNode node, inout uint startIndex) {
     value.w = uintBitsToFloat(node.materialData[startIndex++]);
     return value;
 }
+
+//----- Lights
+
+bool epiphanyLight(vec3 wPosition, out vec3 lightDirection, out float lightIntensity) {
+    lightIntensity = 0;
+
+    switch (light.type) {
+        // Point light
+        case 0: {
+            lightDirection = light.wPosition.xyz - wPosition.xyz;
+            float lightDistance = length(lightDirection);
+
+            float radius = uintBitsToFloat(light.data[0].x);
+            if (lightDistance < radius) {
+                lightIntensity = 1 - (lightDistance * lightDistance) / (radius * radius);
+            }
+            break;
+        }
+
+        // Directional light
+        case 1: {
+            lightDirection.x = uintBitsToFloat(light.data[0].x);
+            lightDirection.y = uintBitsToFloat(light.data[0].y);
+            lightDirection.z = uintBitsToFloat(light.data[0].z);
+
+            // @todo Have that settable
+            lightIntensity = 1;
+
+            break;
+        }
+
+        default: {
+            return false;
+        }
+    }
+
+    lightDirection = normalize(lightDirection);
+    return true;
+}

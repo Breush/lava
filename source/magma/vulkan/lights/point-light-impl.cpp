@@ -9,5 +9,4 @@ PointLight::Impl::Impl(RenderScene& scene)
 
 void PointLight::Impl::init()
 {
-    m_initialized = true;
 }

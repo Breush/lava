@@ -3,6 +3,7 @@
 #include <lava/chamber/logger.hpp>
 
 #include "../cameras/i-camera-impl.hpp"
+#include "../lights/directional-light-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../lights/point-light-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
@@ -13,11 +14,6 @@
 namespace {
     constexpr const auto GBUFFER_MAX_NODE_DEPTH = 3u;
     constexpr const auto GBUFFER_MAX_NODE_DEPTH_STRING = "3";
-
-    struct EpiphanyPointLightUbo {
-        glm::vec4 wPosition;
-        float radius;
-    };
 
     vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, const std::vector<vk::Format>& candidates,
                                    vk::ImageTiling tiling, vk::FormatFeatureFlags features)
@@ -274,7 +270,7 @@ void DeepDeferredStage::initEpiphanyPass()
     //----- Uniform buffers
 
     m_lightsUboHolder.init(m_lightsDescriptorSet, m_lightsDescriptorHolder.uniformBufferBindingOffset(),
-                           {sizeof(EpiphanyPointLightUbo)});
+                           {sizeof(vulkan::LightUbo)});
 
     //----- Attachments
 
@@ -398,14 +394,26 @@ void DeepDeferredStage::updateEpiphanyUbo()
     if (m_scene.lights().size() > 0) {
         const auto& light = m_scene.light(0);
 
+        // @todo Let the light fill the data, right?
+        vulkan::LightUbo ubo;
+        ubo.type = static_cast<uint32_t>(light.type());
+
         if (light.type() == LightType::Point) {
             const auto& pointLight = reinterpret_cast<const PointLight::Impl&>(light);
 
-            EpiphanyPointLightUbo ubo;
             ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
-            ubo.radius = pointLight.radius();
-
-            m_lightsUboHolder.copy(0, ubo);
+            ubo.data[0].x = reinterpret_cast<const uint32_t&>(pointLight.radius());
         }
+        else if (light.type() == LightType::Directional) {
+            const auto& directionalLight = reinterpret_cast<const DirectionalLight::Impl&>(light);
+            const auto direction = directionalLight.direction();
+
+            ubo.wPosition = glm::vec4(directionalLight.position(), 1.f);
+            ubo.data[0].x = reinterpret_cast<const uint32_t&>(direction.x);
+            ubo.data[0].y = reinterpret_cast<const uint32_t&>(direction.y);
+            ubo.data[0].z = reinterpret_cast<const uint32_t&>(direction.z);
+        }
+
+        m_lightsUboHolder.copy(0, ubo);
     }
 }
