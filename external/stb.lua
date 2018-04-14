@@ -7,11 +7,11 @@ if not fileExists("./.tmp/stb") then
     os.mkdir("./.tmp")
     os.execute("rm --recursive ./include/stb 2> /dev/null")
     
-    downloadStart("Dependencies", NAME)
-    local success = os.execute("git clone --depth=1 " .. REPOSITORY .. " .tmp/stb")
+    downloadStartBasic("Dependencies", NAME)
+    local success = os.execute("git clone --depth=1 " .. REPOSITORY .. " .tmp/stb 2> /dev/null")
 
     if not success then
-        downloadStop()
+        downloadStopBasic()
         print("[Dependencies] FAILURE while downloading " .. NAME .. "...")
         print("If it persists, please try cloning " .. REPOSITORY .. " by yourself")
         print("and move it to " .. path.getabsolute("./.tmp/stb"))

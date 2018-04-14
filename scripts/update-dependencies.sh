@@ -16,7 +16,7 @@ function updateDependencyByVersion {
     NAME=$(cat "${SCRIPT}" | grep NAME -m 1 | cut -d '"' -f2)
     CURRENT=$(cat "${SCRIPT}" | grep VERSION -m 1 | cut -d'"' -f2)
 
-    echo -e "${NAME}:\n    ${CURRENT} (current)\n    ${LAST} (last)"
+    echo -e "\e[1m${NAME}\e[0m\n    ${CURRENT} (current)\n    ${LAST} (last)"
 
     if [ "${CURRENT}" != "${LAST}" ]; then
         NEED_UPDATE="true"
@@ -24,9 +24,9 @@ function updateDependencyByVersion {
         sed -i "s/${CURRENT}/${LAST}/" "${SCRIPT}"
         git add "${SCRIPT}" > /dev/null
         git commit -m "Updated ${NAME} to ${LAST}" > /dev/null
-        echo "    Marked ${NAME} to be updated to ${LAST}."
+        echo -e "    \e[94mMarked ${NAME} to be updated to ${LAST}.\e[39m"
     else
-        echo "    Already up-to-date."
+        echo -e "    \e[92mAlready up-to-date.\e[39m"
     fi
 
     echo ""
@@ -44,22 +44,24 @@ function updateDependencyByDate {
 
     CURRENT=$(stat "./external/${FILE}" --format="%Y" 2> /dev/null)
 
+    echo -e "\e[1m${NAME}\e[0m"
+
     if [ -z "${CURRENT}" ]; then
         NEED_UPDATE="true"
 
-        echo -e "${NAME}:\n    Never downloaded.\n    Marked to be updated.\n"
+        echo -e "    Never downloaded.\n    \e[94mMarked to be updated.\e[39m\n"
         return
     fi
 
-    echo -e "${NAME}:\n    ${CURRENT} (last download)\n    ${LAST} (remote last commit)"
+    echo -e "    ${CURRENT} (last download)\n    ${LAST} (remote last commit)"
 
     if [ "${CURRENT}" -lt "${LAST}" ]; then
         NEED_UPDATE="true"
 
         rm -rf external/${FILE}
-        echo "    Marked ${NAME} to be updated."
+        echo -e "    \e[94mMarked ${NAME} to be updated.\e[39m"
     else
-        echo "    Already up-to-date."
+        echo -e "    \e[92mAlready up-to-date.\e[39m"
     fi
 
     echo ""
@@ -88,6 +90,6 @@ updateDependencyByVersion "external/vulkan-sdk.lua" "${LAST}"
 # Do update
 
 if [ "${NEED_UPDATE}" == "true" ]; then
-    echo "Updating..."
+    echo -e "\e[1mUpdating...\e[0m"
     ./scripts/setup.sh
 fi

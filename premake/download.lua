@@ -18,6 +18,19 @@ function downloadStop()
 	print()
 end
 
+-- Download without progress bar
+function downloadStartBasic(kind, name)
+	downloadNextStep = 0.01
+	downloadComplete = false
+
+	io.write("[" .. kind .. "] Downloading " .. name .. "...")
+	io.flush()
+end
+
+function downloadStopBasic()
+	print()
+end
+
 -- Tool function to display downloading progress
 function downloadProgress(total, current)
 	if downloadComplete then return end
