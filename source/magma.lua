@@ -17,6 +17,7 @@ project "lava-magma"
         end
 
         useChamber()
+        useGlm()
         useVulkanSdk()
     end
 

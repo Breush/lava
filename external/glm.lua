@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "GLM"
-local VERSION = "0.9.9-a2"
+local VERSION = "0.9.8"
 
 -- Download
 
@@ -28,7 +28,7 @@ end
 
 if not fileExists("./include/glm") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
-    os.execute("cd ./.tmp && unzip -o glm_" .. VERSION .. ".zip && cp -r glm/glm ../include")
+    os.execute("cd ./.tmp && unzip -o glm_" .. VERSION .. ".zip && cp -r glm-" .. VERSION .. "/glm ../include")
 end
 
 -- Use hook
@@ -38,6 +38,7 @@ function useGlm()
     includedirs(externalPath .. "/include")
 
     defines { "GLM_FORCE_RADIANS", "GLM_FORCE_DEPTH_ZERO_TO_ONE" }
+    -- @fixme defines { "GLM_ENABLE_EXPERIMENTAL" }
 end
 
 print("[Dependencies] " .. NAME .. " (" .. VERSION .. ") is ready.")
