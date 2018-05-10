@@ -4,6 +4,8 @@
 
 #if defined(LAVA_CRATER_WINDOW_XCB)
 #include "./window/xcb/window-impl.hpp"
+#elif defined(LAVA_CRATER_WINDOW_WAYLAND)
+#include "./window/wayland/window-impl.hpp"
 #elif defined(LAVA_CRATER_WINDOW_DWM)
 #include "./window/dwm/window-impl.hpp"
 #else

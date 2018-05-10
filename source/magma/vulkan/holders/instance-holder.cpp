@@ -129,6 +129,8 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
     m_extensions = {VK_KHR_SURFACE_EXTENSION_NAME};
 #if defined(VK_USE_PLATFORM_XCB_KHR)
     m_extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
+    m_extensions.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
     m_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif

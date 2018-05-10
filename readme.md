@@ -14,13 +14,19 @@ The core principles of **lava** are:
 ## Contributing guide
 
 **lava** uses *Premake* as build configuration system,
-but some dependencies use [cmake](https://cmake.org/), so it is required too.
+but some dependencies use:
+- [cmake](https://cmake.org/) ;
+- [python](https://www.python.org/).
+
 Moreover, C++17 features are highly used, be sure to have a recent compiler (gcc >= 7).
 
 - download [Premake v5](https://premake.github.io/download.html#v5) and install it from your platform ;
 - run `./scripts/setup.sh` to install submodules and download dependencies ;
 - run `./scripts/build.sh` to compile everything (with examples) ;
 - find all executables in `build` folder.
+
+__NOTE__ On linux, to use Wayland, either edit `.setup.json`
+or run `./scripts/setup.sh --windowing-system=wayland`.
 
 __NOTE__ To compile on release, one can use `make config=release`.
 

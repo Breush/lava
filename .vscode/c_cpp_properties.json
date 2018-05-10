@@ -19,7 +19,8 @@
             "defines": [
                 "LAVA_CHAMBER_FILEWATCHER_INOTIFY",
                 "LAVA_CHAMBER_CALLSTACK_GCC",
-                "LAVA_CRATER_WINDOW_XCB"
+                "LAVA_CRATER_WINDOW_XCB",
+                "VK_USE_PLATFORM_XCB_KHR"
             ],
             "intelliSenseMode": "clang-x64",
             "browse": {
@@ -43,5 +44,5 @@
             "cppStandard": "c++17"
         }
     ],
-    "version": 3
+    "version": 4
 }

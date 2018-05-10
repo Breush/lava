@@ -5,14 +5,17 @@ project "lava-magma"
     files "magma/**"
 
     function magmaDependencies()
-        if os.host() == "linux" then
+        if options.windowingSystem == "xcb" then
             defines { "VK_USE_PLATFORM_XCB_KHR" }
 
-        elseif os.host() == "windows" then
+        elseif options.windowingSystem == "wayland" then
+            defines { "VK_USE_PLATFORM_WAYLAND_KHR" }
+
+        elseif options.windowingSystem == "dwm" then
             defines { "VK_USE_PLATFORM_WIN32_KHR" }
 
         else
-            error("Unsupported platform " + os.host())
+            error("Unsupported windowing system " .. options.windowingSystem)
 
         end
 

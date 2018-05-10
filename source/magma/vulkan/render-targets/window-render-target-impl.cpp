@@ -83,6 +83,11 @@ void WindowRenderTarget::Impl::initSurface()
     createInfo.window = wsHandle.xcb.window;
 
     result = m_engine.instance().createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace());
+#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
+    vk::WaylandSurfaceCreateInfoKHR createInfo;
+    // @fixme
+
+    result = m_engine.instance().createWaylandSurfaceKHR(&createInfo, nullptr, m_surface.replace());
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
     vk::Win32SurfaceCreateInfoKHR createInfo;
     createInfo.hwnd = reinterpret_cast<HWND>(wsHandle.dwm.hwnd);
@@ -92,7 +97,7 @@ void WindowRenderTarget::Impl::initSurface()
 #endif
 
     if (result != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.surface") << "Unable to create surface for platform." << std::endl;
+        logger.error("magma.vulkan.surface") << "Unable to create surface for the platform." << std::endl;
     }
 }
 
