@@ -7,12 +7,12 @@ local VERSION = "1.1.73.0"
 
 local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".run";
 if not fileValid(localFile) then
-    checkProgram("make", NAME)
+    checkProgramsAny({"make", "mingw32-make"}, NAME)
     checkProgram("cmake", NAME)
     checkProgram("python", NAME)
 
     os.mkdir("./.tmp/")
-    os.execute("rm --recursive ./include/vulkan 2> /dev/null")
+    os.execute('bash -c "rm --recursive ./include/vulkan 2> /dev/null"')
 
     local filename = "linux/vulkansdk-linux-x86_64-" .. VERSION .. ".run"
     if os.host() == "windows" then

@@ -45,7 +45,7 @@ project "lava-crater"
             buildoptions { "-mwindows", "-municode" }
 
         else
-            error("Unsupported platform " + os.host())
+            error("Unsupported windowing system " .. options.windowingSystem)
 
         end
 

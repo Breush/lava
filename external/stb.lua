@@ -5,7 +5,7 @@ local REPOSITORY = "git@github.com:nothings/stb.git"
 
 if not fileExists("./.tmp/stb") then
     os.mkdir("./.tmp")
-    os.execute("rm --recursive ./include/stb 2> /dev/null")
+    os.execute('bash -c "rm --recursive ./include/stb 2> /dev/null"')
     
     downloadStartBasic("Dependencies", NAME)
     local success = os.execute("git clone --depth=1 " .. REPOSITORY .. " .tmp/stb 2> /dev/null")

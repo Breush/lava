@@ -11,7 +11,7 @@ if not fileValid(localFile) then
     checkProgram("cmake", NAME)
 
     os.mkdir("./.tmp/")
-    os.execute("rm --recursive ./include/bullet 2> /dev/null")
+    os.execute('bash -c "rm --recursive ./include/bullet 2> /dev/null"')
 
     local url = "https://github.com/bulletphysics/bullet3/archive/" .. VERSION .. ".zip"
 
