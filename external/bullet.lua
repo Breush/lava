@@ -7,6 +7,9 @@ local VERSION = "2.87"
 
 local localFile = "./.tmp/bullet_" .. VERSION .. ".zip";
 if not fileValid(localFile) then
+    checkProgram("make", NAME)
+    checkProgram("cmake", NAME)
+
     os.mkdir("./.tmp/")
     os.execute("rm --recursive ./include/bullet 2> /dev/null")
 

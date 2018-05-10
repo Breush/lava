@@ -7,6 +7,10 @@ local VERSION = "1.1.73.0"
 
 local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".run";
 if not fileValid(localFile) then
+    checkProgram("make", NAME)
+    checkProgram("cmake", NAME)
+    checkProgram("python", NAME)
+
     os.mkdir("./.tmp/")
     os.execute("rm --recursive ./include/vulkan 2> /dev/null")
 
