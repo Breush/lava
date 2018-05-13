@@ -30,7 +30,7 @@ if [ `uname -o` == "Msys" ]; then
 
     cd "${ROOT_DIR}/.tmp"
     cp -R ${FOLDER}/libshaderc/include/* ../include
-    cp -R `find ${FOLDER}/build -type f \( -name *.a ! -wholename *CMakeFiles/* \)` ../lib
+    cp -R `find ${FOLDER}/build -type f \( -name *.a ! -wholename '*CMakeFiles/*' \)` ../lib
 
 #===== Linux based
 
@@ -65,5 +65,5 @@ else
 
     cd "${ROOT_DIR}/.tmp"
     cp -R ${FOLDER}/src/libshaderc/include/* ../include
-    cp -R `find ${FOLDER} -type f \( -name *.a ! -wholename *CMakeFiles/* \)` ../lib
+    cp -R `find ${FOLDER} -type f \( -name *.a ! -wholename '*CMakeFiles/*' \)` ../lib
 fi

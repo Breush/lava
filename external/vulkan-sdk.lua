@@ -57,16 +57,15 @@ function useVulkanSdk()
     libdirs(externalPath .. "/lib")
 
     if os.host() == "windows" then 
-        links { "vulkan-1" }
+        links { "vulkan-1", "SPIRV-Toolsd", "SPIRV-Tools-optd" }
     else
-        links { "vulkan" }
+        links { "vulkan", "SPIRV-Tools", "SPIRV-Tools-opt" }
     end
 
     links {
         "shaderc", "shaderc_util",
         "glslang", "OSDependent", "OGLCompiler",
-        "SPIRV", "SPIRV-Toolsd", "SPIRV-Tools-optd",
-        "SPVRemapper", "HLSL",       
+        "SPIRV", "HLSL",
     }
 
     linkoptions("-pthread")
