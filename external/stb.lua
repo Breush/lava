@@ -9,9 +9,9 @@ if not fileExists("./.tmp/stb") then
     
     downloadStartBasic("Dependencies", NAME)
     local success = os.execute("git clone --depth=1 " .. REPOSITORY .. " .tmp/stb 2> /dev/null")
+    downloadStopBasic()
 
     if not success then
-        downloadStopBasic()
         print("[Dependencies] FAILURE while downloading " .. NAME .. "...")
         print("If it persists, please try cloning " .. REPOSITORY .. " by yourself")
         print("and move it to " .. path.getabsolute("./.tmp/stb"))

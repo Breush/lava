@@ -57,9 +57,9 @@ function useVulkanSdk()
     libdirs(externalPath .. "/lib")
 
     if os.host() == "windows" then 
-        links { "vulkan-1", "SPIRV-Toolsd", "SPIRV-Tools-optd" }
+        links { "vulkan-1", "SPIRV-Tools-optd", "SPIRV-Toolsd" }
     else
-        links { "vulkan", "SPIRV-Tools", "SPIRV-Tools-opt" }
+        links { "vulkan", "SPIRV-Tools-opt", "SPIRV-Tools" }
     end
 
     links {
