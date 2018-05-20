@@ -6,6 +6,20 @@ NEED_UPDATE="false"
 
 # Functions
 
+function updateSkip {
+    # $1 lua script file to extract version
+    # $2 last known version
+
+    SCRIPT="$1"
+    LAST="$2"
+
+    NAME=$(cat "${SCRIPT}" | grep NAME -m 1 | cut -d '"' -f2)
+    CURRENT=$(cat "${SCRIPT}" | grep VERSION -m 1 | cut -d'"' -f2)
+
+    echo -e "\e[1m${NAME}\e[0m\n    ${CURRENT} (current)\n    ${LAST} (last)"
+    echo -e "    \e[93mSkipped.\e[39m\n"
+}
+
 function updateDependencyByVersion {
     # $1 lua script file to extract version
     # $2 last known version
@@ -73,7 +87,9 @@ updateDependencyByVersion "external/bullet.lua" "${LAST}"
 
 # GLM
 LAST=$(wget https://github.com/g-truc/glm/tags -q -O - | grep '\.zip' -m 1 | cut -d'"' -f2 | rev | cut -d'/' -f1 | cut -d'.' -f2- | rev)
-updateDependencyByVersion "external/glm.lua" "${LAST}"
+# @note Skipped as only trunk branches are currently working (0.9.9-a2 is wrong, like 0.9.8.5) 
+# updateDependencyByVersion "external/glm.lua" "${LAST}"
+updateSkip "external/glm.lua" "${LAST}"
 
 # Nlohmann JSON
 LAST=$(wget https://github.com/nlohmann/json/tags -q -O - | grep '\.zip' -m 1 | cut -d'"' -f2 | rev | cut -d'v' -f1 | cut -d'.' -f2- | rev)
