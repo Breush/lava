@@ -30,6 +30,7 @@ namespace lava::magma {
         const glm::vec3& target() const;
         void target(const glm::vec3& target);
 
+        float radius() const;
         void radius(float radius);
 
         /**

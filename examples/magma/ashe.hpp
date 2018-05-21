@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <lava/chamber.hpp>
 #include <lava/crater.hpp>
 #include <lava/magma.hpp>
 #include <memory>
@@ -8,6 +9,12 @@
 
 namespace lava::ashe {
     class Application {
+        enum class Axis {
+            X,
+            Y,
+            Z,
+        };
+
     public:
         Application(const std::string& title) { create(title); }
 
@@ -41,7 +48,7 @@ namespace lava::ashe {
 
             // A camera.
             m_camera = &m_scene->make<magma::OrbitCamera>(m_window->extent());
-            m_camera->position({0.f, 2.f, 0.75f});
+            m_camera->position({2.f, 2.f, 1.f});
             m_camera->target({0.f, 0.f, 0.5f});
 
             // A light.
@@ -51,6 +58,11 @@ namespace lava::ashe {
 
             // We decide to show the scene's camera "0" at a certain position in the window.
             m_engine->addView(*m_camera, *m_windowRenderTarget, Viewport{0, 0, 1, 1});
+
+            // Gizmos.
+            makeAxisGizmo(Axis::X, {1.f, 0.f, 0.f, 1.f});
+            makeAxisGizmo(Axis::Y, {0.f, 1.f, 0.f, 1.f});
+            makeAxisGizmo(Axis::Z, {0.f, 0.f, 1.f, 1.f});
         }
 
         /// Simply run the main loop.
@@ -76,7 +88,73 @@ namespace lava::ashe {
             }
         }
 
-        magma::Mesh& makePlane(Extent2d dimensions)
+        void makeAxisGizmo(Axis axis, glm::vec4 color)
+        {
+            auto& material = m_scene->make<magma::Material>("ashe");
+            material.set("color", color);
+
+            // The cylinder
+            auto& cylinder = makeCylinder(0.01f, 1.f, axis);
+            cylinder.material(material);
+        }
+
+        magma::Mesh& makeCylinder(float radius, float length, Axis axis)
+        {
+            const auto tessellation = 8u;
+            auto& mesh = m_scene->make<magma::Mesh>();
+
+            std::vector<glm::vec3> positions;
+            positions.reserve(2u * tessellation);
+            std::vector<uint16_t> indices;
+            indices.reserve(6u * tessellation);
+
+            // The circles
+            const auto step = chamber::math::TWO_PI / tessellation;
+            const auto cStep = chamber::math::cos(step);
+            const auto sStep = chamber::math::sin(step);
+
+            glm::vec2 point{radius, 0.f};
+            for (auto j = 0u; j < tessellation; ++j) {
+                if (axis == Axis::X) {
+                    positions.emplace_back(glm::vec3{0, point.x, point.y});
+                    positions.emplace_back(glm::vec3{length, point.x, point.y});
+                }
+                else if (axis == Axis::Y) {
+                    positions.emplace_back(glm::vec3{point.x, 0, point.y});
+                    positions.emplace_back(glm::vec3{point.x, length, point.y});
+                }
+                else if (axis == Axis::Z) {
+                    positions.emplace_back(glm::vec3{point.x, point.y, 0});
+                    positions.emplace_back(glm::vec3{point.x, point.y, length});
+                }
+                const auto px = point.x;
+                point.x = px * cStep - point.y * sStep;
+                point.y = px * sStep + point.y * cStep;
+            }
+
+            // The indices
+            for (auto j = 0u; j < tessellation; ++j) {
+                auto i0 = 2u * j;
+                auto i1 = 2u * j + 1u;
+                auto i2 = (2u * j + 2u) % (2u * tessellation);
+                auto i3 = (2u * j + 3u) % (2u * tessellation);
+
+                indices.emplace_back(i0);
+                indices.emplace_back(i2);
+                indices.emplace_back(i1);
+                indices.emplace_back(i1);
+                indices.emplace_back(i2);
+                indices.emplace_back(i3);
+            }
+
+            mesh.verticesCount(positions.size());
+            mesh.verticesPositions(positions);
+            mesh.indices(indices);
+
+            return mesh;
+        }
+
+        magma::Mesh& makePlane(glm::vec2 dimensions)
         {
             auto& mesh = m_scene->make<magma::Mesh>();
 
@@ -85,8 +163,8 @@ namespace lava::ashe {
             std::vector<glm::vec4> tangents(4, {1.f, 0.f, 0.f, 1.f});
             std::vector<uint16_t> indices = {0u, 1u, 2u, 2u, 3u, 0u};
 
-            const auto halfWidth = dimensions.width / 2.f;
-            const auto halfHeight = dimensions.height / 2.f;
+            const auto halfWidth = dimensions.x / 2.f;
+            const auto halfHeight = dimensions.y / 2.f;
 
             positions[0].x = -halfWidth;
             positions[0].y = -halfHeight;
@@ -162,7 +240,7 @@ namespace lava::ashe {
             }
 
             case WsEvent::MouseScrolled: {
-                m_camera->radiusAdd(-event.mouseScroll.delta / 10.f);
+                m_camera->radiusAdd(-event.mouseScroll.delta * m_camera->radius() / 10.f);
                 break;
             }
 

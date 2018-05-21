@@ -22,6 +22,11 @@ ICamera::Impl& OrbitCamera::interfaceImpl()
 $pimpl_property(OrbitCamera, glm::vec3, position);
 $pimpl_property(OrbitCamera, glm::vec3, target);
 
+float OrbitCamera::radius() const
+{
+    return glm::length(m_impl->target() - m_impl->position());
+}
+
 void OrbitCamera::radius(float radius)
 {
     const auto& position = m_impl->position();
