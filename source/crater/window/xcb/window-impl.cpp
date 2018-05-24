@@ -210,6 +210,10 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
             event.mouseScroll.y = buttonEvent.event_y;
             event.mouseScroll.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1 : -1;
         }
+        else {
+            logger.warning("crater.xcb.window") << "Unknown buttonEvent.detail while BUTTON_PRESS." << std::endl;
+            break;
+        }
         pushEvent(event);
         break;
     }
@@ -221,9 +225,19 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         event.type = WsEvent::MouseButtonReleased;
         event.mouseButton.x = buttonEvent.event_x;
         event.mouseButton.y = buttonEvent.event_y;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = MouseButton::Left;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = MouseButton::Middle;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = MouseButton::Right;
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) {
+            event.mouseButton.which = MouseButton::Left;
+        }
+        else if (buttonEvent.detail == XCB_BUTTON_INDEX_2) {
+            event.mouseButton.which = MouseButton::Middle;
+        }
+        else if (buttonEvent.detail == XCB_BUTTON_INDEX_3) {
+            event.mouseButton.which = MouseButton::Right;
+        }
+        else {
+            logger.warning("crater.xcb.window") << "Unknown buttonEvent.detail while BUTTON_RELEASE." << std::endl;
+            break;
+        }
         pushEvent(event);
         break;
     }
