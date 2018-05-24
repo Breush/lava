@@ -62,25 +62,28 @@ void main()
     uint nodeCount = 0;
     while (listIndex != 0 && nodeCount < GBUFFER_MAX_NODE_DEPTH) {
         GBufferColorNode node = gBufferList.nodes[listIndex];
-        if (node.depth > opaqueDepth) continue;
 
-        // Insertion sort
-        uint insertionIndex = 0;
-        while (insertionIndex < nodeCount) {
-            const uint sortedListIndex = sortedListIndices[insertionIndex]; 
-            if (node.depth > gBufferList.nodes[sortedListIndex].depth) {
-                break;
+        // Do not count translucent fragments that are behind opaque ones.
+        if (node.depth <= opaqueDepth) {
+            // Insertion sort
+            uint insertionIndex = 0;
+            while (insertionIndex < nodeCount) {
+                const uint sortedListIndex = sortedListIndices[insertionIndex];
+                if (node.depth > gBufferList.nodes[sortedListIndex].depth) {
+                    break;
+                }
+                insertionIndex += 1;
             }
-            insertionIndex += 1;
+
+            for (uint i = nodeCount; i > insertionIndex; --i) {
+                sortedListIndices[i] = sortedListIndices[i - 1];
+            }
+
+            sortedListIndices[insertionIndex] = listIndex;
+            nodeCount += 1;
         }
 
-        for (uint i = nodeCount; i > insertionIndex; --i) {
-            sortedListIndices[i] = sortedListIndices[i - 1];
-        }
-
-        sortedListIndices[insertionIndex] = listIndex;
         listIndex = node.materialId6_next26 & 0x3FFFFFF;
-        nodeCount += 1;
     }
 
     // Iterate over the gBuffer list, adding lights each time,
