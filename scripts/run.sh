@@ -15,7 +15,7 @@ fi
 export LD_LIBRARY_PATH=`pwd`/external/lib:${LD_LIBRARY_PATH}
 export VK_LAYER_PATH=`pwd`/external/etc/explicit_layer.d
 
-echo -e "\e[35mSetuping dependencies...\e[39m"
+echo -e "\e[35mSetting up dependencies...\e[39m"
 ./scripts/setup.sh
 
 # Find a make target that match the name
