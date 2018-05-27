@@ -1,6 +1,6 @@
 #include <lava/magma/material.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "./vulkan/material-impl.hpp"
 

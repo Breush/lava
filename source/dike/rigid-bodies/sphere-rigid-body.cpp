@@ -1,6 +1,6 @@
 #include <lava/dike/rigid-bodies/sphere-rigid-body.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "../back-engine/bullet/rigid-bodies/sphere-rigid-body-impl.hpp"
 

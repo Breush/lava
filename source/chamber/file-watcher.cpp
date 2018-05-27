@@ -1,6 +1,6 @@
 #include <lava/chamber/file-watcher.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #if defined(LAVA_CHAMBER_FILEWATCHER_INOTIFY)
 #include "./file-watcher/inotify/file-watcher-impl.hpp"

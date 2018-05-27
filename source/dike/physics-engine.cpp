@@ -1,6 +1,6 @@
 #include <lava/dike/physics-engine.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "./back-engine/bullet/physics-engine-impl.hpp"
 

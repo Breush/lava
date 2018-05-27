@@ -1,6 +1,6 @@
 #include <lava/sill/components/plane-collider-component.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "./plane-collider-component-impl.hpp"
 

@@ -1,7 +1,7 @@
 #include <lava/magma/render-engine.hpp>
 
 #include <fstream>
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 #include <sstream>
 
 #include "./vulkan/render-engine-impl.hpp"

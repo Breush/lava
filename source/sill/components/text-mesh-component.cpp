@@ -1,6 +1,6 @@
 #include <lava/sill/components/text-mesh-component.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "./text-mesh-component-impl.hpp"
 

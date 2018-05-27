@@ -4,7 +4,7 @@
 
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/file-watcher.hpp>
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 #include <lava/crater/window.hpp>
 #include <lava/magma/render-scenes/i-render-scene.hpp>
 #include <lava/magma/render-targets/i-render-target.hpp>

@@ -1,7 +1,7 @@
 #include <lava/magma/meshes/mesh.hpp>
 
 #include <lava/chamber/logger.hpp>
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "../vulkan/meshes/mesh-impl.hpp"
 

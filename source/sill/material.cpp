@@ -1,6 +1,6 @@
 #include <lava/sill/material.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 #include <lava/magma/material.hpp>
 
 #include "game-engine-impl.hpp"

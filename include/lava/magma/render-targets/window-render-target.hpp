@@ -2,8 +2,8 @@
 
 #include <lava/magma/render-targets/i-render-target.hpp>
 
-#include <lava/chamber/macros.hpp>
 #include <lava/core/extent.hpp>
+#include <lava/core/macros.hpp>
 #include <lava/core/ws-event.hpp>
 #include <lava/core/ws-handle.hpp>
 

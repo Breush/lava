@@ -1,6 +1,6 @@
 #include <lava/magma/render-targets/window-render-target.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "../vulkan/render-targets/window-render-target-impl.hpp"
 

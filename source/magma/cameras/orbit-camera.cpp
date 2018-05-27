@@ -1,8 +1,8 @@
 #include <lava/magma/cameras/orbit-camera.hpp>
 
 #include <glm/gtx/rotate_vector.hpp>
-#include <lava/chamber/macros.hpp>
 #include <lava/chamber/math.hpp>
+#include <lava/core/macros.hpp>
 
 #include "../vulkan/cameras/orbit-camera-impl.hpp"
 

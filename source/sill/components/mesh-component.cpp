@@ -1,6 +1,6 @@
 #include <lava/sill/components/mesh-component.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "./mesh-component-impl.hpp"
 

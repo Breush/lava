@@ -1,6 +1,6 @@
 #include <lava/sill/input-manager.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "./input-manager-impl.hpp"
 

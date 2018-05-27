@@ -1,6 +1,6 @@
 #include <lava/sill/game-entity.hpp>
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 #include "./game-entity-impl.hpp"
 

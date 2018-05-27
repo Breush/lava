@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include <lava/chamber/call-stack.hpp>
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 namespace lava::chamber {
     /**

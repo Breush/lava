@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 
 namespace lava::chamber::macros {
 #define $pimpl_class(Class, ...)                                                                                                 \

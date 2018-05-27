@@ -4,7 +4,7 @@
 
 #include "./i-render-target-impl.hpp"
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 #include <lava/crater/window.hpp>
 #include <lava/magma/render-engine.hpp>
 

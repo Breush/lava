@@ -1,7 +1,7 @@
 #pragma once
 
 #include <functional>
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace lava::magma::vulkan {

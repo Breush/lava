@@ -4,7 +4,7 @@
 
 #include "./i-light-impl.hpp"
 
-#include <lava/chamber/macros.hpp>
+#include <lava/core/macros.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 namespace lava::magma {
