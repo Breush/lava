@@ -35,7 +35,7 @@ void InputManager::Impl::updateReset()
 void InputManager::Impl::update(WsEvent& event)
 {
     // Mouse buttons
-    if (event.type == WsEvent::Type::MouseButtonPressed) {
+    if (event.type == WsEventType::MouseButtonPressed) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end()) {
@@ -43,7 +43,7 @@ void InputManager::Impl::update(WsEvent& event)
             }
         }
     }
-    else if (event.type == WsEvent::Type::MouseButtonReleased) {
+    else if (event.type == WsEventType::MouseButtonReleased) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end()) {
@@ -53,7 +53,7 @@ void InputManager::Impl::update(WsEvent& event)
     }
 
     // Keys
-    else if (event.type == WsEvent::Type::KeyPressed) {
+    else if (event.type == WsEventType::KeyPressed) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.keys.find(event.key.which) != action.keys.end()) {
@@ -61,7 +61,7 @@ void InputManager::Impl::update(WsEvent& event)
             }
         }
     }
-    else if (event.type == WsEvent::Type::KeyReleased) {
+    else if (event.type == WsEventType::KeyReleased) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
             if (action.keys.find(event.key.which) != action.keys.end()) {

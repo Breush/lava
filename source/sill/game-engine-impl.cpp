@@ -163,12 +163,12 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
     static glm::vec2 lastDragPosition;
 
     switch (event.type) {
-    case WsEvent::WindowClosed: {
+    case WsEventType::WindowClosed: {
         m_window->close();
         break;
     }
 
-    case WsEvent::KeyPressed: {
+    case WsEventType::KeyPressed: {
         if (event.key.which == Key::Escape) {
             m_window->close();
         }
@@ -176,7 +176,7 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
         break;
     }
 
-    case WsEvent::WindowResized: {
+    case WsEventType::WindowResized: {
         // Ignore resize of same size
         Extent2d extent = {event.windowSize.width, event.windowSize.height};
         if (m_windowRenderTarget->extent() == extent) {
@@ -190,26 +190,26 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
         break;
     }
 
-    // @todo Abstracted camera controls (make the OrbitCamera an Entity - and forward events)
+        // @todo Abstracted camera controls (make the OrbitCamera an Entity - and forward events)
 
-    case WsEvent::MouseButtonPressed: {
+    case WsEventType::MouseButtonPressed: {
         buttonPressed = event.mouseButton.which;
         lastDragPosition.x = event.mouseButton.x;
         lastDragPosition.y = event.mouseButton.y;
         break;
     }
 
-    case WsEvent::MouseButtonReleased: {
+    case WsEventType::MouseButtonReleased: {
         buttonPressed = MouseButton::Unknown;
         break;
     }
 
-    case WsEvent::MouseScrolled: {
+    case WsEventType::MouseScroll: {
         m_camera->radiusAdd(-event.mouseScroll.delta / 10.f);
         break;
     }
 
-    case WsEvent::MouseMoved: {
+    case WsEventType::MouseMoved: {
         if (buttonPressed == MouseButton::Unknown) return;
 
         glm::vec2 position(event.mouseMove.x, event.mouseMove.y);

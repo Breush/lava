@@ -139,6 +139,7 @@ void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
     free(reply);
 
     xcb_map_window(m_connection, m_window);
+    xcb_flush(m_connection);
 }
 
 WsHandle Window::Impl::handle() const
@@ -169,7 +170,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         if (messageEvent.data.data32[0] != m_atomWmDeleteWindow->atom) break;
 
         WsEvent event;
-        event.type = WsEvent::WindowClosed;
+        event.type = WsEventType::WindowClosed;
         pushEvent(event);
         break;
     }
@@ -179,7 +180,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         if (m_previousSize.x == configureEvent.width && m_previousSize.y == configureEvent.height) break;
 
         WsEvent event;
-        event.type = WsEvent::Type::WindowResized;
+        event.type = WsEventType::WindowResized;
         event.windowSize.width = configureEvent.width;
         event.windowSize.height = configureEvent.height;
         pushEvent(event);
@@ -196,7 +197,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 
         // Classic buttons
         if (buttonEvent.detail <= XCB_BUTTON_INDEX_3) {
-            event.type = WsEvent::MouseButtonPressed;
+            event.type = WsEventType::MouseButtonPressed;
             event.mouseButton.x = buttonEvent.event_x;
             event.mouseButton.y = buttonEvent.event_y;
             if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = MouseButton::Left;
@@ -205,10 +206,10 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         }
         // Mouse wheel buttons
         else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
-            event.type = WsEvent::MouseScrolled;
+            event.type = WsEventType::MouseScroll;
             event.mouseScroll.x = buttonEvent.event_x;
             event.mouseScroll.y = buttonEvent.event_y;
-            event.mouseScroll.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1 : -1;
+            event.mouseScroll.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1.f : -1.f;
         }
         else {
             logger.warning("crater.xcb.window") << "Unknown buttonEvent.detail while BUTTON_PRESS." << std::endl;
@@ -222,7 +223,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         auto buttonEvent = reinterpret_cast<xcb_button_release_event_t&>(windowEvent);
 
         WsEvent event;
-        event.type = WsEvent::MouseButtonReleased;
+        event.type = WsEventType::MouseButtonReleased;
         event.mouseButton.x = buttonEvent.event_x;
         event.mouseButton.y = buttonEvent.event_y;
         if (buttonEvent.detail == XCB_BUTTON_INDEX_1) {
@@ -246,7 +247,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         auto motionEvent = reinterpret_cast<xcb_motion_notify_event_t&>(windowEvent);
 
         WsEvent event;
-        event.type = WsEvent::MouseMoved;
+        event.type = WsEventType::MouseMoved;
         event.mouseMove.x = motionEvent.event_x;
         event.mouseMove.y = motionEvent.event_y;
         pushEvent(event);
@@ -257,7 +258,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         auto keyEvent = reinterpret_cast<xcb_key_press_event_t&>(windowEvent);
 
         WsEvent event;
-        event.type = WsEvent::KeyPressed;
+        event.type = WsEventType::KeyPressed;
         event.key.which = keyEventToKey(keyEvent);
         pushEvent(event);
     } break;
@@ -266,7 +267,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         auto keyEvent = reinterpret_cast<xcb_key_release_event_t&>(windowEvent);
 
         WsEvent event;
-        event.type = WsEvent::KeyReleased;
+        event.type = WsEventType::KeyReleased;
         event.key.which = keyEventToKey(keyEvent);
         pushEvent(event);
     } break;

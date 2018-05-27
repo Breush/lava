@@ -57,12 +57,12 @@ int main(void)
         std::optional<WsEvent> event;
         while ((event = smallWindow.pollEvent()) || (event = bigWindow.pollEvent())) {
             switch (event->type) {
-            case WsEvent::WindowClosed: {
+            case WsEventType::WindowClosed: {
                 smallWindow.close();
                 bigWindow.close();
                 break;
             }
-            case WsEvent::KeyPressed: {
+            case WsEventType::KeyPressed: {
                 if (event->key.which == Key::Escape) {
                     smallWindow.close();
                     bigWindow.close();

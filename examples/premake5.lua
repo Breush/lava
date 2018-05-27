@@ -2,13 +2,21 @@
 -- Ashes - Example applications --
 ----------------------------------
 
-----------
+-------------
 -- chamber --
 
 project "chamber-watcher"
-kind "WindowedApp"
-files "chamber/watcher.cpp"
-useChamber()
+    kind "WindowedApp"
+    files "chamber/watcher.cpp"
+    useChamber()
+
+------------
+-- crater --
+
+project "crater-events"
+    kind "WindowedApp"
+    files "crater/events.cpp"
+    useCrater()
 
 -----------
 -- magma --
@@ -43,9 +51,9 @@ project "dike-bouncy-sphere"
 -- sill --
 
 project "sill-matcap-material"
-kind "WindowedApp"
-files "sill/matcap-material.cpp"
-useSill()
+    kind "WindowedApp"
+    files "sill/matcap-material.cpp"
+    useSill()
 
 project "sill-mesh-makers"
     kind "WindowedApp"

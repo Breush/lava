@@ -191,12 +191,12 @@ namespace lava::ashe {
             static glm::vec2 lastDragPosition;
 
             switch (event.type) {
-            case WsEvent::WindowClosed: {
+            case WsEventType::WindowClosed: {
                 m_window->close();
                 break;
             }
 
-            case WsEvent::KeyPressed: {
+            case WsEventType::KeyPressed: {
                 glm::vec3 lightDelta;
 
                 if (event.key.which == Key::Escape) {
@@ -220,31 +220,31 @@ namespace lava::ashe {
                 break;
             }
 
-            case WsEvent::WindowResized: {
+            case WsEventType::WindowResized: {
                 Extent2d extent{event.windowSize.width, event.windowSize.height};
                 m_windowRenderTarget->extent(extent);
                 m_camera->extent(extent);
                 break;
             }
 
-            case WsEvent::MouseButtonPressed: {
+            case WsEventType::MouseButtonPressed: {
                 buttonPressed = event.mouseButton.which;
                 lastDragPosition.x = event.mouseButton.x;
                 lastDragPosition.y = event.mouseButton.y;
                 break;
             }
 
-            case WsEvent::MouseButtonReleased: {
+            case WsEventType::MouseButtonReleased: {
                 buttonPressed = MouseButton::Unknown;
                 break;
             }
 
-            case WsEvent::MouseScrolled: {
+            case WsEventType::MouseScroll: {
                 m_camera->radiusAdd(-event.mouseScroll.delta * m_camera->radius() / 10.f);
                 break;
             }
 
-            case WsEvent::MouseMoved: {
+            case WsEventType::MouseMoved: {
                 if (buttonPressed == MouseButton::Unknown) return;
 
                 glm::vec2 position(event.mouseMove.x, event.mouseMove.y);

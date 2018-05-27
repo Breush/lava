@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstdint>
+
 #include <lava/core/key.hpp>
 #include <lava/core/mouse-button.hpp>
+#include <lava/core/ws-event-type.hpp>
 
 namespace lava {
     /**
@@ -10,17 +12,6 @@ namespace lava {
      */
     struct WsEvent {
     public:
-        enum Type {
-            WindowClosed,
-            WindowResized,
-            MouseButtonPressed,
-            MouseButtonReleased,
-            MouseScrolled,
-            MouseMoved,
-            KeyPressed,
-            KeyReleased,
-        };
-
         struct WindowSizeData {
             uint16_t width;
             uint16_t height;
@@ -40,7 +31,10 @@ namespace lava {
         struct MouseScrollData {
             int16_t x;
             int16_t y;
-            int16_t delta;
+
+            // Standard delta is 1.f, but hight precision mice (ou touchpads)
+            // might be non-integers.
+            float delta;
         };
 
         struct KeyData {
@@ -49,7 +43,7 @@ namespace lava {
 
         // -----
 
-        Type type;
+        WsEventType type;
         union {
             WindowSizeData windowSize;
             MouseButtonData mouseButton;
