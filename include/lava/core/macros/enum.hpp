@@ -39,9 +39,9 @@ namespace lava::chamber::macros {
  *     return "lava::Power::<Unknown>";
  * };
  *
- * inline std::ostream& operator<<(std::ostream& os, const lava::Power& obj)
+ * inline std::ostream& operator<<(std::ostream& os, lava::Power value)
  * {
- *     os << stringify(obj);
+ *     os << stringify(value);
  *     return os;
  * };
  * ```
@@ -84,9 +84,9 @@ namespace lava::chamber::macros {
     }
 
 #define $enum_ostream(Namespace, Enum)                                                                                           \
-    inline std::ostream& operator<<(std::ostream& os, const Namespace::Enum& obj)                                                \
+    inline std::ostream& operator<<(std::ostream& os, Namespace::Enum value)                                                     \
     {                                                                                                                            \
-        os << stringify(obj);                                                                                                    \
+        os << stringify(value);                                                                                                  \
         return os;                                                                                                               \
     }
 }
