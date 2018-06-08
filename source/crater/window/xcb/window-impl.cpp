@@ -200,9 +200,12 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
             event.type = WsEventType::MouseButtonPressed;
             event.mouseButton.x = buttonEvent.event_x;
             event.mouseButton.y = buttonEvent.event_y;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_1) event.mouseButton.which = MouseButton::Left;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_2) event.mouseButton.which = MouseButton::Middle;
-            if (buttonEvent.detail == XCB_BUTTON_INDEX_3) event.mouseButton.which = MouseButton::Right;
+            if (buttonEvent.detail == XCB_BUTTON_INDEX_1)
+                event.mouseButton.which = MouseButton::Left;
+            else if (buttonEvent.detail == XCB_BUTTON_INDEX_2)
+                event.mouseButton.which = MouseButton::Middle;
+            else if (buttonEvent.detail == XCB_BUTTON_INDEX_3)
+                event.mouseButton.which = MouseButton::Right;
         }
         // Mouse wheel buttons
         else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
@@ -226,14 +229,18 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         event.type = WsEventType::MouseButtonReleased;
         event.mouseButton.x = buttonEvent.event_x;
         event.mouseButton.y = buttonEvent.event_y;
-        if (buttonEvent.detail == XCB_BUTTON_INDEX_1) {
+
+        // Classic buttons
+        if (buttonEvent.detail == XCB_BUTTON_INDEX_1)
             event.mouseButton.which = MouseButton::Left;
-        }
-        else if (buttonEvent.detail == XCB_BUTTON_INDEX_2) {
+        else if (buttonEvent.detail == XCB_BUTTON_INDEX_2)
             event.mouseButton.which = MouseButton::Middle;
-        }
-        else if (buttonEvent.detail == XCB_BUTTON_INDEX_3) {
+        else if (buttonEvent.detail == XCB_BUTTON_INDEX_3)
             event.mouseButton.which = MouseButton::Right;
+        // Mouse wheel buttons
+        else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
+            // Nothing to do, scrolling is handled in BUTTON_PRESSED
+            break;
         }
         else {
             logger.warning("crater.xcb.window") << "Unknown buttonEvent.detail while BUTTON_RELEASE." << std::endl;
