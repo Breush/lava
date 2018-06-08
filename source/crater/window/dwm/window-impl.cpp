@@ -215,10 +215,11 @@ bool Window::Impl::processEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     case WM_MOUSEWHEEL: {
         WsEvent event;
-        event.type = WsEventType::MouseScroll;
-        event.mouseScroll.x = GET_X_LPARAM(lParam);
-        event.mouseScroll.y = GET_Y_LPARAM(lParam);
-        event.mouseScroll.delta = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA);
+        event.type = WsEventType::MouseWheelScrolled;
+        event.mouseWheel.which = MouseWheel::Vertical;
+        event.mouseWheel.x = GET_X_LPARAM(lParam);
+        event.mouseWheel.y = GET_Y_LPARAM(lParam);
+        event.mouseWheel.delta = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA);
         pushEvent(event);
         break;
     }

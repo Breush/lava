@@ -26,21 +26,22 @@ int main(void)
                 break;
             }
             case WsEventType::MouseButtonPressed: {
+                std::cout << "    which: " << event->mouseButton.which << std::endl;
                 std::cout << "    x: " << event->mouseButton.x << std::endl;
                 std::cout << "    y: " << event->mouseButton.y << std::endl;
-                std::cout << "    which: " << event->mouseButton.which << std::endl;
                 break;
             }
             case WsEventType::MouseButtonReleased: {
+                std::cout << "    which: " << event->mouseButton.which << std::endl;
                 std::cout << "    x: " << event->mouseButton.x << std::endl;
                 std::cout << "    y: " << event->mouseButton.y << std::endl;
-                std::cout << "    which: " << event->mouseButton.which << std::endl;
                 break;
             }
-            case WsEventType::MouseScroll: {
-                std::cout << "    x: " << event->mouseScroll.x << std::endl;
-                std::cout << "    y: " << event->mouseScroll.y << std::endl;
-                std::cout << "    delta: " << event->mouseScroll.delta << std::endl;
+            case WsEventType::MouseWheelScrolled: {
+                std::cout << "    which: " << event->mouseWheel.which << std::endl;
+                std::cout << "    delta: " << event->mouseWheel.delta << std::endl;
+                std::cout << "    x: " << event->mouseWheel.x << std::endl;
+                std::cout << "    y: " << event->mouseWheel.y << std::endl;
                 break;
             }
             case WsEventType::MouseMoved: {

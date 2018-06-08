@@ -7,7 +7,7 @@ $enum_class(lava, WsEventType,
             WindowResized,       // Window is being resized
             MouseButtonPressed,  // Mouse button has been pressed
             MouseButtonReleased, // Mouse button has been released
-            MouseScroll,         // Mouse wheel is scrolled
+            MouseWheelScrolled,  // Mouse wheel has been scrolled
             MouseMoved,          // Mouse moved
             KeyPressed,          // Keyboard key has been pressed
             KeyReleased,         // Keyboard key has been released

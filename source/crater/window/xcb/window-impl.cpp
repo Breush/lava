@@ -12,6 +12,15 @@
 #include <vector>
 #include <xcb/xcb_keysyms.h>
 
+// @note These horizontal mouse button indices
+// are not always defined...
+#if !defined(XCB_BUTTON_INDEX_6)
+#define XCB_BUTTON_INDEX_6 6
+#endif
+#if !defined(XCB_BUTTON_INDEX_7)
+#define XCB_BUTTON_INDEX_7 7
+#endif
+
 using namespace lava;
 
 namespace {
@@ -207,15 +216,25 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
             else if (buttonEvent.detail == XCB_BUTTON_INDEX_3)
                 event.mouseButton.which = MouseButton::Right;
         }
-        // Mouse wheel buttons
+        // Vertical mouse wheel buttons
         else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
-            event.type = WsEventType::MouseScroll;
-            event.mouseScroll.x = buttonEvent.event_x;
-            event.mouseScroll.y = buttonEvent.event_y;
-            event.mouseScroll.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1.f : -1.f;
+            event.type = WsEventType::MouseWheelScrolled;
+            event.mouseWheel.which = MouseWheel::Vertical;
+            event.mouseWheel.x = buttonEvent.event_x;
+            event.mouseWheel.y = buttonEvent.event_y;
+            event.mouseWheel.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1.f : -1.f;
+        }
+        // Horizontal mouse wheel buttons
+        else if (buttonEvent.detail <= XCB_BUTTON_INDEX_7) {
+            event.type = WsEventType::MouseWheelScrolled;
+            event.mouseWheel.which = MouseWheel::Horizontal;
+            event.mouseWheel.x = buttonEvent.event_x;
+            event.mouseWheel.y = buttonEvent.event_y;
+            event.mouseWheel.delta = (buttonEvent.detail == XCB_BUTTON_INDEX_4) ? 1.f : -1.f;
         }
         else {
-            logger.warning("crater.xcb.window") << "Unknown buttonEvent.detail while BUTTON_PRESS." << std::endl;
+            logger.warning("crater.xcb.window")
+                << "Unknown buttonEvent.detail during BUTTON_PRESS: " << static_cast<int>(buttonEvent.detail) << std::endl;
             break;
         }
         pushEvent(event);
@@ -238,12 +257,13 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         else if (buttonEvent.detail == XCB_BUTTON_INDEX_3)
             event.mouseButton.which = MouseButton::Right;
         // Mouse wheel buttons
-        else if (buttonEvent.detail <= XCB_BUTTON_INDEX_5) {
-            // Nothing to do, scrolling is handled in BUTTON_PRESSED
+        else if (buttonEvent.detail <= XCB_BUTTON_INDEX_7) {
+            // Nothing to do, scrolling is handled in BUTTON_PRESS
             break;
         }
         else {
-            logger.warning("crater.xcb.window") << "Unknown buttonEvent.detail while BUTTON_RELEASE." << std::endl;
+            logger.warning("crater.xcb.window")
+                << "Unknown buttonEvent.detail during BUTTON_RELEASE: " << static_cast<int>(buttonEvent.detail) << std::endl;
             break;
         }
         pushEvent(event);

@@ -4,6 +4,7 @@
 
 #include <lava/core/key.hpp>
 #include <lava/core/mouse-button.hpp>
+#include <lava/core/mouse-wheel.hpp>
 #include <lava/core/ws-event-type.hpp>
 
 namespace lava {
@@ -28,9 +29,10 @@ namespace lava {
             int16_t y;
         };
 
-        struct MouseScrollData {
+        struct MouseWheelData {
             int16_t x;
             int16_t y;
+            MouseWheel which;
 
             // Standard delta is 1.f, but hight precision mice (ou touchpads)
             // might be non-integers.
@@ -48,7 +50,7 @@ namespace lava {
             WindowSizeData windowSize;
             MouseButtonData mouseButton;
             MouseMoveData mouseMove;
-            MouseScrollData mouseScroll;
+            MouseWheelData mouseWheel;
             KeyData key;
         };
     };

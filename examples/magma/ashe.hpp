@@ -251,8 +251,9 @@ namespace lava::ashe {
                 break;
             }
 
-            case WsEventType::MouseScroll: {
-                m_camera->radiusAdd(-event.mouseScroll.delta * m_camera->radius() / 10.f);
+            case WsEventType::MouseWheelScrolled: {
+                if (event.mouseWheel.which != MouseWheel::Vertical) break;
+                m_camera->radiusAdd(-event.mouseWheel.delta * m_camera->radius() / 10.f);
                 break;
             }
 
