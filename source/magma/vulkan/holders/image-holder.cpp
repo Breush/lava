@@ -6,6 +6,7 @@
 #include "../helpers/command-buffer.hpp"
 #include "../helpers/device.hpp"
 #include "../render-engine-impl.hpp"
+#include "../render-image-impl.hpp"
 
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;

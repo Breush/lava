@@ -162,7 +162,7 @@ void Present::bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder
     m_swapchainHolder = &swapchainHolder;
 }
 
-uint32_t Present::addView(vk::ImageView imageView, vk::Sampler sampler, Viewport viewport)
+uint32_t Present::addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport)
 {
     if (m_viewports.size() >= MAX_VIEW_COUNT) {
         logger.warning("magma.vulkan.stages.present")
@@ -185,14 +185,31 @@ uint32_t Present::addView(vk::ImageView imageView, vk::Sampler sampler, Viewport
     m_uboHolder.copy(1, m_viewports.back(), viewId);
 
     // Samplers descriptor
-    updateView(viewId, imageView, sampler);
+    updateView(viewId, imageView, imageLayout, sampler);
 
     return viewId;
 }
 
-void Present::updateView(uint32_t viewId, vk::ImageView imageView, vk::Sampler sampler)
+void Present::removeView(uint32_t viewId)
 {
-    // @note Correspond to the final layout specified at previous pass
-    const auto imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    // @todo Handle views individually, generating a really unique id
+    // that has nothing to do with internal storage.
+    if (viewId != m_viewports.size() - 1u) {
+        logger.warning("magma.vulkan.stages.present")
+            << "Currently unable to remove a view that is not the last one added." << std::endl;
+        return;
+    }
+
+    m_viewports.erase(std::begin(m_viewports) + viewId);
+
+    // Views count update
+    const uint32_t viewCount = m_viewports.size();
+    m_uboHolder.copy(0, viewCount);
+}
+
+void Present::updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler)
+{
+    // @todo Also add greyscale image and linear depth...
+
     vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 2u, viewId);
 }

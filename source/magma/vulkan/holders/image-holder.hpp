@@ -2,6 +2,7 @@
 
 #include <lava/core/macros.hpp>
 #include <lava/magma/render-engine.hpp>
+#include <lava/magma/render-image.hpp>
 
 #include "../wrappers.hpp"
 

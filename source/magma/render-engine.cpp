@@ -1,5 +1,7 @@
 #include <lava/magma/render-engine.hpp>
 
+#include <lava/magma/cameras/i-camera.hpp>
+
 #include <fstream>
 #include <lava/core/macros.hpp>
 #include <sstream>
@@ -32,7 +34,13 @@ $pimpl_method(RenderEngine, uint32_t, registerMaterial, const std::string&, hrid
 $pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath,
               const UniformDefinitions&, uniformDefinitions);
 
-$pimpl_method(RenderEngine, uint32_t, addView, ICamera&, camera, IRenderTarget&, renderTarget, Viewport, viewport);
+uint32_t RenderEngine::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
+{
+    return addView(camera.renderImage(), renderTarget, viewport);
+}
+
+$pimpl_method(RenderEngine, uint32_t, addView, RenderImage, renderImage, IRenderTarget&, renderTarget, Viewport, viewport);
+$pimpl_method(RenderEngine, void, removeView, uint32_t, viewId);
 
 //----- Adders
 

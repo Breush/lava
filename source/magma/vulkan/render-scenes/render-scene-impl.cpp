@@ -142,21 +142,38 @@ void RenderScene::Impl::remove(const Texture& texture)
     }
 }
 
-vk::ImageView RenderScene::Impl::renderedImageView(uint32_t cameraIndex) const
+RenderImage RenderScene::Impl::cameraRenderImage(uint32_t cameraIndex) const
 {
     if (!m_initialized) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but not initialized." << std::endl;
-        return nullptr;
+            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
+        return RenderImage();
     }
 
     if (cameraIndex >= m_cameraBundles.size()) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
             << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
-        return nullptr;
+        return RenderImage();
     }
 
-    return m_cameraBundles[cameraIndex].deepDeferredStage->imageView();
+    return m_cameraBundles[cameraIndex].deepDeferredStage->renderImage();
+}
+
+RenderImage RenderScene::Impl::cameradepthRenderImage(uint32_t cameraIndex) const
+{
+    if (!m_initialized) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
+        return RenderImage();
+    }
+
+    if (cameraIndex >= m_cameraBundles.size()) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
+        return RenderImage();
+    }
+
+    return m_cameraBundles[cameraIndex].deepDeferredStage->depthRenderImage();
 }
 
 //---- Internal interface
@@ -165,8 +182,14 @@ void RenderScene::Impl::updateCamera(uint32_t cameraId)
 {
     updateStages(cameraId);
 
-    // Present stage of RenderEngine is not right anymore, has the renderedImageView is no more
-    m_engine.updateView(*m_cameraBundles[cameraId].camera);
+    const auto& camera = *m_cameraBundles[cameraId].camera;
+
+    // Present stage of RenderEngine is not right anymore, has the renderImage is no more
+    m_engine.updateView(camera.renderImage());
+
+    // @note Well, the shadow map might not have changed,
+    // but we update it anyway. We're not sure if it is the first initialization or not.
+    m_engine.updateView(camera.depthRenderImage());
 }
 
 void RenderScene::Impl::fallbackMaterial(std::unique_ptr<Material>&& material)

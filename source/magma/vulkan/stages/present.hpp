@@ -27,10 +27,13 @@ namespace lava::magma {
         void bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder);
 
         /// Render an image to binded swapchain in a specific viewport.
-        uint32_t addView(vk::ImageView imageView, vk::Sampler sampler, Viewport viewport);
+        uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport);
+
+        /// Remove the specified view.
+        void removeView(uint32_t viewId);
 
         /// Update the image of the specified view.
-        void updateView(uint32_t viewId, vk::ImageView imageView, vk::Sampler sampler);
+        void updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler);
 
     protected:
         void createFramebuffers();

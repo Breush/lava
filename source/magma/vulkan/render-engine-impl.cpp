@@ -8,6 +8,7 @@
 #include "./cameras/i-camera-impl.hpp"
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
+#include "./render-image-impl.hpp"
 #include "./render-scenes/i-render-scene-impl.hpp"
 #include "./render-targets/i-render-target-impl.hpp"
 #include "./stages/present.hpp"
@@ -118,7 +119,7 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     return materialId;
 }
 
-uint32_t RenderEngine::Impl::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
+uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport)
 {
     // Find the render target bundle
     uint32_t renderTargetId = renderTarget.interfaceImpl().id();
@@ -127,15 +128,32 @@ uint32_t RenderEngine::Impl::addView(ICamera& camera, IRenderTarget& renderTarge
     // Create the new render view
     m_renderViews.emplace_back();
     auto& renderView = m_renderViews.back();
-    renderView.camera = &camera;
+    renderView.renderImage = renderImage;
     renderView.renderTargetId = renderTargetId;
 
-    // Add a new view to the present stage
-    const auto& cameraImpl = camera.interfaceImpl();
-    auto imageView = cameraImpl.renderedImageView();
-    renderView.presentViewId = renderTargetBundle.presentStage->addView(imageView, m_dummySampler, viewport);
+    // Add a new image to the present stage
+    const auto& renderImageImpl = renderImage.impl();
+    auto imageView = renderImageImpl.imageView();
+    auto imageLayout = renderImageImpl.imageLayout();
+    renderView.presentViewId = renderTargetBundle.presentStage->addView(imageView, imageLayout, m_dummySampler, viewport);
 
     return m_renderViews.size() - 1u;
+}
+
+void RenderEngine::Impl::removeView(uint32_t viewId)
+{
+    // @todo Handle views individually, generating a really unique id
+    // that has nothing to do with internal storage.
+    if (viewId != m_renderViews.size() - 1u) {
+        logger.warning("magma.vulkan.render-engine")
+            << "Currently unable to remove a view that is not the last one added." << std::endl;
+        return;
+    }
+
+    auto& renderView = m_renderViews[viewId];
+    auto& renderTargetBundle = m_renderTargetBundles[renderView.renderTargetId];
+    renderTargetBundle.presentStage->removeView(renderView.presentViewId);
+    m_renderViews.erase(std::begin(m_renderViews) + viewId);
 }
 
 //----- Adders
@@ -191,17 +209,18 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     logger.log().tab(-1);
 }
 
-void RenderEngine::Impl::updateView(ICamera& camera)
+void RenderEngine::Impl::updateView(RenderImage renderImage)
 {
-    auto& cameraImpl = camera.interfaceImpl();
+    auto& renderImageImpl = renderImage.impl();
 
-    // The camera has changed, we update all image views we were using from it
+    // The renderImage has changed, we update all image views we were using from it
     for (auto& renderView : m_renderViews) {
-        if (renderView.camera != &camera) continue;
+        if (renderView.renderImage.impl().imageView() != renderImageImpl.imageView()) continue;
         auto& renderTargetBundle = m_renderTargetBundles[renderView.renderTargetId];
 
-        auto imageView = cameraImpl.renderedImageView();
-        renderTargetBundle.presentStage->updateView(renderView.presentViewId, imageView, m_dummySampler);
+        auto imageView = renderImageImpl.imageView();
+        auto imageLayout = renderImageImpl.imageLayout();
+        renderTargetBundle.presentStage->updateView(renderView.presentViewId, imageView, imageLayout, m_dummySampler);
     }
 }
 

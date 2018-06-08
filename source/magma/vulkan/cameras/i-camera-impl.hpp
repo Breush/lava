@@ -34,8 +34,5 @@ namespace lava::magma {
 
         /// Its projection transform.
         virtual const glm::mat4& projectionTransform() const = 0;
-
-        /// The rendered image view.
-        virtual vk::ImageView renderedImageView() const = 0;
     };
 }

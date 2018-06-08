@@ -13,6 +13,8 @@ $pimpl_class(OrbitCamera, RenderScene&, scene, Extent2d, extent);
 
 // ICamera
 $pimpl_property_v(OrbitCamera, lava::Extent2d, extent);
+$pimpl_method_const(OrbitCamera, RenderImage, renderImage);
+$pimpl_method_const(OrbitCamera, RenderImage, depthRenderImage);
 
 ICamera::Impl& OrbitCamera::interfaceImpl()
 {

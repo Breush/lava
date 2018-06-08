@@ -37,7 +37,8 @@ namespace lava::magma {
                                   const UniformDefinitions& uniformDefinitions);
         uint32_t registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath,
                                           const UniformDefinitions& uniformDefinitions);
-        uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
+        uint32_t addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport);
+        void removeView(uint32_t viewId);
 
         /**
          * @name Materials
@@ -83,7 +84,7 @@ namespace lava::magma {
         const MaterialInfo& materialInfo(const std::string& hrid) const;
 
         void updateRenderTarget(uint32_t renderTargetId);
-        void updateView(ICamera& camera);
+        void updateView(RenderImage renderImage);
         /// @}
 
     protected:
@@ -110,7 +111,7 @@ namespace lava::magma {
 
         /// A view bind a scene and a target.
         struct RenderView {
-            ICamera* camera = nullptr;
+            RenderImage renderImage;
             uint32_t renderTargetId = -1u;
             uint32_t presentViewId = -1u;
         };

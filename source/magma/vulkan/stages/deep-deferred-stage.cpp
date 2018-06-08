@@ -8,6 +8,7 @@
 #include "../lights/point-light-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
+#include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../vertex.hpp"
 
@@ -169,6 +170,22 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     commandBuffer.endRenderPass();
 
     deviceHolder.debugMarkerEndRegion(commandBuffer);
+}
+
+RenderImage DeepDeferredStage::renderImage() const
+{
+    RenderImage renderImage;
+    renderImage.impl().imageView(m_finalImageHolder.view());
+    renderImage.impl().imageLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    return renderImage;
+}
+
+RenderImage DeepDeferredStage::depthRenderImage() const
+{
+    RenderImage renderImage;
+    renderImage.impl().imageView(m_depthImageHolder.view());
+    renderImage.impl().imageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    return renderImage;
 }
 
 //----- Internal

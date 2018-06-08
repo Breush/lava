@@ -35,7 +35,8 @@ namespace lava::magma {
         void init(uint32_t id) override final;
 
         void render(vk::CommandBuffer commandBuffer) override final;
-        vk::ImageView renderedImageView(uint32_t cameraIndex) const override final;
+        RenderImage cameraRenderImage(uint32_t cameraIndex) const override final;
+        RenderImage cameradepthRenderImage(uint32_t cameraIndex) const override final;
 
         /**
          * @name Adders

@@ -26,6 +26,18 @@ OrbitCamera::Impl::~Impl()
 
 //----- ICamera
 
+RenderImage OrbitCamera::Impl::renderImage() const
+{
+    return m_scene.cameraRenderImage(m_id);
+}
+
+RenderImage OrbitCamera::Impl::depthRenderImage() const
+{
+    return m_scene.cameradepthRenderImage(m_id);
+}
+
+//----- ICamera::Impl
+
 void OrbitCamera::Impl::init(uint32_t id)
 {
     m_id = id;
@@ -57,11 +69,6 @@ void OrbitCamera::Impl::extent(Extent2d extent)
     if (m_initialized) {
         m_scene.updateCamera(m_id);
     }
-}
-
-vk::ImageView OrbitCamera::Impl::renderedImageView() const
-{
-    return m_scene.renderedImageView(m_id);
 }
 
 //----- OrbitCamera

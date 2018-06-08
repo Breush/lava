@@ -2,6 +2,8 @@
 
 #include <lava/magma/render-scenes/i-render-scene.hpp>
 
+#include <lava/magma/render-image.hpp>
+
 #include <vulkan/vulkan.hpp>
 
 namespace lava::magma {
@@ -15,7 +17,10 @@ namespace lava::magma {
         /// Render the scene.
         virtual void render(vk::CommandBuffer commandBuffer) = 0;
 
-        /// The final rendered image view.
-        virtual vk::ImageView renderedImageView(uint32_t cameraIndex) const = 0;
+        /// The final rendered image view for the specified camera.
+        virtual RenderImage cameraRenderImage(uint32_t cameraIndex) const = 0;
+
+        /// The shadow-map rendered image view for the specified camera.
+        virtual RenderImage cameradepthRenderImage(uint32_t cameraIndex) const = 0;
     };
 }

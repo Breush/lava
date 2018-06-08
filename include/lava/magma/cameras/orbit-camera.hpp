@@ -18,8 +18,10 @@ namespace lava::magma {
         ~OrbitCamera();
 
         // ICamera
-        Extent2d extent() const;
-        void extent(Extent2d extent);
+        Extent2d extent() const override final;
+        void extent(Extent2d extent) override final;
+        RenderImage renderImage() const override final;
+        RenderImage depthRenderImage() const override final;
 
         ICamera::Impl& interfaceImpl();
 

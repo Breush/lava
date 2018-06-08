@@ -21,6 +21,8 @@ namespace lava::magma {
         // ICamera
         Extent2d extent() const { return {m_extent.width, m_extent.height}; }
         void extent(Extent2d extent);
+        RenderImage renderImage() const;
+        RenderImage depthRenderImage() const;
 
         // ICamera::Impl
         void init(uint32_t id) override final;
@@ -30,7 +32,6 @@ namespace lava::magma {
         const glm::vec3& position() const override final { return m_position; }
         const glm::mat4& viewTransform() const override final { return m_viewTransform; }
         const glm::mat4& projectionTransform() const override final { return m_projectionTransform; }
-        vk::ImageView renderedImageView() const;
 
         // OrbitCamera
         void position(const glm::vec3& position);

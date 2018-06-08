@@ -10,6 +10,7 @@ namespace lava::magma {
     class ICamera;
     class IRenderScene;
     class IRenderTarget;
+    class RenderImage;
 }
 
 namespace lava::magma {
@@ -49,18 +50,20 @@ namespace lava::magma {
          * @return A unique identifier to the view generated.
          */
         uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
+        uint32_t addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport);
+        void removeView(uint32_t viewId);
 
         /**
-        * @name Makers
-        * Make a new resource and add it to the engine.
-        *
-        * Arguments will be forwarded to the constructor.
-        * Any resource that match an adder (see below) can be made.
-        *
-        * ```
-        * auto& scene = engine.make<RenderScene>(); // Its lifetime is now managed by the engine.
-        * ```
-        */
+         * @name Makers
+         * Make a new resource and add it to the engine.
+         *
+         * Arguments will be forwarded to the constructor.
+         * Any resource that match an adder (see below) can be made.
+         *
+         * ```
+         * auto& scene = engine.make<RenderScene>(); // Its lifetime is now managed by the engine.
+         * ```
+         */
         /// @{
         /// Make a new resource directly.
         template <class T, class... Arguments>

@@ -40,7 +40,8 @@ namespace lava::magma {
         void update(vk::Extent2D extent);
         void render(vk::CommandBuffer commandBuffer);
 
-        const vulkan::ImageView& imageView() const { return m_finalImageHolder.view(); }
+        RenderImage renderImage() const;
+        RenderImage depthRenderImage() const;
 
     protected:
         void initGBuffer();

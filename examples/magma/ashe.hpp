@@ -189,6 +189,7 @@ namespace lava::ashe {
         {
             static auto buttonPressed = MouseButton::Unknown;
             static glm::vec2 lastDragPosition;
+            static uint32_t depthViewId = -1u;
 
             switch (event.type) {
             case WsEventType::WindowClosed: {
@@ -201,6 +202,17 @@ namespace lava::ashe {
 
                 if (event.key.which == Key::Escape) {
                     m_window->close();
+                }
+                // Press D to show depth map of camera
+                else if (event.key.which == Key::D) {
+                    if (depthViewId == -1u) {
+                        depthViewId =
+                            m_engine->addView(m_camera->depthRenderImage(), *m_windowRenderTarget, Viewport{0, 0, 1, 1});
+                    }
+                    else {
+                        m_engine->removeView(depthViewId);
+                        depthViewId = -1u;
+                    }
                 }
                 // @todo Write better controls for the light
                 else if (event.key.which == Key::Right) {
