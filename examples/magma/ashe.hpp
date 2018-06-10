@@ -203,8 +203,8 @@ namespace lava::ashe {
                 if (event.key.which == Key::Escape) {
                     m_window->close();
                 }
-                // Press D to show depth map of camera
-                else if (event.key.which == Key::D) {
+                // Press C to show debug of camera
+                else if (event.key.which == Key::C) {
                     if (depthViewId == -1u) {
                         depthViewId =
                             m_engine->addView(m_camera->depthRenderImage(), *m_windowRenderTarget, Viewport{0, 0, 1, 1});

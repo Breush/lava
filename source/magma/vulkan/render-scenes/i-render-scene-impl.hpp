@@ -16,11 +16,5 @@ namespace lava::magma {
 
         /// Render the scene.
         virtual void render(vk::CommandBuffer commandBuffer) = 0;
-
-        /// The final rendered image view for the specified camera.
-        virtual RenderImage cameraRenderImage(uint32_t cameraIndex) const = 0;
-
-        /// The shadow-map rendered image view for the specified camera.
-        virtual RenderImage cameradepthRenderImage(uint32_t cameraIndex) const = 0;
     };
 }

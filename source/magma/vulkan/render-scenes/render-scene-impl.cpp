@@ -142,40 +142,6 @@ void RenderScene::Impl::remove(const Texture& texture)
     }
 }
 
-RenderImage RenderScene::Impl::cameraRenderImage(uint32_t cameraIndex) const
-{
-    if (!m_initialized) {
-        logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
-        return RenderImage();
-    }
-
-    if (cameraIndex >= m_cameraBundles.size()) {
-        logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
-        return RenderImage();
-    }
-
-    return m_cameraBundles[cameraIndex].deepDeferredStage->renderImage();
-}
-
-RenderImage RenderScene::Impl::cameradepthRenderImage(uint32_t cameraIndex) const
-{
-    if (!m_initialized) {
-        logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
-        return RenderImage();
-    }
-
-    if (cameraIndex >= m_cameraBundles.size()) {
-        logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
-        return RenderImage();
-    }
-
-    return m_cameraBundles[cameraIndex].deepDeferredStage->depthRenderImage();
-}
-
 //---- Internal interface
 
 void RenderScene::Impl::updateCamera(uint32_t cameraId)
@@ -199,6 +165,40 @@ void RenderScene::Impl::fallbackMaterial(std::unique_ptr<Material>&& material)
     if (m_initialized) {
         m_fallbackMaterial->impl().init();
     }
+}
+
+RenderImage RenderScene::Impl::cameraRenderImage(uint32_t cameraIndex) const
+{
+    if (!m_initialized) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
+        return RenderImage();
+    }
+
+    if (cameraIndex >= m_cameraBundles.size()) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
+        return RenderImage();
+    }
+
+    return m_cameraBundles[cameraIndex].deepDeferredStage->renderImage();
+}
+
+RenderImage RenderScene::Impl::cameraDepthRenderImage(uint32_t cameraIndex) const
+{
+    if (!m_initialized) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
+        return RenderImage();
+    }
+
+    if (cameraIndex >= m_cameraBundles.size()) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
+        return RenderImage();
+    }
+
+    return m_cameraBundles[cameraIndex].deepDeferredStage->depthRenderImage();
 }
 
 //---- Internal

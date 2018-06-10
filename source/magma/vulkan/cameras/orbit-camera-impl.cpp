@@ -33,7 +33,7 @@ RenderImage OrbitCamera::Impl::renderImage() const
 
 RenderImage OrbitCamera::Impl::depthRenderImage() const
 {
-    return m_scene.cameradepthRenderImage(m_id);
+    return m_scene.cameraDepthRenderImage(m_id);
 }
 
 //----- ICamera::Impl

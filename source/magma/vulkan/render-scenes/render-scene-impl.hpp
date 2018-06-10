@@ -35,8 +35,6 @@ namespace lava::magma {
         void init(uint32_t id) override final;
 
         void render(vk::CommandBuffer commandBuffer) override final;
-        RenderImage cameraRenderImage(uint32_t cameraIndex) const override final;
-        RenderImage cameradepthRenderImage(uint32_t cameraIndex) const override final;
 
         /**
          * @name Adders
@@ -85,6 +83,9 @@ namespace lava::magma {
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
         const std::vector<std::unique_ptr<ILight>>& lights() const { return m_lights; }
+
+        RenderImage cameraRenderImage(uint32_t cameraIndex) const;
+        RenderImage cameraDepthRenderImage(uint32_t cameraIndex) const;
         /// @}
 
     protected:
