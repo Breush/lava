@@ -1,3 +1,4 @@
 {
-  "windowingSystem": "xcb"
+  "windowingSystem": "xcb",
+  "audioSystem": "pulse"
 }
