@@ -17,16 +17,16 @@ namespace lava::dike {
         void gravity(const glm::vec3& gravity);
 
         /**
-        * @name Makers
-        * Make a new resource and add it to the engine.
-        *
-        * Arguments will be forwarded to the constructor.
-        * Any resource that match an adder (see below) can be made.
-        *
-        * ```
-        * auto& scene = engine.make<SphereRigidBody>(); // Its lifetime is now managed by the engine.
-        * ```
-        */
+         * @name Makers
+         * Make a new resource and add it to the engine.
+         *
+         * Arguments will be forwarded to the constructor.
+         * Any resource that match an adder (see below) can be made.
+         *
+         * ```
+         * auto& rigidBody = engine.make<SphereRigidBody>(); // Its lifetime is now managed by the engine.
+         * ```
+         */
         /// @{
         /// Make a new resource directly.
         template <class T, class... Arguments>
