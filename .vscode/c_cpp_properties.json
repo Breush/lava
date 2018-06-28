@@ -20,6 +20,7 @@
                 "LAVA_CHAMBER_FILEWATCHER_INOTIFY",
                 "LAVA_CHAMBER_CALLSTACK_GCC",
                 "LAVA_CRATER_WINDOW_XCB",
+                "LAVA_FLOW_AUDIO_PULSE",
                 "VK_USE_PLATFORM_XCB_KHR"
             ],
             "intelliSenseMode": "clang-x64",
