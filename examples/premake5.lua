@@ -48,6 +48,14 @@ project "dike-bouncy-sphere"
     useDike()
 
 ----------
+-- flow --
+
+project "flow-play-sounds"
+    kind "WindowedApp"
+    files "flow/play-sounds.cpp"
+    useFlow()
+
+----------
 -- sill --
 
 project "sill-matcap-material"
