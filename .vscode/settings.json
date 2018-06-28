@@ -80,6 +80,8 @@
         "optional": "cpp",
         "filesystem": "cpp",
         "numeric": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp"
     }
 }
