@@ -21,3 +21,4 @@ end
 
 -- Add command-line options
 setOption("windowingSystem", _OPTIONS["windowing-system"])
+setOption("audioSystem", _OPTIONS["audio-system"])

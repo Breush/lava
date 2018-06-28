@@ -1,5 +1,6 @@
 include "chamber.lua"
 include "crater.lua"
 include "dike.lua"
+include "flow.lua"
 include "magma.lua"
 include "sill.lua"
