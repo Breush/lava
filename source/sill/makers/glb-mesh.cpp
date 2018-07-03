@@ -3,8 +3,8 @@
 #include <fstream>
 #include <glm/glm.hpp>
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/stb/image.hpp>
 #include <lava/sill/material.hpp>
-#include <stb/stb_image.h>
 
 #include "../components/mesh-component-impl.hpp"
 #include "../game-engine-impl.hpp"

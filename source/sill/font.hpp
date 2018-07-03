@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <glm/vec2.hpp>
-#include <stb/stb_truetype.h>
+#include <lava/chamber/stb/truetype.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>

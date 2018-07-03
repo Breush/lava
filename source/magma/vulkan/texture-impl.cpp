@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <lava/chamber/logger.hpp>
-#include <stb/stb_image.h>
+#include <lava/chamber/stb/image.hpp>
 
 #include "./render-scenes/render-scene-impl.hpp"
 
@@ -17,9 +17,7 @@ Texture::Impl::Impl(RenderScene& scene)
 
 //----- Internals
 
-void Texture::Impl::init()
-{
-}
+void Texture::Impl::init() {}
 
 //----- Texture
 
