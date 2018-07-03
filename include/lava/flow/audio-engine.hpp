@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/flow/music.hpp>
 #include <lava/flow/sound.hpp>
 
 #include <memory>
@@ -42,6 +43,7 @@ namespace lava::flow {
          */
         /// @{
         void add(std::unique_ptr<Sound>&& sound);
+        void add(std::unique_ptr<Music>&& music);
         /// @}
 
         /**

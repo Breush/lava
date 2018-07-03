@@ -50,6 +50,11 @@ project "dike-bouncy-sphere"
 ----------
 -- flow --
 
+project "flow-play-musics"
+    kind "WindowedApp"
+    files "flow/play-musics.cpp"
+    useFlow()
+
 project "flow-play-sounds"
     kind "WindowedApp"
     files "flow/play-sounds.cpp"

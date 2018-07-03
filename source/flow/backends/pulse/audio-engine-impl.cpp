@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <lava/chamber.hpp>
 
+#include "./music-impl.hpp"
 #include "./sound-impl.hpp"
 
 using namespace lava::flow;
@@ -39,6 +40,12 @@ void AudioEngine::Impl::update()
         }
     }
 
+    for (const auto& music : m_musics) {
+        if (music->impl().playing()) {
+            music->impl().update();
+        }
+    }
+
     pa_mainloop_iterate(m_mainLoop, 0, nullptr);
 
     // Automatically remove sounds that are marked to be removed...
@@ -57,6 +64,11 @@ void AudioEngine::Impl::update()
 void AudioEngine::Impl::add(std::unique_ptr<Sound>&& sound)
 {
     m_sounds.emplace_back(std::move(sound));
+}
+
+void AudioEngine::Impl::add(std::unique_ptr<Music>&& music)
+{
+    m_musics.emplace_back(std::move(music));
 }
 
 void AudioEngine::Impl::remove(const Sound::Impl& sound)

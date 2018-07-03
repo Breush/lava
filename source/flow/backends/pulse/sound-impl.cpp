@@ -4,21 +4,7 @@
 #include <lava/flow/sound-data.hpp>
 
 #include "./audio-engine-impl.hpp"
-
-using namespace lava;
-
-namespace {
-    pa_sample_format_t paSampleFormatFromSoundFormat(flow::SoundFormat soundFormat)
-    {
-        switch (soundFormat) {
-        case flow::SoundFormat::Int16LE: return PA_SAMPLE_S16LE;
-        default: break;
-        }
-
-        chamber::logger.error("flow.pulse.sound") << "Unhandled sound format: " << soundFormat << "." << std::endl;
-        return static_cast<pa_sample_format>(0u);
-    }
-}
+#include "./sample-helper.hpp"
 
 using namespace lava::flow;
 
@@ -27,7 +13,7 @@ Sound::Impl::Impl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundDat
     , m_soundData(soundData)
 {
     pa_sample_spec sampleSpec;
-    sampleSpec.format = paSampleFormatFromSoundFormat(soundData->soundFormat());
+    sampleSpec.format = helpers::pulseSampleFormat(soundData->sampleFormat());
     sampleSpec.channels = soundData->channels();
     sampleSpec.rate = soundData->rate();
 
@@ -66,7 +52,7 @@ void Sound::Impl::update()
 
     const auto writableSize = pa_stream_writable_size(m_stream);
     const auto remainingSize = m_soundData->size() - m_playingPointer;
-    const auto playingSize = (remainingSize < writableSize ? remainingSize : writableSize);
+    const auto playingSize = (remainingSize < writableSize) ? remainingSize : writableSize;
 
     if (playingSize > 0) {
         pa_stream_write(m_stream, m_soundData->data() + m_playingPointer, playingSize, nullptr, 0, PA_SEEK_RELATIVE);

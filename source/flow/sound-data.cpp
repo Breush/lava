@@ -21,4 +21,4 @@ $pimpl_method_const(SoundData, const uint8_t*, data);
 $pimpl_method_const(SoundData, uint32_t, size);
 $pimpl_method_const(SoundData, uint32_t, rate);
 $pimpl_method_const(SoundData, uint8_t, channels);
-$pimpl_method_const(SoundData, SoundFormat, soundFormat);
+$pimpl_method_const(SoundData, SampleFormat, sampleFormat);

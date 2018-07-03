@@ -13,7 +13,7 @@ namespace lava::flow {
         uint32_t size() const { return m_size; }
         uint32_t rate() const { return m_rate; }
         uint8_t channels() const { return m_channels; }
-        SoundFormat soundFormat() const { return m_soundFormat; }
+        SampleFormat sampleFormat() const { return m_sampleFormat; }
 
     protected:
         uint8_t* m_data = nullptr;
@@ -21,6 +21,6 @@ namespace lava::flow {
 
         uint32_t m_rate = 0u;
         uint8_t m_channels = 0u;
-        SoundFormat m_soundFormat = SoundFormat::Unknown;
+        SampleFormat m_sampleFormat = SampleFormat::Unknown;
     };
 }

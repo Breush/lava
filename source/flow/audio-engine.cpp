@@ -30,3 +30,8 @@ void AudioEngine::add(std::unique_ptr<Sound>&& sound)
 {
     m_impl->add(std::move(sound));
 }
+
+void AudioEngine::add(std::unique_ptr<Music>&& music)
+{
+    m_impl->add(std::move(music));
+}

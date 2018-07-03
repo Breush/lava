@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/flow/sound-format.hpp>
+#include <lava/flow/sample-format.hpp>
 
 #include <string>
 
@@ -23,7 +23,7 @@ namespace lava::flow {
         uint8_t channels() const;
 
         /// Sample format.
-        SoundFormat soundFormat() const;
+        SampleFormat sampleFormat() const;
 
     public:
         class Impl;
