@@ -25,6 +25,12 @@ namespace lava::flow {
         /// Plays the current sound data once and remove this sound.
         void playOnce();
 
+        /**
+         * Whether the sound should be replayed at the end.
+         * Not effective if playOnce is called.
+         */
+        void looping(bool looping);
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

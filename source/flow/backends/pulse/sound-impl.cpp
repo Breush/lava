@@ -39,6 +39,11 @@ void Sound::Impl::play()
     m_playingPointer = 0u;
 }
 
+void Sound::Impl::looping(bool looping)
+{
+    m_looping = looping;
+}
+
 void Sound::Impl::removeOnFinish(bool removeOnFinish)
 {
     m_removeOnFinish = removeOnFinish;
@@ -65,6 +70,9 @@ void Sound::Impl::update()
 
         if (m_removeOnFinish) {
             m_engine.remove(*this);
+        }
+        else if (m_looping) {
+            play();
         }
     }
 }

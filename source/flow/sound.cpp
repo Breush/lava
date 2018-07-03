@@ -34,3 +34,8 @@ void Sound::playOnce()
     m_impl->play();
     m_impl->removeOnFinish(true);
 }
+
+void Sound::looping(bool looping)
+{
+    m_impl->looping(looping);
+}

@@ -19,6 +19,7 @@ namespace lava::flow {
         // ----- Sound
 
         void play();
+        void looping(bool looping);
 
         // ----- ISoundImpl
 
@@ -36,6 +37,7 @@ namespace lava::flow {
         pa_stream* m_stream = nullptr;
         uint32_t m_playingPointer = 0u;
         bool m_playing = false;
+        bool m_looping = false;
         bool m_removeOnFinish = false;
     };
 }
