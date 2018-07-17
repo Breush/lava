@@ -1,43 +1,32 @@
 #pragma once
 
 #include <lava/flow/audio-engine.hpp>
-#include <lava/flow/sound.hpp>
 
-#include <memory>
 #include <pulse/pulseaudio.h>
-#include <vector>
+
+#include "../../audio-engine-impl.hpp"
+#include "../../sound-base-impl.hpp"
 
 namespace lava::flow {
     /**
      * PulseAudio implementation of sound class.
      */
-    class Sound::Impl {
+    class SoundImpl : public SoundBaseImpl {
     public:
-        Impl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundData);
-        ~Impl();
+        SoundImpl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundData);
+        ~SoundImpl();
 
-        // ----- Sound
+        // ----- AudioSource
 
-        void play();
-        void looping(bool looping);
-
-        // ----- ISoundImpl
-
-        void removeOnFinish(bool removeOnFinish);
-
-        // ----- Internal
-
-        void update();
-        bool playing() const { return m_playing; }
+        void update() override final;
+        void restart() override final;
 
     private:
-        AudioEngine::Impl& m_engine;
-        std::shared_ptr<SoundData> m_soundData;
+        AudioEngineImpl& m_backendEngine;
 
+        // Stream
         pa_stream* m_stream = nullptr;
-        uint32_t m_playingPointer = 0u;
-        bool m_playing = false;
-        bool m_looping = false;
-        bool m_removeOnFinish = false;
+
+        uint32_t m_playingOffset = 0u; // Number of floats we've already read.
     };
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lava/flow/audio-source.hpp>
+
 #include <memory>
 
 namespace lava::flow {
@@ -8,21 +10,11 @@ namespace lava::flow {
 }
 
 namespace lava::flow {
-    class Music {
+    class Music : public AudioSource {
     public:
         /// Create a new music.
         Music(AudioEngine& engine, std::shared_ptr<IMusicData> musicData);
 
         ~Music();
-
-        /// Plays the current music.
-        void play();
-
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
-
-    private:
-        Impl* m_impl = nullptr;
     };
 }

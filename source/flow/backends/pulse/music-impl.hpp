@@ -1,37 +1,33 @@
 #pragma once
 
-#include <lava/flow/audio-engine.hpp>
-#include <lava/flow/music.hpp>
+#include "../../music-base-impl.hpp"
 
+#include <lava/flow/audio-engine.hpp>
 #include <pulse/pulseaudio.h>
 
+#include "../../audio-engine-impl.hpp"
 #include "../../i-music-decoder.hpp"
 
 namespace lava::flow {
     /**
      * PulseAudio implementation of Music class.
      */
-    class Music::Impl {
+    class MusicImpl : public MusicBaseImpl {
     public:
-        Impl(AudioEngine::Impl& engine, std::shared_ptr<IMusicData> musicData);
-        ~Impl();
+        MusicImpl(AudioEngine::Impl& engine, std::shared_ptr<IMusicData> musicData);
+        ~MusicImpl();
 
-        // ----- Music
+        // ----- AudioSource
 
-        void play();
-
-        // ----- Internal
-
-        void update();
-        bool playing() const { return m_playing; }
+        void update() override final;
+        void restart() override final;
 
     private:
-        AudioEngine::Impl& m_engine;
+        AudioEngineImpl& m_backendEngine;
 
         std::unique_ptr<IMusicDecoder> m_musicDecoder = nullptr;
         pa_stream* m_stream = nullptr;
-        bool m_playing = false;
 
-        uint32_t m_playingPointer = 0u;
+        uint32_t m_playingOffset = 0u;
     };
 }

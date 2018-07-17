@@ -28,6 +28,7 @@ project "lava-flow"
 
         end
 
+        useGlm()
         useChamber()
     end
 

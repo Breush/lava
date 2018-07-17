@@ -1,25 +1,19 @@
 #pragma once
 
-#include <lava/flow/audio-engine.hpp>
+#include "../../audio-engine-impl.hpp"
 
-#include <memory>
 #include <pulse/pulseaudio.h>
-#include <vector>
 
 namespace lava::flow {
     /**
      * PulseAudio implementation of AudioEngine.
      */
-    class AudioEngine::Impl {
+    class AudioEngineImpl : public AudioEngine::Impl {
     public:
-        Impl();
-        ~Impl();
+        AudioEngineImpl();
+        ~AudioEngineImpl();
 
-        void update();
-        void add(std::unique_ptr<Sound>&& sound);
-        void add(std::unique_ptr<Music>&& music);
-        void remove(const Sound::Impl& sound);
-        bool playing() const;
+        void internalUpdate() override final;
 
         // ----- Internal
 
@@ -32,11 +26,5 @@ namespace lava::flow {
     private:
         pa_mainloop* m_mainLoop = nullptr;
         pa_context* m_context = nullptr;
-
-        // @fixme There is a lot of non-pulse related code here,
-        // we could extract that somehow to a AudioEngineImpl.
-        std::vector<std::unique_ptr<Sound>> m_sounds;
-        std::vector<std::unique_ptr<Music>> m_musics;
-        std::vector<const Sound::Impl*> m_soundsToRemove;
     };
 }

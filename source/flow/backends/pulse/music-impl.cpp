@@ -11,8 +11,9 @@
 using namespace lava::chamber;
 using namespace lava::flow;
 
-Music::Impl::Impl(AudioEngine::Impl& engine, std::shared_ptr<IMusicData> musicData)
-    : m_engine(engine)
+MusicImpl::MusicImpl(AudioEngine::Impl& engine, std::shared_ptr<IMusicData> musicData)
+    : MusicBaseImpl(engine)
+    , m_backendEngine(engine.backend())
 {
     // @todo This decoder selection could be done upstream in Music()
     if (musicData->compressionFormat() == MusicCompressionFormat::Vorbis) {
@@ -27,36 +28,28 @@ Music::Impl::Impl(AudioEngine::Impl& engine, std::shared_ptr<IMusicData> musicDa
     sampleSpec.channels = m_musicDecoder->channels();
     sampleSpec.rate = m_musicDecoder->rate();
 
-    m_stream = pa_stream_new(m_engine.context(), "lava.flow.music", &sampleSpec, nullptr);
+    m_stream = pa_stream_new(m_backendEngine.context(), "lava.flow.music", &sampleSpec, nullptr);
     pa_stream_connect_playback(m_stream, nullptr, nullptr, static_cast<pa_stream_flags_t>(0u), nullptr, nullptr);
 }
 
-Music::Impl::~Impl()
+MusicImpl::~MusicImpl()
 {
     pa_stream_disconnect(m_stream);
     pa_stream_unref(m_stream);
 }
 
-void Music::Impl::play()
-{
-    m_playing = true;
+// ----- AudioSource
 
-    m_musicDecoder->seekStart();
-    m_playingPointer = -1u;
-}
-
-// ----- Internal
-
-void Music::Impl::update()
+void MusicImpl::update()
 {
     if (pa_stream_get_state(m_stream) != PA_STREAM_READY) return;
 
     const auto writableSize = pa_stream_writable_size(m_stream);
     if (writableSize == 0u) return;
 
-    if (m_playingPointer >= m_musicDecoder->frameSize()) {
+    if (m_playingOffset >= m_musicDecoder->frameSize()) {
         m_musicDecoder->acquireNextFrame(writableSize);
-        m_playingPointer = 0u;
+        m_playingOffset = 0u;
 
         // Check if we are at the end, and if so, just stop.
         if (m_musicDecoder->frameSize() == 0u) {
@@ -65,11 +58,16 @@ void Music::Impl::update()
         }
     }
 
-    const auto remainingSize = m_musicDecoder->frameSize() - m_playingPointer;
+    const auto remainingSize = m_musicDecoder->frameSize() - m_playingOffset;
     const auto playingSize = (remainingSize < writableSize) ? remainingSize : writableSize;
 
     if (playingSize > 0) {
-        pa_stream_write(m_stream, m_musicDecoder->frameData() + m_playingPointer, playingSize, nullptr, 0, PA_SEEK_RELATIVE);
-        m_playingPointer += playingSize;
+        pa_stream_write(m_stream, m_musicDecoder->frameData() + m_playingOffset, playingSize, nullptr, 0, PA_SEEK_RELATIVE);
+        m_playingOffset += playingSize;
     }
+}
+
+void MusicImpl::restart()
+{
+    m_playingOffset = 0u;
 }

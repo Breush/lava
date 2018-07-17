@@ -1,5 +1,8 @@
 #pragma once
 
+#include <lava/flow/audio-source.hpp>
+
+#include <glm/vec3.hpp>
 #include <memory>
 #include <string>
 
@@ -9,7 +12,7 @@ namespace lava::flow {
 }
 
 namespace lava::flow {
-    class Sound {
+    class Sound : public AudioSource {
     public:
         /// Create a new sound based on preexisting SoundData.
         Sound(AudioEngine& engine, std::shared_ptr<SoundData> soundData);
@@ -19,23 +22,19 @@ namespace lava::flow {
 
         ~Sound();
 
-        /// Plays the current sound data.
-        void play();
-
-        /// Plays the current sound data once and remove this sound.
-        void playOnce();
-
         /**
-         * Whether the sound should be replayed at the end.
-         * Not effective if playOnce is called.
+         * @name Spatialization
          */
-        void looping(bool looping);
+        /// @{
+        void position(const glm::vec3& position);
 
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
+        /// The distance to the listener above which the sound is pure silence. (Default: 100.f)
+        float cutOffDistance() const;
+        void cutOffDistance(float cutOffDistance);
 
-    private:
-        Impl* m_impl = nullptr;
+        /// The distance at which left or right output is exactly half. (Default: 10.f)
+        float spatializationHalfDistance() const;
+        void spatializationHalfDistance(float spatializationHalfDistance);
+        /// @}
     };
 }

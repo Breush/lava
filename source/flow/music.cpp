@@ -8,15 +8,10 @@ using namespace lava::flow;
 
 Music::Music(AudioEngine& engine, std::shared_ptr<IMusicData> musicData)
 {
-    m_impl = new Music::Impl(engine.impl(), musicData);
+    m_impl = new MusicImpl(engine.impl(), musicData);
 }
 
 Music::~Music()
 {
     delete m_impl;
-}
-
-void Music::play()
-{
-    m_impl->play();
 }

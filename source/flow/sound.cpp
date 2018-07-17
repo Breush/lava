@@ -1,5 +1,6 @@
 #include <lava/flow/sound.hpp>
 
+#include <lava/core/macros/pimpl.hpp>
 #include <lava/flow/sound-data.hpp>
 #include <memory>
 
@@ -11,7 +12,7 @@ using namespace lava::flow;
 
 Sound::Sound(AudioEngine& engine, std::shared_ptr<SoundData> soundData)
 {
-    m_impl = new Sound::Impl(engine.impl(), soundData);
+    m_impl = new SoundImpl(engine.impl(), soundData);
 }
 
 Sound::Sound(AudioEngine& engine, const std::string& fileName)
@@ -24,18 +25,6 @@ Sound::~Sound()
     delete m_impl;
 }
 
-void Sound::play()
-{
-    m_impl->play();
-}
-
-void Sound::playOnce()
-{
-    m_impl->play();
-    m_impl->removeOnFinish(true);
-}
-
-void Sound::looping(bool looping)
-{
-    m_impl->looping(looping);
-}
+$pimpl_method_cast(Sound, SoundBaseImpl, void, position, const glm::vec3&, position);
+$pimpl_property_cast_v(Sound, SoundBaseImpl, float, cutOffDistance);
+$pimpl_property_cast_v(Sound, SoundBaseImpl, float, spatializationHalfDistance);

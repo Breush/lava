@@ -55,4 +55,6 @@ WaveSoundDataImpl::WaveSoundDataImpl(const std::string& fileName)
     m_size = m_fileData.size() - 44u;
 
     logger.log().tab(-1);
+
+    normalize();
 }

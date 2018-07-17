@@ -1,6 +1,12 @@
 #include <cstdint>
 
 namespace lava::chamber {
+    inline int16_t readInt16LE(const uint8_t* buffer, uint32_t offset)
+    {
+        int16_t value = (buffer[offset + 1u] << 8u) + buffer[offset + 0u];
+        return value;
+    }
+
     inline uint16_t readUint16LE(const uint8_t* buffer, uint32_t offset)
     {
         uint16_t value = (buffer[offset + 1u] << 8u) + buffer[offset + 0u];

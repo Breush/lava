@@ -1,8 +1,8 @@
 #pragma once
 
-#include <lava/flow/music.hpp>
-#include <lava/flow/sound.hpp>
+#include <lava/flow/audio-source.hpp>
 
+#include <glm/vec3.hpp>
 #include <memory>
 
 namespace lava::flow {
@@ -42,8 +42,7 @@ namespace lava::flow {
          * For convenience, you usually want to use makers (see above).
          */
         /// @{
-        void add(std::unique_ptr<Sound>&& sound);
-        void add(std::unique_ptr<Music>&& music);
+        void add(std::unique_ptr<AudioSource>&& source);
         /// @}
 
         /**
@@ -64,8 +63,13 @@ namespace lava::flow {
         std::shared_ptr<T> share(Arguments&&... arguments);
         /// @}
 
-        /// Whether any sounds or music is currently playing.
-        bool playing() const;
+        /**
+         * @name Spatialization
+         * Control over the listener of spatialized audio.
+         */
+        /// @{
+        void listenerPosition(const glm::vec3& listenerPosition);
+        /// @}
 
     public:
         class Impl;

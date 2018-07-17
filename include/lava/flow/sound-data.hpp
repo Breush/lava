@@ -10,10 +10,10 @@ namespace lava::flow {
         SoundData(const std::string& fileName);
         ~SoundData();
 
-        /// The raw data of the sample.
+        /// The raw data (encoded interlaced according to sampleFormat).
         const uint8_t* data() const;
 
-        /// The size of the raw data.
+        /// The size of the raw data (in bytes).
         uint32_t size() const;
 
         /// Sample rate (in Hz).
@@ -24,6 +24,12 @@ namespace lava::flow {
 
         /// Sample format.
         SampleFormat sampleFormat() const;
+
+        /// The raw data converted to single channel, 44100Hz and 32-bit float PCM.
+        const float* normalizedData() const;
+
+        /// The size of normalizedData (floats count).
+        uint32_t normalizedSize() const;
 
     public:
         class Impl;

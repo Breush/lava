@@ -4,75 +4,61 @@
 #include <lava/flow/sound-data.hpp>
 
 #include "./audio-engine-impl.hpp"
-#include "./sample-helper.hpp"
 
+using namespace lava::chamber;
 using namespace lava::flow;
 
-Sound::Impl::Impl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundData)
-    : m_engine(engine)
-    , m_soundData(soundData)
+SoundImpl::SoundImpl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundData)
+    : SoundBaseImpl(engine, soundData)
+    , m_backendEngine(engine.backend())
 {
+    // @todo This 2 channels rule should be decided by the engine,
+    // as we might want to manage surround system some day.
+
+    // Global output is normalized whatever happens, to allow effects.
     pa_sample_spec sampleSpec;
-    sampleSpec.format = helpers::pulseSampleFormat(soundData->sampleFormat());
-    sampleSpec.channels = soundData->channels();
-    sampleSpec.rate = soundData->rate();
+    sampleSpec.format = PA_SAMPLE_FLOAT32;
+    sampleSpec.channels = 2u;
+    sampleSpec.rate = 44100;
 
-    // @todo Do we have to generate a unique name?
-    m_stream = pa_stream_new(m_engine.context(), "lava.flow.sound", &sampleSpec, nullptr);
+    m_stream = pa_stream_new(m_backendEngine.context(), "lava.flow.sound", &sampleSpec, nullptr);
     pa_stream_connect_playback(m_stream, nullptr, nullptr, static_cast<pa_stream_flags_t>(0u), nullptr, nullptr);
-
-    // @fixme We should probably create only one stream and mix the sounds by ourselves.
-    // This will be needed for spacialized sound anyway.
 }
 
-Sound::Impl::~Impl()
+SoundImpl::~SoundImpl()
 {
     pa_stream_disconnect(m_stream);
     pa_stream_unref(m_stream);
 }
 
-void Sound::Impl::play()
-{
-    m_playing = true;
+// ----- AudioSource
 
-    // Restart playing from the start
-    m_playingPointer = 0u;
-}
-
-void Sound::Impl::looping(bool looping)
-{
-    m_looping = looping;
-}
-
-void Sound::Impl::removeOnFinish(bool removeOnFinish)
-{
-    m_removeOnFinish = removeOnFinish;
-}
-
-// ----- Internal
-
-void Sound::Impl::update()
+void SoundImpl::update()
 {
     if (pa_stream_get_state(m_stream) != PA_STREAM_READY) return;
 
     const auto writableSize = pa_stream_writable_size(m_stream);
-    const auto remainingSize = m_soundData->size() - m_playingPointer;
-    const auto playingSize = (remainingSize < writableSize) ? remainingSize : writableSize;
+    const auto remainingSize = (m_soundData->normalizedSize() - m_playingOffset) * sizeof(float);
+    uint32_t playingSize = (remainingSize < writableSize) ? remainingSize : writableSize;
 
-    if (playingSize > 0) {
-        pa_stream_write(m_stream, m_soundData->data() + m_playingPointer, playingSize, nullptr, 0, PA_SEEK_RELATIVE);
-        m_playingPointer += playingSize;
+    // @note We only take long enough samples to be sure sound effects are all right.
+    if (playingSize >= 512u || (playingSize > 0u && playingSize == remainingSize)) {
+        const auto rawSoundPointer = m_soundData->normalizedData() + m_playingOffset;
+        const auto size = static_cast<uint32_t>(playingSize / sizeof(float));
+        Buffer buffer = {rawSoundPointer, size, size};
+        buffer = applyEffects(buffer);
+
+        pa_stream_write(m_stream, buffer.data, buffer.size * sizeof(float), nullptr, 0, PA_SEEK_RELATIVE);
+        m_playingOffset += buffer.samplesCount;
     }
 
     // Check if we are at the end, and if so, just stop.
-    if (m_playingPointer >= m_soundData->size() && pa_stream_get_underflow_index(m_stream) >= 0) {
-        m_playing = false;
-
-        if (m_removeOnFinish) {
-            m_engine.remove(*this);
-        }
-        else if (m_looping) {
-            play();
-        }
+    if (remainingSize == 0u && pa_stream_get_underflow_index(m_stream) >= 0) {
+        finish();
     }
+}
+
+void SoundImpl::restart()
+{
+    m_playingOffset = 0u;
 }

@@ -1,5 +1,7 @@
 #include <lava/flow/audio-engine.hpp>
 
+#include <lava/core/macros/pimpl.hpp>
+
 #if defined(LAVA_FLOW_AUDIO_PULSE)
 #include "./backends/pulse/audio-engine-impl.hpp"
 #endif
@@ -8,7 +10,7 @@ using namespace lava::flow;
 
 AudioEngine::AudioEngine()
 {
-    m_impl = new AudioEngine::Impl();
+    m_impl = new AudioEngineImpl();
 }
 
 AudioEngine::~AudioEngine()
@@ -16,22 +18,11 @@ AudioEngine::~AudioEngine()
     delete m_impl;
 }
 
-void AudioEngine::update()
+$pimpl_method(AudioEngine, void, update);
+
+void AudioEngine::add(std::unique_ptr<AudioSource>&& source)
 {
-    m_impl->update();
+    m_impl->add(std::move(source));
 }
 
-bool AudioEngine::playing() const
-{
-    return m_impl->playing();
-}
-
-void AudioEngine::add(std::unique_ptr<Sound>&& sound)
-{
-    m_impl->add(std::move(sound));
-}
-
-void AudioEngine::add(std::unique_ptr<Music>&& music)
-{
-    m_impl->add(std::move(music));
-}
+$pimpl_method(AudioEngine, void, listenerPosition, const glm::vec3&, listenerPosition);

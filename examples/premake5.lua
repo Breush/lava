@@ -60,6 +60,11 @@ project "flow-play-sounds"
     files "flow/play-sounds.cpp"
     useFlow()
 
+project "flow-spatialization-effect"
+    kind "WindowedApp"
+    files "flow/spatialization-effect.cpp"
+    useFlow()
+
 ----------
 -- sill --
 

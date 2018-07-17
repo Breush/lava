@@ -22,3 +22,6 @@ $pimpl_method_const(SoundData, uint32_t, size);
 $pimpl_method_const(SoundData, uint32_t, rate);
 $pimpl_method_const(SoundData, uint8_t, channels);
 $pimpl_method_const(SoundData, SampleFormat, sampleFormat);
+
+$pimpl_method_const(SoundData, const float*, normalizedData);
+$pimpl_method_const(SoundData, uint32_t, normalizedSize);

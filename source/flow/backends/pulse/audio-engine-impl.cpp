@@ -9,7 +9,7 @@
 using namespace lava::flow;
 using namespace lava::chamber;
 
-AudioEngine::Impl::Impl()
+AudioEngineImpl::AudioEngineImpl()
 {
     // Main loop
     m_mainLoop = pa_mainloop_new();
@@ -20,7 +20,7 @@ AudioEngine::Impl::Impl()
     waitUntilContextReady();
 }
 
-AudioEngine::Impl::~Impl()
+AudioEngineImpl::~AudioEngineImpl()
 {
     pa_context_disconnect(m_context);
     pa_context_unref(m_context);
@@ -30,66 +30,16 @@ AudioEngine::Impl::~Impl()
     m_mainLoop = nullptr;
 }
 
-void AudioEngine::Impl::update()
+// ----- AudioEngine::Impl
+
+void AudioEngineImpl::internalUpdate()
 {
-    // @todo We could take a delta-time or a speed factor as a parameter.
-
-    for (const auto& sound : m_sounds) {
-        if (sound->impl().playing()) {
-            sound->impl().update();
-        }
-    }
-
-    for (const auto& music : m_musics) {
-        if (music->impl().playing()) {
-            music->impl().update();
-        }
-    }
-
     pa_mainloop_iterate(m_mainLoop, 0, nullptr);
-
-    // Automatically remove sounds that are marked to be removed...
-    for (const auto* soundToRemove : m_soundsToRemove) {
-        for (auto iSound = m_sounds.begin(); iSound != m_sounds.end(); ++iSound) {
-            if (&(*iSound)->impl() == soundToRemove) {
-                m_sounds.erase(iSound);
-                break;
-            }
-        }
-    }
-
-    m_soundsToRemove.clear();
-}
-
-void AudioEngine::Impl::add(std::unique_ptr<Sound>&& sound)
-{
-    m_sounds.emplace_back(std::move(sound));
-}
-
-void AudioEngine::Impl::add(std::unique_ptr<Music>&& music)
-{
-    m_musics.emplace_back(std::move(music));
-}
-
-void AudioEngine::Impl::remove(const Sound::Impl& sound)
-{
-    m_soundsToRemove.emplace_back(&sound);
-}
-
-bool AudioEngine::Impl::playing() const
-{
-    for (const auto& sound : m_sounds) {
-        if (sound->impl().playing()) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 //----- Internal
 
-void AudioEngine::Impl::waitUntilContextReady()
+void AudioEngineImpl::waitUntilContextReady()
 {
     auto timeLimit = time(nullptr) + 5; // 5 seconds max waiting
     while (timeLimit >= time(nullptr)) {
