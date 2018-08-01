@@ -7,6 +7,4 @@ PointLight::Impl::Impl(RenderScene& scene)
 {
 }
 
-void PointLight::Impl::init()
-{
-}
+void PointLight::Impl::init() {}

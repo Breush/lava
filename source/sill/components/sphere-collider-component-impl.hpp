@@ -17,7 +17,7 @@ namespace lava::sill {
 
     protected:
         /// Callbacks
-        void onPositionChanged(const glm::vec3& position);
+        void onTranslationChanged(const glm::vec3& translation);
 
     private:
         // References

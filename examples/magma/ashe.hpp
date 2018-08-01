@@ -48,15 +48,15 @@ namespace lava::ashe {
 
             // A camera.
             m_camera = &m_scene->make<magma::OrbitCamera>(m_window->extent());
-            m_camera->position({2.f, 2.f, 1.f});
+            m_camera->translation({2.f, 2.f, 1.f});
             m_camera->target({0.f, 0.f, 0.5f});
 
             // A light.
             m_light = &m_scene->make<magma::PointLight>();
-            m_light->position({0.8f, 0.7f, 0.4f});
+            m_light->translation({0.8f, 0.7f, 0.4f});
             m_light->radius(10.f);
 
-            // We decide to show the scene's camera "0" at a certain position in the window.
+            // We decide to show the scene's camera "0" at a certain translation in the window.
             m_engine->addView(*m_camera, *m_windowRenderTarget, Viewport{0, 0, 1, 1});
 
             // Gizmos.
@@ -228,7 +228,7 @@ namespace lava::ashe {
                     lightDelta = {0.f, 0.1f, 0.f};
                 }
 
-                m_light->position(m_light->position() + lightDelta);
+                m_light->translation(m_light->translation() + lightDelta);
                 break;
             }
 
@@ -260,9 +260,9 @@ namespace lava::ashe {
             case WsEventType::MouseMoved: {
                 if (buttonPressed == MouseButton::Unknown) return;
 
-                glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
-                auto delta = (position - lastDragPosition) / 100.f;
-                lastDragPosition = position;
+                glm::vec2 translation(event.mouseMove.x, event.mouseMove.y);
+                auto delta = (translation - lastDragPosition) / 100.f;
+                lastDragPosition = translation;
 
                 // Orbit with left button
                 if (buttonPressed == MouseButton::Left) {

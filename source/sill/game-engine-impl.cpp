@@ -29,12 +29,12 @@ GameEngine::Impl::Impl(GameEngine& base)
 
     // @todo Handle custom cameras
     m_camera = &m_renderScene->make<magma::OrbitCamera>(windowExtent);
-    m_camera->position({2.f, 3.f, 2.f});
+    m_camera->translation({2.f, 3.f, 2.f});
     m_camera->target({0.f, 0.f, 0.f});
 
     // @todo Handle custom lights
     m_light = &m_renderScene->make<magma::DirectionalLight>();
-    m_light->position({0.f, 0.f, 10.f});
+    m_light->translation({0.f, 0.f, 10.f});
     m_light->direction({-1.f, 1.f, 1.f});
 
     // @todo Handle custom views
@@ -213,9 +213,9 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
     case WsEventType::MouseMoved: {
         if (buttonPressed == MouseButton::Unknown) return;
 
-        glm::vec2 position(event.mouseMove.x, event.mouseMove.y);
-        auto delta = (position - lastDragPosition) / 100.f;
-        lastDragPosition = position;
+        glm::vec2 dragPosition(event.mouseMove.x, event.mouseMove.y);
+        auto delta = (dragPosition - lastDragPosition) / 100.f;
+        lastDragPosition = dragPosition;
 
         // Orbit with left button
         if (buttonPressed == MouseButton::Left) {

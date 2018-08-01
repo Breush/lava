@@ -25,7 +25,7 @@ namespace lava::magma {
         RenderScene::Impl& m_scene;
 
         // IDirectionalLight
-        $property(glm::vec3, position);
+        $property(glm::vec3, translation);
         $property(glm::vec3, direction);
     };
 }

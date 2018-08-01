@@ -7,6 +7,4 @@ DirectionalLight::Impl::Impl(RenderScene& scene)
 {
 }
 
-void DirectionalLight::Impl::init()
-{
-}
+void DirectionalLight::Impl::init() {}

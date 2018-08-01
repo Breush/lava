@@ -29,12 +29,12 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
                     uint32_t descriptorSetIndex) const override final;
         vk::Extent2D renderExtent() const override final { return m_extent; }
-        const glm::vec3& position() const override final { return m_position; }
+        const glm::vec3& translation() const override final { return m_translation; }
         const glm::mat4& viewTransform() const override final { return m_viewTransform; }
         const glm::mat4& projectionTransform() const override final { return m_projectionTransform; }
 
         // OrbitCamera
-        void position(const glm::vec3& position);
+        void translation(const glm::vec3& translation);
         void target(const glm::vec3& target);
 
     protected:
@@ -57,7 +57,7 @@ namespace lava::magma {
         $attribute(glm::vec3, target);
 
         // Attributes
-        glm::vec3 m_position;
+        glm::vec3 m_translation;
         glm::mat4 m_viewTransform;
         glm::mat4 m_projectionTransform;
     };

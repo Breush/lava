@@ -29,14 +29,14 @@ namespace lava::sill {
         static std::string hrid() { return "transform"; }
         void update() override final;
 
-        void positionAdd(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
-        glm::vec3 position() const;
-        void position(const glm::vec3& position, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        glm::vec3 translation() const;
+        void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         const glm::mat4& worldTransform() const;
 
         // Callbacks
-        void onPositionChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
-                               ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onTranslationChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
+                                  ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
 
     public:
         class Impl;

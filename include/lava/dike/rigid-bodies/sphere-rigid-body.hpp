@@ -10,8 +10,8 @@ namespace lava::dike {
         ~SphereRigidBody();
 
         // IRigidBody
-        glm::vec3 position() const override;
-        void positionAdd(const glm::vec3& delta) override;
+        glm::vec3 translation() const override;
+        void translate(const glm::vec3& delta) override;
 
     private:
         class Impl;

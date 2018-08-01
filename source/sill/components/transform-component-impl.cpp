@@ -9,21 +9,21 @@ TransformComponent::Impl::Impl(GameEntity& entity)
 {
 }
 
-void TransformComponent::Impl::positionAdd(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::Impl::translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
 {
     // @todo Can't we write an in-place operation?
     m_transform = glm::translate(m_transform, delta);
     callPositionChanged(changeReasonFlag);
 }
 
-void TransformComponent::Impl::position(const glm::vec3& position, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::Impl::translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag)
 {
-    m_transform = glm::translate(m_transform, position - this->position());
+    m_transform = glm::translate(m_transform, translation - this->translation());
     callPositionChanged(changeReasonFlag);
 }
 
-void TransformComponent::Impl::onPositionChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
-                                                 ChangeReasonFlags changeReasonFlags)
+void TransformComponent::Impl::onTranslationChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
+                                                    ChangeReasonFlags changeReasonFlags)
 {
     m_positionChangedCallbacks.emplace_back(PositionChangedCallbackInfo{positionChangedCallback, changeReasonFlags});
 }
@@ -32,11 +32,11 @@ void TransformComponent::Impl::onPositionChanged(std::function<void(const glm::v
 
 void TransformComponent::Impl::callPositionChanged(ChangeReasonFlag changeReasonFlag) const
 {
-    auto position = glm::vec3(m_transform[3]);
+    auto translation = glm::vec3(m_transform[3]);
 
     for (const auto& positionChangedCallback : m_positionChangedCallbacks) {
         if (positionChangedCallback.changeReasonFlags & changeReasonFlag) {
-            positionChangedCallback.callback(position);
+            positionChangedCallback.callback(translation);
         }
     }
 }

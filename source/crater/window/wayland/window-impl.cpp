@@ -12,6 +12,4 @@ lava::WsHandle Window::Impl::handle() const
     return WsHandle();
 }
 
-void Window::Impl::processEvents()
-{
-}
+void Window::Impl::processEvents() {}

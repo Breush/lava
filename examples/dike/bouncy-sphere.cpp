@@ -21,11 +21,11 @@ int main(void)
     // Falling sphere
     auto& sphere = engine.make<dike::SphereRigidBody>(0.1f);
     sphere.mass(1);
-    sphere.positionAdd({0, 0, 1.f});
+    sphere.translate({0, 0, 1.f});
 
     // Simulating the world
     for (auto i = 0u; i < 45u; i++) {
-        uint32_t distance = std::round(sphere.position().z * 80);
+        uint32_t distance = std::round(sphere.translation().z * 80);
         for (auto j = 1u; j < distance; ++j) {
             std::cout << ' ';
         }

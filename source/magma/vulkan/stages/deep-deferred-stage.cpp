@@ -418,14 +418,15 @@ void DeepDeferredStage::updateEpiphanyUbo()
         if (light.type() == LightType::Point) {
             const auto& pointLight = reinterpret_cast<const PointLight::Impl&>(light);
 
-            ubo.wPosition = glm::vec4(pointLight.position(), 1.f);
+            // @fixme Should take worldTRanslation here!
+            ubo.wPosition = glm::vec4(pointLight.translation(), 1.f);
             ubo.data[0].x = reinterpret_cast<const uint32_t&>(pointLight.radius());
         }
         else if (light.type() == LightType::Directional) {
             const auto& directionalLight = reinterpret_cast<const DirectionalLight::Impl&>(light);
             const auto direction = directionalLight.direction();
 
-            ubo.wPosition = glm::vec4(directionalLight.position(), 1.f);
+            ubo.wPosition = glm::vec4(directionalLight.translation(), 1.f);
             ubo.data[0].x = reinterpret_cast<const uint32_t&>(direction.x);
             ubo.data[0].y = reinterpret_cast<const uint32_t&>(direction.y);
             ubo.data[0].z = reinterpret_cast<const uint32_t&>(direction.z);

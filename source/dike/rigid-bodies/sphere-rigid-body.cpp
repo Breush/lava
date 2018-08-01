@@ -8,5 +8,5 @@ using namespace lava::dike;
 
 $pimpl_class(SphereRigidBody, PhysicsEngine&, engine, float, radius);
 
-$pimpl_method_const(SphereRigidBody, glm::vec3, position);
-$pimpl_method(SphereRigidBody, void, positionAdd, const glm::vec3&, delta);
+$pimpl_method_const(SphereRigidBody, glm::vec3, translation);
+$pimpl_method(SphereRigidBody, void, translate, const glm::vec3&, delta);

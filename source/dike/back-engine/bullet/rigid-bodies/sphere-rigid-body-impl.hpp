@@ -11,8 +11,8 @@ namespace lava::dike {
         Impl(PhysicsEngine& engine, float radius);
 
         // IRigidBody
-        glm::vec3 position() const;
-        void positionAdd(const glm::vec3& delta);
+        glm::vec3 translation() const;
+        void translate(const glm::vec3& delta);
 
     private:
         PhysicsEngine::Impl& m_engine;

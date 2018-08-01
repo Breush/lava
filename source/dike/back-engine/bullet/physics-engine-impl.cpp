@@ -2,9 +2,7 @@
 
 using namespace lava::dike;
 
-PhysicsEngine::Impl::Impl()
-{
-}
+PhysicsEngine::Impl::Impl() {}
 
 void PhysicsEngine::Impl::update(float dt)
 {

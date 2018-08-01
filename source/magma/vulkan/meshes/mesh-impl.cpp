@@ -41,14 +41,14 @@ void Mesh::Impl::transform(const glm::mat4& transform)
     updateBindings();
 }
 
-void Mesh::Impl::positionAdd(const glm::vec3& delta)
+void Mesh::Impl::translate(const glm::vec3& delta)
 {
     // @todo Should use local one and dirtify the world one
     m_transform = glm::translate(m_transform, delta);
     updateBindings();
 }
 
-void Mesh::Impl::rotationAdd(const glm::vec3& axis, float angleDelta)
+void Mesh::Impl::rotate(const glm::vec3& axis, float angleDelta)
 {
     m_transform = glm::rotate(m_transform, angleDelta, axis);
     updateBindings();

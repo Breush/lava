@@ -14,13 +14,13 @@ namespace lava::sill {
 
         // TransformComponent
         const glm::mat4& worldTransform() const { return m_transform; } // @todo Concept of nodes/worldTransform
-        void positionAdd(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag);
-        glm::vec3 position() const { return m_transform[3]; }
-        void position(const glm::vec3& position, ChangeReasonFlag changeReasonFlag);
+        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag);
+        glm::vec3 translation() const { return m_transform[3]; }
+        void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag);
 
         // TransformComponent callbacks
-        void onPositionChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
-                               ChangeReasonFlags changeReasonFlags);
+        void onTranslationChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
+                                  ChangeReasonFlags changeReasonFlags);
 
     protected:
         void callPositionChanged(ChangeReasonFlag changeReasonFlag) const;

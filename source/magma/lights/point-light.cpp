@@ -11,5 +11,5 @@ ILight::Impl& PointLight::interfaceImpl()
     return *m_impl;
 }
 
-$pimpl_property(PointLight, glm::vec3, position);
+$pimpl_property(PointLight, glm::vec3, translation);
 $pimpl_property_v(PointLight, float, radius);

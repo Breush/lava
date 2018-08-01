@@ -13,28 +13,26 @@ SphereColliderComponent::Impl::Impl(GameEntity& entity)
     // @fixme Get radius from somewhere
     m_rigidBody = &m_physicsEngine.make<dike::SphereRigidBody>(0.1f);
 
-    m_transformComponent.onPositionChanged([this](const glm::vec3& position) { onPositionChanged(position); },
-                                           ~TransformComponent::ChangeReasonFlag::Physics);
+    m_transformComponent.onTranslationChanged([this](const glm::vec3& translation) { onTranslationChanged(translation); },
+                                              ~TransformComponent::ChangeReasonFlag::Physics);
 
     // Init correctly on first creation
-    onPositionChanged(m_transformComponent.position());
+    onTranslationChanged(m_transformComponent.translation());
 }
 
-SphereColliderComponent::Impl::~Impl()
-{
-}
+SphereColliderComponent::Impl::~Impl() {}
 
 //----- IComponent
 
 void SphereColliderComponent::Impl::update()
 {
-    m_transformComponent.position(m_rigidBody->position(), TransformComponent::ChangeReasonFlag::Physics);
+    m_transformComponent.translation(m_rigidBody->translation(), TransformComponent::ChangeReasonFlag::Physics);
 }
 
 //----- Callbacks
 
-void SphereColliderComponent::Impl::onPositionChanged(const glm::vec3& position)
+void SphereColliderComponent::Impl::onTranslationChanged(const glm::vec3& translation)
 {
-    auto delta = position - m_rigidBody->position();
-    m_rigidBody->positionAdd(delta);
+    auto delta = translation - m_rigidBody->translation();
+    m_rigidBody->translate(delta);
 }

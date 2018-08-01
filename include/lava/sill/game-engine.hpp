@@ -25,9 +25,9 @@ namespace lava::sill {
         InputManager& input();
 
         /**
-        * @name Makers
-        * Make a new resource managed by the game engine.
-        */
+         * @name Makers
+         * Make a new resource managed by the game engine.
+         */
         /// @{
         template <class T, class... Arguments>
         T& make(Arguments&&... arguments);

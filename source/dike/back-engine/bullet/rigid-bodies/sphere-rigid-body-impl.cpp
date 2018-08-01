@@ -21,14 +21,14 @@ SphereRigidBody::Impl::Impl(PhysicsEngine& engine, float radius)
     // and having a callback
 }
 
-glm::vec3 SphereRigidBody::Impl::position() const
+glm::vec3 SphereRigidBody::Impl::translation() const
 {
     m_motionState.getWorldTransform(const_cast<btTransform&>(m_transform));
-    const auto& position = m_transform.getOrigin();
-    return {position.getX(), position.getY(), position.getZ()};
+    const auto& translation = m_transform.getOrigin();
+    return {translation.getX(), translation.getY(), translation.getZ()};
 }
 
-void SphereRigidBody::Impl::positionAdd(const glm::vec3& delta)
+void SphereRigidBody::Impl::translate(const glm::vec3& delta)
 {
     auto origin = m_transform.getOrigin() + btVector3(delta.x, delta.y, delta.z);
     m_transform.setOrigin(origin);

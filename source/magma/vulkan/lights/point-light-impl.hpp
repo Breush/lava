@@ -25,7 +25,7 @@ namespace lava::magma {
         RenderScene::Impl& m_scene;
 
         // ILight
-        $property(glm::vec3, position);
+        $property(glm::vec3, translation);
         $property(float, radius, = 1.f);
     };
 }

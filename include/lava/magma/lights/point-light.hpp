@@ -20,8 +20,8 @@ namespace lava::magma {
         // ILight
         ILight::Impl& interfaceImpl() override final;
 
-        const glm::vec3& position() const;
-        void position(const glm::vec3& position);
+        const glm::vec3& translation() const;
+        void translation(const glm::vec3& translation);
 
         float radius() const;
         void radius(float radius);

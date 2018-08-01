@@ -16,7 +16,7 @@ int main(void)
         blueMaterial.set("color", {0.f, 0.f, 1.f, 0.3f});
 
         auto& blueMesh = app.makePlane({1, 1});
-        blueMesh.rotationAdd({0.f, 1.f, 0.f}, 1.6f);
+        blueMesh.rotate({0.f, 1.f, 0.f}, 1.6f);
         blueMesh.material(blueMaterial);
     }
 
@@ -26,11 +26,11 @@ int main(void)
         redMaterial.set("color", {1.f, 0.f, 0.f, 0.5f});
 
         auto& redMesh = app.makePlane({1, 1});
-        redMesh.positionAdd({-0.25f, 0.f, 0.f});
+        redMesh.translate({-0.25f, 0.f, 0.f});
         redMesh.material(redMaterial);
     }
 
-    app.camera().position({2.f, 2.f, 2.f});
+    app.camera().translation({2.f, 2.f, 2.f});
     app.camera().target({0.f, 0.f, 0.f});
 
     app.light().radius(1.1f);

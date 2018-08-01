@@ -27,9 +27,9 @@ namespace lava::sill {
         /// @}
 
         /**
-        * @name Update
-        * Used by the game engine mainly.
-        */
+         * @name Update
+         * Used by the game engine mainly.
+         */
         /// @{
         /**
          * Start an update block.

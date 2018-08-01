@@ -13,7 +13,7 @@ MeshComponent::Impl::Impl(GameEntity& entity)
 {
     m_mesh = &m_entity.engine().renderScene().make<magma::Mesh>();
 
-    m_transformComponent.onPositionChanged([this](const glm::vec3&) { onTransformChanged(); });
+    m_transformComponent.onTranslationChanged([this](const glm::vec3&) { onTransformChanged(); });
 
     // Init correctly on first creation
     onTransformChanged();

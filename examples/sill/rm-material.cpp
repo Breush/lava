@@ -43,11 +43,12 @@ int main(void)
             sill::makers::sphereMeshMaker(32u, 1.f)(sphereMeshComponent);
             sphereMeshComponent.material(material);
 
-            sphereEntity.get<sill::TransformComponent>().positionAdd({i * 1.1f, j * 1.1f, 0.5f});
-        }
+            sphereEntity.get<sill::TransformComponent>().translate({i * 1.1f, j * 1.1f, 0.
+        });
     }
+}
 
-    engine.run();
+engine.run();
 
-    return EXIT_SUCCESS;
+return EXIT_SUCCESS;
 }

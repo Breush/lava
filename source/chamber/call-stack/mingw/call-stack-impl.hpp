@@ -6,8 +6,8 @@
 
 namespace lava::chamber {
     /**
-      * MinGW-based implmentation of the call-stack generation.
-      */
+     * MinGW-based implmentation of the call-stack generation.
+     */
     class CallStack::Impl final : public ICallStackImpl {
     public:
         // ICallStackImpl

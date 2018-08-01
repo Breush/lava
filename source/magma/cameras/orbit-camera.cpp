@@ -21,27 +21,27 @@ ICamera::Impl& OrbitCamera::interfaceImpl()
     return *m_impl;
 }
 
-$pimpl_property(OrbitCamera, glm::vec3, position);
+$pimpl_property(OrbitCamera, glm::vec3, translation);
 $pimpl_property(OrbitCamera, glm::vec3, target);
 
 float OrbitCamera::radius() const
 {
-    return glm::length(m_impl->target() - m_impl->position());
+    return glm::length(m_impl->target() - m_impl->translation());
 }
 
 void OrbitCamera::radius(float radius)
 {
-    const auto& position = m_impl->position();
+    const auto& translation = m_impl->translation();
     const auto& target = m_impl->target();
-    auto relativePosition = position - target;
-    m_impl->position(target + glm::normalize(relativePosition) * radius);
+    auto relativePosition = translation - target;
+    m_impl->translation(target + glm::normalize(relativePosition) * radius);
 }
 
 void OrbitCamera::strafe(float x, float y)
 {
-    const auto& position = m_impl->position();
+    const auto& translation = m_impl->translation();
     const auto& target = m_impl->target();
-    auto viewDirection = target - position;
+    auto viewDirection = target - translation;
     auto radius = glm::length(viewDirection);
 
     const glm::vec3 up(0.f, 0.f, 1.f);
@@ -51,26 +51,26 @@ void OrbitCamera::strafe(float x, float y)
     auto bitangent = normalize(glm::cross(normal, tangent));
 
     glm::vec3 delta = (x * tangent + y * bitangent) * radius;
-    m_impl->position(position + delta);
+    m_impl->translation(translation + delta);
     m_impl->target(target + delta);
 }
 
 void OrbitCamera::radiusAdd(float radiusDistance)
 {
-    const auto& position = m_impl->position();
+    const auto& translation = m_impl->translation();
     const auto& target = m_impl->target();
-    auto relativePosition = position - target;
+    auto relativePosition = translation - target;
     auto radius = glm::length(relativePosition) + radiusDistance;
     radius = std::max(0.01f, radius);
 
-    m_impl->position(target + glm::normalize(relativePosition) * radius);
+    m_impl->translation(target + glm::normalize(relativePosition) * radius);
 }
 
 void OrbitCamera::orbitAdd(float longitudeAngle, float latitudeAngle)
 {
-    const auto& position = m_impl->position();
+    const auto& translation = m_impl->translation();
     const auto& target = m_impl->target();
-    auto relativePosition = position - target;
+    auto relativePosition = translation - target;
     auto axis = glm::vec3(relativePosition.y, -relativePosition.x, 0);
 
     auto currentLatitudeAngle = std::asin(relativePosition.z / glm::length(relativePosition));
@@ -83,5 +83,5 @@ void OrbitCamera::orbitAdd(float longitudeAngle, float latitudeAngle)
 
     auto longitudeDelta = glm::rotateZ(relativePosition, longitudeAngle) - relativePosition;
     auto latitudeDelta = glm::rotate(relativePosition, latitudeAngle, axis) - relativePosition;
-    m_impl->position(position + longitudeDelta + latitudeDelta);
+    m_impl->translation(translation + longitudeDelta + latitudeDelta);
 }

@@ -11,5 +11,5 @@ ILight::Impl& DirectionalLight::interfaceImpl()
     return *m_impl;
 }
 
-$pimpl_property(DirectionalLight, glm::vec3, position);
+$pimpl_property(DirectionalLight, glm::vec3, translation);
 $pimpl_property(DirectionalLight, glm::vec3, direction);

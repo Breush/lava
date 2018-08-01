@@ -16,10 +16,8 @@ PlaneColliderComponent::Impl::Impl(GameEntity& entity, const glm::vec3& normal)
     m_staticRigidBody = &m_physicsEngine.make<dike::PlaneStaticRigidBody>(normal);
 
     // @fixme Clarify API
-    // We can't just get offset and normal from TransformComponent/normal/position
+    // We can't just get offset and normal from TransformComponent/normal/translation
     // as the collider might be offseted
 }
 
-PlaneColliderComponent::Impl::~Impl()
-{
-}
+PlaneColliderComponent::Impl::~Impl() {}

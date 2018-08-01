@@ -34,7 +34,7 @@ int main(void)
                 sill::makers::sphereMeshMaker(32u, 0.2f)(meshComponent);
                 auto xOffset = (rand() % 100) / 500.f;
                 auto yOffset = (rand() % 100) / 500.f;
-                entity.get<sill::TransformComponent>().positionAdd({xOffset, yOffset, 3.f});
+                entity.get<sill::TransformComponent>().translate({xOffset, yOffset, 3});
                 entity.make<sill::SphereColliderComponent>();
             }
         });

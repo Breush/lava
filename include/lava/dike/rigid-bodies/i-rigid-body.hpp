@@ -10,7 +10,7 @@ namespace lava::dike {
 
         void mass(float mass);
 
-        virtual glm::vec3 position() const = 0;
-        virtual void positionAdd(const glm::vec3& delta) = 0;
+        virtual glm::vec3 translation() const = 0;
+        virtual void translate(const glm::vec3& delta) = 0;
     };
 }

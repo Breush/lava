@@ -26,8 +26,8 @@ namespace lava::magma {
         ICamera::Impl& interfaceImpl();
 
         // Attributes
-        const glm::vec3& position() const;
-        void position(const glm::vec3& position);
+        const glm::vec3& translation() const;
+        void translation(const glm::vec3& translation);
 
         const glm::vec3& target() const;
         void target(const glm::vec3& target);

@@ -20,9 +20,9 @@ namespace lava::magma {
         // ILight
         ILight::Impl& interfaceImpl() override final;
 
-        // In order to cast shadows, the light needs a position
-        const glm::vec3& position() const;
-        void position(const glm::vec3& position);
+        // In order to cast shadows, the light needs a translation
+        const glm::vec3& translation() const;
+        void translation(const glm::vec3& translation);
 
         const glm::vec3& direction() const;
         void direction(const glm::vec3& direction);

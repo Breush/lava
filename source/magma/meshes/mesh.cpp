@@ -26,8 +26,8 @@ IMesh::Impl& Mesh::interfaceImpl()
 
 $pimpl_method_const(Mesh, const glm::mat4&, transform);
 $pimpl_method(Mesh, void, transform, const glm::mat4&, transform);
-$pimpl_method(Mesh, void, positionAdd, const glm::vec3&, delta);
-$pimpl_method(Mesh, void, rotationAdd, const glm::vec3&, axis, float, angleDelta);
+$pimpl_method(Mesh, void, translate, const glm::vec3&, delta);
+$pimpl_method(Mesh, void, rotate, const glm::vec3&, axis, float, angleDelta);
 
 $pimpl_method(Mesh, void, verticesCount, const uint32_t, count);
 $pimpl_method(Mesh, void, verticesPositions, const std::vector<glm::vec3>&, positions);

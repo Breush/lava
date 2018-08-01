@@ -21,8 +21,8 @@ namespace lava::sill {
         void update() override final;
 
         /**
-        * @name Geometry
-        */
+         * @name Geometry
+         */
         /// @{
         void verticesCount(const uint32_t count);
         void verticesPositions(const std::vector<glm::vec3>& positions);
@@ -33,8 +33,8 @@ namespace lava::sill {
         /// @}
 
         /**
-        * @name Materials
-        */
+         * @name Materials
+         */
         /// @{
         void material(Material& material);
         /// @}

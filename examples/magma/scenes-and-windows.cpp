@@ -22,15 +22,15 @@ int main(void)
         auto& scene = engine.make<magma::RenderScene>();
 
         auto& frontCamera = scene.make<magma::OrbitCamera>(Extent2d{400, 800});
-        frontCamera.position({0, 3.f, 0.5f});
+        frontCamera.translation({0, 3.f, 0.5f});
         frontCamera.target({0, 0, 0.5f});
 
         auto& leftCamera = scene.make<magma::OrbitCamera>(Extent2d{200, 200});
-        leftCamera.position({-5.f, 0, 0});
+        leftCamera.translation({-5.f, 0, 0});
         leftCamera.target({0, 0, 0});
 
         auto& upCamera = scene.make<magma::OrbitCamera>(Extent2d{200, 200});
-        upCamera.position({0, 0, 5.f});
+        upCamera.translation({0, 0, 5.f});
         upCamera.target({0, 0, 0});
 
         // @todo camera.addView(target, viewport) ?
@@ -46,7 +46,7 @@ int main(void)
         auto& scene = engine.make<magma::RenderScene>();
 
         auto& frontCamera = scene.make<magma::OrbitCamera>(Extent2d{400, 800});
-        frontCamera.position({0, 5.f, 0});
+        frontCamera.translation({0, 5.f, 0});
         frontCamera.target({0, 0, 0});
 
         engine.addView(frontCamera, bigWindowRenderTarget, {0.5, 0, 0.5, 1});

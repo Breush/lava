@@ -26,8 +26,8 @@ namespace lava::magma {
         /// The rendered extent.
         virtual vk::Extent2D renderExtent() const = 0;
 
-        /// Its world position.
-        virtual const glm::vec3& position() const = 0;
+        /// Its world translation.
+        virtual const glm::vec3& translation() const = 0;
 
         /// Its view transform.
         virtual const glm::mat4& viewTransform() const = 0;

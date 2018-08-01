@@ -73,9 +73,9 @@ void OrbitCamera::Impl::extent(Extent2d extent)
 
 //----- OrbitCamera
 
-void OrbitCamera::Impl::position(const glm::vec3& position)
+void OrbitCamera::Impl::translation(const glm::vec3& translation)
 {
-    m_position = position;
+    m_translation = translation;
     updateViewTransform();
 }
 
@@ -88,7 +88,7 @@ void OrbitCamera::Impl::target(const glm::vec3& target)
 void OrbitCamera::Impl::updateViewTransform()
 {
     // @todo Make up vector configurable?
-    m_viewTransform = glm::lookAt(m_position, m_target, glm::vec3(0.f, 0.f, 1.f));
+    m_viewTransform = glm::lookAt(m_translation, m_target, glm::vec3(0.f, 0.f, 1.f));
     updateBindings();
 }
 
@@ -113,7 +113,7 @@ void OrbitCamera::Impl::updateBindings()
     vulkan::CameraUbo ubo;
     ubo.view = m_viewTransform;
     ubo.projection = m_projectionTransform;
-    ubo.wPosition = glm::vec4(m_position, 1.f);
+    ubo.wPosition = glm::vec4(m_translation, 1.f);
     ubo.extent = glm::uvec2(m_extent.width, m_extent.height);
     m_uboHolder.copy(0, ubo);
 }
