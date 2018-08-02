@@ -19,7 +19,7 @@ echo -e "\e[35mSetting up dependencies...\e[39m"
 ./scripts/setup.sh
 
 # Find a make target that match the name
-TARGETS=$(${MAKE} help | grep -P '^   (?!all|clean)' | grep "$1")
+TARGETS=$(${MAKE} help | grep -P '^   (?!all|clean|lava-)' | grep "$1")
 TARGETS=($TARGETS)
 TARGETS_COUNT=${#TARGETS[@]}
 
