@@ -1,6 +1,8 @@
 #pragma once
 
 #include <fstream>
+#include <glm/mat4x4.hpp>
+#include <lava/core/vector-view.hpp>
 #include <nlohmann/json.hpp>
 
 namespace lava::glb {
@@ -27,6 +29,32 @@ namespace lava::glb {
 
     inline std::ostream& operator<<(std::ostream& os, const Chunk& chunk);
     inline std::istream& operator>>(std::istream& is, Chunk& chunk);
+
+    struct Node {
+        std::string name;
+        uint32_t meshIndex = -1u;
+        std::vector<uint32_t> children;
+        glm::mat4 transform;
+
+        Node(const typename nlohmann::json::basic_json& json);
+    };
+
+    struct Mesh {
+        struct Primitive {
+            uint8_t mode = 4u;
+            uint32_t positionsAccessorIndex = -1u;
+            uint32_t normalsAccessorIndex = -1u;
+            uint32_t tangentsAccessorIndex = -1u;
+            uint32_t uv1sAccessorIndex = -1u;
+            uint32_t indicesAccessorIndex = -1u;
+            uint32_t materialIndex = -1u;
+        };
+
+        std::string name;
+        std::vector<Primitive> primitives;
+
+        Mesh(const typename nlohmann::json::basic_json& json);
+    };
 
     struct Image {
         uint32_t bufferView = -1u;
@@ -64,7 +92,7 @@ namespace lava::glb {
         Accessor(const typename nlohmann::json::basic_json& json);
 
         template <class T>
-        std::vector<T> get(const typename nlohmann::json::basic_json& bufferViews, const std::vector<uint8_t>& buffer) const;
+        VectorView<T> get(const typename nlohmann::json::basic_json& bufferViews, const std::vector<uint8_t>& buffer) const;
     };
 
     struct BufferView {
@@ -74,7 +102,12 @@ namespace lava::glb {
 
         BufferView(const typename nlohmann::json::basic_json& json);
 
-        std::vector<uint8_t> get(const std::vector<uint8_t>& buffer) const;
+        struct Data {
+            const uint8_t* data = nullptr;
+            uint32_t size = 0u;
+        };
+
+        VectorView<uint8_t> get(const std::vector<uint8_t>& buffer) const;
     };
 }
 

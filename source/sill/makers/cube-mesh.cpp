@@ -1,12 +1,13 @@
 #include <lava/sill/makers/cube-mesh.hpp>
 
 #include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/game-entity.hpp>
 
 using namespace lava::sill;
 
-std::function<void(MeshComponent& mesh)> makers::cubeMeshMaker(float sideLength, CubeMeshOptions options)
+std::function<void(MeshComponent&)> makers::cubeMeshMaker(float sideLength, CubeMeshOptions options)
 {
-    return [sideLength, options](MeshComponent& mesh) {
+    return [sideLength, options](MeshComponent& meshComponent) {
         const auto halfSideLength = sideLength / 2.f;
 
         // Positions
@@ -116,10 +117,17 @@ std::function<void(MeshComponent& mesh)> makers::cubeMeshMaker(float sideLength,
             }
         }
 
-        mesh.verticesCount(positions.size());
-        mesh.verticesPositions(positions);
-        mesh.verticesNormals(normals);
-        mesh.verticesUvs(uvs);
-        mesh.indices(indices);
+        // Apply the geometry
+        auto mesh = std::make_unique<Mesh>();
+        auto& primitive = mesh->addPrimitive(meshComponent.entity().engine());
+        primitive.verticesCount(positions.size());
+        primitive.verticesPositions(positions);
+        primitive.verticesNormals(normals);
+        primitive.verticesUvs(uvs);
+        primitive.indices(indices);
+
+        std::vector<MeshNode> nodes(1u);
+        nodes[0u].mesh = std::move(mesh);
+        meshComponent.nodes(std::move(nodes));
     };
 }

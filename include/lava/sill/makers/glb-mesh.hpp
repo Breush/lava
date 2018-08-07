@@ -7,5 +7,5 @@ namespace lava::sill {
 }
 
 namespace lava::sill::makers {
-    std::function<void(MeshComponent& meshComponent)> glbMeshMaker(const std::string& fileName);
+    std::function<void(MeshComponent&)> glbMeshMaker(const std::string& fileName);
 }

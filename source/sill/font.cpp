@@ -67,7 +67,7 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
     }
 
     if (newGlyphs) {
-        texture().loadFromMemory(m_pixels, m_textureWidth, m_glyphMaxHeight, 1u);
+        texture().loadFromMemory(m_pixels.data(), m_textureWidth, m_glyphMaxHeight, 1u);
     }
 
     return glyphsInfos;

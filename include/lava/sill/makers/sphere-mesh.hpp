@@ -24,6 +24,6 @@ namespace lava::sill::makers {
         SphereCoordinatesSystem coordinatesSystem = SphereCoordinatesSystem::UNKNOWN;
     };
 
-    std::function<void(MeshComponent& meshComponent)> sphereMeshMaker(uint32_t tessellation, float diameter,
-                                                                      SphereMeshOptions options = SphereMeshOptions());
+    std::function<void(MeshComponent&)> sphereMeshMaker(uint32_t tessellation, float diameter,
+                                                        SphereMeshOptions options = SphereMeshOptions());
 }

@@ -165,6 +165,11 @@ void ImageHolder::copy(const void* data, vk::DeviceSize size)
 
 void ImageHolder::setup(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
+    setup(pixels.data(), width, height, channels);
+}
+
+void ImageHolder::setup(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
+{
     vk::Format format = vk::Format::eUndefined;
     if (channels == 1u) {
         format = vk::Format::eR8Unorm;
@@ -185,5 +190,5 @@ void ImageHolder::setup(const std::vector<uint8_t>& pixels, uint32_t width, uint
 
     //----- Copy
 
-    copy(pixels.data(), width * height * channels);
+    copy(pixels, width * height * channels);
 }

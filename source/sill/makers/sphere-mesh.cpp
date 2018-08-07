@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <lava/chamber/math.hpp>
 #include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/game-entity.hpp>
 
 using namespace lava;
 
@@ -65,8 +66,7 @@ namespace {
 using namespace lava::sill;
 using namespace lava::chamber;
 
-std::function<void(MeshComponent& meshComponent)> makers::sphereMeshMaker(uint32_t tessellation, float diameter,
-                                                                          SphereMeshOptions options)
+std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellation, float diameter, SphereMeshOptions options)
 {
     auto radius = diameter / 2;
     return [tessellation, radius, options](MeshComponent& meshComponent) {
@@ -145,11 +145,18 @@ std::function<void(MeshComponent& meshComponent)> makers::sphereMeshMaker(uint32
             }
         }
 
-        meshComponent.verticesCount(positions.size());
-        meshComponent.verticesPositions(positions);
-        meshComponent.verticesNormals(normals);
-        meshComponent.verticesTangents(tangents);
-        meshComponent.verticesUvs(uvs);
-        meshComponent.indices(indices);
+        // Apply the geometry
+        auto mesh = std::make_unique<Mesh>();
+        auto& primitive = mesh->addPrimitive(meshComponent.entity().engine());
+        primitive.verticesCount(positions.size());
+        primitive.verticesPositions(positions);
+        primitive.verticesNormals(normals);
+        primitive.verticesTangents(tangents);
+        primitive.verticesUvs(uvs);
+        primitive.indices(indices);
+
+        std::vector<MeshNode> nodes(1u);
+        nodes[0u].mesh = std::move(mesh);
+        meshComponent.nodes(std::move(nodes));
     };
 }

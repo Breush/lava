@@ -13,14 +13,16 @@ namespace lava::sill {
     class Texture;
 }
 
+// @fixme With Texture, should not expose magma here...
+
 namespace lava::sill {
     class Material {
     public:
         Material(GameEngine& engine, const std::string& hrid);
         ~Material();
 
-        magma::Material& original() { return *m_original; }
-        const magma::Material& original() const { return *m_original; }
+        magma::Material& magma() { return *m_magma; }
+        const magma::Material& magma() const { return *m_magma; }
 
         /// Uniform setters
         void set(const std::string& uniformName, float value);
@@ -29,6 +31,6 @@ namespace lava::sill {
 
     private:
         GameEngine& m_engine;
-        magma::Material* m_original = nullptr;
+        magma::Material* m_magma = nullptr;
     };
 }

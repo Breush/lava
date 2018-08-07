@@ -9,7 +9,7 @@ using namespace lava::sill;
 Texture::Texture(GameEngine& engine)
     : m_engine(engine)
 {
-    m_original = &m_engine.impl().renderScene().make<magma::Texture>();
+    m_magma = &m_engine.impl().renderScene().make<magma::Texture>();
 }
 
 Texture::Texture(GameEngine& engine, const std::string& imagePath)
@@ -20,18 +20,18 @@ Texture::Texture(GameEngine& engine, const std::string& imagePath)
 
 Texture::~Texture()
 {
-    m_engine.impl().renderScene().remove(*m_original);
-    m_original = nullptr;
+    m_engine.impl().renderScene().remove(*m_magma);
+    m_magma = nullptr;
 }
 
 //----- Texture
 
-void Texture::loadFromMemory(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
+void Texture::loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
-    m_original->loadFromMemory(pixels, width, height, channels);
+    m_magma->loadFromMemory(pixels, width, height, channels);
 }
 
 void Texture::loadFromFile(const std::string& imagePath)
 {
-    m_original->loadFromFile(imagePath);
+    m_magma->loadFromFile(imagePath);
 }

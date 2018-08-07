@@ -35,6 +35,8 @@ void Mesh::Impl::init()
     updateBindings();
 }
 
+// ----- Transform
+
 void Mesh::Impl::transform(const glm::mat4& transform)
 {
     m_transform = transform;
@@ -54,14 +56,16 @@ void Mesh::Impl::rotate(const glm::vec3& axis, float angleDelta)
     updateBindings();
 }
 
+// ----- Geometry
+
 void Mesh::Impl::verticesCount(const uint32_t count)
 {
     m_vertices.resize(count);
 }
 
-void Mesh::Impl::verticesPositions(const std::vector<glm::vec3>& positions)
+void Mesh::Impl::verticesPositions(VectorView<glm::vec3> positions)
 {
-    auto length = std::min(m_vertices.size(), positions.size());
+    auto length = std::min(static_cast<uint32_t>(m_vertices.size()), positions.size());
     for (uint32_t i = 0u; i < length; ++i) {
         m_vertices[i].pos = positions[i];
     }
@@ -69,9 +73,9 @@ void Mesh::Impl::verticesPositions(const std::vector<glm::vec3>& positions)
     createVertexBuffer();
 }
 
-void Mesh::Impl::verticesUvs(const std::vector<glm::vec2>& uvs)
+void Mesh::Impl::verticesUvs(VectorView<glm::vec2> uvs)
 {
-    auto length = std::min(m_vertices.size(), uvs.size());
+    auto length = std::min(static_cast<uint32_t>(m_vertices.size()), uvs.size());
     for (uint32_t i = 0u; i < length; ++i) {
         m_vertices[i].uv = uvs[i];
     }
@@ -79,9 +83,9 @@ void Mesh::Impl::verticesUvs(const std::vector<glm::vec2>& uvs)
     createVertexBuffer();
 }
 
-void Mesh::Impl::verticesNormals(const std::vector<glm::vec3>& normals)
+void Mesh::Impl::verticesNormals(VectorView<glm::vec3> normals)
 {
-    auto length = std::min(m_vertices.size(), normals.size());
+    auto length = std::min(static_cast<uint32_t>(m_vertices.size()), normals.size());
     for (uint32_t i = 0u; i < length; ++i) {
         m_vertices[i].normal = normals[i];
     }
@@ -89,29 +93,37 @@ void Mesh::Impl::verticesNormals(const std::vector<glm::vec3>& normals)
     createVertexBuffer();
 }
 
-void Mesh::Impl::verticesTangents(const std::vector<glm::vec4>& tangents)
+void Mesh::Impl::verticesTangents(VectorView<glm::vec4> tangents)
 {
-    auto length = std::min(m_vertices.size(), tangents.size());
+    auto length = std::min(static_cast<uint32_t>(m_vertices.size()), tangents.size());
     for (uint32_t i = 0u; i < length; ++i) {
-        m_vertices[i].tangent = tangents[i];
+        m_vertices[i].tangent = glm::vec4(glm::vec3(tangents[i]), tangents[i].w);
     }
 
     createVertexBuffer();
 }
 
-void Mesh::Impl::indices(const std::vector<uint16_t>& indices)
+void Mesh::Impl::indices(VectorView<uint16_t> indices)
 {
-    m_indices = indices;
+    auto length = indices.size();
+    m_indices.resize(length);
+    for (auto i = 0u; i < length; ++i) {
+        m_indices[i] = indices[i];
+    }
     createIndexBuffer();
 
     // @todo The scene should update the main command buffer every frame
     // while we update our secondary command buffer right here
 }
 
+// ----- Material
+
 void Mesh::Impl::material(Material& material)
 {
     m_material = &material;
 }
+
+// ----- Internal
 
 void Mesh::Impl::updateBindings()
 {
@@ -132,6 +144,11 @@ void Mesh::Impl::createVertexBuffer()
 
 void Mesh::Impl::createIndexBuffer()
 {
+    if (m_indices.empty()) {
+        logger.warning("magma.vulkan.mesh") << "No indices provided. The mesh will not be visible." << std::endl;
+        return;
+    }
+
     vk::DeviceSize bufferSize = sizeof(uint16_t) * m_indices.size();
 
     m_indexBufferHolder.create(vk::BufferUsageFlagBits::eIndexBuffer, bufferSize);
@@ -143,7 +160,7 @@ void Mesh::Impl::createIndexBuffer()
 void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
                         uint32_t materialDescriptorSetIndex)
 {
-    if (m_vertices.empty()) return;
+    if (m_vertices.empty() || m_indices.empty()) return;
 
     // Bind the material
     // @todo Have this in a more clever render loop, and not called by this mesh

@@ -10,8 +10,7 @@ using namespace lava::sill;
 using namespace lava::chamber;
 
 GameEngine::Impl::Impl(GameEngine& base)
-    : m_base(base)
-    , m_fontManager(base)
+    : m_fontManager(base)
 {
     //----- Initializing window
 
@@ -206,7 +205,7 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
 
     case WsEventType::MouseWheelScrolled: {
         if (event.mouseWheel.which != MouseWheel::Vertical) break;
-        m_camera->radiusAdd(-event.mouseWheel.delta / 10.f);
+        m_camera->radiusAdd(-event.mouseWheel.delta * m_camera->radius() / 10.f);
         break;
     }
 

@@ -12,22 +12,28 @@ namespace lava::sill {
         // IComponent
         void update() override final {}
 
-        // TransformComponent
-        const glm::mat4& worldTransform() const { return m_transform; } // @todo Concept of nodes/worldTransform
-        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag);
+        // TransformComponent local transform
         glm::vec3 translation() const { return m_transform[3]; }
         void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag);
+        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag);
+
+        glm::vec3 scaling() const;
+        void scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag);
+        void scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag);
+        void scale(float factor, ChangeReasonFlag changeReasonFlag);
+
+        // TransformComponent world transform
+        const glm::mat4& worldTransform() const { return m_transform; } // @todo Concept of nodes/worldTransform
 
         // TransformComponent callbacks
-        void onTranslationChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
-                                  ChangeReasonFlags changeReasonFlags);
+        void onTransformChanged(std::function<void()> transformChangedCallback, ChangeReasonFlags changeReasonFlags);
 
     protected:
-        void callPositionChanged(ChangeReasonFlag changeReasonFlag) const;
+        void callTransformChanged(ChangeReasonFlag changeReasonFlag) const;
 
     protected:
-        struct PositionChangedCallbackInfo {
-            std::function<void(const glm::vec3&)> callback;
+        struct TransformChangedCallbackInfo {
+            std::function<void()> callback;
             ChangeReasonFlags changeReasonFlags;
         };
 
@@ -36,6 +42,6 @@ namespace lava::sill {
         glm::mat4 m_transform;
 
         // Callbacks
-        std::vector<PositionChangedCallbackInfo> m_positionChangedCallbacks;
+        std::vector<TransformChangedCallbackInfo> m_transformChangedCallbacks;
     };
 }

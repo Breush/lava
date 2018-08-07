@@ -2,13 +2,7 @@
 
 #include <lava/sill/components/i-component.hpp>
 
-#include <glm/glm.hpp>
-#include <string>
-#include <vector>
-
-namespace lava::sill {
-    class Material;
-}
+#include <lava/sill/mesh-node.hpp>
 
 namespace lava::sill {
     class MeshComponent final : public IComponent {
@@ -20,24 +14,10 @@ namespace lava::sill {
         static std::string hrid() { return "mesh"; }
         void update() override final;
 
-        /**
-         * @name Geometry
-         */
-        /// @{
-        void verticesCount(const uint32_t count);
-        void verticesPositions(const std::vector<glm::vec3>& positions);
-        void verticesUvs(const std::vector<glm::vec2>& uvs);
-        void verticesNormals(const std::vector<glm::vec3>& normals);
-        void verticesTangents(const std::vector<glm::vec4>& tangents);
-        void indices(const std::vector<uint16_t>& indices);
-        /// @}
-
-        /**
-         * @name Materials
-         */
-        /// @{
-        void material(Material& material);
-        /// @}
+        /// A mesh node holds the geometry hierarchy.
+        MeshNode& node(uint32_t index);
+        const std::vector<MeshNode>& nodes() const;
+        void nodes(std::vector<MeshNode>&& nodes);
 
     public:
         class Impl;

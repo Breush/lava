@@ -24,6 +24,7 @@ namespace lava::magma::vulkan {
 
         /// Allocate and copy from raw bytes.
         void setup(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
+        void setup(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
 
     private:
         // References

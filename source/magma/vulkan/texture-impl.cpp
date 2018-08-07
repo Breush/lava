@@ -21,7 +21,7 @@ void Texture::Impl::init() {}
 
 //----- Texture
 
-void Texture::Impl::loadFromMemory(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels)
+void Texture::Impl::loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
     m_imageHolder.setup(pixels, width, height, channels);
 }
@@ -40,10 +40,8 @@ void Texture::Impl::loadFromFile(const std::string& imagePath)
 
     int32_t width, height;
     auto pixels = stbi_load_from_memory(buffer.data(), buffer.size(), &width, &height, nullptr, 4);
-    std::vector<uint8_t> pixelsVector(width * height * 4);
-    memmove(pixelsVector.data(), pixels, pixelsVector.size());
 
-    loadFromMemory(pixelsVector, width, height, 4u);
+    loadFromMemory(pixels, width, height, 4u);
 
     stbi_image_free(pixels);
 }

@@ -1,12 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <lava/magma/texture.hpp>
 #include <string>
 #include <vector>
-
-namespace lava::magma {
-    class Texture;
-}
 
 namespace lava::sill {
     class GameEngine;
@@ -22,14 +19,14 @@ namespace lava::sill {
         Texture(GameEngine& engine, const std::string& imagePath);
         ~Texture();
 
-        magma::Texture& original() { return *m_original; }
-        const magma::Texture& original() const { return *m_original; }
+        magma::Texture& magma() { return *m_magma; }
+        const magma::Texture& magma() const { return *m_magma; }
 
-        void loadFromMemory(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
+        void loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         void loadFromFile(const std::string& imagePath);
 
     private:
         GameEngine& m_engine;
-        magma::Texture* m_original = nullptr;
+        magma::Texture* m_magma = nullptr;
     };
 }

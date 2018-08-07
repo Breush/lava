@@ -15,7 +15,7 @@ namespace lava::magma {
         Impl(RenderScene& scene);
 
         // Texture
-        void loadFromMemory(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
+        void loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         void loadFromFile(const std::string& imagePath);
 
         // Getters

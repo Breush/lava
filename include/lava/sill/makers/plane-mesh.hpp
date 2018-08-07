@@ -8,5 +8,5 @@ namespace lava::sill {
 }
 
 namespace lava::sill::makers {
-    std::function<void(MeshComponent& meshComponent)> planeMeshMaker(Extent2d dimensions);
+    std::function<void(MeshComponent&)> planeMeshMaker(Extent2d dimensions);
 }

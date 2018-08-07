@@ -3,6 +3,6 @@
 using namespace lava::sill;
 
 ComponentImpl::ComponentImpl(GameEntity& entity)
-    : m_entity(entity.impl())
+    : m_entity(entity)
 {
 }

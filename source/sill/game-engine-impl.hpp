@@ -20,10 +20,7 @@
 namespace lava::sill {
     class GameEngine::Impl {
     public:
-        Impl(GameEngine& engine);
-
-        GameEngine& base() { return m_base; }
-        const GameEngine& base() const { return m_base; }
+        Impl(GameEngine& base);
 
         // GameEngine
         InputManager& input() { return m_inputManager; }
@@ -54,8 +51,6 @@ namespace lava::sill {
         void handleEvent(WsEvent& event);
 
     private:
-        GameEngine& m_base;
-
         // Rendering
         std::unique_ptr<crater::Window> m_window = nullptr;
         std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;

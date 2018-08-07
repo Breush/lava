@@ -1,6 +1,7 @@
 #include "./transform-component-impl.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 using namespace lava::sill;
 
@@ -9,34 +10,67 @@ TransformComponent::Impl::Impl(GameEntity& entity)
 {
 }
 
-void TransformComponent::Impl::translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
-{
-    // @todo Can't we write an in-place operation?
-    m_transform = glm::translate(m_transform, delta);
-    callPositionChanged(changeReasonFlag);
-}
+//----- Local transform
 
 void TransformComponent::Impl::translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag)
 {
     m_transform = glm::translate(m_transform, translation - this->translation());
-    callPositionChanged(changeReasonFlag);
+    callTransformChanged(changeReasonFlag);
 }
 
-void TransformComponent::Impl::onTranslationChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
-                                                    ChangeReasonFlags changeReasonFlags)
+void TransformComponent::Impl::translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
 {
-    m_positionChangedCallbacks.emplace_back(PositionChangedCallbackInfo{positionChangedCallback, changeReasonFlags});
+    // @todo Can't we write in-place operations for all these transform modifications?
+    m_transform = glm::translate(m_transform, delta);
+    callTransformChanged(changeReasonFlag);
+}
+
+glm::vec3 TransformComponent::Impl::scaling() const
+{
+    // @todo Optimize: We could store the scaling and dirtify the value during onTransformChanged
+    glm::vec3 scaling;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+
+    glm::decompose(m_transform, scaling, rotation, translation, skew, perspective);
+    return scaling;
+}
+
+void TransformComponent::Impl::scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = glm::translate(m_transform, scaling - this->scaling());
+    callTransformChanged(changeReasonFlag);
+}
+
+void TransformComponent::Impl::scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = glm::scale(m_transform, factors);
+    callTransformChanged(changeReasonFlag);
+}
+
+void TransformComponent::Impl::scale(float factor, ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = glm::scale(m_transform, glm::vec3(factor));
+    callTransformChanged(changeReasonFlag);
+}
+
+//----- Callbacks
+
+void TransformComponent::Impl::onTransformChanged(std::function<void()> transformChangedCallback,
+                                                  ChangeReasonFlags changeReasonFlags)
+{
+    m_transformChangedCallbacks.emplace_back(TransformChangedCallbackInfo{transformChangedCallback, changeReasonFlags});
 }
 
 //----- Internal
 
-void TransformComponent::Impl::callPositionChanged(ChangeReasonFlag changeReasonFlag) const
+void TransformComponent::Impl::callTransformChanged(ChangeReasonFlag changeReasonFlag) const
 {
-    auto translation = glm::vec3(m_transform[3]);
-
-    for (const auto& positionChangedCallback : m_positionChangedCallbacks) {
-        if (positionChangedCallback.changeReasonFlags & changeReasonFlag) {
-            positionChangedCallback.callback(translation);
+    for (const auto& transformChangedCallback : m_transformChangedCallbacks) {
+        if (transformChangedCallback.changeReasonFlags & changeReasonFlag) {
+            transformChangedCallback.callback();
         }
     }
 }

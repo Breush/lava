@@ -29,14 +29,33 @@ namespace lava::sill {
         static std::string hrid() { return "transform"; }
         void update() override final;
 
-        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        /**
+         * @name Local transform
+         */
+        /// {
         glm::vec3 translation() const;
         void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+
+        glm::vec3 scaling() const;
+        void scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void scale(float factor, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        /// }
+
+        /**
+         * @name World transform
+         *
+         * @fixme Should be based on parent from a certain NodeComponent,
+         * or directly from entities.
+         */
+        /// {
         const glm::mat4& worldTransform() const;
+        /// }
 
         // Callbacks
-        void onTranslationChanged(std::function<void(const glm::vec3&)> positionChangedCallback,
-                                  ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onTransformChanged(std::function<void()> transformChangedCallback,
+                                ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
 
     public:
         class Impl;

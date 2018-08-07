@@ -16,7 +16,7 @@ using namespace lava::sill;
 TextMeshComponent::Impl::Impl(GameEntity& entity)
     : ComponentImpl(entity)
 {
-    entity.ensure<MeshComponent>();
+    m_entity.ensure<MeshComponent>();
 }
 
 //----- IComponent
@@ -27,7 +27,9 @@ void TextMeshComponent::Impl::update()
     m_dirty = false;
 
     // Getting the font
-    auto& font = entity().engine().font(m_fontHrid);
+    // @fixme Why is this function in impl?
+    // Components should not need to access impl of entity or engine
+    auto& font = m_entity.impl().engine().font(m_fontHrid);
     const auto glyphsRatio = font.glyphsRatio();
 
     // Geometry
@@ -113,17 +115,23 @@ void TextMeshComponent::Impl::update()
 
     //----- Apply the geometry
 
-    auto& engine = entity().engine().base();
-    auto& material = engine.make<Material>("font");
+    auto& material = m_entity.engine().make<Material>("font");
     material.set("fontTexture", font.texture());
 
-    auto& meshComponent = reinterpret_cast<MeshComponent&>(entity().getComponent("mesh"));
-    meshComponent.verticesCount(positions.size());
-    meshComponent.indices(indices);
-    meshComponent.verticesPositions(positions);
-    meshComponent.verticesNormals(normals);
-    meshComponent.verticesUvs(uvs);
-    meshComponent.material(material);
+    auto mesh = std::make_unique<Mesh>();
+    auto& primitive = mesh->addPrimitive(m_entity.engine());
+    primitive.verticesCount(positions.size());
+    primitive.verticesPositions(positions);
+    primitive.verticesNormals(normals);
+    primitive.verticesUvs(uvs);
+    primitive.indices(indices);
+    primitive.material(material);
+
+    std::vector<MeshNode> nodes(1u);
+    nodes[0u].mesh = std::move(mesh);
+
+    auto& meshComponent = m_entity.get<MeshComponent>();
+    meshComponent.nodes(std::move(nodes));
 }
 
 //----- Main interface

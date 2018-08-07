@@ -47,29 +47,13 @@ namespace lava::glb {
     }
 
     template <class T>
-    inline std::vector<T> Accessor::get(const typename nlohmann::json::basic_json& bufferViews,
-                                        const std::vector<uint8_t>& buffer) const
+    inline VectorView<T> Accessor::get(const typename nlohmann::json::basic_json& bufferViews,
+                                       const std::vector<uint8_t>& buffer) const
     {
         uint32_t bufferViewIndex = bufferView;
         BufferView bufferView(bufferViews[bufferViewIndex]);
-        std::vector<T> vector(count);
 
-        auto offset = byteOffset + bufferView.byteOffset;
-
-        auto stride = bufferView.byteStride;
-        if (stride == 0u) stride = sizeof(T);
-
-        // Continuous memory, optimisation
-        if (stride == sizeof(T)) {
-            memcpy(vector.data(), &buffer[offset], vector.size() * sizeof(T));
-        }
-        else {
-            for (auto i = 0u; i < vector.size(); ++i) {
-                memcpy(&vector[i], &buffer[offset], sizeof(T));
-                offset += stride;
-            }
-        }
-
-        return vector;
+        auto bufferVectorView = bufferView.get(buffer);
+        return VectorView<T>(bufferVectorView.data() + byteOffset, count, bufferVectorView.stride());
     }
 }

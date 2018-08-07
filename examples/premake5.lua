@@ -78,7 +78,6 @@ project "sill-mesh-makers"
     files "sill/mesh-makers.cpp"
     useSill()
 
-
 project "sill-physics-demo"
     kind "WindowedApp"
     files "sill/physics-demo.cpp"
@@ -88,7 +87,12 @@ project "sill-rm-material"
     kind "WindowedApp"
     files "sill/rm-material.cpp"
     useSill()
-    
+
+project "sill-sponza"
+    kind "WindowedApp"
+    files "sill/sponza.cpp"
+    useSill()
+
 project "sill-text"
     kind "WindowedApp"
     files "sill/text.cpp"

@@ -4,7 +4,6 @@
 
 #include "./i-mesh-impl.hpp"
 
-#include <lava/core/macros.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/buffer-holder.hpp"
@@ -32,11 +31,11 @@ namespace lava::magma {
         void rotate(const glm::vec3& axis, float angleDelta);
 
         void verticesCount(const uint32_t count);
-        void verticesPositions(const std::vector<glm::vec3>& positions);
-        void verticesUvs(const std::vector<glm::vec2>& uvs);
-        void verticesNormals(const std::vector<glm::vec3>& normals);
-        void verticesTangents(const std::vector<glm::vec4>& tangents);
-        void indices(const std::vector<uint16_t>& indices);
+        void verticesPositions(VectorView<glm::vec3> positions);
+        void verticesUvs(VectorView<glm::vec2> uvs);
+        void verticesNormals(VectorView<glm::vec3> normals);
+        void verticesTangents(VectorView<glm::vec4> tangents);
+        void indices(VectorView<uint16_t> indices);
 
         Material& material() { return *m_material; }
         void material(Material& material);

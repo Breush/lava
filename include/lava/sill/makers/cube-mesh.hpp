@@ -25,6 +25,5 @@ namespace lava::sill::makers {
         CubeCoordinatesSystem coordinatesSystem = CubeCoordinatesSystem::UNKNOWN;
     };
 
-    std::function<void(MeshComponent& meshComponent)> cubeMeshMaker(float sideLength,
-                                                                    CubeMeshOptions options = CubeMeshOptions());
+    std::function<void(MeshComponent&)> cubeMeshMaker(float sideLength, CubeMeshOptions options = CubeMeshOptions());
 }

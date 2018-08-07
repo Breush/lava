@@ -2,8 +2,24 @@
 
 #include <lava/sill/components/transform-component.hpp>
 
-#include "../game-engine-impl.hpp"
-#include "../game-entity-impl.hpp"
+#include "../mesh-impl.hpp"
+
+using namespace lava;
+
+namespace {
+    void updateNodeTransforms(sill::MeshNode& node, const glm::mat4& parentTransform)
+    {
+        auto transform = parentTransform * node.transform;
+
+        if (node.mesh) {
+            node.mesh->impl().transform(transform);
+        }
+
+        for (auto child : node.children) {
+            updateNodeTransforms(*child, transform);
+        }
+    }
+}
 
 using namespace lava::sill;
 
@@ -11,60 +27,45 @@ MeshComponent::Impl::Impl(GameEntity& entity)
     : ComponentImpl(entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
-    m_mesh = &m_entity.engine().renderScene().make<magma::Mesh>();
-
-    m_transformComponent.onTranslationChanged([this](const glm::vec3&) { onTransformChanged(); });
+    m_transformComponent.onTransformChanged([this]() { onTransformChanged(); });
 
     // Init correctly on first creation
     onTransformChanged();
 }
 
-MeshComponent::Impl::~Impl()
+// ----- MeshComponent
+
+void MeshComponent::Impl::nodes(std::vector<MeshNode>&& nodes)
 {
-    m_entity.engine().renderScene().remove(*m_mesh);
-    m_mesh = nullptr;
+    m_nodes = std::move(nodes);
+
+    // Affect parents to each node.
+    for (auto& node : m_nodes) {
+        node.parent = nullptr;
+    }
+
+    for (auto& node : m_nodes) {
+        for (auto& child : node.children) {
+            child->parent = &node;
+        }
+    }
+
+    // Update all meshes transform
+    onTransformChanged();
 }
 
-//----- IComponent
-
-void MeshComponent::Impl::verticesCount(const uint32_t count)
-{
-    m_mesh->verticesCount(count);
-}
-
-void MeshComponent::Impl::verticesPositions(const std::vector<glm::vec3>& positions)
-{
-    m_mesh->verticesPositions(positions);
-}
-
-void MeshComponent::Impl::verticesUvs(const std::vector<glm::vec2>& uvs)
-{
-    m_mesh->verticesUvs(uvs);
-}
-
-void MeshComponent::Impl::verticesNormals(const std::vector<glm::vec3>& normals)
-{
-    m_mesh->verticesNormals(normals);
-}
-
-void MeshComponent::Impl::verticesTangents(const std::vector<glm::vec4>& tangents)
-{
-    m_mesh->verticesTangents(tangents);
-}
-
-void MeshComponent::Impl::indices(const std::vector<uint16_t>& indices)
-{
-    m_mesh->indices(indices);
-}
-
-void MeshComponent::Impl::material(Material& material)
-{
-    m_mesh->material(material.original());
-}
-
-// Internal
+// ----- Internal
 
 void MeshComponent::Impl::onTransformChanged()
 {
-    m_mesh->transform(m_transformComponent.worldTransform());
+    // @todo We can be more clever than this and dirtify the transforms,
+    // waiting for the next update cycle to effectively update.
+
+    auto modelTransform = m_transformComponent.worldTransform();
+
+    // @note The root nodes have just no parent!
+    for (auto& node : m_nodes) {
+        if (node.parent != nullptr) continue;
+        updateNodeTransforms(node, modelTransform);
+    }
 }

@@ -7,17 +7,16 @@ using namespace lava::sill;
 
 SphereColliderComponent::Impl::Impl(GameEntity& entity)
     : ComponentImpl(entity)
-    , m_physicsEngine(m_entity.engine().physicsEngine())
+    , m_physicsEngine(m_entity.impl().engine().physicsEngine()) // @fixme No need to be in impl()
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
     // @fixme Get radius from somewhere
     m_rigidBody = &m_physicsEngine.make<dike::SphereRigidBody>(0.1f);
 
-    m_transformComponent.onTranslationChanged([this](const glm::vec3& translation) { onTranslationChanged(translation); },
-                                              ~TransformComponent::ChangeReasonFlag::Physics);
+    m_transformComponent.onTransformChanged([this]() { onTransformChanged(); }, ~TransformComponent::ChangeReasonFlag::Physics);
 
     // Init correctly on first creation
-    onTranslationChanged(m_transformComponent.translation());
+    onTransformChanged();
 }
 
 SphereColliderComponent::Impl::~Impl() {}
@@ -31,8 +30,9 @@ void SphereColliderComponent::Impl::update()
 
 //----- Callbacks
 
-void SphereColliderComponent::Impl::onTranslationChanged(const glm::vec3& translation)
+void SphereColliderComponent::Impl::onTransformChanged()
 {
-    auto delta = translation - m_rigidBody->translation();
+    // @todo Should be able to set transform here directly!
+    auto delta = m_transformComponent.translation() - m_rigidBody->translation();
     m_rigidBody->translate(delta);
 }

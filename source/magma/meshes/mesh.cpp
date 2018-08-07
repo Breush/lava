@@ -30,11 +30,11 @@ $pimpl_method(Mesh, void, translate, const glm::vec3&, delta);
 $pimpl_method(Mesh, void, rotate, const glm::vec3&, axis, float, angleDelta);
 
 $pimpl_method(Mesh, void, verticesCount, const uint32_t, count);
-$pimpl_method(Mesh, void, verticesPositions, const std::vector<glm::vec3>&, positions);
-$pimpl_method(Mesh, void, verticesUvs, const std::vector<glm::vec2>&, uvs);
-$pimpl_method(Mesh, void, verticesNormals, const std::vector<glm::vec3>&, normals);
-$pimpl_method(Mesh, void, verticesTangents, const std::vector<glm::vec4>&, tangents);
-$pimpl_method(Mesh, void, indices, const std::vector<uint16_t>&, indices);
+$pimpl_method(Mesh, void, verticesPositions, VectorView<glm::vec3>, positions);
+$pimpl_method(Mesh, void, verticesUvs, VectorView<glm::vec2>, uvs);
+$pimpl_method(Mesh, void, verticesNormals, VectorView<glm::vec3>, normals);
+$pimpl_method(Mesh, void, verticesTangents, VectorView<glm::vec4>, tangents);
+$pimpl_method(Mesh, void, indices, VectorView<uint16_t>, indices);
 
 $pimpl_method(Mesh, Material&, material);
 $pimpl_method(Mesh, void, material, Material&, material);

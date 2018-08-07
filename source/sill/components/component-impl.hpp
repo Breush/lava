@@ -13,11 +13,11 @@ namespace lava::sill {
         virtual void update() = 0;
 
         // Getters
-        GameEntity::Impl& entity() { return m_entity; }
-        const GameEntity::Impl& entity() const { return m_entity; }
+        GameEntity& entity() { return m_entity; }
+        const GameEntity& entity() const { return m_entity; }
 
     protected:
         // References
-        GameEntity::Impl& m_entity;
+        GameEntity& m_entity;
     };
 }

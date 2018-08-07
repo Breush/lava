@@ -10,7 +10,7 @@ using namespace lava::sill;
 
 PlaneColliderComponent::Impl::Impl(GameEntity& entity, const glm::vec3& normal)
     : ComponentImpl(entity)
-    , m_physicsEngine(m_entity.engine().physicsEngine())
+    , m_physicsEngine(m_entity.impl().engine().physicsEngine()) // @fixme No need to be in impl()
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
     m_staticRigidBody = &m_physicsEngine.make<dike::PlaneStaticRigidBody>(normal);

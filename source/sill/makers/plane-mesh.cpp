@@ -1,12 +1,13 @@
 #include <lava/sill/makers/plane-mesh.hpp>
 
 #include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/game-entity.hpp>
 
 using namespace lava::sill;
 
-std::function<void(MeshComponent& mesh)> makers::planeMeshMaker(Extent2d dimensions)
+std::function<void(MeshComponent&)> makers::planeMeshMaker(Extent2d dimensions)
 {
-    return [dimensions](MeshComponent& mesh) {
+    return [dimensions](MeshComponent& meshComponent) {
         std::vector<glm::vec3> positions(4);
         std::vector<glm::vec3> normals(4, {0.f, 0.f, 1.f});
         std::vector<glm::vec4> tangents(4, {1.f, 0.f, 0.f, 1.f});
@@ -24,10 +25,17 @@ std::function<void(MeshComponent& mesh)> makers::planeMeshMaker(Extent2d dimensi
         positions[3].x = -halfWidth;
         positions[3].y = halfHeight;
 
-        mesh.verticesCount(positions.size());
-        mesh.verticesPositions(positions);
-        mesh.verticesNormals(normals);
-        mesh.verticesTangents(tangents);
-        mesh.indices(indices);
+        // Apply the geometry
+        auto mesh = std::make_unique<Mesh>();
+        auto& primitive = mesh->addPrimitive(meshComponent.entity().engine());
+        primitive.verticesCount(positions.size());
+        primitive.verticesPositions(positions);
+        primitive.verticesNormals(normals);
+        primitive.verticesTangents(tangents);
+        primitive.indices(indices);
+
+        std::vector<MeshNode> nodes(1u);
+        nodes[0u].mesh = std::move(mesh);
+        meshComponent.nodes(std::move(nodes));
     };
 }

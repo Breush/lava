@@ -22,7 +22,7 @@ int main(void)
     auto& skyboxMaterial = engine.make<sill::Material>("sky");
     skyboxMaterial.set("texture", skyTexture);
     auto& skyboxMeshComponent = skyboxEntity.make<sill::MeshComponent>();
-    skyboxMeshComponent.material(skyboxMaterial);
+    skyboxMeshComponent.node(0u).mesh->primitive(0u).material(skyboxMaterial);
 
     sill::makers::SphereMeshOptions sphereMeshOptions;
     sphereMeshOptions.siding = sill::SphereSiding::IN;
@@ -41,14 +41,13 @@ int main(void)
 
             auto& sphereMeshComponent = sphereEntity.make<sill::MeshComponent>();
             sill::makers::sphereMeshMaker(32u, 1.f)(sphereMeshComponent);
-            sphereMeshComponent.material(material);
+            sphereMeshComponent.node(0u).mesh->primitive(0u).material(material);
 
-            sphereEntity.get<sill::TransformComponent>().translate({i * 1.1f, j * 1.1f, 0.
-        });
+            sphereEntity.get<sill::TransformComponent>().translate({i * 1.1f, j * 1.1f, 0.});
+        }
     }
-}
 
-engine.run();
+    engine.run();
 
-return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

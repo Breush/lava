@@ -418,7 +418,6 @@ void DeepDeferredStage::updateEpiphanyUbo()
         if (light.type() == LightType::Point) {
             const auto& pointLight = reinterpret_cast<const PointLight::Impl&>(light);
 
-            // @fixme Should take worldTRanslation here!
             ubo.wPosition = glm::vec4(pointLight.translation(), 1.f);
             ubo.data[0].x = reinterpret_cast<const uint32_t&>(pointLight.radius());
         }
