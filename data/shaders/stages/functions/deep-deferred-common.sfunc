@@ -1,4 +1,4 @@
-//----- Tool functions
+// ----- Camera
 
 mat4 viewTransformInverse = inverse(camera.viewTransform);
 mat4 projectionTransformInverse = inverse(camera.projectionTransform);
@@ -8,4 +8,37 @@ vec3 wPositionFromDepth(float depth, vec2 coord) {
     vec4 vPosition = projectionTransformInverse * pPosition;
     vPosition /= vPosition.w;
     return (viewTransformInverse * vPosition).xyz;
+}
+
+// ----- Color spaces
+
+vec3 srgbToLinearFast(vec3 srgb)
+{
+    return pow(srgb, vec3(2.2));
+}
+
+vec4 srgbToLinearFast(vec4 srgb)
+{
+    return vec4(srgbToLinearFast(srgb.rgb), srgb.a);
+}
+
+vec3 srgbToLinear(vec3 srgb)
+{
+    vec3 bLess = step(vec3(0.04045), srgb);
+    return mix(srgb / vec3(12.92), pow((srgb + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
+}
+
+vec4 srgbToLinear(vec4 srgb)
+{
+    return vec4(srgbToLinear(srgb.rgb), srgb.a);
+}
+
+vec3 linearToSrgb(vec3 linear)
+{
+    return pow(linear, vec3(1.0 / 2.2));
+}
+
+vec4 linearToSrgb(vec4 linear)
+{
+    return vec4(linearToSrgb(linear.rgb), linear.a);
 }
