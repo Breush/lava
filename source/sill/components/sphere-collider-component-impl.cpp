@@ -1,13 +1,13 @@
 #include "./sphere-collider-component-impl.hpp"
 
-#include "../game-engine-impl.hpp"
-#include "../game-entity-impl.hpp"
+#include <lava/sill/game-engine.hpp>
+#include <lava/sill/game-entity.hpp>
 
 using namespace lava::sill;
 
 SphereColliderComponent::Impl::Impl(GameEntity& entity)
     : ComponentImpl(entity)
-    , m_physicsEngine(m_entity.impl().engine().physicsEngine()) // @fixme No need to be in impl()
+    , m_physicsEngine(m_entity.engine().physicsEngine())
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
     // @fixme Get radius from somewhere

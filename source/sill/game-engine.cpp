@@ -4,11 +4,16 @@
 
 #include "./game-engine-impl.hpp"
 
+using namespace lava;
 using namespace lava::sill;
 
 $pimpl_class_forward(GameEngine);
 
 $pimpl_method(GameEngine, InputManager&, input);
+$pimpl_method(GameEngine, dike::PhysicsEngine&, physicsEngine);
+
+// ----- Fonts
+$pimpl_method(GameEngine, Font&, font, const std::string&, hrid);
 
 void GameEngine::add(std::unique_ptr<GameEntity>&& gameEntity)
 {

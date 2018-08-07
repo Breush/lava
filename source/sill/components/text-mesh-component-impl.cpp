@@ -4,11 +4,10 @@
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/string-tools.hpp>
 #include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/game-engine.hpp>
+#include <lava/sill/game-entity.hpp>
+#include <lava/sill/material.hpp>
 #include <locale>
-#include <vector>
-
-#include "../game-engine-impl.hpp"
-#include "../game-entity-impl.hpp"
 
 using namespace lava::chamber;
 using namespace lava::sill;
@@ -27,9 +26,7 @@ void TextMeshComponent::Impl::update()
     m_dirty = false;
 
     // Getting the font
-    // @fixme Why is this function in impl?
-    // Components should not need to access impl of entity or engine
-    auto& font = m_entity.impl().engine().font(m_fontHrid);
+    auto& font = m_entity.engine().font(m_fontHrid);
     const auto glyphsRatio = font.glyphsRatio();
 
     // Geometry

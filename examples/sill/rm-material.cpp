@@ -22,12 +22,12 @@ int main(void)
     auto& skyboxMaterial = engine.make<sill::Material>("sky");
     skyboxMaterial.set("texture", skyTexture);
     auto& skyboxMeshComponent = skyboxEntity.make<sill::MeshComponent>();
-    skyboxMeshComponent.node(0u).mesh->primitive(0u).material(skyboxMaterial);
 
     sill::makers::SphereMeshOptions sphereMeshOptions;
     sphereMeshOptions.siding = sill::SphereSiding::IN;
     sphereMeshOptions.coordinatesSystem = sill::SphereCoordinatesSystem::PANORAMA_SPHERICAL;
     sill::makers::sphereMeshMaker(64u, 100.f, sphereMeshOptions)(skyboxMeshComponent);
+    skyboxMeshComponent.node(0u).mesh->primitive(0u).material(skyboxMaterial);
 
     // Create a bunch of spheres
     const float spheresSideCountRange = SPHERES_SIDE_COUNT - 1u;

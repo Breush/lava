@@ -22,37 +22,61 @@ std::function<void(MeshComponent&)> makers::cubeMeshMaker(float sideLength, Cube
             {halfSideLength, halfSideLength, halfSideLength},
             {-halfSideLength, halfSideLength, halfSideLength},
             {-halfSideLength, -halfSideLength, halfSideLength},
-            // Front
+            // Left
             {halfSideLength, halfSideLength, halfSideLength},
             {halfSideLength, halfSideLength, -halfSideLength},
             {-halfSideLength, halfSideLength, -halfSideLength},
             {-halfSideLength, halfSideLength, halfSideLength},
-            // Back
+            // Right
             {-halfSideLength, -halfSideLength, halfSideLength},
             {-halfSideLength, -halfSideLength, -halfSideLength},
             {halfSideLength, -halfSideLength, -halfSideLength},
             {halfSideLength, -halfSideLength, halfSideLength},
-            // Left
+            // Front
             {halfSideLength, -halfSideLength, halfSideLength},
             {halfSideLength, -halfSideLength, -halfSideLength},
             {halfSideLength, halfSideLength, -halfSideLength},
             {halfSideLength, halfSideLength, halfSideLength},
-            // Right
+            // Back
             {-halfSideLength, halfSideLength, halfSideLength},
             {-halfSideLength, halfSideLength, -halfSideLength},
             {-halfSideLength, -halfSideLength, -halfSideLength},
             {-halfSideLength, -halfSideLength, halfSideLength},
         };
 
-        // Normals
-        const float radius = glm::normalize(positions[0u]).length();
-        std::vector<glm::vec3> normals;
-        normals.reserve(positions.size());
-
-        // @todo Allow flat shading
-        for (auto& position : positions) {
-            normals.emplace_back(position / radius);
-        }
+        // Normals (flat shading)
+        std::vector<glm::vec3> normals = {
+            // Bottom
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            // Top
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            // Left
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            // Right
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            // Front
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            // Back
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+        };
 
         // UVs
         std::vector<glm::vec2> uvs;
@@ -69,22 +93,22 @@ std::function<void(MeshComponent&)> makers::cubeMeshMaker(float sideLength, Cube
                 {0.f, 0.5f},
                 {1.f / 3.f, 0.5f},
                 {1.f / 3.f, 0.f},
-                // Front
+                // Left
                 {0.f, 0.5f},
                 {0.f, 1.f},
                 {1.f / 3.f, 1.f},
                 {1.f / 3.f, 0.5f},
-                // Back
+                // Right
                 {2.f / 3.f, 0.5f},
                 {2.f / 3.f, 1.f},
                 {1.f, 1.f},
                 {1.f, 0.5f},
-                // Left
+                // Front
                 {1.f / 3.f, 0.5f},
                 {2.f / 3.f, 0.5f},
                 {2.f / 3.f, 0.f},
                 {1.f / 3.f, 0.f},
-                // Right
+                // Back
                 {1.f / 3.f, 0.5f},
                 {1.f / 3.f, 1.f},
                 {2.f / 3.f, 1.f},

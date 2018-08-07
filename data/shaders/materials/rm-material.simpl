@@ -130,8 +130,10 @@ vec4 @magma:impl:main (GBufferNode node) {
     if (epiphanyLight(wPosition, lightDirection, lightIntensity)) {
         lightIntensity *= 0.8; // @todo light.intensity
 
+        float cosTheta = dot(normal, lightDirection);
+        diffuseColor += lightIntensity * lightColor * cosTheta;
+
         vec3 F0 = mix(vec3(0.04), albedo, metallic);
-        diffuseColor += lightIntensity * lightColor;
         specularColor += lightIntensity * bdrf(lightDirection, cameraDirection, normal, F0, roughness);
     }
 

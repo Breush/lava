@@ -2,11 +2,16 @@
 
 #include <memory>
 
+namespace lava::dike {
+    class PhysicsEngine;
+}
+
 namespace lava::sill {
     class GameEntity;
     class InputManager;
     class Material;
     class Texture;
+    class Font;
 }
 
 namespace lava::sill {
@@ -23,6 +28,16 @@ namespace lava::sill {
 
         /// Access input manager.
         InputManager& input();
+
+        /// Access physics engine.
+        dike::PhysicsEngine& physicsEngine();
+
+        /**
+         * @name Fonts
+         */
+        /// @{
+        Font& font(const std::string& hrid);
+        /// @}
 
         /**
          * @name Makers

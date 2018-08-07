@@ -22,27 +22,34 @@ namespace lava::sill {
     public:
         Impl(GameEngine& base);
 
-        // GameEngine
+        /**
+         * @name GameEngine
+         */
+        /// @{
         InputManager& input() { return m_inputManager; }
+        dike::PhysicsEngine& physicsEngine() { return *m_physicsEngine; }
+
+        // Fonts
+        Font& font(const std::string& hrid) { return m_fontManager.font(hrid); }
+
+        // Adders
         void add(std::unique_ptr<GameEntity>&& gameEntity);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
         void run();
-
-        // Fonts
-        // @fixme FontManager should be accessible to none-impl!
-        Font& font(const std::string& hrid) { return m_fontManager.font(hrid); }
+        /// @}
 
         // Getters
+        // @fixme One should be able to with the render engine without
+        // having to know GameEngine::Impl. For example, if the end user wants
+        // to create a new component. We just make an example of that,
+        // by having a custom component made inside it.
         magma::RenderEngine& renderEngine() { return *m_renderEngine; }
         const magma::RenderEngine& renderEngine() const { return *m_renderEngine; }
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowRenderTarget; }
         const magma::WindowRenderTarget& windowRenderTarget() const { return *m_windowRenderTarget; }
         magma::RenderScene& renderScene() { return *m_renderScene; }
         const magma::RenderScene& renderScene() const { return *m_renderScene; }
-
-        dike::PhysicsEngine& physicsEngine() { return *m_physicsEngine; }
-        const dike::PhysicsEngine& physicsEngine() const { return *m_physicsEngine; }
 
     protected:
         void updateInput();

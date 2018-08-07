@@ -1,16 +1,24 @@
 #include <lava/sill/makers/glb-mesh.hpp>
 
-#include <fstream>
-#include <functional>
-#include <glm/glm.hpp>
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/stb/image.hpp>
+#include <lava/core/axis.hpp>
+#include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/game-engine.hpp>
+#include <lava/sill/game-entity.hpp>
 #include <lava/sill/material.hpp>
+#include <lava/sill/mesh-node.hpp>
+#include <lava/sill/mesh-primitive.hpp>
+#include <lava/sill/texture.hpp>
 
-#include "../components/mesh-component-impl.hpp"
-#include "../game-engine-impl.hpp"
-#include "../game-entity-impl.hpp"
 #include "../glb/loader.hpp"
+
+/**
+ * @note It is very important to be able to write this
+ * kind of file (generating meshes) without any access
+ * to impl(). Otherwise, it means that the end user
+ * won't be able to create its own meshes from scratch.
+ */
 
 using namespace lava;
 

@@ -85,7 +85,7 @@ void WindowRenderTarget::Impl::initSurface()
     result = m_engine.instance().createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace());
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
     vk::WaylandSurfaceCreateInfoKHR createInfo;
-    // @fixme
+    // @fixme Implement Wayland support
 
     result = m_engine.instance().createWaylandSurfaceKHR(&createInfo, nullptr, m_surface.replace());
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
