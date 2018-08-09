@@ -59,7 +59,7 @@ void CallStack::Impl::refresh(uint32_t discardCount)
 
         // Find lib offset
         std::string libOffset("0x0");
-        if (reference.size() > 0) {
+        if (reference.size() > 0 && reference != "__libc_start_main") {
             auto nmCommand = "nm \"" + libPath + "\" | grep " + reference + " | cut -d' ' -f 1";
             libOffset = "0x" + executeCommand(nmCommand);
 
