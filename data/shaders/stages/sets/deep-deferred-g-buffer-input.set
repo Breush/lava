@@ -1,6 +1,8 @@
-layout(set = 0, binding = 0, input_attachment_index = 0) uniform usubpassInput gBufferInputNode0;
-layout(set = 0, binding = 1, input_attachment_index = 1) uniform usubpassInput gBufferInputNode1;
-layout(set = 0, binding = 2, input_attachment_index = 2) uniform usubpassInput gBufferInputNode2;
+#softdefine DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX
+
+layout(set = DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, binding = 0, input_attachment_index = 0) uniform usubpassInput gBufferInputNode0;
+layout(set = DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, binding = 1, input_attachment_index = 1) uniform usubpassInput gBufferInputNode1;
+layout(set = DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, binding = 2, input_attachment_index = 2) uniform usubpassInput gBufferInputNode2;
 
 uvec4 gBufferNode0 = subpassLoad(gBufferInputNode0);
 uvec4 gBufferNode1 = subpassLoad(gBufferInputNode1);

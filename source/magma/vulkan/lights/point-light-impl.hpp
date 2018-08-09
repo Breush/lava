@@ -17,8 +17,14 @@ namespace lava::magma {
         ~Impl() = default;
 
         // ILight::Impl
-        void init() override final;
+        void init(uint32_t id) override final;
         LightType type() const override final { return LightType::Point; };
+
+        void renderShadows(vk::CommandBuffer /*commandBuffer*/, vk::PipelineLayout /*pipelineLayout*/,
+                           uint32_t /*descriptorSetIndex*/) const override final
+        {
+            // @todo Make it do something?
+        }
 
     private:
         // References

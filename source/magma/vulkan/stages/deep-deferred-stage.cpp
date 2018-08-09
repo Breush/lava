@@ -13,9 +13,6 @@
 #include "../vertex.hpp"
 
 namespace {
-    constexpr const auto GBUFFER_MAX_NODE_DEPTH = 3u;
-    constexpr const auto GBUFFER_MAX_NODE_DEPTH_STRING = "3";
-
     vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, const std::vector<vk::Format>& candidates,
                                    vk::ImageTiling tiling, vk::FormatFeatureFlags features)
     {
@@ -123,7 +120,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipelineLayout(),
-                                     GBUFFER_LIST_DESCRIPTOR_SET_INDEX, 1, &m_gBufferSsboDescriptorSet, 0, nullptr);
+                                     DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, 1, &m_gBufferSsboDescriptorSet, 0, nullptr);
     commandBuffer.draw(6, 1, 0, 0);
 
     deviceHolder.debugMarkerEndRegion(commandBuffer);
@@ -134,8 +131,6 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryPipelineHolder.pipeline());
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
-                                     LIGHTS_DESCRIPTOR_SET_INDEX, 1, &m_lightsDescriptorSet, 0, nullptr);
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
@@ -156,10 +151,13 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
-                                     GBUFFER_HEADER_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0, nullptr);
+                                     DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0,
+                                     nullptr);
 
-    // @todo With LLL subpass, this shouldn't be needed anymore
-    updateEpiphanyUbo();
+    // @todo Let the lights do that by themselves?
+    updateEpiphanyLightsBindings();
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
+                                     EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX, 1, &m_lightsDescriptorSet, 0, nullptr);
 
     commandBuffer.draw(6, 1, 0, 1);
 
@@ -175,16 +173,16 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 RenderImage DeepDeferredStage::renderImage() const
 {
     RenderImage renderImage;
-    renderImage.impl().imageView(m_finalImageHolder.view());
-    renderImage.impl().imageLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    renderImage.impl().view(m_finalImageHolder.view());
+    renderImage.impl().layout(vk::ImageLayout::eColorAttachmentOptimal);
     return renderImage;
 }
 
 RenderImage DeepDeferredStage::depthRenderImage() const
 {
     RenderImage renderImage;
-    renderImage.impl().imageView(m_depthImageHolder.view());
-    renderImage.impl().imageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    renderImage.impl().view(m_depthImageHolder.view());
+    renderImage.impl().layout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
     return renderImage;
 }
 
@@ -201,6 +199,7 @@ void DeepDeferredStage::initGBuffer()
     m_gBufferSsboDescriptorSet = m_gBufferSsboDescriptorHolder.allocateSet();
 
     m_lightsDescriptorHolder.uniformBufferSizes({1});
+    m_lightsDescriptorHolder.combinedImageSamplerSizes({1});
     m_lightsDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
     m_lightsDescriptorSet = m_lightsDescriptorHolder.allocateSet();
 }
@@ -214,7 +213,11 @@ void DeepDeferredStage::initClearPass()
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
     auto fragmentShaderModule =
         m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-clear.frag", moduleOptions);
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
@@ -236,7 +239,6 @@ void DeepDeferredStage::initGeometryPass()
     // @note Ordering is important
     m_geometryPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_geometryPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
-    m_geometryPipelineHolder.add(m_lightsDescriptorHolder.setLayout());
     m_geometryPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_geometryPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     m_geometryPipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
@@ -281,8 +283,8 @@ void DeepDeferredStage::initEpiphanyPass()
 
     m_epiphanyPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
-    m_epiphanyPipelineHolder.add(m_lightsDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
+    m_epiphanyPipelineHolder.add(m_lightsDescriptorHolder.setLayout());
 
     //----- Uniform buffers
 
@@ -309,13 +311,21 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
 {
     m_geometryPipelineHolder.removeShaderStages();
 
-    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert");
-    m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
-
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MESH_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
     if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryPassShaders(false); };
+
+    vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
+    auto vertexShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert", moduleOptions);
+    m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     auto fragmentShaderModule =
         m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.frag", moduleOptions);
     m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
@@ -329,13 +339,22 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
 {
     m_epiphanyPipelineHolder.removeShaderStages();
 
+    ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
+    if (firstTime) moduleOptions.updateCallback = [this]() { updateEpiphanyPassShaders(false); };
+
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
     auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/fullscreen.vert");
     m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
-    ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["GBUFFER_MAX_NODE_DEPTH"] = GBUFFER_MAX_NODE_DEPTH_STRING;
-    if (firstTime) moduleOptions.updateCallback = [this]() { updateEpiphanyPassShaders(false); };
     auto fragmentShaderModule =
         m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-epiphany.frag", moduleOptions);
     m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
@@ -365,7 +384,7 @@ void DeepDeferredStage::createResources()
     m_gBufferSsboHeaderBufferHolder.copy(m_extent.width);
 
     vk::DeviceSize listSize =
-        1u * sizeof(uint32_t) + GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferColorNode);
+        1u * sizeof(uint32_t) + DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferNode);
     m_gBufferSsboListBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, listSize);
     m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
 
@@ -406,10 +425,12 @@ void DeepDeferredStage::createFramebuffers()
     }
 }
 
-void DeepDeferredStage::updateEpiphanyUbo()
+void DeepDeferredStage::updateEpiphanyLightsBindings()
 {
-    if (m_scene.lights().size() > 0) {
-        const auto& light = m_scene.light(0);
+    if (m_scene.lightsCount() > 0) {
+        // @todo Handle more than one light.
+        const auto lightId = 0u;
+        const auto& light = m_scene.light(lightId);
 
         // @todo Let the light fill the data, right?
         vulkan::LightUbo ubo;
@@ -425,10 +446,21 @@ void DeepDeferredStage::updateEpiphanyUbo()
             const auto& directionalLight = reinterpret_cast<const DirectionalLight::Impl&>(light);
             const auto direction = directionalLight.direction();
 
+            ubo.transform = directionalLight.shadowsTransform();
             ubo.wPosition = glm::vec4(directionalLight.translation(), 1.f);
             ubo.data[0].x = reinterpret_cast<const uint32_t&>(direction.x);
             ubo.data[0].y = reinterpret_cast<const uint32_t&>(direction.y);
             ubo.data[0].z = reinterpret_cast<const uint32_t&>(direction.z);
+
+            // Bind the shadow map
+            const auto binding = m_lightsDescriptorHolder.combinedImageSamplerBindingOffset();
+            auto shadowsRenderImage = directionalLight.shadowsRenderImage();
+            auto imageView = shadowsRenderImage.impl().view();
+            auto imageLayout = shadowsRenderImage.impl().layout();
+
+            const auto& sampler = m_scene.engine().shadowsSampler();
+            vulkan::updateDescriptorSet(m_scene.engine().device(), m_lightsDescriptorSet, imageView, sampler, imageLayout,
+                                        binding, 0u);
         }
 
         m_lightsUboHolder.copy(0, ubo);

@@ -40,6 +40,9 @@ namespace lava::magma {
         Material& material() { return *m_material; }
         void material(Material& material);
 
+        bool canCastShadows() const { return m_canCastShadows; }
+        void canCastShadows(bool canCastShadows) { m_canCastShadows = canCastShadows; }
+
     private:
         void updateBindings();
         void createVertexBuffer();
@@ -54,6 +57,7 @@ namespace lava::magma {
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
         Material* m_material = nullptr;
+        bool m_canCastShadows = true;
 
         // Node
         glm::mat4 m_transform;

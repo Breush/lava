@@ -39,6 +39,12 @@ project "magma-shader-watcher"
     useCrater()
     useMagma()
 
+project "magma-shadows"
+    kind "WindowedApp"
+    files "magma/shadows.cpp"
+    useCrater()
+    useMagma()
+
 ----------
 -- dike --
 

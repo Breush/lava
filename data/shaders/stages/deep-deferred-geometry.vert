@@ -2,8 +2,8 @@
 #pragma shader_stage(vertex)
 #extension GL_ARB_separate_shader_objects : enable
 
-#include "./sets/deep-deferred-camera.set"
-#include "./sets/deep-deferred-geometry-mesh.set"
+#include "./sets/camera.set"
+#include "./sets/mesh.set"
 
 //----- Vertex data in
 

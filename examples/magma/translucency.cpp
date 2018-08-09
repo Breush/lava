@@ -33,8 +33,6 @@ int main(void)
     app.camera().translation({2.f, 2.f, 2.f});
     app.camera().target({0.f, 0.f, 0.f});
 
-    app.light().radius(1.1f);
-
     app.run();
 
     return EXIT_SUCCESS;

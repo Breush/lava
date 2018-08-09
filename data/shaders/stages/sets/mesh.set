@@ -1,0 +1,5 @@
+#softdefine MESH_DESCRIPTOR_SET_INDEX
+
+layout(set = MESH_DESCRIPTOR_SET_INDEX, binding = 0) uniform MeshUbo {
+    mat4 transform;
+} mesh;

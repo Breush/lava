@@ -10,14 +10,14 @@ namespace lava::magma {
      */
     class RenderImage::Impl {
     public:
-        vk::ImageView imageView() const { return m_imageView; }
-        void imageView(vk::ImageView imageView) { m_imageView = imageView; }
+        vk::ImageView view() const { return m_view; }
+        void view(vk::ImageView view) { m_view = view; }
 
-        vk::ImageLayout imageLayout() const { return m_imageLayout; }
-        void imageLayout(vk::ImageLayout imageLayout) { m_imageLayout = imageLayout; }
+        vk::ImageLayout layout() const { return m_layout; }
+        void layout(vk::ImageLayout layout) { m_layout = layout; }
 
     private:
-        vk::ImageView m_imageView = nullptr;
-        vk::ImageLayout m_imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
+        vk::ImageView m_view = nullptr;
+        vk::ImageLayout m_layout = vk::ImageLayout::eColorAttachmentOptimal;
     };
 }

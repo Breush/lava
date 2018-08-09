@@ -9,6 +9,7 @@
 
 namespace lava::ashe {
     class Application {
+    public:
         enum class Axis {
             X,
             Y,
@@ -23,7 +24,7 @@ namespace lava::ashe {
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowRenderTarget; }
         magma::RenderScene& scene() { return *m_scene; }
         magma::OrbitCamera& camera() { return *m_camera; }
-        magma::PointLight& light() { return *m_light; }
+        magma::DirectionalLight& light() { return *m_light; }
 
         /**
          * Create base elements for the examples.
@@ -52,9 +53,18 @@ namespace lava::ashe {
             m_camera->target({0.f, 0.f, 0.5f});
 
             // A light.
-            m_light = &m_scene->make<magma::PointLight>();
+            m_light = &m_scene->make<magma::DirectionalLight>();
             m_light->translation({0.8f, 0.7f, 0.4f});
-            m_light->radius(10.f);
+            m_light->direction(-m_light->translation());
+
+            // Showing lights.
+            m_bigLightMesh = &makeTetrahedron(0.05f);
+            m_bigLightMesh->translate(m_light->translation());
+            m_bigLightMesh->canCastShadows(false);
+
+            m_smallLightMesh = &makeTetrahedron(0.01f);
+            m_smallLightMesh->translate(m_light->translation() + m_light->direction() * 0.1f);
+            m_smallLightMesh->canCastShadows(false);
 
             // We decide to show the scene's camera "0" at a certain translation in the window.
             m_engine->addView(*m_camera, *m_windowRenderTarget, Viewport{0, 0, 1, 1});
@@ -96,6 +106,7 @@ namespace lava::ashe {
             // The cylinder
             auto& cylinder = makeCylinder(0.01f, 1.f, axis);
             cylinder.material(material);
+            cylinder.canCastShadows(false);
         }
 
         magma::Mesh& makeCylinder(float radius, float length, Axis axis)
@@ -120,8 +131,8 @@ namespace lava::ashe {
                     positions.emplace_back(glm::vec3{length, point.x, point.y});
                 }
                 else if (axis == Axis::Y) {
-                    positions.emplace_back(glm::vec3{point.x, 0, point.y});
                     positions.emplace_back(glm::vec3{point.x, length, point.y});
+                    positions.emplace_back(glm::vec3{point.x, 0, point.y});
                 }
                 else if (axis == Axis::Z) {
                     positions.emplace_back(glm::vec3{point.x, point.y, 0});
@@ -160,7 +171,6 @@ namespace lava::ashe {
 
             std::vector<glm::vec3> positions(4);
             std::vector<glm::vec3> normals(4, {0.f, 0.f, 1.f});
-            std::vector<glm::vec4> tangents(4, {1.f, 0.f, 0.f, 1.f});
             std::vector<uint16_t> indices = {0u, 1u, 2u, 2u, 3u, 0u};
 
             const auto halfWidth = dimensions.x / 2.f;
@@ -178,7 +188,128 @@ namespace lava::ashe {
             mesh.verticesCount(positions.size());
             mesh.verticesPositions(positions);
             mesh.verticesNormals(normals);
-            mesh.verticesTangents(tangents);
+            mesh.indices(indices);
+
+            return mesh;
+        }
+
+        magma::Mesh& makeTetrahedron(float size)
+        {
+            auto& mesh = m_scene->make<magma::Mesh>();
+
+            std::vector<glm::vec3> positions(4);
+            std::vector<uint16_t> indices = {0u, 1u, 2u, 2u, 1u, 3u, 3u, 0u, 2u, 1u, 0u, 3u};
+
+            const auto oneOvertSqrt2 = size / sqrt(2.f);
+            positions[0].x = size;
+            positions[0].y = 0.f;
+            positions[0].z = -oneOvertSqrt2;
+            positions[1].x = -size;
+            positions[1].y = 0.f;
+            positions[1].z = -oneOvertSqrt2;
+            positions[2].x = 0.f;
+            positions[2].y = -size;
+            positions[2].z = oneOvertSqrt2;
+            positions[3].x = 0.f;
+            positions[3].y = size;
+            positions[3].z = oneOvertSqrt2;
+
+            mesh.verticesCount(positions.size());
+            mesh.verticesPositions(positions);
+            mesh.indices(indices);
+
+            return mesh;
+        }
+
+        magma::Mesh& makeCube(float sideLength)
+        {
+            auto& mesh = m_scene->make<magma::Mesh>();
+            const auto halfSideLength = sideLength / 2.f;
+
+            // Positions
+            std::vector<glm::vec3> positions = {
+                // Bottom
+                {halfSideLength, -halfSideLength, -halfSideLength},
+                {-halfSideLength, -halfSideLength, -halfSideLength},
+                {-halfSideLength, halfSideLength, -halfSideLength},
+                {halfSideLength, halfSideLength, -halfSideLength},
+                // Top
+                {halfSideLength, -halfSideLength, halfSideLength},
+                {halfSideLength, halfSideLength, halfSideLength},
+                {-halfSideLength, halfSideLength, halfSideLength},
+                {-halfSideLength, -halfSideLength, halfSideLength},
+                // Left
+                {halfSideLength, halfSideLength, halfSideLength},
+                {halfSideLength, halfSideLength, -halfSideLength},
+                {-halfSideLength, halfSideLength, -halfSideLength},
+                {-halfSideLength, halfSideLength, halfSideLength},
+                // Right
+                {-halfSideLength, -halfSideLength, halfSideLength},
+                {-halfSideLength, -halfSideLength, -halfSideLength},
+                {halfSideLength, -halfSideLength, -halfSideLength},
+                {halfSideLength, -halfSideLength, halfSideLength},
+                // Front
+                {halfSideLength, -halfSideLength, halfSideLength},
+                {halfSideLength, -halfSideLength, -halfSideLength},
+                {halfSideLength, halfSideLength, -halfSideLength},
+                {halfSideLength, halfSideLength, halfSideLength},
+                // Back
+                {-halfSideLength, halfSideLength, halfSideLength},
+                {-halfSideLength, halfSideLength, -halfSideLength},
+                {-halfSideLength, -halfSideLength, -halfSideLength},
+                {-halfSideLength, -halfSideLength, halfSideLength},
+            };
+
+            // Normals (flat shading)
+            std::vector<glm::vec3> normals = {
+                // Bottom
+                {0.f, 0.f, -1.f},
+                {0.f, 0.f, -1.f},
+                {0.f, 0.f, -1.f},
+                {0.f, 0.f, -1.f},
+                // Top
+                {0.f, 0.f, 1.f},
+                {0.f, 0.f, 1.f},
+                {0.f, 0.f, 1.f},
+                {0.f, 0.f, 1.f},
+                // Left
+                {0.f, 1.f, 0.f},
+                {0.f, 1.f, 0.f},
+                {0.f, 1.f, 0.f},
+                {0.f, 1.f, 0.f},
+                // Right
+                {0.f, -1.f, 0.f},
+                {0.f, -1.f, 0.f},
+                {0.f, -1.f, 0.f},
+                {0.f, -1.f, 0.f},
+                // Front
+                {1.f, 0.f, 0.f},
+                {1.f, 0.f, 0.f},
+                {1.f, 0.f, 0.f},
+                {1.f, 0.f, 0.f},
+                // Back
+                {-1.f, 0.f, 0.f},
+                {-1.f, 0.f, 0.f},
+                {-1.f, 0.f, 0.f},
+                {-1.f, 0.f, 0.f},
+            };
+
+            // Indices
+            std::vector<uint16_t> indices;
+            indices.reserve(6u * positions.size() / 4u);
+            for (auto i = 0u; i < positions.size(); i += 4u) {
+                indices.emplace_back(i);
+                indices.emplace_back(i + 1u);
+                indices.emplace_back(i + 2u);
+                indices.emplace_back(i + 2u);
+                indices.emplace_back(i + 3u);
+                indices.emplace_back(i);
+            }
+
+            // Apply the geometry
+            mesh.verticesCount(positions.size());
+            mesh.verticesPositions(positions);
+            mesh.verticesNormals(normals);
             mesh.indices(indices);
 
             return mesh;
@@ -214,6 +345,17 @@ namespace lava::ashe {
                         depthViewId = -1u;
                     }
                 }
+                // Press L to show depth map of light
+                else if (event.key.which == Key::L) {
+                    if (depthViewId == -1u) {
+                        depthViewId =
+                            m_engine->addView(m_light->shadowsRenderImage(), *m_windowRenderTarget, Viewport{0.5, 0.5, 0.5, 0.5});
+                    }
+                    else {
+                        m_engine->removeView(depthViewId);
+                        depthViewId = -1u;
+                    }
+                }
                 // @todo Write better controls for the light
                 else if (event.key.which == Key::Right) {
                     lightDelta = {-0.1f, 0.f, 0.f};
@@ -229,6 +371,8 @@ namespace lava::ashe {
                 }
 
                 m_light->translation(m_light->translation() + lightDelta);
+                m_bigLightMesh->translate(lightDelta);
+                m_smallLightMesh->translate(lightDelta);
                 break;
             }
 
@@ -285,6 +429,8 @@ namespace lava::ashe {
         magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
         magma::RenderScene* m_scene = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
-        magma::PointLight* m_light = nullptr;
+        magma::DirectionalLight* m_light = nullptr;
+        magma::Mesh* m_bigLightMesh = nullptr;
+        magma::Mesh* m_smallLightMesh = nullptr;
     };
 }

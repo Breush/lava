@@ -27,7 +27,7 @@ bool @magma:impl:main (inout GBufferNode node) {
 vec4 @magma:impl:main (GBufferNode node) {
     uint startIndex = 0;
     vec4 color = gBufferUnpackVec4(node, startIndex);
-    return color;
+    return vec4(color.rgb, color.a);
 }
 
 @magma:impl:end epiphany

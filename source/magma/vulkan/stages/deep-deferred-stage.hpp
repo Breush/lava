@@ -16,21 +16,25 @@ namespace lava::magma {
      * It constructs a linked-list deep GBuffer.
      */
     class DeepDeferredStage final {
-        constexpr static const uint32_t GBUFFER_HEADER_DESCRIPTOR_SET_INDEX = 0u;
-        constexpr static const uint32_t GBUFFER_LIST_DESCRIPTOR_SET_INDEX = 1u;
-        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 2u;
+        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH = 3u;
+        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE = 9u;
 
-        constexpr static const uint32_t CAMERA_DESCRIPTOR_SET_INDEX = 3u;
+        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX = 0u;
+        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX = 1u;
 
-        constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 4u;
-        constexpr static const uint32_t GEOMETRY_MESH_DESCRIPTOR_SET_INDEX = 5u;
+        constexpr static const uint32_t CAMERA_DESCRIPTOR_SET_INDEX = 2u;
 
-        struct GBufferColorNode {
+        constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 3u;
+        constexpr static const uint32_t GEOMETRY_MESH_DESCRIPTOR_SET_INDEX = 4u;
+
+        constexpr static const uint32_t EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX = 3u;
+
+        struct GBufferNode {
             // 26 bits can handle 8K resolution
             // 6 bits allows 64 different material shaders
             uint32_t materialId6_next26;
             float depth;
-            glm::vec4 color;
+            uint8_t materialData[DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE];
         };
 
     public:
@@ -56,7 +60,7 @@ namespace lava::magma {
         void createResources();
         void createFramebuffers();
 
-        void updateEpiphanyUbo();
+        void updateEpiphanyLightsBindings();
 
     private:
         // References

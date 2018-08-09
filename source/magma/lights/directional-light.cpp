@@ -6,6 +6,8 @@ using namespace lava::magma;
 
 $pimpl_class(DirectionalLight, RenderScene&, scene);
 
+$pimpl_method_const(DirectionalLight, RenderImage, shadowsRenderImage);
+
 ILight::Impl& DirectionalLight::interfaceImpl()
 {
     return *m_impl;
@@ -13,3 +15,5 @@ ILight::Impl& DirectionalLight::interfaceImpl()
 
 $pimpl_property(DirectionalLight, glm::vec3, translation);
 $pimpl_property(DirectionalLight, glm::vec3, direction);
+
+$pimpl_method_const(DirectionalLight, const glm::mat4&, shadowsTransform);

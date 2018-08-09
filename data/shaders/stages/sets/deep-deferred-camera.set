@@ -1,6 +1,0 @@
-layout(set = 3, binding = 0) uniform CameraUbo {
-    mat4 viewTransform;
-    mat4 projectionTransform;
-    vec4 wPosition;
-    uvec2 extent;
-} camera;

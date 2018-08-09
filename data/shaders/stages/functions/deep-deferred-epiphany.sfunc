@@ -36,13 +36,15 @@ vec4 gBufferUnpackVec4(GBufferNode node, inout uint startIndex) {
 
 //----- Lights
 
+// @note The lightDirection is defined as the normalized vector
+// from the fragment to the light source.
 bool epiphanyLight(vec3 wPosition, out vec3 lightDirection, out float lightIntensity) {
     lightIntensity = 0;
 
     switch (light.type) {
         // Point light
         case 0: {
-            lightDirection = light.wPosition.xyz - wPosition.xyz;
+            lightDirection = light.wPosition.xyz - wPosition;
             float lightDistance = length(lightDirection);
 
             float radius = uintBitsToFloat(light.data[0].x);
@@ -54,9 +56,9 @@ bool epiphanyLight(vec3 wPosition, out vec3 lightDirection, out float lightInten
 
         // Directional light
         case 1: {
-            lightDirection.x = uintBitsToFloat(light.data[0].x);
-            lightDirection.y = uintBitsToFloat(light.data[0].y);
-            lightDirection.z = uintBitsToFloat(light.data[0].z);
+            lightDirection.x = -uintBitsToFloat(light.data[0].x);
+            lightDirection.y = -uintBitsToFloat(light.data[0].y);
+            lightDirection.z = -uintBitsToFloat(light.data[0].z);
 
             // @todo Have that settable
             lightIntensity = 1;
@@ -71,4 +73,27 @@ bool epiphanyLight(vec3 wPosition, out vec3 lightDirection, out float lightInten
 
     lightDirection = normalize(lightDirection);
     return true;
+}
+
+// position and normal are the fragment's attributes.
+float epiphanyLightShadow(vec3 lightDirection, vec3 position, vec3 normal)
+{
+    if (light.type == LIGHT_TYPE_DIRECTIONAL) {
+        // Unproject the current fragment world-position
+        // to find the corresponding pixel to pick in the shadow map
+        vec4 nodeLightSpacePosition = light.transform * vec4(position, 1);
+        vec2 lightUv = (nodeLightSpacePosition.xy + 1) / 2;
+
+        // Bias
+        float n_l = dot(normal, lightDirection);
+        float bias = clamp(0.005 * tan(acos(n_l)), 0.0, 0.01);
+
+        float shadowsDepth = texture(lightShadowsSampler, lightUv).r;
+        float fragmentLightSpaceDepth = nodeLightSpacePosition.z;
+        if (shadowsDepth > 0 && shadowsDepth + bias < fragmentLightSpaceDepth) {
+            return 0.5;
+        }
+    }
+
+    return 0.0;
 }

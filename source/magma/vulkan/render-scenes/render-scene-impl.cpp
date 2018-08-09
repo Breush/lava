@@ -8,6 +8,7 @@
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
+#include "../stages/shadows-stage.hpp"
 #include "../texture-impl.hpp"
 
 using namespace lava::magma;
@@ -15,6 +16,7 @@ using namespace lava::chamber;
 
 RenderScene::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
+    , m_lightDescriptorHolder(m_engine)
     , m_cameraDescriptorHolder(m_engine)
     , m_materialDescriptorHolder(m_engine)
     , m_meshDescriptorHolder(m_engine)
@@ -30,7 +32,9 @@ void RenderScene::Impl::init(uint32_t id)
     m_id = id;
     m_initialized = true;
 
-    // Deep deferred renderer common descriptors
+    m_lightDescriptorHolder.uniformBufferSizes({1});
+    m_lightDescriptorHolder.init(64, vk::ShaderStageFlagBits::eVertex);
+
     m_cameraDescriptorHolder.uniformBufferSizes({1});
     m_cameraDescriptorHolder.init(16, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
@@ -47,6 +51,11 @@ void RenderScene::Impl::init(uint32_t id)
 
 void RenderScene::Impl::render(vk::CommandBuffer commandBuffer)
 {
+    for (const auto& lightBundle : m_lightBundles) {
+        // @fixme Allow not to have a shadow map for some lights
+        lightBundle.shadowsStage->render(commandBuffer);
+    }
+
     for (const auto& cameraBundle : m_cameraBundles) {
         cameraBundle.deepDeferredStage->render(commandBuffer);
     }
@@ -102,11 +111,25 @@ void RenderScene::Impl::add(std::unique_ptr<IMesh>&& mesh)
 
 void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
 {
+    const uint32_t lightId = m_lightBundles.size();
+
+    logger.info("magma.vulkan.render-scenes.render-scene") << "Adding light " << lightId << "." << std::endl;
+    logger.log().tab(1);
+
+    m_lightBundles.emplace_back();
+    auto& lightBundle = m_lightBundles.back();
+    lightBundle.light = std::move(light);
+    lightBundle.shadowsStage = std::make_unique<ShadowsStage>(*this);
+
     if (m_initialized) {
-        light->interfaceImpl().init();
+        lightBundle.light->interfaceImpl().init(lightId);
+
+        // @todo Currently fixed extent for shadow maps, might need dynamic ones
+        lightBundle.shadowsStage->init(lightId);
+        lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
     }
 
-    m_lights.emplace_back(std::move(light));
+    logger.log().tab(-1);
 }
 
 void RenderScene::Impl::remove(const IMesh& mesh)
@@ -171,13 +194,14 @@ RenderImage RenderScene::Impl::cameraRenderImage(uint32_t cameraIndex) const
 {
     if (!m_initialized) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
+            << "Trying to access camera depth render image " << cameraIndex << " but the scene is not initialized." << std::endl;
         return RenderImage();
     }
 
     if (cameraIndex >= m_cameraBundles.size()) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
+            << "Trying to access camera render image " << cameraIndex << " but only " << m_cameraBundles.size() << " added."
+            << std::endl;
         return RenderImage();
     }
 
@@ -188,17 +212,36 @@ RenderImage RenderScene::Impl::cameraDepthRenderImage(uint32_t cameraIndex) cons
 {
     if (!m_initialized) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but the scene is not initialized." << std::endl;
+            << "Trying to access camera depth render image " << cameraIndex << " but the scene is not initialized." << std::endl;
         return RenderImage();
     }
 
     if (cameraIndex >= m_cameraBundles.size()) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
-            << "Trying to access image view " << cameraIndex << " but only " << m_cameraBundles.size() << " added." << std::endl;
+            << "Trying to access camera depth render image " << cameraIndex << " but only " << m_cameraBundles.size() << " added."
+            << std::endl;
         return RenderImage();
     }
 
     return m_cameraBundles[cameraIndex].deepDeferredStage->depthRenderImage();
+}
+
+RenderImage RenderScene::Impl::lightShadowsRenderImage(uint32_t lightIndex) const
+{
+    if (!m_initialized) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access light shadows render image " << lightIndex << " but the scene is not initialized." << std::endl;
+        return RenderImage();
+    }
+
+    if (lightIndex >= m_cameraBundles.size()) {
+        logger.warning("magma.vulkan.render-scenes.render-scene")
+            << "Trying to access light shadows render image " << lightIndex << " but only " << m_lightBundles.size() << " added."
+            << std::endl;
+        return RenderImage();
+    }
+
+    return m_lightBundles[lightIndex].shadowsStage->renderImage();
 }
 
 //---- Internal
@@ -236,8 +279,9 @@ void RenderScene::Impl::initResources()
         mesh->interfaceImpl().init();
     }
 
-    for (auto& light : m_lights) {
-        light->interfaceImpl().init();
+    for (auto lightId = 0u; lightId < m_lightBundles.size(); ++lightId) {
+        auto& lightBundle = m_lightBundles[lightId];
+        lightBundle.light->interfaceImpl().init(lightId);
     }
 }
 

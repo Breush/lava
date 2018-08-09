@@ -25,45 +25,52 @@ bool @magma:impl:main (inout GBufferNode node) {
 // Simple phong lighting on white surface
 vec4 @magma:impl:main (GBufferNode node) {
     uint startIndex = 0;
-    vec3 normal = gBufferUnpackVec3(node, startIndex);
+    vec3 n = gBufferUnpackVec3(node, startIndex);
 
     // General ambient
     vec3 wPosition = wPositionFromDepth(node.depth, inUv);
     vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
-    float ambient = 0.2;
 
     // Material-specific
     float kd = 0.8;
     float ks = 0.75;
-    float alpha = 16;
+    float alpha = 64;
 
     // For each light
     float id = 1;
     float is = 0.2;
 
-    float diffuse = 0;
-    float specular = 0;
+    vec3 diffuse = vec3(0);
+    vec3 specular = vec3(0);
+
+    // @todo Have that as uniforms
+    vec3 lightDiffuseColor = vec3(1.0);
+    vec3 lightSpecularColor = vec3(0.8);
 
     // Check whether the lighting should have an effect
-    vec3 lightDirection;
+    vec3 l;
     float lightIntensity;
-    if (epiphanyLight(wPosition, lightDirection, lightIntensity)) {
-        float cosTheta = dot(normal, lightDirection);
-        if (cosTheta > 0) {
-            diffuse += lightIntensity * id * cosTheta;
+    float shadow = 0;
+    if (epiphanyLight(wPosition, l, lightIntensity)) {
+        float n_l = dot(n, l);
+        shadow = max(shadow, epiphanyLightShadow(l, wPosition, n));
 
-            vec3 r = normalize(2 * cosTheta * normal - lightDirection);
-            float cosOmega = dot(r, v);
-            if (cosOmega > 0) {
-                specular += lightIntensity * is * pow(cosOmega, alpha);
-            }
+        if (n_l > 0) {
+            // Diffuse
+            diffuse += lightIntensity * id * n_l * lightDiffuseColor;
+
+            // Specular
+            vec3 h = normalize(l + v);
+            float n_h = dot(n, h);
+            specular += lightIntensity * is * pow(max(n_h, 0.0), alpha) * lightSpecularColor;
         }
     }
 
+    vec3 color = kd * diffuse + ks * specular;
+
     // Combining all lights k
-    return vec4((ambient + kd * diffuse + ks * specular) * vec3(1), 1);
+    return vec4((1. - shadow) * color, 1);
 }
 
 @magma:impl:end epiphany
 
- 

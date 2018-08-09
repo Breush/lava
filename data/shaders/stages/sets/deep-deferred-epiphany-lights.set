@@ -1,0 +1,16 @@
+#softdefine EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX
+
+// @fixme Make that soft defines
+#define LIGHT_TYPE_POINT 0
+#define LIGHT_TYPE_DIRECTIONAL 1
+
+layout(set = EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX, binding = 0) uniform LightUbo {
+    uint type;      // 0: PointLight - 1: DirectionalLight
+    mat4 transform;
+    vec4 wPosition;
+    uvec4 data[2];
+
+    // @todo We need the full transform to unproject
+} light;
+
+layout(set = EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX, binding = 1) uniform sampler2D lightShadowsSampler;

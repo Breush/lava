@@ -18,6 +18,7 @@ namespace lava::magma {
         ~DirectionalLight();
 
         // ILight
+        RenderImage shadowsRenderImage() const override final;
         ILight::Impl& interfaceImpl() override final;
 
         // In order to cast shadows, the light needs a translation
@@ -26,6 +27,9 @@ namespace lava::magma {
 
         const glm::vec3& direction() const;
         void direction(const glm::vec3& direction);
+
+        // World-space shadow-map projection transform.
+        const glm::mat4& shadowsTransform() const;
 
     public:
         class Impl;

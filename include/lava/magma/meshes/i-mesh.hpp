@@ -10,5 +10,8 @@ namespace lava::magma {
 
         class Impl;
         virtual Impl& interfaceImpl() = 0;
+
+        virtual bool canCastShadows() const = 0;
+        virtual void canCastShadows(bool canCastShadows) = 0;
     };
 }

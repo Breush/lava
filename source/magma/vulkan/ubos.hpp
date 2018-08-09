@@ -37,6 +37,7 @@ namespace lava::magma::vulkan {
             glm::vec4 __padding;
         };
 
+        glm::mat4 transform;
         glm::vec4 wPosition;
         glm::uvec4 data[2];
 

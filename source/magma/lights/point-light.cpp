@@ -6,6 +6,12 @@ using namespace lava::magma;
 
 $pimpl_class(PointLight, RenderScene&, scene);
 
+RenderImage PointLight::shadowsRenderImage() const
+{
+    // @fixme Make it do something?
+    return RenderImage();
+}
+
 ILight::Impl& PointLight::interfaceImpl()
 {
     return *m_impl;

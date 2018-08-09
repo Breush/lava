@@ -1,6 +1,0 @@
-// @todo To be replaced by LLL
-layout(set = 2, binding = 0) uniform LightUbo {
-    uint type;      // 0: PointLight - 1: DirectionalLight
-    vec4 wPosition;
-    uvec4 data[2];
-} light;

@@ -6,9 +6,8 @@
 // otherwise transparent objects rendering will be erroneous.
 
 #include "./sets/deep-deferred-g-buffer-ssbo.set"
-#include "./sets/deep-deferred-light.set"
-#include "./sets/deep-deferred-camera.set"
-#include "./sets/deep-deferred-geometry-material.set"
+#include "./sets/camera.set"
+#include "./sets/material.set"
 
 //----- Fragment forwarded in
 
@@ -22,7 +21,6 @@ layout (location = 0) out uvec4 outGBufferNodes[3];
 #include "./functions/defines.sfunc"
 #include "./functions/deep-deferred-common.sfunc"
 #include "./functions/deep-deferred-geometry-compose.sfunc"
-#include "./functions/deep-deferred-epiphany-compose.sfunc"
 
 //----- Program
 
@@ -63,11 +61,7 @@ void main()
         uint oldListIndex = atomicExchange(gBufferHeader.listIndex[headerIndex], listIndex);
         node.materialId6_next26 += oldListIndex;
 
-        GBufferColorNode colorNode;
-        colorNode.materialId6_next26 = node.materialId6_next26;
-        colorNode.depth = node.depth;
-        colorNode.color = composeEpiphany(node);
-        gBufferList.nodes[listIndex] = colorNode;
+        gBufferList.nodes[listIndex] = node;
 
         // We discard so that outGBufferHeaderListIndex will not be written
         discard;

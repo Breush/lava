@@ -165,11 +165,13 @@ void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipe
     // Bind the material
     // @todo Have this in a more clever render loop, and not called by this mesh
     // Fact is we shouldn't know about the correct descriptorSetIndex here
-    if (m_material != nullptr) {
-        m_material->impl().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
-    }
-    else {
-        m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
+    if (materialDescriptorSetIndex != -1u) {
+        if (m_material != nullptr) {
+            m_material->impl().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
+        }
+        else {
+            m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
+        }
     }
 
     // Bind with the mesh descriptor set

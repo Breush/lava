@@ -174,7 +174,7 @@ vec4 @magma:impl:main (GBufferNode node) {
 
     RmPbrData pbr;
     pbr.n = normal;
-    pbr.v = normalize(camera.wPosition.xyz - wPosition.xyz);
+    pbr.v = normalize(camera.wPosition.xyz - wPosition);
     pbr.n_v = clamp(abs(dot(normal, pbr.v)), 0.001, 1.0);
 
     // @note Convert to material roughness by squaring the perceptual roughness.
@@ -218,6 +218,10 @@ vec4 @magma:impl:main (GBufferNode node) {
     // ----- Emissive
 
     // @todo Implement emissive
+
+    // ----- Shadow
+
+    // @todo color *= (1.0 - shadow);
 
     return vec4(linearToSrgb(color), opacity);
 }

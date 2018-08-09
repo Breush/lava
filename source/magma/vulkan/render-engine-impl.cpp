@@ -121,6 +121,12 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
 
 uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport)
 {
+    const auto& renderImageImpl = renderImage.impl();
+    if (!renderImageImpl.view()) {
+        logger.warning("magma.vulkan.render-engine") << "Trying to add an empty RenderImage as a view." << std::endl;
+        return -1u;
+    }
+
     // Find the render target bundle
     uint32_t renderTargetId = renderTarget.interfaceImpl().id();
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
@@ -132,9 +138,8 @@ uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& ren
     renderView.renderTargetId = renderTargetId;
 
     // Add a new image to the present stage
-    const auto& renderImageImpl = renderImage.impl();
-    auto imageView = renderImageImpl.imageView();
-    auto imageLayout = renderImageImpl.imageLayout();
+    auto imageView = renderImageImpl.view();
+    auto imageLayout = renderImageImpl.layout();
     renderView.presentViewId = renderTargetBundle.presentStage->addView(imageView, imageLayout, m_dummySampler, viewport);
 
     return m_renderViews.size() - 1u;
@@ -215,11 +220,11 @@ void RenderEngine::Impl::updateView(RenderImage renderImage)
 
     // The renderImage has changed, we update all image views we were using from it
     for (auto& renderView : m_renderViews) {
-        if (renderView.renderImage.impl().imageView() != renderImageImpl.imageView()) continue;
+        if (renderView.renderImage.impl().view() != renderImageImpl.view()) continue;
         auto& renderTargetBundle = m_renderTargetBundles[renderView.renderTargetId];
 
-        auto imageView = renderImageImpl.imageView();
-        auto imageLayout = renderImageImpl.imageLayout();
+        auto imageView = renderImageImpl.view();
+        auto imageLayout = renderImageImpl.layout();
         renderTargetBundle.presentStage->updateView(renderView.presentViewId, imageView, imageLayout, m_dummySampler);
     }
 }
@@ -288,7 +293,22 @@ void RenderEngine::Impl::createDummyTextures()
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
 
     if (device().createSampler(&samplerInfo, nullptr, m_dummySampler.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.texture-sampler") << "Failed to texture sampler." << std::endl;
+        logger.error("magma.vulkan.render-engine") << "Failed to create dummy sampler." << std::endl;
+    }
+
+    // Shadows sampler
+    samplerInfo.magFilter = vk::Filter::eNearest;
+    samplerInfo.minFilter = vk::Filter::eNearest;
+    samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
+    samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
+    samplerInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
+    samplerInfo.anisotropyEnable = false;
+    samplerInfo.unnormalizedCoordinates = false;
+    samplerInfo.compareEnable = false;
+    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+
+    if (device().createSampler(&samplerInfo, nullptr, m_shadowsSampler.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.render-engine") << "Failed to create shadows sampler." << std::endl;
     }
 }
 

@@ -101,6 +101,7 @@ void OrbitCamera::Impl::updateProjectionTransform()
     const auto farClipping = 100.f;
     m_projectionTransform = glm::perspective(glm::radians(45.f), viewportRatio, nearClipping, farClipping);
     m_projectionTransform[1][1] *= -1;
+
     updateBindings();
 }
 

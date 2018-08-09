@@ -141,6 +141,9 @@ namespace lava::magma {
 
         /// Dummy texture sampler.
         $attribute(vulkan::Sampler, dummySampler, {device()});
+
+        /// Shadow-map sampler.
+        $attribute(vulkan::Sampler, shadowsSampler, {device()});
         /// @}
 
         // Semaphores

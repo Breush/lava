@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 
 namespace lava::magma {
+    // @fixme Why whould that IRenderScene::Impl would be useful?
     class IRenderScene::Impl {
     public:
         virtual ~Impl() = default;

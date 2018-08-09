@@ -4,8 +4,8 @@
 
 #include "./sets/deep-deferred-g-buffer-input.set"
 #include "./sets/deep-deferred-g-buffer-ssbo.set"
-#include "./sets/deep-deferred-light.set"
-#include "./sets/deep-deferred-camera.set"
+#include "./sets/camera.set"
+#include "./sets/deep-deferred-epiphany-lights.set"
 
 //----- Fragment in
 
@@ -49,19 +49,20 @@ void main()
         node.materialData[8] = gBufferNode2.z;
 
         opaqueDepth = node.depth;
+
         color = composeEpiphany(node).rgb;
     }
 
     //----- Translucent materials
 
     // Sort fragments by depth
-    uint sortedListIndices[GBUFFER_MAX_NODE_DEPTH];
+    uint sortedListIndices[DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH];
     uint headerIndex = uint(gl_FragCoord.y) * gBufferHeader.width + uint(gl_FragCoord.x);
     uint listIndex = gBufferHeader.listIndex[headerIndex];
 
     uint nodeCount = 0;
-    while (listIndex != 0 && nodeCount < GBUFFER_MAX_NODE_DEPTH) {
-        GBufferColorNode node = gBufferList.nodes[listIndex];
+    while (listIndex != 0 && nodeCount < DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH) {
+        GBufferNode node = gBufferList.nodes[listIndex];
 
         // Do not count translucent fragments that are behind opaque ones.
         if (node.depth <= opaqueDepth) {
@@ -89,8 +90,9 @@ void main()
     // Iterate over the gBuffer list, adding lights each time,
     // and composing translucent fragments.
     for (uint i = 0; i < nodeCount; ++i) {
-        GBufferColorNode node = gBufferList.nodes[sortedListIndices[i]];
-        color = mix(color, node.color.rgb, node.color.a);
+        GBufferNode node = gBufferList.nodes[sortedListIndices[i]];
+        vec4 nodeColor = composeEpiphany(node);
+        color = mix(color, nodeColor.rgb, nodeColor.a);
     }
 
     outColor = color;

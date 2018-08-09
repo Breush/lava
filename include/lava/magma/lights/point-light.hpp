@@ -18,6 +18,7 @@ namespace lava::magma {
         ~PointLight();
 
         // ILight
+        RenderImage shadowsRenderImage() const override final;
         ILight::Impl& interfaceImpl() override final;
 
         const glm::vec3& translation() const;

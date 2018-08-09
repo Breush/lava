@@ -16,6 +16,7 @@
 
 namespace lava::magma {
     class DeepDeferredStage;
+    class ShadowsStage;
 }
 
 namespace lava::magma {
@@ -60,6 +61,7 @@ namespace lava::magma {
          * @name Getters
          */
         /// @{
+        const vulkan::DescriptorHolder& lightDescriptorHolder() const { return m_lightDescriptorHolder; }
         const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_cameraDescriptorHolder; }
         const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
         const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_meshDescriptorHolder; }
@@ -77,15 +79,17 @@ namespace lava::magma {
         const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
         const Material::Impl& material(uint32_t index) const { return m_materials[index]->impl(); }
         const IMesh::Impl& mesh(uint32_t index) const { return m_meshes[index]->interfaceImpl(); }
-        const ILight::Impl& light(uint32_t index) const { return m_lights[index]->interfaceImpl(); }
+        const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
 
         const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
-        const std::vector<std::unique_ptr<ILight>>& lights() const { return m_lights; }
+
+        uint lightsCount() const { return m_lightBundles.size(); }
 
         RenderImage cameraRenderImage(uint32_t cameraIndex) const;
         RenderImage cameraDepthRenderImage(uint32_t cameraIndex) const;
+        RenderImage lightShadowsRenderImage(uint32_t lightIndex) const;
         /// @}
 
     protected:
@@ -95,6 +99,12 @@ namespace lava::magma {
         void updateStages(uint32_t cameraId);
 
     protected:
+        /// This bundle is for lights, allowing us to create shadow map.
+        struct LightBundle {
+            std::unique_ptr<ILight> light;
+            std::unique_ptr<ShadowsStage> shadowsStage;
+        };
+
         struct CameraBundle {
             std::unique_ptr<ICamera> camera;
             std::unique_ptr<DeepDeferredStage> deepDeferredStage;
@@ -107,15 +117,16 @@ namespace lava::magma {
 
         // Resources
         std::unique_ptr<Material> m_fallbackMaterial;
+        vulkan::DescriptorHolder m_lightDescriptorHolder;
         vulkan::DescriptorHolder m_cameraDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
         vulkan::DescriptorHolder m_meshDescriptorHolder;
 
         // Data
         std::vector<CameraBundle> m_cameraBundles;
+        std::vector<LightBundle> m_lightBundles;
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
-        std::vector<std::unique_ptr<ILight>> m_lights;
     };
 }

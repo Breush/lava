@@ -1,8 +1,8 @@
-#softdefine GBUFFER_MAX_NODE_DEPTH
+#softdefine DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH
+#softdefine DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE
+#softdefine DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX
 
-#define GBUFFER_MATERIALDATA_SIZE 9
-
-layout(std430, set = 1, binding = 0) buffer GBufferHeader {
+layout(std430, set = DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, binding = 0) buffer GBufferHeader {
     uint width;
     uint listIndex[];
 } gBufferHeader;
@@ -10,16 +10,10 @@ layout(std430, set = 1, binding = 0) buffer GBufferHeader {
 struct GBufferNode {
     uint materialId6_next26;
     float depth;
-    uint materialData[GBUFFER_MATERIALDATA_SIZE];
+    uint materialData[DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE];
 };
 
-struct GBufferColorNode {
-    uint materialId6_next26;
-    float depth;
-    vec4 color;
-};
-
-layout(std430, set = 1, binding = 1) buffer GBufferList {
+layout(std430, set = DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, binding = 1) buffer GBufferList {
     uint counter;
-    GBufferColorNode nodes[];
+    GBufferNode nodes[];
 } gBufferList;

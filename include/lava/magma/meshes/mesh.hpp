@@ -24,6 +24,8 @@ namespace lava::magma {
 
         // IMesh
         IMesh::Impl& interfaceImpl() override final;
+        bool canCastShadows() const override final;
+        void canCastShadows(bool canCastShadows) override final;
 
         /**
          * @name Transforms

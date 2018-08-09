@@ -12,7 +12,6 @@ using namespace lava::chamber;
 
 namespace {
     constexpr const auto MAX_VIEW_COUNT = 8u;
-    constexpr const auto MAX_VIEW_COUNT_STRING = "8";
 }
 
 Present::Present(RenderEngine::Impl& engine)
@@ -45,7 +44,7 @@ void Present::init()
     m_pipelineHolder.add({vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["MAX_VIEW_COUNT"] = MAX_VIEW_COUNT_STRING;
+    moduleOptions.defines["MAX_VIEW_COUNT"] = std::to_string(MAX_VIEW_COUNT);
     auto fragmentShaderModule = m_engine.shadersManager().module("./data/shaders/stages/present.frag", moduleOptions);
     m_pipelineHolder.add(
         {vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
@@ -60,6 +59,8 @@ void Present::init()
     m_descriptorSet = m_descriptorHolder.allocateSet();
 
     // Mock-up samplers
+    // @fixme Why would you want dummy sampler here?
+    // Just make one that has no fancy stuff in it...
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     const auto& dummySampler = m_engine.dummySampler();
     const auto& dummyImageView = m_engine.dummyImageView();
