@@ -15,6 +15,7 @@ namespace lava::magma {
     enum class UniformTextureType {
         WHITE,
         NORMAL,
+        INVISIBLE,
         UNKNOWN,
     };
 

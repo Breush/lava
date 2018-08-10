@@ -279,6 +279,10 @@ void RenderEngine::Impl::createDummyTextures()
     dummyData = {0x80, 0x80, 0xFF, 0xFF};
     m_dummyNormalImageHolder.setup(dummyData, 1, 1, 4);
 
+    // Full zeros
+    dummyData = {0x00, 0x00, 0x00, 0x00};
+    m_dummyInvisibleImageHolder.setup(dummyData, 1, 1, 4);
+
     // Sampler
     vk::SamplerCreateInfo samplerInfo;
     samplerInfo.magFilter = vk::Filter::eLinear;

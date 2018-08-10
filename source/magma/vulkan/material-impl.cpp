@@ -140,6 +140,9 @@ void Material::Impl::updateBindings()
             else if (attribute.fallback.textureTypeValue == UniformTextureType::NORMAL) {
                 imageView = engine.dummyNormalImageView();
             }
+            else if (attribute.fallback.textureTypeValue == UniformTextureType::INVISIBLE) {
+                imageView = engine.dummyInvisibleImageView();
+            }
             else {
                 continue;
             }

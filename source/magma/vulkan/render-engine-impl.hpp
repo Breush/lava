@@ -75,6 +75,7 @@ namespace lava::magma {
         /// @{
         vk::ImageView dummyImageView() const { return m_dummyImageHolder.view(); }
         vk::ImageView dummyNormalImageView() const { return m_dummyNormalImageHolder.view(); }
+        vk::ImageView dummyInvisibleImageView() const { return m_dummyInvisibleImageHolder.view(); }
         /// @}
 
         /**
@@ -138,6 +139,9 @@ namespace lava::magma {
 
         /// Dummy texture for normal mapping. 1x1 pixel of rgba(128, 128, 255, 255)
         vulkan::ImageHolder m_dummyNormalImageHolder{*this};
+
+        /// Dummy texture for black-invisible. 1x1 pixel of rgba(0, 0, 0, 0)
+        vulkan::ImageHolder m_dummyInvisibleImageHolder{*this};
 
         /// Dummy texture sampler.
         $attribute(vulkan::Sampler, dummySampler, {device()});
