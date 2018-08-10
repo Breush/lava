@@ -16,6 +16,8 @@ $pimpl_method_const(TransformComponent, glm::vec3, translation);
 $pimpl_method(TransformComponent, void, translation, const glm::vec3&, translation, ChangeReasonFlag, changeReasonFlag);
 $pimpl_method(TransformComponent, void, translate, const glm::vec3&, delta, ChangeReasonFlag, changeReasonFlag);
 
+$pimpl_method(TransformComponent, void, rotate, const glm::vec3&, axis, float, angle, ChangeReasonFlag, changeReasonFlag);
+
 $pimpl_method_const(TransformComponent, glm::vec3, scaling);
 $pimpl_method(TransformComponent, void, scaling, const glm::vec3&, scaling, ChangeReasonFlag, changeReasonFlag);
 $pimpl_method(TransformComponent, void, scale, const glm::vec3&, factors, ChangeReasonFlag, changeReasonFlag);

@@ -25,6 +25,12 @@ void TransformComponent::Impl::translate(const glm::vec3& delta, ChangeReasonFla
     callTransformChanged(changeReasonFlag);
 }
 
+void TransformComponent::Impl::rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = glm::rotate(m_transform, angle, axis);
+    callTransformChanged(changeReasonFlag);
+}
+
 glm::vec3 TransformComponent::Impl::scaling() const
 {
     // @todo Optimize: We could store the scaling and dirtify the value during onTransformChanged

@@ -17,6 +17,8 @@ namespace lava::sill {
         void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag);
         void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag);
 
+        void rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag);
+
         glm::vec3 scaling() const;
         void scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag);
         void scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag);
