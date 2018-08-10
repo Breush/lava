@@ -73,6 +73,7 @@ namespace lava::glb {
     struct Material {
         uint32_t normalTextureIndex = -1u;
         uint32_t occlusionTextureIndex = -1u;
+        uint32_t emissiveTextureIndex = -1u;
 
         Material(const typename nlohmann::json::basic_json& json);
     };

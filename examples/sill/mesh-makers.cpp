@@ -14,9 +14,10 @@ int main(void)
     {
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
-        sill::makers::glbMeshMaker("./assets/models/corset.glb")(meshComponent);
+        sill::makers::glbMeshMaker("./assets/models/boom-box.glb")(meshComponent);
         entity.get<sill::TransformComponent>().translate({1.2f, 0.f, 0});
-        entity.get<sill::TransformComponent>().scale(20.f);
+        entity.get<sill::TransformComponent>().rotate({0.f, 0.f, 1.f}, 3.14f);
+        entity.get<sill::TransformComponent>().scale(40.f);
     }
 
     // Plane mesh maker

@@ -17,7 +17,8 @@ namespace lava::magma {
      */
     class DeepDeferredStage final {
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH = 3u;
-        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE = 9u;
+        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE = 12u;
+        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT = 4u;
 
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX = 0u;
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX = 1u;

@@ -14,7 +14,7 @@
 layout(location = 0) in mat3 inTbn;
 layout(location = 3) in vec2 inUv;
 
-layout (location = 0) out uvec4 outGBufferNodes[3];
+layout (location = 0) out uvec4 outGBufferNodes[DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT];
 
 //----- Functions
 
@@ -44,15 +44,13 @@ void main()
         outGBufferNodes[0].y = floatBitsToUint(node.depth);
         outGBufferNodes[0].z = node.materialData[0];
         outGBufferNodes[0].w = node.materialData[1];
-        
-        outGBufferNodes[1].x = node.materialData[2];
-        outGBufferNodes[1].y = node.materialData[3];
-        outGBufferNodes[1].z = node.materialData[4];
-        outGBufferNodes[1].w = node.materialData[5];
 
-        outGBufferNodes[2].x = node.materialData[6];
-        outGBufferNodes[2].y = node.materialData[7];
-        outGBufferNodes[2].z = node.materialData[8];
+        for (uint i = 1; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
+            outGBufferNodes[i].x = node.materialData[4 * (i - 1) + 2];
+            outGBufferNodes[i].y = node.materialData[4 * (i - 1) + 3];
+            outGBufferNodes[i].z = node.materialData[4 * (i - 1) + 4];
+            outGBufferNodes[i].w = node.materialData[4 * (i - 1) + 5];
+        }
     } else {
         // If the material is translucent, we add it to the linked list,
         // so we keep all of them and they will be sorted downstream in epiphany

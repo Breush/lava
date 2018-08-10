@@ -167,10 +167,9 @@ namespace {
                 // Material textures
                 setTexture(engine, *rmMaterial, "albedoMap", material.baseColorTextureIndex, binChunk, json, cacheData);
                 setTexture(engine, *rmMaterial, "normalMap", material.normalTextureIndex, binChunk, json, cacheData);
+                setTexture(engine, *rmMaterial, "emissiveMap", material.emissiveTextureIndex, binChunk, json, cacheData);
                 setOrmTexture(engine, *rmMaterial, material.occlusionTextureIndex, material.metallicRoughnessTextureIndex,
                               binChunk, json, cacheData);
-
-                // @todo Emissive? See glTF sample model boom-box.
 
                 cacheData.materials[primitive.materialIndex] = rmMaterial;
             }

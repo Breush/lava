@@ -16,6 +16,8 @@ void gBufferPackFloat(inout GBufferNode node, inout uint startIndex, float value
     node.materialData[startIndex++] = floatBitsToUint(value);
 }
 
+// @fixme If the vec3 comes from a 8bits channel, we could store that
+// with very less memory (3 bytes only, instead of 12).
 void gBufferPackVec3(inout GBufferNode node, inout uint startIndex, vec3 value) {
     node.materialData[startIndex++] = floatBitsToUint(value.x);
     node.materialData[startIndex++] = floatBitsToUint(value.y);

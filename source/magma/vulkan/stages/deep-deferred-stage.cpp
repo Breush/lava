@@ -102,7 +102,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Set render pass
     std::array<vk::ClearValue, 8> clearValues;
-    clearValues[3].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
+    clearValues[DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPassHolder.renderPass();
@@ -190,7 +190,9 @@ RenderImage DeepDeferredStage::depthRenderImage() const
 
 void DeepDeferredStage::initGBuffer()
 {
-    m_gBufferInputDescriptorHolder.inputAttachmentSizes({1, 1, 1});
+    std::vector<uint32_t> inputAttachmentSizes(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT, 1u);
+
+    m_gBufferInputDescriptorHolder.inputAttachmentSizes(inputAttachmentSizes);
     m_gBufferInputDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
     m_gBufferInputDescriptorSet = m_gBufferInputDescriptorHolder.allocateSet();
 
@@ -218,6 +220,8 @@ void DeepDeferredStage::initClearPass()
         std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     auto fragmentShaderModule =
         m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-clear.frag", moduleOptions);
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
@@ -258,9 +262,9 @@ void DeepDeferredStage::initGeometryPass()
     gBufferNodeColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
     // There are multiple nodes render targets
-    m_geometryPipelineHolder.add(gBufferNodeColorAttachment);
-    m_geometryPipelineHolder.add(gBufferNodeColorAttachment);
-    m_geometryPipelineHolder.add(gBufferNodeColorAttachment);
+    for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
+        m_geometryPipelineHolder.add(gBufferNodeColorAttachment);
+    }
 
     //---- Vertex input
 
@@ -296,10 +300,10 @@ void DeepDeferredStage::initEpiphanyPass()
     vulkan::PipelineHolder::InputAttachment gBufferInputNodeAttachment;
     gBufferInputNodeAttachment.format = vk::Format::eR32G32B32A32Uint;
 
-    // There are multiple render targets
-    m_epiphanyPipelineHolder.add(gBufferInputNodeAttachment);
-    m_epiphanyPipelineHolder.add(gBufferInputNodeAttachment);
-    m_epiphanyPipelineHolder.add(gBufferInputNodeAttachment);
+    // There are input render targets
+    for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
+        m_epiphanyPipelineHolder.add(gBufferInputNodeAttachment);
+    }
 
     vulkan::PipelineHolder::ColorAttachment finalColorAttachment;
     finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
@@ -317,6 +321,8 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MESH_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -347,6 +353,8 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
+        std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
     if (firstTime) moduleOptions.updateCallback = [this]() { updateEpiphanyPassShaders(false); };
@@ -368,9 +376,9 @@ void DeepDeferredStage::createResources()
 {
     // GBuffer Input
     m_gBufferInputNodeImageHolders.clear();
-    m_gBufferInputNodeImageHolders.reserve(3u);
+    m_gBufferInputNodeImageHolders.reserve(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     auto gBufferHeaderFormat = vk::Format::eR32G32B32A32Uint;
-    for (auto i = 0u; i < 3u; ++i) {
+    for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
         m_gBufferInputNodeImageHolders.emplace_back(m_scene.engine());
         m_gBufferInputNodeImageHolders[i].create(gBufferHeaderFormat, m_extent, vk::ImageAspectFlagBits::eColor);
         m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet, m_gBufferInputNodeImageHolders[i].view(),
@@ -402,16 +410,22 @@ void DeepDeferredStage::createResources()
 
 void DeepDeferredStage::createFramebuffers()
 {
-    // Framebuffer
-    std::array<vk::ImageView, 8> attachments = {m_gBufferInputNodeImageHolders[0].view(),
-                                                m_gBufferInputNodeImageHolders[1].view(),
-                                                m_gBufferInputNodeImageHolders[2].view(),
-                                                m_depthImageHolder.view(),
-                                                m_finalImageHolder.view(),
-                                                m_gBufferInputNodeImageHolders[0].view(),
-                                                m_gBufferInputNodeImageHolders[1].view(),
-                                                m_gBufferInputNodeImageHolders[2].view()};
+    // Attachments
+    std::vector<vk::ImageView> attachments;
+    attachments.reserve(2u * DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT + 2u);
 
+    for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
+        attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
+    }
+
+    attachments.emplace_back(m_depthImageHolder.view());
+    attachments.emplace_back(m_finalImageHolder.view());
+
+    for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
+        attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
+    }
+
+    // Framebuffer
     vk::FramebufferCreateInfo framebufferInfo;
     framebufferInfo.renderPass = m_renderPassHolder.renderPass();
     framebufferInfo.attachmentCount = attachments.size();

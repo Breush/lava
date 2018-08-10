@@ -103,6 +103,7 @@ Material::Material(const typename nlohmann::json::basic_json& json)
 {
     if (json.find("normalTexture") != json.end()) normalTextureIndex = json["normalTexture"]["index"];
     if (json.find("occlusionTexture") != json.end()) occlusionTextureIndex = json["occlusionTexture"]["index"];
+    if (json.find("emissiveTexture") != json.end()) emissiveTextureIndex = json["emissiveTexture"]["index"];
 }
 
 PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json)

@@ -19,7 +19,7 @@
  *  sampler[0]  -   tNormalSampler
  *  sampler[1]  -   albedoSampler
  *  sampler[2]  -   ormSampler
- *  sampler[3]  -   reflectionSampler
+ *  sampler[3]  -   emissiveSampler
  */
 
 @magma:impl:begin geometry
@@ -40,6 +40,7 @@ bool @magma:impl:main (inout GBufferNode node) {
     float occlusion = 1;
     occlusion *= orm.r;
 
+    // @todo Roughness and metallic could be stored on half floats
     float roughness = uintBitsToFloat(material.data[1].x);
     roughness *= orm.g;
     roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
@@ -48,6 +49,8 @@ bool @magma:impl:main (inout GBufferNode node) {
     metallic *= orm.b;
     metallic = clamp(metallic, 0.0, 1.0);
 
+    vec3 emissive = srgbToLinearFast(texture(samplers[3], inUv).rgb);
+
     startIndex = 0;
     gBufferPackFloat(node, startIndex, albedo.a);
     gBufferPackVec3(node, startIndex, albedo.rgb);
@@ -55,6 +58,7 @@ bool @magma:impl:main (inout GBufferNode node) {
     gBufferPackFloat(node, startIndex, occlusion);
     gBufferPackFloat(node, startIndex, roughness);
     gBufferPackFloat(node, startIndex, metallic);
+    gBufferPackVec3(node, startIndex, emissive);
 
     return albedo.a < 1.0;
 }
@@ -171,6 +175,7 @@ vec4 @magma:impl:main (GBufferNode node) {
     float occlusion = gBufferUnpackFloat(node, startIndex);
     float roughness = gBufferUnpackFloat(node, startIndex);
     float metallic = gBufferUnpackFloat(node, startIndex);
+    vec3 emissive = gBufferUnpackVec3(node, startIndex);
 
     // ----- Common variables
 
@@ -220,13 +225,13 @@ vec4 @magma:impl:main (GBufferNode node) {
 
     color *= occlusion;
 
-    // ----- Emissive
-
-    // @todo Implement emissive
-
     // ----- Shadow
 
     color *= (1.0 - shadow);
+
+    // ----- Emissive
+
+    color += emissive;
 
     return vec4(linearToSrgb(color), opacity);
 }

@@ -39,6 +39,8 @@ void main()
         node.materialData[0] = gBufferNode0.z;
         node.materialData[1] = gBufferNode0.w;
 
+        // @fixme Can't this be an array,
+        // making it easier to factorize?
         node.materialData[2] = gBufferNode1.x;
         node.materialData[3] = gBufferNode1.y;
         node.materialData[4] = gBufferNode1.z;
@@ -47,6 +49,10 @@ void main()
         node.materialData[6] = gBufferNode2.x;
         node.materialData[7] = gBufferNode2.y;
         node.materialData[8] = gBufferNode2.z;
+        node.materialData[9] = gBufferNode2.w;
+
+        node.materialData[10] = gBufferNode3.x;
+        node.materialData[11] = gBufferNode3.y;
 
         opaqueDepth = node.depth;
 

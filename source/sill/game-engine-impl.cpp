@@ -143,13 +143,15 @@ void GameEngine::Impl::registerMaterials()
                                              {{"fontTexture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
 
     // Roughness-metallic material
-    m_renderEngine->registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.simpl",
-                                             {{"albedoColor", magma::UniformType::VEC4, glm::vec4(1.f, 1.f, 1.f, 1.f)},
-                                              {"roughnessFactor", magma::UniformType::FLOAT, 1.f},
-                                              {"metallicFactor", magma::UniformType::FLOAT, 1.f},
-                                              {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
-                                              {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
-                                              {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
+    m_renderEngine->registerMaterialFromFile(
+        "roughness-metallic", "./data/shaders/materials/rm-material.simpl",
+        {{"albedoColor", magma::UniformType::VEC4, glm::vec4(1.f, 1.f, 1.f, 1.f)},
+         {"roughnessFactor", magma::UniformType::FLOAT, 1.f},
+         {"metallicFactor", magma::UniformType::FLOAT, 1.f},
+         {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
+         {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
+         {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
+         {"emissiveMap", magma::UniformType::TEXTURE, magma::UniformTextureType::INVISIBLE}});
 
     // Matcap material
     m_renderEngine->registerMaterialFromFile("matcap", "./data/shaders/materials/matcap-material.simpl",
