@@ -3,7 +3,7 @@
 #include <lava/dike/physics-engine.hpp>
 #include <lava/dike/rigid-bodies/sphere-rigid-body.hpp>
 
-#include <bullet/btBulletDynamicsCommon.h>
+#include "../motion-state.hpp"
 
 namespace lava::dike {
     class SphereRigidBody::Impl {
@@ -20,9 +20,12 @@ namespace lava::dike {
         btScalar m_mass = 1.f;
         btVector3 m_inertia{0.f, 0.f, 0.f};
 
+        // @note This transform will always be up-to-date
+        // thanks to the motion state bindings.
+        glm::mat4 m_transform;
+        MotionState m_motionState{m_transform};
+
         btSphereShape m_shape;
-        btDefaultMotionState m_motionState;
         std::unique_ptr<btRigidBody> m_rigidBody;
-        btTransform m_transform;
     };
 }

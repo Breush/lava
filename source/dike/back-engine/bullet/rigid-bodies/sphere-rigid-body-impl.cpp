@@ -1,5 +1,7 @@
 #include "./sphere-rigid-body-impl.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "../physics-engine-impl.hpp"
 
 using namespace lava::dike;
@@ -16,22 +18,18 @@ SphereRigidBody::Impl::Impl(PhysicsEngine& engine, float radius)
     constructionInfo.m_restitution = 0.5f;
     m_rigidBody = std::make_unique<btRigidBody>(constructionInfo);
     m_engine.dynamicsWorld().addRigidBody(m_rigidBody.get());
-
-    // @todo Have a custom motion state, binded with the transform,
-    // and having a callback
 }
 
 glm::vec3 SphereRigidBody::Impl::translation() const
 {
-    m_motionState.getWorldTransform(const_cast<btTransform&>(m_transform));
-    const auto& translation = m_transform.getOrigin();
-    return {translation.getX(), translation.getY(), translation.getZ()};
+    return m_transform[3];
 }
 
 void SphereRigidBody::Impl::translate(const glm::vec3& delta)
 {
-    auto origin = m_transform.getOrigin() + btVector3(delta.x, delta.y, delta.z);
-    m_transform.setOrigin(origin);
-    m_motionState.setWorldTransform(m_transform);
-    m_rigidBody->setWorldTransform(m_transform);
+    m_transform = glm::translate(m_transform, delta);
+
+    btTransform worldTransform;
+    worldTransform.setFromOpenGLMatrix(reinterpret_cast<float*>(&m_transform));
+    m_rigidBody->setWorldTransform(worldTransform);
 }
