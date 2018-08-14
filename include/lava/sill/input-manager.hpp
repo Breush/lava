@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/core/input-axis.hpp>
 #include <lava/core/ws-event.hpp>
 #include <string>
 
@@ -16,6 +17,12 @@ namespace lava::sill {
         /// Whether the specified action has gone from up to down in last update block.
         bool justDown(const std::string& actionName) const;
 
+        /// Whether the specified axis has changed.
+        bool axisChanged(const std::string& axisName) const;
+
+        /// Get the value of a registered axis.
+        float axis(const std::string& axisName) const;
+
         /**
          * @name Binding
          */
@@ -23,7 +30,7 @@ namespace lava::sill {
         void bindAction(const std::string& actionName, MouseButton mouseButton);
         void bindAction(const std::string& actionName, Key key);
 
-        // @todo Axes
+        void bindAxis(const std::string& axisName, InputAxis inputAxis);
         /// @}
 
         /**

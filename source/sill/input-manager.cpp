@@ -10,9 +10,12 @@ $pimpl_class(InputManager);
 
 $pimpl_method_const(InputManager, bool, down, const std::string&, actionName);
 $pimpl_method_const(InputManager, bool, justDown, const std::string&, actionName);
+$pimpl_method_const(InputManager, bool, axisChanged, const std::string&, axisName);
+$pimpl_method_const(InputManager, float, axis, const std::string&, axisName);
 
 $pimpl_method(InputManager, void, bindAction, const std::string&, actionName, MouseButton, mouseButton);
 $pimpl_method(InputManager, void, bindAction, const std::string&, actionName, Key, key);
+$pimpl_method(InputManager, void, bindAxis, const std::string&, axisName, InputAxis, inputAxis);
 
 $pimpl_method(InputManager, void, updateReset);
 $pimpl_method(InputManager, void, update, WsEvent&, event);
