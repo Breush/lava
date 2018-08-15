@@ -4,7 +4,6 @@
 
 #include <lava/crater/window.hpp>
 #include <lava/dike/physics-engine.hpp>
-#include <lava/magma/cameras/orbit-camera.hpp>
 #include <lava/magma/lights.hpp>
 #include <lava/magma/render-engine.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
@@ -63,7 +62,6 @@ namespace lava::sill {
         std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
         magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
         magma::RenderScene* m_renderScene = nullptr;
-        magma::OrbitCamera* m_camera = nullptr;
         magma::DirectionalLight* m_light = nullptr;
 
         // Physics

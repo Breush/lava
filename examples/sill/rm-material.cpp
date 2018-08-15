@@ -2,15 +2,16 @@
  * Shows how the roughness/metallic material works.
  */
 
-#include <lava/sill.hpp>
-
-using namespace lava;
+#include "./ashe.hpp"
 
 constexpr const uint8_t SPHERES_SIDE_COUNT = 6u;
 
+using namespace lava;
+
 int main(void)
 {
-    sill::GameEngine engine;
+    ashe::Application app;
+    auto& engine = app.engine();
 
     // @todo TextureManager ?
     auto& skyTexture = engine.make<sill::Texture>("./assets/skies/panorama-spherical_sichuan.jpg");

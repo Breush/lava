@@ -2,13 +2,14 @@
  * The classic sponza scene.
  */
 
-#include <lava/sill.hpp>
+#include "./ashe.hpp"
 
 using namespace lava;
 
 int main(void)
 {
-    sill::GameEngine engine;
+    ashe::Application app;
+    auto& engine = app.engine();
 
     auto& entity = engine.make<sill::GameEntity>();
     auto& meshComponent = entity.make<sill::MeshComponent>();

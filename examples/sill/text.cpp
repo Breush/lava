@@ -2,13 +2,14 @@
  * Shows how the text component.
  */
 
-#include <lava/sill.hpp>
+#include "./ashe.hpp"
 
 using namespace lava;
 
 int main(void)
 {
-    sill::GameEngine engine;
+    ashe::Application app;
+    auto& engine = app.engine();
 
     // TextMeshComponent
     {

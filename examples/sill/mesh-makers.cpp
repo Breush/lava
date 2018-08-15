@@ -2,13 +2,14 @@
  * Shows the different integrated meshes.
  */
 
-#include <lava/sill.hpp>
+#include "./ashe.hpp"
 
 using namespace lava;
 
 int main(void)
 {
-    sill::GameEngine engine;
+    ashe::Application app;
+    auto& engine = app.engine();
 
     // GLB mesh maker
     {
@@ -44,7 +45,7 @@ int main(void)
         entity.get<sill::TransformComponent>().translate({-1.2f, 0.f, 0.f});
     }
 
-    engine.run();
+    app.engine().run();
 
     return EXIT_SUCCESS;
 }

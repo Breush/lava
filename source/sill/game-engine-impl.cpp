@@ -26,18 +26,10 @@ GameEngine::Impl::Impl(GameEngine& base)
     m_windowRenderTarget = &m_renderEngine->make<magma::WindowRenderTarget>(m_window->handle(), windowExtent);
     m_renderScene = &m_renderEngine->make<magma::RenderScene>();
 
-    // @todo Handle custom cameras
-    m_camera = &m_renderScene->make<magma::OrbitCamera>(windowExtent);
-    m_camera->translation({-2.f, 3.f, 2.f});
-    m_camera->target({0.f, 0.f, 0.f});
-
     // @todo Handle custom lights
     m_light = &m_renderScene->make<magma::DirectionalLight>();
     m_light->translation({-5.f, -5.f, 5.f});
     m_light->direction({3.f, 2.f, -6.f});
-
-    // @todo Handle custom views
-    m_renderEngine->addView(*m_camera, *m_windowRenderTarget, Viewport{0, 0, 1, 1});
 
     //----- Initializing physics
 
@@ -47,12 +39,6 @@ GameEngine::Impl::Impl(GameEngine& base)
     //----- Initializing fonts
 
     m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
-
-    //----- Initializing inputs
-
-    m_inputManager.bindAction("right-fire", MouseButton::Right);
-    m_inputManager.bindAction("right-fire", Key::LeftAlt);
-    m_inputManager.bindAction("right-fire", Key::RightAlt);
 }
 
 void GameEngine::Impl::run()
@@ -134,6 +120,9 @@ void GameEngine::Impl::updateEntities()
 
 void GameEngine::Impl::registerMaterials()
 {
+    // @todo Could be moved to ashe via a nice API.
+    // Which means a simple parser to be able not to write all that by ourselves.
+
     // Sky material
     m_renderEngine->registerMaterialFromFile("sky", "./data/shaders/materials/sky-material.simpl",
                                              {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
@@ -160,9 +149,6 @@ void GameEngine::Impl::registerMaterials()
 
 void GameEngine::Impl::handleEvent(WsEvent& event)
 {
-    static auto buttonPressed = MouseButton::Unknown;
-    static glm::vec2 lastDragPosition;
-
     switch (event.type) {
     case WsEventType::WindowClosed: {
         m_window->close();
@@ -187,45 +173,11 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
         // @todo Might need to debounce that!
         // Or update swapchain
         m_windowRenderTarget->extent(extent);
-        m_camera->extent(extent);
-        break;
-    }
 
-        // @todo Abstracted camera controls (make the OrbitCamera an Entity - and forward events)
-
-    case WsEventType::MouseButtonPressed: {
-        buttonPressed = event.mouseButton.which;
-        lastDragPosition.x = event.mouseButton.x;
-        lastDragPosition.y = event.mouseButton.y;
-        break;
-    }
-
-    case WsEventType::MouseButtonReleased: {
-        buttonPressed = MouseButton::Unknown;
-        break;
-    }
-
-    case WsEventType::MouseWheelScrolled: {
-        if (event.mouseWheel.which != MouseWheel::Vertical) break;
-        m_camera->radiusAdd(-event.mouseWheel.delta * m_camera->radius() / 10.f);
-        break;
-    }
-
-    case WsEventType::MouseMoved: {
-        if (buttonPressed == MouseButton::Unknown) return;
-
-        glm::vec2 dragPosition(event.mouseMove.x, event.mouseMove.y);
-        auto delta = (dragPosition - lastDragPosition) / 100.f;
-        lastDragPosition = dragPosition;
-
-        // Orbit with left button
-        if (buttonPressed == MouseButton::Left) {
-            m_camera->orbitAdd(-delta.x, delta.y);
-        }
-        // Strafe with right button
-        else if (buttonPressed == MouseButton::Right) {
-            m_camera->strafe(delta.x / 10.f, delta.y / 10.f);
-        }
+        // @fixme This might cause an issue!
+        // We should warn the camera component somehow.
+        // Can be fixed while fixing #34.
+        // m_camera->extent(extent);
         break;
     }
 
