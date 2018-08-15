@@ -40,21 +40,21 @@ else
     #===== Vulkan SDK
 
     cd "${ROOT_DIR}/.tmp"
-    bash ./vulkan-sdk_${VERSION}.run
-    FOLDER="VulkanSDK/${VERSION}/x86_64"
+    tar -zxvf vulkan-sdk_${VERSION}.tar.gz
+    FOLDER="${VERSION}/x86_64"
     cp -R ${FOLDER}/include/vulkan ../include
     cp -R ${FOLDER}/etc/* ../etc
 
     # @todo We're using libs from source folder for debugging,
     # but we should use the ones in x84_64/lib for release.
     mkdir -p ../source/vulkan
-    FOLDER="VulkanSDK/${VERSION}/source"
+    FOLDER="${VERSION}/source"
     cp -R ${FOLDER}/lib/* ../lib
     cp -R ${FOLDER}/layers ../source/vulkan
 
     #===== shaderc
 
-    FOLDER="VulkanSDK/${VERSION}/source/shaderc"
+    FOLDER="${VERSION}/source/shaderc"
     cd "${ROOT_DIR}/.tmp/${FOLDER}"
     ./update_shaderc_sources.py
     cd src

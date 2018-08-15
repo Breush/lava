@@ -27,7 +27,6 @@ namespace lava::magma {
     private:
         // References
         RenderScene::Impl& m_scene;
-        bool m_initialized = false;
 
         // Descriptor
         vulkan::ImageHolder m_imageHolder;

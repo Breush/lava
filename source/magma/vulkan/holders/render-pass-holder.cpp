@@ -118,7 +118,7 @@ void RenderPassHolder::init()
         subpassDependency.dstSubpass = (i == m_pipelineHolders.size()) ? VK_SUBPASS_EXTERNAL : i;
         // @todo Be clever about these stage mask
         subpassDependency.srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
-        subpassDependency.dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+        subpassDependency.dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
         subpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite
                                           | vk::AccessFlagBits::eDepthStencilAttachmentWrite
                                           | vk::AccessFlagBits::eInputAttachmentRead;

@@ -33,12 +33,17 @@ function updateDependencyByVersion {
     echo -e "\e[1m${NAME}\e[0m\n    ${CURRENT} (current)\n    ${LAST} (last)"
 
     if [ "${CURRENT}" != "${LAST}" ]; then
-        NEED_UPDATE="true"
-
-        sed -i "s/${CURRENT}/${LAST}/" "${SCRIPT}"
-        git add "${SCRIPT}" > /dev/null
-        git commit -m "Updated ${NAME} to ${LAST}" > /dev/null
-        echo -e "    \e[94mMarked ${NAME} to be updated to ${LAST}.\e[39m"
+        echo -n -e "    \e[93mUpdate to last?\e[39m (y/N) "
+        read -n 1 REPLY
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "\n    \e[94mMarked ${NAME} to be updated to ${LAST}.\e[39m"
+            sed -i "s/${CURRENT}/${LAST}/" "${SCRIPT}"
+            git add "${SCRIPT}" > /dev/null
+            git commit -m "Updated ${NAME} to ${LAST}" > /dev/null
+            NEED_UPDATE="true"
+        else
+            echo -e "\n    \e[93mUpdate ignored.\e[39m"
+        fi
     else
         echo -e "    \e[92mAlready up-to-date.\e[39m"
     fi
@@ -82,17 +87,18 @@ function updateDependencyByDate {
 }
 
 # Bullet
-LAST=$(wget https://github.com/bulletphysics/bullet3/tags -q -O - | grep '\.zip' -m 1 | cut -d'"' -f2 | rev | cut -d'/' -f1 | cut -d'.' -f2- | rev)
+LAST=$(wget https://github.com/bulletphysics/bullet3/tags -q -O - | grep '\.' -m 1 | cut -d'>' -f2 | rev | cut -d'<' -f2 | rev)
 updateDependencyByVersion "external/bullet.lua" "${LAST}"
 
 # GLM
-LAST=$(wget https://github.com/g-truc/glm/tags -q -O - | grep '\.zip' -m 1 | cut -d'"' -f2 | rev | cut -d'/' -f1 | cut -d'.' -f2- | rev)
-# @note Skipped as only trunk branches are currently working (0.9.9-a2 is wrong, like 0.9.8.5) 
+LAST=$(wget https://github.com/g-truc/glm/tags -q -O - | grep '\.' -m 1 | cut -d'>' -f2 | rev | cut -d'<' -f2 | rev)
+# @note Skipped as only trunk branches are currently working (0.9.9.0 is wrong, like 0.9.8.5) 
 # updateDependencyByVersion "external/glm.lua" "${LAST}"
 updateSkip "external/glm.lua" "${LAST}"
 
+
 # Nlohmann JSON
-LAST=$(wget https://github.com/nlohmann/json/tags -q -O - | grep '\.zip' -m 1 | cut -d'"' -f2 | rev | cut -d'v' -f1 | cut -d'.' -f2- | rev)
+LAST=$(wget https://github.com/nlohmann/json/tags -q -O - | grep '\.' -m 1 | cut -d'>' -f2 | rev | cut -d'v' -f1 | cut -d'<' -f2 | rev)
 updateDependencyByVersion "external/nlohmann-json.lua" "${LAST}"
 
 # STB libraries

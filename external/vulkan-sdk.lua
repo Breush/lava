@@ -1,11 +1,11 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Vulkan SDK"
-local VERSION = "1.1.73.0"
+local VERSION = "1.1.82.0"
 
 -- Download
 
-local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".run";
+local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".tar.gz";
 if not fileValid(localFile) then
     checkProgramsAny({"make", "mingw32-make"}, NAME)
     checkProgram("cmake", NAME)
@@ -14,7 +14,7 @@ if not fileValid(localFile) then
     os.mkdir("./.tmp/")
     os.execute('bash -c "rm --recursive ./include/vulkan 2> /dev/null"')
 
-    local filename = "linux/vulkansdk-linux-x86_64-" .. VERSION .. ".run"
+    local filename = "linux/vulkansdk-linux-x86_64-" .. VERSION .. ".tar.gz"
     if os.host() == "windows" then
         filename = "windows/VulkanSDK-" .. VERSION .. ".run"
     end
