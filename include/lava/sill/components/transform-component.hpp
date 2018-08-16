@@ -27,7 +27,7 @@ namespace lava::sill {
 
         /// IComponent
         static std::string hrid() { return "transform"; }
-        void update() override final;
+        void update(float dt) override final;
 
         /**
          * @name Local transform

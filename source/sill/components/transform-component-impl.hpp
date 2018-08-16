@@ -10,7 +10,7 @@ namespace lava::sill {
         Impl(GameEntity& entity);
 
         // IComponent
-        void update() override final {}
+        void update(float /* dt */) override final {}
 
         // TransformComponent local transform
         glm::vec3 translation() const { return m_transform[3]; }

@@ -12,7 +12,7 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "mesh"; }
-        void update() override final;
+        void update(float dt) override final;
 
         /// A mesh node holds the geometry hierarchy.
         MeshNode& node(uint32_t index);

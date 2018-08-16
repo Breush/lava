@@ -19,6 +19,9 @@
 namespace lava::sill {
     class GameEngine::Impl {
     public:
+        using WindowExtentChangedCallback = std::function<void(Extent2d)>;
+
+    public:
         Impl(GameEngine& base);
 
         /**
@@ -50,9 +53,15 @@ namespace lava::sill {
         magma::RenderScene& renderScene() { return *m_renderScene; }
         const magma::RenderScene& renderScene() const { return *m_renderScene; }
 
+        // Callbacks
+        void onWindowExtentChanged(WindowExtentChangedCallback callback)
+        {
+            m_windowExtentChangedCallbacks.emplace_back(callback);
+        };
+
     protected:
         void updateInput();
-        void updateEntities();
+        void updateEntities(float dt);
         void registerMaterials();
         void handleEvent(WsEvent& event);
 
@@ -78,5 +87,8 @@ namespace lava::sill {
         std::vector<std::unique_ptr<GameEntity>> m_pendingAddedEntities;
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
+
+        // Callbacks
+        std::vector<WindowExtentChangedCallback> m_windowExtentChangedCallbacks;
     };
 }

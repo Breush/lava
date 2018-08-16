@@ -18,9 +18,27 @@ CameraComponent::Impl::Impl(GameEntity& entity)
 
     // @todo Let the viewport be configurable too...
     engine.renderEngine().addView(*m_camera, engine.windowRenderTarget(), Viewport{0, 0, 1, 1});
+
+    // @fixme Have a way to remove this callback when the component is destroyed.
+    engine.onWindowExtentChanged([this](Extent2d extent) {
+        m_updateDelay = 0.1f;
+        m_extent = extent;
+    });
 }
 
 CameraComponent::Impl::~Impl()
 {
     // @todo In magma, we can't remove a camera so nicely for now...
+}
+
+void CameraComponent::Impl::update(float dt)
+{
+    // @note We delay updates as it might take a while
+    // recontructing buffers and such.
+    if (m_updateDelay > 0.f) {
+        m_updateDelay -= dt;
+        if (m_updateDelay <= 0.f) {
+            m_camera->extent(m_extent);
+        }
+    }
 }

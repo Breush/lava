@@ -15,7 +15,7 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "behavior"; }
-        void update() override final;
+        void update(float dt) override final;
 
         // Interface
         void onUpdate(UpdateCallback updateCallback);

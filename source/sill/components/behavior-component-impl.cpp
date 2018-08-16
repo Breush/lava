@@ -8,7 +8,7 @@ BehaviorComponent::Impl::Impl(GameEntity& entity)
 }
 
 // IComponent
-void BehaviorComponent::Impl::update()
+void BehaviorComponent::Impl::update(float /* dt */)
 {
     if (m_updateCallback) {
         m_updateCallback();

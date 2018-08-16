@@ -9,4 +9,4 @@ using namespace lava::sill;
 $pimpl_class_base(SphereColliderComponent, IComponent, GameEntity&, entity);
 
 // IComponent
-$pimpl_method(SphereColliderComponent, void, update);
+$pimpl_method(SphereColliderComponent, void, update, float, dt);

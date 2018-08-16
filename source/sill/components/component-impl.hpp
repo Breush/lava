@@ -10,7 +10,7 @@ namespace lava::sill {
         virtual ~ComponentImpl() = default;
 
         // IComponent
-        virtual void update() = 0;
+        virtual void update(float dt) = 0;
 
         // Getters
         GameEntity& entity() { return m_entity; }

@@ -13,7 +13,7 @@ namespace lava::sill {
         ~Impl();
 
         // IComponent
-        void update() override final {}
+        void update(float dt) override final;
 
         // CameraComponent
         const glm::vec3& translation() const { return m_camera->translation(); }
@@ -31,5 +31,8 @@ namespace lava::sill {
 
     private:
         magma::OrbitCamera* m_camera = nullptr;
+
+        Extent2d m_extent;
+        float m_updateDelay = -1.f;
     };
 }

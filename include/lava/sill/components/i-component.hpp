@@ -18,7 +18,8 @@ namespace lava::sill {
         const GameEntity& entity() const { return m_entity; }
 
         /// Called once per frame, respecting components dependencies.
-        virtual void update() = 0;
+        /// dt is expressed in seconds.
+        virtual void update(float dt) = 0;
 
         // To be implemented
         // static std::string hrid();

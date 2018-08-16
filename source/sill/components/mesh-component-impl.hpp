@@ -17,7 +17,7 @@ namespace lava::sill {
         Impl(GameEntity& entity);
 
         // IComponent
-        void update() override final {}
+        void update(float /* dt */) override final {}
 
         // MeshComponent
         MeshNode& node(uint32_t index) { return m_nodes[index]; }

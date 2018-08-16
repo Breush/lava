@@ -44,8 +44,9 @@ GameEngine::Impl::Impl(GameEngine& base)
 void GameEngine::Impl::run()
 {
     static const std::chrono::nanoseconds updateTime(11111111); // 1/60s * 2/3
+    static float updateDt = std::chrono::duration<float>(updateTime).count();
     static auto currentTime = std::chrono::high_resolution_clock::now();
-    static std::chrono::nanoseconds updateTimeLag(0);
+    static std::chrono::nanoseconds updateTimeLag(updateTime);
 
     // Keep running while the window is open.
     while (m_window->opened()) {
@@ -59,10 +60,10 @@ void GameEngine::Impl::run()
             updateInput();
 
             // Update physics.
-            m_physicsEngine->update(std::chrono::duration<float>(updateTime).count());
+            m_physicsEngine->update(updateDt);
 
             // Update all entities.
-            updateEntities();
+            updateEntities(updateDt);
 
             updateTimeLag -= updateTime;
         }
@@ -102,7 +103,7 @@ void GameEngine::Impl::updateInput()
     }
 }
 
-void GameEngine::Impl::updateEntities()
+void GameEngine::Impl::updateEntities(float dt)
 {
     // Add all new components
     for (auto& entity : m_pendingAddedEntities) {
@@ -112,7 +113,7 @@ void GameEngine::Impl::updateEntities()
 
     // Indeed update entities
     for (auto& entity : m_entities) {
-        entity->impl().update();
+        entity->impl().update(dt);
     }
 
     // @todo Remove pending removed entities
@@ -170,14 +171,12 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
             break;
         }
 
-        // @todo Might need to debounce that!
         // Or update swapchain
         m_windowRenderTarget->extent(extent);
 
-        // @fixme This might cause an issue!
-        // We should warn the camera component somehow.
-        // Can be fixed while fixing #34.
-        // m_camera->extent(extent);
+        for (const auto& callback : m_windowExtentChangedCallbacks) {
+            callback(extent);
+        }
         break;
     }
 

@@ -9,7 +9,7 @@ using namespace lava::sill;
 $pimpl_class_base(CameraComponent, IComponent, GameEntity&, entity);
 
 // IComponent
-$pimpl_method(CameraComponent, void, update);
+$pimpl_method(CameraComponent, void, update, float, dt);
 
 // Public API
 $pimpl_property(CameraComponent, glm::vec3, translation);

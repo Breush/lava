@@ -18,4 +18,4 @@ PlaneColliderComponent::~PlaneColliderComponent()
 }
 
 // IComponent
-$pimpl_method(PlaneColliderComponent, void, update);
+$pimpl_method(PlaneColliderComponent, void, update, float, dt);

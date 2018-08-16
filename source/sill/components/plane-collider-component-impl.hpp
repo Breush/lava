@@ -13,7 +13,7 @@ namespace lava::sill {
         ~Impl();
 
         // IComponent
-        void update() override final {}
+        void update(float /* dt */) override final {}
 
     private:
         // References

@@ -9,7 +9,7 @@ using namespace lava::sill;
 $pimpl_class_base(TransformComponent, IComponent, GameEntity&, entity);
 
 // IComponent
-$pimpl_method(TransformComponent, void, update);
+$pimpl_method(TransformComponent, void, update, float, dt);
 
 // Local transform
 $pimpl_method_const(TransformComponent, glm::vec3, translation);

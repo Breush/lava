@@ -20,7 +20,7 @@ TextMeshComponent::Impl::Impl(GameEntity& entity)
 
 //----- IComponent
 
-void TextMeshComponent::Impl::update()
+void TextMeshComponent::Impl::update(float /* dt */)
 {
     if (!m_dirty) return;
     m_dirty = false;

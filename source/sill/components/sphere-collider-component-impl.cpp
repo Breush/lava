@@ -23,7 +23,7 @@ SphereColliderComponent::Impl::~Impl() {}
 
 //----- IComponent
 
-void SphereColliderComponent::Impl::update()
+void SphereColliderComponent::Impl::update(float /* dt */)
 {
     m_transformComponent.translation(m_rigidBody->translation(), TransformComponent::ChangeReasonFlag::Physics);
 }

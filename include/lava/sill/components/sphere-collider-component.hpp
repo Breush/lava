@@ -13,7 +13,7 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "sphere-collider"; }
-        void update() override final;
+        void update(float dt) override final;
 
     public:
         class Impl;

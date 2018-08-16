@@ -9,7 +9,7 @@ using namespace lava::sill;
 $pimpl_class_base(MeshComponent, IComponent, GameEntity&, entity);
 
 // IComponent
-$pimpl_method(MeshComponent, void, update);
+$pimpl_method(MeshComponent, void, update, float, dt);
 
 // MeshComponent
 $pimpl_method(MeshComponent, MeshNode&, node, uint32_t, index);

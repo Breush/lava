@@ -19,7 +19,7 @@ namespace lava::sill {
         void removeComponent(const std::string& hrid);
 
         // Forwarded to components.
-        void update();
+        void update(float dt);
 
         GameEngine::Impl& engine() { return m_engine; }
         const GameEngine::Impl& engine() const { return m_engine; }

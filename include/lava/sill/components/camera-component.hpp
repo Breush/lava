@@ -13,7 +13,7 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "camera"; }
-        void update() override final;
+        void update(float dt) override final;
 
         // Public API
         const glm::vec3& translation() const;

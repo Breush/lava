@@ -10,7 +10,7 @@ GameEntity::Impl::Impl(GameEngine& engine)
 {
 }
 
-void GameEntity::Impl::update()
+void GameEntity::Impl::update(float dt)
 {
     // Add all new components
     for (auto& component : m_pendingAddedComponents) {
@@ -21,7 +21,7 @@ void GameEntity::Impl::update()
 
     // Effective update
     for (auto& component : m_components) {
-        component.second->update();
+        component.second->update(dt);
     }
 
     // @todo Remove components asynchronously too
