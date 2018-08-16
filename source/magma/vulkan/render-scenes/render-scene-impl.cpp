@@ -174,11 +174,11 @@ void RenderScene::Impl::updateCamera(uint32_t cameraId)
     const auto& camera = *m_cameraBundles[cameraId].camera;
 
     // Present stage of RenderEngine is not right anymore, has the renderImage is no more
-    m_engine.updateView(camera.renderImage());
+    m_engine.updateRenderViews(camera.renderImage());
 
     // @note Well, the shadow map might not have changed,
     // but we update it anyway. We're not sure if it is the first initialization or not.
-    m_engine.updateView(camera.depthRenderImage());
+    m_engine.updateRenderViews(camera.depthRenderImage());
 }
 
 void RenderScene::Impl::fallbackMaterial(std::unique_ptr<Material>&& material)

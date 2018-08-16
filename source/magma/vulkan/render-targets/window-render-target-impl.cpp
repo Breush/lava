@@ -55,7 +55,13 @@ void WindowRenderTarget::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
     presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;
 
-    m_engine.presentQueue().presentKHR(presentInfo);
+    // @note Somehow, unable to find a better way to prevent
+    // an OutOfDateKHRError on Linux during resize...
+    try {
+        m_engine.presentQueue().presentKHR(presentInfo);
+    } catch (vk::OutOfDateKHRError err) {
+        const_cast<Impl*>(this)->recreateSwapchain();
+    }
 }
 
 //----- WindowRenderTarget

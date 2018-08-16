@@ -85,7 +85,7 @@ namespace lava::magma {
         const MaterialInfo& materialInfo(const std::string& hrid) const;
 
         void updateRenderTarget(uint32_t renderTargetId);
-        void updateView(RenderImage renderImage);
+        void updateRenderViews(RenderImage renderImage);
         /// @}
 
     protected:

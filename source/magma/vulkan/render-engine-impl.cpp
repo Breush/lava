@@ -122,6 +122,10 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
 uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport)
 {
     const auto& renderImageImpl = renderImage.impl();
+    if (renderImageImpl.uuid() == 0u) {
+        logger.warning("magma.vulkan.render-engine") << "Trying to add a RenderImage with no uuid." << std::endl;
+        return -1u;
+    }
     if (!renderImageImpl.view()) {
         logger.warning("magma.vulkan.render-engine") << "Trying to add an empty RenderImage as a view." << std::endl;
         return -1u;
@@ -214,13 +218,17 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     logger.log().tab(-1);
 }
 
-void RenderEngine::Impl::updateView(RenderImage renderImage)
+void RenderEngine::Impl::updateRenderViews(RenderImage renderImage)
 {
     auto& renderImageImpl = renderImage.impl();
+    if (renderImageImpl.uuid() == 0u) {
+        logger.warning("magma.vulkan.render-engine") << "Updating render views for an unset RenderImage uuid." << std::endl;
+        return;
+    }
 
     // The renderImage has changed, we update all image views we were using from it
     for (auto& renderView : m_renderViews) {
-        if (renderView.renderImage.impl().view() != renderImageImpl.view()) continue;
+        if (renderView.renderImage.impl().uuid() != renderImageImpl.uuid()) continue;
         auto& renderTargetBundle = m_renderTargetBundles[renderView.renderTargetId];
 
         auto imageView = renderImageImpl.view();

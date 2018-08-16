@@ -173,6 +173,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 RenderImage DeepDeferredStage::renderImage() const
 {
     RenderImage renderImage;
+    renderImage.impl().uuid(RenderImage::Impl::UUID_CONTEXT_CAMERA + m_cameraId);
     renderImage.impl().view(m_finalImageHolder.view());
     renderImage.impl().layout(vk::ImageLayout::eColorAttachmentOptimal);
     return renderImage;
@@ -181,6 +182,7 @@ RenderImage DeepDeferredStage::renderImage() const
 RenderImage DeepDeferredStage::depthRenderImage() const
 {
     RenderImage renderImage;
+    renderImage.impl().uuid(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + m_cameraId);
     renderImage.impl().view(m_depthImageHolder.view());
     renderImage.impl().layout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
     return renderImage;
