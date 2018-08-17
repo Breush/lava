@@ -116,11 +116,14 @@ namespace lava::magma {
         uint32_t m_id = -1u;
 
         // Resources
-        std::unique_ptr<Material> m_fallbackMaterial;
         vulkan::DescriptorHolder m_lightDescriptorHolder;
         vulkan::DescriptorHolder m_cameraDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
         vulkan::DescriptorHolder m_meshDescriptorHolder;
+
+        // @note To be kept after m_materialDescriptorHolder,
+        // to prevent delete order issues.
+        std::unique_ptr<Material> m_fallbackMaterial;
 
         // Data
         std::vector<CameraBundle> m_cameraBundles;
