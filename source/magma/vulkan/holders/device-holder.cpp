@@ -7,41 +7,29 @@
 
 // @note Instanciation of declared-only in vulkan.h.
 
-VkResult vkDebugMarkerSetObjectNameEXT(VkDevice device, const VkDebugMarkerObjectNameInfoEXT* pNameInfo)
+VkResult vkSetDebugUtilsObjectNameEXT(VkDevice device, const VkDebugUtilsObjectNameInfoEXT* pNameInfo)
 {
     auto Function =
-        reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
+        reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetDeviceProcAddr(device, "vkSetDebugUtilsObjectNameEXT"));
     return Function(device, pNameInfo);
 }
 
-void cmdDebugMarkerBeginEXT(VkDevice device, VkCommandBuffer commandBuffer, const VkDebugMarkerMarkerInfoEXT* pMarkerInfo)
+void cmdBeginDebugUtilsLabelEXT(VkDevice device, VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabel)
 {
-    auto Function = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetDeviceProcAddr(device, "vkCmdDebugMarkerBeginEXT"));
-    return Function(commandBuffer, pMarkerInfo);
+    auto Function =
+        reinterpret_cast<PFN_vkCmdBeginDebugUtilsLabelEXT>(vkGetDeviceProcAddr(device, "vkCmdBeginDebugUtilsLabelEXT"));
+    return Function(commandBuffer, pLabel);
 }
 
-void cmdDebugMarkerEndEXT(VkDevice device, VkCommandBuffer commandBuffer)
+void cmdEndDebugUtilsLabelEXT(VkDevice device, VkCommandBuffer commandBuffer)
 {
-    auto Function = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetDeviceProcAddr(device, "vkCmdDebugMarkerEndEXT"));
+    auto Function = reinterpret_cast<PFN_vkCmdEndDebugUtilsLabelEXT>(vkGetDeviceProcAddr(device, "vkCmdEndDebugUtilsLabelEXT"));
     return Function(commandBuffer);
 }
 
 using namespace lava;
 
 namespace {
-    /**
-     * Checks if a device supports an extension.
-     */
-    inline bool deviceExtensionSupported(vk::PhysicalDevice physicalDevice, const std::string& deviceExtension)
-    {
-        auto extensions = physicalDevice.enumerateDeviceExtensionProperties();
-        return std::find_if(extensions.begin(), extensions.end(),
-                            [&deviceExtension](const vk::ExtensionProperties& extension) {
-                                return extension.extensionName == deviceExtension;
-                            })
-               != extensions.end();
-    }
-
     /**
      * Checks if a device supports the extensions.
      */
@@ -82,43 +70,46 @@ namespace {
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR surface)
+void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR surface, bool debugEnabled)
 {
+    m_debugEnabled = debugEnabled;
+
     pickPhysicalDevice(instance, surface);
     createLogicalDevice(surface);
 }
 
-void DeviceHolder::debugMarkerSetObjectName(uint64_t object, vk::DebugReportObjectTypeEXT objectType,
-                                            const std::string& name) const
+void DeviceHolder::debugObjectName(uint64_t object, vk::ObjectType objectType, const std::string& name) const
 {
-    if (!m_debugMarkerExtensionEnabled) return;
+    if (!m_debugEnabled) return;
 
-    vk::DebugMarkerObjectNameInfoEXT nameInfo;
+    vk::DebugUtilsObjectNameInfoEXT nameInfo;
     nameInfo.objectType = objectType;
-    nameInfo.object = object;
+    nameInfo.objectHandle = object;
     nameInfo.pObjectName = name.c_str();
-    device().debugMarkerSetObjectNameEXT(nameInfo);
+
+    device().setDebugUtilsObjectNameEXT(nameInfo);
 }
 
-void DeviceHolder::debugMarkerSetObjectName(vk::CommandBuffer object, const std::string& name) const
+void DeviceHolder::debugObjectName(vk::DescriptorSet object, const std::string& name) const
 {
-    debugMarkerSetObjectName(reinterpret_cast<uint64_t&>(object), vk::DebugReportObjectTypeEXT::eCommandBuffer, name);
+    debugObjectName(reinterpret_cast<uint64_t&>(object), vk::ObjectType::eDescriptorSet, name);
 }
 
-void DeviceHolder::debugMarkerBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const
+void DeviceHolder::debugBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const
 {
-    if (!m_debugMarkerExtensionEnabled) return;
+    if (!m_debugEnabled) return;
 
-    vk::DebugMarkerMarkerInfoEXT markerInfo;
-    markerInfo.pMarkerName = name.c_str();
-    cmdDebugMarkerBeginEXT(m_device.vk(), commandBuffer, &reinterpret_cast<VkDebugMarkerMarkerInfoEXT&>(markerInfo));
+    vk::DebugUtilsLabelEXT label;
+    label.pLabelName = name.c_str();
+
+    cmdBeginDebugUtilsLabelEXT(device(), commandBuffer, &reinterpret_cast<VkDebugUtilsLabelEXT&>(label));
 }
 
-void DeviceHolder::debugMarkerEndRegion(vk::CommandBuffer commandBuffer) const
+void DeviceHolder::debugEndRegion(vk::CommandBuffer commandBuffer) const
 {
-    if (!m_debugMarkerExtensionEnabled) return;
+    if (!m_debugEnabled) return;
 
-    cmdDebugMarkerEndEXT(m_device.vk(), commandBuffer);
+    cmdEndDebugUtilsLabelEXT(device(), commandBuffer);
 }
 
 void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface)
@@ -172,14 +163,6 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
 
     // Extensions
     auto enabledExtensions(m_extensions);
-
-    // Check if some optional extensions can be activated
-    if (deviceExtensionSupported(m_physicalDevice, VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
-        logger.info("magma.vulkan.device-holder")
-            << "Enabling optional device extension " << VK_EXT_DEBUG_MARKER_EXTENSION_NAME << "." << std::endl;
-        enabledExtensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-        m_debugMarkerExtensionEnabled = true;
-    }
 
     // Really create
     vk::DeviceCreateInfo createInfo;

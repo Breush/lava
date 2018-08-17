@@ -38,7 +38,7 @@ RenderImage DirectionalLight::Impl::shadowsRenderImage() const
 void DirectionalLight::Impl::init(uint id)
 {
     m_id = id;
-    m_descriptorSet = m_scene.lightDescriptorHolder().allocateSet();
+    m_descriptorSet = m_scene.lightDescriptorHolder().allocateSet("directional-light." + std::to_string(id));
     m_uboHolder.init(m_descriptorSet, m_scene.lightDescriptorHolder().uniformBufferBindingOffset(), {sizeof(ShadowsLightUbo)});
 
     m_initialized = true;

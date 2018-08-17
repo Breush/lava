@@ -9,7 +9,7 @@ namespace lava::magma::vulkan {
     $capsule_standalone(Device);
 
     $capsule_instance(SurfaceKHR);
-    $capsule_instance(DebugReportCallbackEXT);
+    $capsule_instance(DebugUtilsMessengerEXT);
 
     $capsule_device(SwapchainKHR);
 

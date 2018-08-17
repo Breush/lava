@@ -96,7 +96,7 @@ void DeepDeferredStage::update(vk::Extent2D extent)
 void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 {
     const auto& deviceHolder = m_scene.engine().deviceHolder();
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "DeepDeferredStage");
+    deviceHolder.debugBeginRegion(commandBuffer, "deep-deferred");
 
     //----- Prologue
 
@@ -116,18 +116,18 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     //----- Clear pass
 
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Clear pass");
+    deviceHolder.debugBeginRegion(commandBuffer, "deep-deferred.clear");
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipelineLayout(),
                                      DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, 1, &m_gBufferSsboDescriptorSet, 0, nullptr);
     commandBuffer.draw(6, 1, 0, 0);
 
-    deviceHolder.debugMarkerEndRegion(commandBuffer);
+    deviceHolder.debugEndRegion(commandBuffer);
 
     //----- Geometry pass
 
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Geometry pass");
+    deviceHolder.debugBeginRegion(commandBuffer, "deep-deferred.geometry");
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryPipelineHolder.pipeline());
@@ -142,11 +142,11 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
                                      GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
-    deviceHolder.debugMarkerEndRegion(commandBuffer);
+    deviceHolder.debugEndRegion(commandBuffer);
 
     //----- Epiphany pass
 
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Epiphany pass");
+    deviceHolder.debugBeginRegion(commandBuffer, "deep-deferred.epiphany");
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipeline());
@@ -161,13 +161,13 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     commandBuffer.draw(6, 1, 0, 1);
 
-    deviceHolder.debugMarkerEndRegion(commandBuffer);
+    deviceHolder.debugEndRegion(commandBuffer);
 
     //----- Epilogue
 
     commandBuffer.endRenderPass();
 
-    deviceHolder.debugMarkerEndRegion(commandBuffer);
+    deviceHolder.debugEndRegion(commandBuffer);
 }
 
 RenderImage DeepDeferredStage::renderImage() const
@@ -196,16 +196,16 @@ void DeepDeferredStage::initGBuffer()
 
     m_gBufferInputDescriptorHolder.inputAttachmentSizes(inputAttachmentSizes);
     m_gBufferInputDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
-    m_gBufferInputDescriptorSet = m_gBufferInputDescriptorHolder.allocateSet();
+    m_gBufferInputDescriptorSet = m_gBufferInputDescriptorHolder.allocateSet("deep-deferred.g-buffer-input");
 
     m_gBufferSsboDescriptorHolder.storageBufferSizes({1, 1});
     m_gBufferSsboDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
-    m_gBufferSsboDescriptorSet = m_gBufferSsboDescriptorHolder.allocateSet();
+    m_gBufferSsboDescriptorSet = m_gBufferSsboDescriptorHolder.allocateSet("deep-deferred.g-buffer-ssbo");
 
     m_lightsDescriptorHolder.uniformBufferSizes({1});
     m_lightsDescriptorHolder.combinedImageSamplerSizes({1});
     m_lightsDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
-    m_lightsDescriptorSet = m_lightsDescriptorHolder.allocateSet();
+    m_lightsDescriptorSet = m_lightsDescriptorHolder.allocateSet("deep-deferred.lights");
 }
 
 void DeepDeferredStage::initClearPass()

@@ -56,7 +56,7 @@ void Present::init()
     m_descriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
     m_pipelineHolder.add(m_descriptorHolder.setLayout());
 
-    m_descriptorSet = m_descriptorHolder.allocateSet();
+    m_descriptorSet = m_descriptorHolder.allocateSet("present");
 
     // Mock-up samplers
     // @fixme Why would you want dummy sampler here?

@@ -28,7 +28,7 @@ Mesh::Impl::~Impl()
 
 void Mesh::Impl::init()
 {
-    m_descriptorSet = m_scene.meshDescriptorHolder().allocateSet();
+    m_descriptorSet = m_scene.meshDescriptorHolder().allocateSet("mesh");
     m_uboHolder.init(m_descriptorSet, m_scene.meshDescriptorHolder().uniformBufferBindingOffset(), {sizeof(vulkan::MeshUbo)});
 
     m_initialized = true;

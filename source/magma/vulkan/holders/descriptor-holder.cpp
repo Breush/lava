@@ -116,7 +116,7 @@ void DescriptorHolder::init(uint32_t maxSetCount, vk::ShaderStageFlags shaderSta
     }
 }
 
-vk::DescriptorSet DescriptorHolder::allocateSet(bool dummyBinding) const
+vk::DescriptorSet DescriptorHolder::allocateSet(const std::string& debugName, bool dummyBinding) const
 {
     vk::DescriptorSet set;
 
@@ -128,6 +128,8 @@ vk::DescriptorSet DescriptorHolder::allocateSet(bool dummyBinding) const
     if (m_engine.device().allocateDescriptorSets(&allocateInfo, &set) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.descriptor-holder") << "Failed to create descriptor set." << std::endl;
     }
+
+    m_engine.deviceHolder().debugObjectName(set, debugName);
 
     if (dummyBinding) {
         // Defaulting all combined image sampler bindings

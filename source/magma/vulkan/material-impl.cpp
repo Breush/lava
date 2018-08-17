@@ -60,7 +60,7 @@ Material::Impl::~Impl()
 
 void Material::Impl::init()
 {
-    m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet(true);
+    m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet("material", true);
 
     m_uboHolder.init(m_descriptorSet, m_scene.materialDescriptorHolder().uniformBufferBindingOffset(),
                      {sizeof(vulkan::MaterialUbo)});

@@ -11,13 +11,12 @@ namespace lava::magma::vulkan {
      */
     class DeviceHolder {
     public:
-        void init(vk::Instance instance, vk::SurfaceKHR surface);
+        void init(vk::Instance instance, vk::SurfaceKHR surface, bool debugEnabled);
 
-        void debugMarkerSetObjectName(uint64_t object, vk::DebugReportObjectTypeEXT objectType, const std::string& name) const;
-        void debugMarkerSetObjectName(vk::CommandBuffer object, const std::string& name) const;
+        void debugObjectName(vk::DescriptorSet object, const std::string& name) const;
 
-        void debugMarkerBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const;
-        void debugMarkerEndRegion(vk::CommandBuffer commandBuffer) const;
+        void debugBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const;
+        void debugEndRegion(vk::CommandBuffer commandBuffer) const;
 
         // ----- Getters
 
@@ -32,6 +31,9 @@ namespace lava::magma::vulkan {
         void pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
         void createLogicalDevice(vk::SurfaceKHR surface);
 
+        /// Generic function, make a public override if needed.
+        void debugObjectName(uint64_t object, vk::ObjectType objectType, const std::string& name) const;
+
     private:
         vulkan::Device m_device;
 
@@ -40,6 +42,6 @@ namespace lava::magma::vulkan {
         vk::Queue m_presentQueue = nullptr;
 
         const std::vector<const char*> m_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-        bool m_debugMarkerExtensionEnabled = false;
+        bool m_debugEnabled = false; // Should be in sync with InstanceHolder.
     };
 }

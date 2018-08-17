@@ -382,10 +382,6 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
     if (device().allocateCommandBuffers(&allocateInfo, commandBuffers.data()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
     }
-
-    for (auto& commandBuffer : commandBuffers) {
-        m_deviceHolder.debugMarkerSetObjectName(commandBuffer, "Primary command buffer");
-    }
 }
 
 void RenderEngine::Impl::createSemaphores()
@@ -429,7 +425,7 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR surface)
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);
 
-    m_deviceHolder.init(instance(), surface);
+    m_deviceHolder.init(instance(), surface, true);
 
     createCommandPool(surface);
     createDummyTextures();

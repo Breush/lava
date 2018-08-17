@@ -5,47 +5,52 @@
 
 // @note Instanciation of declared-only in vulkan.h.
 
-VkResult vkCreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
-                                        const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
+VkResult vkCreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback)
 {
-    auto CreateDebugReportCallback =
-        reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
-    return CreateDebugReportCallback(instance, pCreateInfo, pAllocator, pCallback);
+    auto CreateDebugUtilsMessenger =
+        reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+    return CreateDebugUtilsMessenger(instance, pCreateInfo, pAllocator, pCallback);
 }
 
-void vkDestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback,
+void vkDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT callback,
                                      const VkAllocationCallbacks* pAllocator)
 {
-    auto DestroyDebugReportCallback =
-        reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
-    return DestroyDebugReportCallback(instance, callback, pAllocator);
+    auto DestroyDebugUtilsMessenger =
+        reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+    return DestroyDebugUtilsMessenger(instance, callback, pAllocator);
 }
 
 using namespace lava;
 
 namespace {
-    VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t,
-                                                 size_t, int32_t, const char*, const char* msg, void*)
+    bool debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity, vk::DebugUtilsMessageTypeFlagBitsEXT messageType,
+                       const vk::DebugUtilsMessengerCallbackDataEXT* callbackData, void*)
     {
-        auto vk_flags = reinterpret_cast<vk::DebugReportFlagsEXT&>(flags);
-        auto vk_objType = reinterpret_cast<vk::DebugReportObjectTypeEXT&>(objType);
-        auto category = chamber::camelToSnakeCase(vk::to_string(vk_objType));
+        auto type = "magma.vulkan.debug." + chamber::camelToSnakeCase(vk::to_string(messageType));
+        auto message = "[" + std::string(callbackData->pMessageIdName) + "] " + callbackData->pMessage;
 
-        if (vk_flags & vk::DebugReportFlagBitsEXT::eWarning) {
-            // @fixme This is a to prevent an unwanted warning in validation layer:
-            //      vkCmdBeginRenderPass(): Cannot read invalid region of memory allocation 0x54 for bound Image object 0x53,
-            //      please fill the memory before using.
-            if (category == "device-memory") {
-                return VK_FALSE;
-            }
-
-            chamber::logger.warning("magma.vulkan." + category) << msg << std::endl;
-        }
-        else if (vk_flags & vk::DebugReportFlagBitsEXT::eError) {
-            chamber::logger.error("magma.vulkan." + category) << msg << std::endl;
+        std::string context;
+        for (auto i = 0u; i < callbackData->objectCount; ++i) {
+            const auto& object = callbackData->pObjects[i];
+            context += "| " + vk::to_string(object.objectType) + " ";
+            context += (object.pObjectName) ? object.pObjectName : "<Unknown>";
+            context += "\n";
         }
 
-        return VK_FALSE;
+        if (messageSeverity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eError) {
+            if (!context.empty()) chamber::logger.warning(type) << context;
+            chamber::logger.error(type) << message << std::endl;
+        }
+        else if (messageSeverity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning) {
+            if (!context.empty()) chamber::logger.warning(type) << context;
+            chamber::logger.warning(type) << message << std::endl;
+        }
+        else {
+            chamber::logger.info(type) << message << std::endl;
+        }
+
+        return false;
     }
 
     bool layersSupported(const std::vector<const char*>& layers)
@@ -99,11 +104,14 @@ void InstanceHolder::setupDebug()
 {
     if (!m_debugEnabled) return;
 
-    vk::DebugReportCallbackCreateInfoEXT createInfo;
-    createInfo.flags = vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning;
-    createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(debugCallback);
+    vk::DebugUtilsMessengerCreateInfoEXT createInfo;
+    createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+                             | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+    createInfo.messageSeverity =
+        vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+    createInfo.pfnUserCallback = reinterpret_cast<PFN_vkDebugUtilsMessengerCallbackEXT>(debugCallback);
 
-    m_instance.vk().createDebugReportCallbackEXT(&createInfo, nullptr, m_debugReportCallback.replace());
+    m_instance.vk().createDebugUtilsMessengerEXT(&createInfo, nullptr, m_debugUtilsMessenger.replace());
 }
 
 void InstanceHolder::initApplication(vk::InstanceCreateInfo& instanceCreateInfo)
@@ -137,7 +145,7 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
 
     // Validation layers
     if (m_debugEnabled) {
-        m_extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        m_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     instanceCreateInfo.enabledExtensionCount = m_extensions.size();

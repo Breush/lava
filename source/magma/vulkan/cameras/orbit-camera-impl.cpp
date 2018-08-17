@@ -41,7 +41,7 @@ RenderImage OrbitCamera::Impl::depthRenderImage() const
 void OrbitCamera::Impl::init(uint32_t id)
 {
     m_id = id;
-    m_descriptorSet = m_scene.cameraDescriptorHolder().allocateSet();
+    m_descriptorSet = m_scene.cameraDescriptorHolder().allocateSet("orbit-camera." + std::to_string(id));
     m_uboHolder.init(m_descriptorSet, m_scene.cameraDescriptorHolder().uniformBufferBindingOffset(), {sizeof(vulkan::CameraUbo)});
 
     m_initialized = true;

@@ -30,7 +30,7 @@ namespace lava::magma::vulkan {
         }
 
         /// Allocate a single set from the associated pool.
-        vk::DescriptorSet allocateSet(bool dummyBinding = false) const;
+        vk::DescriptorSet allocateSet(const std::string& debugName, bool dummyBinding = false) const;
 
         /// Free a previously allocated set.
         void freeSet(vk::DescriptorSet set) const;

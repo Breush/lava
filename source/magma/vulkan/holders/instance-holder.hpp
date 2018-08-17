@@ -25,7 +25,7 @@ namespace lava::magma::vulkan {
     private:
         // Resources
         vulkan::Instance m_instance;
-        vulkan::DebugReportCallbackEXT m_debugReportCallback{m_instance};
+        vulkan::DebugUtilsMessengerEXT m_debugUtilsMessenger{m_instance};
 
         // Application
         vk::ApplicationInfo m_applicationInfo;

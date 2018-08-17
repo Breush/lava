@@ -51,7 +51,7 @@ void ShadowsStage::update(vk::Extent2D extent)
 void ShadowsStage::render(vk::CommandBuffer commandBuffer)
 {
     const auto& deviceHolder = m_scene.engine().deviceHolder();
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "ShadowsStage");
+    deviceHolder.debugBeginRegion(commandBuffer, "shadows");
 
     //----- Prologue
 
@@ -71,7 +71,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
 
     //----- Pass
 
-    deviceHolder.debugMarkerBeginRegion(commandBuffer, "Pass");
+    deviceHolder.debugBeginRegion(commandBuffer, "shadows.pass");
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
 
@@ -87,13 +87,13 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
     // Draw
     commandBuffer.draw(6, 1, 0, 0);
 
-    deviceHolder.debugMarkerEndRegion(commandBuffer);
+    deviceHolder.debugEndRegion(commandBuffer);
 
     //----- Epilogue
 
     commandBuffer.endRenderPass();
 
-    deviceHolder.debugMarkerEndRegion(commandBuffer);
+    deviceHolder.debugEndRegion(commandBuffer);
 }
 
 RenderImage ShadowsStage::renderImage() const
