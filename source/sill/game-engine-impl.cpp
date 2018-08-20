@@ -160,6 +160,9 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
         if (event.key.which == Key::Escape) {
             m_window->close();
         }
+        else if (event.key.which == Key::F11) {
+            m_window->fullscreen(!m_window->fullscreen());
+        }
 
         break;
     }

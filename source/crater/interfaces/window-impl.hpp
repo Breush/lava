@@ -21,6 +21,8 @@ namespace lava::crater {
         std::optional<WsEvent> popEvent();
 
         virtual WsHandle handle() const = 0;
+        virtual bool fullscreen() const = 0;
+        virtual void fullscreen(bool fullscreen) = 0;
         const VideoMode& videoMode() const { return m_videoMode; }
 
     protected:

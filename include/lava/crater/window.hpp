@@ -23,6 +23,10 @@ namespace lava::crater {
         const VideoMode& videoMode() const;
         Extent2d extent() const;
 
+        /// Whether the window should be fullscreen (with no decorations).
+        bool fullscreen() const;
+        void fullscreen(bool fullscreen);
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

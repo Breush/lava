@@ -12,6 +12,9 @@
 #include <vector>
 #include <xcb/xcb_keysyms.h>
 
+// @note Most on this code has been written thanks to
+// https://www.x.org/releases/X11R7.6/doc/libxcb/tutorial/index.html
+
 // @note These horizontal mouse button indices
 // are not always defined...
 #if !defined(XCB_BUTTON_INDEX_6)
@@ -28,7 +31,7 @@ namespace {
 
     inline xcb_intern_atom_reply_t* internAtomHelper(xcb_connection_t* conn, bool only_if_exists, const char* str)
     {
-        xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
+        auto cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
         return xcb_intern_atom_reply(conn, cookie, nullptr);
     }
 
@@ -103,6 +106,59 @@ Window::Impl::Impl(VideoMode mode, const std::string& title)
     g_keySymbols = xcb_key_symbols_alloc(m_connection);
 }
 
+Window::Impl::~Impl()
+{
+    free(m_hintsReply);
+    free(m_protocolsReply);
+    free(m_deleteWindowReply);
+}
+
+void Window::Impl::fullscreen(bool fullscreen)
+{
+    if (m_fullscreen == fullscreen) return;
+    m_fullscreen = fullscreen;
+
+    // @note When fullscreen was on, we need to unmap
+    // the window first, otherwise it will be kept fullscreen.
+    if (!m_fullscreen) {
+        xcb_unmap_window(m_connection, m_window);
+    }
+    // @note When going fullscreen mode, we first store the dimensions of the window,
+    // so that we can go back seemlessly for the user.
+    else {
+        auto geometryCookie = xcb_get_geometry(m_connection, m_window);
+        auto geometryReply = xcb_get_geometry_reply(m_connection, geometryCookie, nullptr);
+        m_extentBeforeFullscreen.width = geometryReply->width;
+        m_extentBeforeFullscreen.height = geometryReply->height;
+        free(geometryReply);
+    }
+
+    // Configuration
+    uint32_t configuration[] = {
+        0u,                                                                          // WINDOW_X
+        0u,                                                                          // WINDOW_Y
+        m_fullscreen ? m_screen->width_in_pixels : m_extentBeforeFullscreen.width,   // WINDOW_WIDTH
+        m_fullscreen ? m_screen->height_in_pixels : m_extentBeforeFullscreen.height, // WINDOW_HEIGHT
+        XCB_STACK_MODE_ABOVE,                                                        // STACK_MODE
+    };
+
+    auto configurationFlags = XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT       // dimensions
+                              | XCB_CONFIG_WINDOW_STACK_MODE;                          // order
+    if (m_fullscreen) configurationFlags |= XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y; // position
+    xcb_configure_window(m_connection, m_window, configurationFlags, configuration + (m_fullscreen ? 0u : 2u));
+
+    if (!m_fullscreen) {
+        xcb_map_window(m_connection, m_window);
+    }
+}
+
+WsHandle Window::Impl::handle() const
+{
+    return {m_connection, m_window};
+}
+
+// ----- Internal
+
 void Window::Impl::initXcbConnection()
 {
     const xcb_setup_t* setup;
@@ -132,28 +188,26 @@ void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
     value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE
                     | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS
                     | XCB_EVENT_MASK_BUTTON_RELEASE;
+    value_list[2] = 0;
 
     xcb_create_window(m_connection, XCB_COPY_FROM_PARENT, m_window, m_screen->root, 0, 0, mode.width, mode.height, 0,
                       XCB_WINDOW_CLASS_INPUT_OUTPUT, m_screen->root_visual, value_mask, value_list);
 
+    // Stored replies
+    m_hintsReply = internAtomHelper(m_connection, true, "_MOTIF_WM_HINTS");
+    m_protocolsReply = internAtomHelper(m_connection, true, "WM_PROTOCOLS");
+    m_deleteWindowReply = internAtomHelper(m_connection, false, "WM_DELETE_WINDOW");
+
     // Enable window destroyed notifications
-    auto reply = internAtomHelper(m_connection, true, "WM_PROTOCOLS");
-    m_atomWmDeleteWindow = internAtomHelper(m_connection, false, "WM_DELETE_WINDOW");
+    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, m_protocolsReply->atom, XCB_ATOM_ATOM, 32, 1,
+                        &m_deleteWindowReply->atom);
 
-    xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, reply->atom, 4, 32, 1, &m_atomWmDeleteWindow->atom);
-
+    // Set title
     xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, title.size(),
                         title.c_str());
 
-    free(reply);
-
     xcb_map_window(m_connection, m_window);
     xcb_flush(m_connection);
-}
-
-WsHandle Window::Impl::handle() const
-{
-    return {m_connection, m_window};
 }
 
 void Window::Impl::processEvents()
@@ -176,7 +230,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 
     case XCB_CLIENT_MESSAGE: {
         auto messageEvent = reinterpret_cast<xcb_client_message_event_t&>(windowEvent);
-        if (messageEvent.data.data32[0] != m_atomWmDeleteWindow->atom) break;
+        if (messageEvent.data.data32[0] != m_deleteWindowReply->atom) break;
 
         WsEvent event;
         event.type = WsEventType::WindowClosed;
@@ -186,7 +240,7 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 
     case XCB_CONFIGURE_NOTIFY: {
         auto configureEvent = reinterpret_cast<xcb_configure_notify_event_t&>(windowEvent);
-        if (m_previousSize.x == configureEvent.width && m_previousSize.y == configureEvent.height) break;
+        if (m_extent.width == configureEvent.width && m_extent.height == configureEvent.height) break;
 
         WsEvent event;
         event.type = WsEventType::WindowResized;
@@ -194,8 +248,8 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         event.windowSize.height = configureEvent.height;
         pushEvent(event);
 
-        m_previousSize.x = configureEvent.width;
-        m_previousSize.y = configureEvent.height;
+        m_extent.width = configureEvent.width;
+        m_extent.height = configureEvent.height;
         break;
     }
 
