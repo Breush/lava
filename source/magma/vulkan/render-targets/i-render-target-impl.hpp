@@ -20,8 +20,8 @@ namespace lava::magma {
         /// Called once when added to the engine.
         virtual void init(uint32_t id) = 0;
 
-        /// Prepare the upcoming draw.
-        virtual void prepare() = 0;
+        /// Prepare the upcoming draw. Returns whether the engine can draw next.
+        virtual bool prepare() = 0;
 
         /// Draw.
         virtual void draw(vk::Semaphore renderFinishedSemaphore) const = 0;

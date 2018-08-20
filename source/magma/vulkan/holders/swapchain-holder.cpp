@@ -157,6 +157,8 @@ void SwapchainHolder::createImageViews()
         if (m_engine.device().createImageView(&viewInfo, nullptr, m_imageViews[i].replace()) != vk::Result::eSuccess) {
             logger.error("magma.vulkan.swapchain-holder") << "Failed to create image view." << std::endl;
         }
+
+        m_engine.deviceHolder().debugObjectName(m_imageViews[i], "swapchain." + std::to_string(i));
     }
 }
 
@@ -167,4 +169,6 @@ void SwapchainHolder::createSemaphore()
     if (m_engine.device().createSemaphore(&semaphoreInfo, nullptr, m_imageAvailableSemaphore.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.swapchain-holder") << "Failed to create semaphores." << std::endl;
     }
+
+    m_engine.deviceHolder().debugObjectName(m_imageAvailableSemaphore, "swapchain-holder.image-available");
 }

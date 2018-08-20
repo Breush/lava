@@ -14,6 +14,8 @@ namespace lava::magma::vulkan {
         void init(vk::Instance instance, vk::SurfaceKHR surface, bool debugEnabled);
 
         void debugObjectName(vk::DescriptorSet object, const std::string& name) const;
+        void debugObjectName(vk::ImageView object, const std::string& name) const;
+        void debugObjectName(vk::Semaphore object, const std::string& name) const;
 
         void debugBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const;
         void debugEndRegion(vk::CommandBuffer commandBuffer) const;

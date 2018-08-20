@@ -54,15 +54,16 @@ void RenderEngine::Impl::update()
 
 void RenderEngine::Impl::draw()
 {
+    m_deviceHolder.device().waitIdle(); // @todo Better wait for a fence on each queue
+
     for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
         auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
         auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
         const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
 
-        renderTargetImpl.prepare();
+        if (!renderTargetImpl.prepare()) continue;
 
         // Record command buffer each frame
-        m_deviceHolder.device().waitIdle(); // @todo Better wait for a fence on each queue
         auto& commandBuffer = recordCommandBuffer(renderTargetId, swapchainHolder.currentIndex());
 
         // Submit it to the queue
@@ -393,6 +394,8 @@ void RenderEngine::Impl::createSemaphores()
     if (device().createSemaphore(&semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine") << "Failed to create semaphores." << std::endl;
     }
+
+    deviceHolder().debugObjectName(m_renderFinishedSemaphore, "render-engine.render-finished");
 }
 
 void RenderEngine::Impl::initRenderScenes()

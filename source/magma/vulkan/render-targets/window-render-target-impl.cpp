@@ -30,17 +30,27 @@ void WindowRenderTarget::Impl::init(uint32_t id)
     initSwapchain();
 }
 
-void WindowRenderTarget::Impl::prepare()
+bool WindowRenderTarget::Impl::prepare()
 {
     auto result = m_swapchainHolder.acquireNextImage();
 
     if (result == vk::Result::eErrorOutOfDateKHR) {
-        logger.warning("magma.vulkan.window-render-target")
-            << "Seems like nobody cares about a out of date swapchain." << std::endl;
+        // @note We should not go this pass to often, it would mean that
+        // the user chose to not our extent() function when he got
+        // a window size event.
+        recreateSwapchain();
+        return false;
     }
-    else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+    else if (result == vk::Result::eSuboptimalKHR) {
+        logger.warning("magma.vulkan.window-render-target") << "Suboptimal swapchain." << std::endl;
+        return false;
+    }
+    else if (result != vk::Result::eSuccess) {
         logger.error("magma.vulkan.window-render-target") << "Failed to acquire swapchain image." << std::endl;
+        return false;
     }
+
+    return true;
 }
 
 void WindowRenderTarget::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
@@ -55,12 +65,14 @@ void WindowRenderTarget::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
     presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;
 
-    // @note Somehow, unable to find a better way to prevent
-    // an OutOfDateKHRError on Linux during resize...
-    try {
-        m_engine.presentQueue().presentKHR(presentInfo);
-    } catch (vk::OutOfDateKHRError err) {
-        const_cast<Impl*>(this)->recreateSwapchain();
+    // @note Passing a reference to presentInfo would go into the enhanced
+    // version of the vulkan.hpp's presentKHR(). Doing so, it enables
+    // asserts or exceptions on eErrorOutOfDateKHR which does not let us
+    // just ignore it.
+    auto result = m_engine.presentQueue().presentKHR(&presentInfo);
+
+    if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR && result != vk::Result::eErrorOutOfDateKHR) {
+        logger.error("magma.vulkan.window-render-target") << "Failed to draw: " << vk::to_string(result) << "." << std::endl;
     }
 }
 
@@ -70,9 +82,8 @@ void WindowRenderTarget::Impl::extent(const Extent2d& extent)
 {
     m_windowExtent.width = extent.width;
     m_windowExtent.height = extent.height;
-    recreateSwapchain();
 
-    m_engine.updateRenderTarget(m_id);
+    recreateSwapchain();
 }
 
 //----- Internal
@@ -115,4 +126,6 @@ void WindowRenderTarget::Impl::initSwapchain()
 void WindowRenderTarget::Impl::recreateSwapchain()
 {
     m_swapchainHolder.recreate(m_surface, m_windowExtent);
+
+    m_engine.updateRenderTarget(m_id);
 }

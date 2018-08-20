@@ -95,6 +95,16 @@ void DeviceHolder::debugObjectName(vk::DescriptorSet object, const std::string& 
     debugObjectName(reinterpret_cast<uint64_t&>(object), vk::ObjectType::eDescriptorSet, name);
 }
 
+void DeviceHolder::debugObjectName(vk::ImageView object, const std::string& name) const
+{
+    debugObjectName(reinterpret_cast<uint64_t&>(object), vk::ObjectType::eImageView, name);
+}
+
+void DeviceHolder::debugObjectName(vk::Semaphore object, const std::string& name) const
+{
+    debugObjectName(reinterpret_cast<uint64_t&>(object), vk::ObjectType::eSemaphore, name);
+}
+
 void DeviceHolder::debugBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const
 {
     if (!m_debugEnabled) return;

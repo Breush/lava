@@ -18,7 +18,7 @@ namespace lava::magma {
 
         // IRenderTarget::Impl
         void init(uint32_t id) override final;
-        void prepare() override final;
+        bool prepare() override final;
         void draw(vk::Semaphore renderFinishedSemaphore) const override final;
 
         uint32_t id() const { return m_id; }
