@@ -24,7 +24,7 @@ void vulkan::endSingleTimeCommands(vk::Device device, vk::Queue queue, vk::Comma
     vk::SubmitInfo submitInfo = {};
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
-    queue.submit(1, &submitInfo, vk::Fence());
+    queue.submit(1, &submitInfo, nullptr);
 
     queue.waitIdle();
     device.freeCommandBuffers(commandPool, 1, &commandBuffer);

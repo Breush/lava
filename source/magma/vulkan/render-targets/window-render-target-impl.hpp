@@ -24,6 +24,7 @@ namespace lava::magma {
         uint32_t id() const { return m_id; }
         const vulkan::SwapchainHolder& swapchainHolder() const override final { return m_swapchainHolder; }
         vk::SurfaceKHR surface() const override final { return m_surface; }
+        vk::Fence fence() const override final { return m_fence; }
 
         // WindowRenderTarget
         inline Extent2d extent() const { return {m_windowExtent.width, m_windowExtent.height}; }
@@ -32,6 +33,7 @@ namespace lava::magma {
 
     protected:
         // Internal
+        void initFence();
         void initSurface();
         void initSwapchain();
         void recreateSwapchain();
@@ -43,6 +45,7 @@ namespace lava::magma {
         WsHandle m_handle;
 
         // Resources
+        vulkan::Fence m_fence;
         vulkan::SurfaceKHR m_surface;
         vulkan::SwapchainHolder m_swapchainHolder;
         vk::Extent2D m_windowExtent;

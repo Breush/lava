@@ -57,8 +57,6 @@ void RenderEngine::Impl::update()
 
 void RenderEngine::Impl::draw()
 {
-    m_deviceHolder.device().waitIdle(); // @todo Better wait for a fence on each queue
-
     for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
         auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
         auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
@@ -82,7 +80,8 @@ void RenderEngine::Impl::draw()
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        if (graphicsQueue().submit(1, &submitInfo, nullptr) != vk::Result::eSuccess) {
+        auto fence = renderTargetImpl.fence();
+        if (graphicsQueue().submit(1, &submitInfo, fence) != vk::Result::eSuccess) {
             logger.error("magma.vulkan.render-engine") << "Failed to submit draw command buffer." << std::endl;
         }
 

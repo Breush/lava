@@ -34,5 +34,8 @@ namespace lava::magma {
 
         /// The surface used.
         virtual vk::SurfaceKHR surface() const = 0;
+
+        /// The associated fence.
+        virtual vk::Fence fence() const = 0;
     };
 }

@@ -12,6 +12,7 @@ using namespace lava::chamber;
 WindowRenderTarget::Impl::Impl(RenderEngine& engine, WsHandle handle, const Extent2d& extent)
     : m_engine(engine.impl())
     , m_handle(handle)
+    , m_fence(m_engine.device())
     , m_surface(m_engine.instance())
     , m_swapchainHolder(m_engine)
 {
@@ -27,11 +28,17 @@ void WindowRenderTarget::Impl::init(uint32_t id)
 {
     m_id = id;
 
+    initFence();
     initSwapchain();
 }
 
 bool WindowRenderTarget::Impl::prepare()
 {
+    static const auto MAX = std::numeric_limits<uint64_t>::max();
+
+    m_engine.device().waitForFences(1u, &m_fence, true, MAX);
+    m_engine.device().resetFences(1u, &m_fence);
+
     auto result = m_swapchainHolder.acquireNextImage();
 
     if (result == vk::Result::eErrorOutOfDateKHR) {
@@ -87,6 +94,17 @@ void WindowRenderTarget::Impl::extent(const Extent2d& extent)
 }
 
 //----- Internal
+
+void WindowRenderTarget::Impl::initFence()
+{
+    vk::FenceCreateInfo fenceInfo;
+    fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+
+    auto result = m_engine.device().createFence(&fenceInfo, nullptr, m_fence.replace());
+    if (result != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.window-render-target") << "Unable to create fence." << std::endl;
+    }
+}
 
 void WindowRenderTarget::Impl::initSurface()
 {
