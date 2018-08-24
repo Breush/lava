@@ -1,6 +1,7 @@
 #include "./game-engine-impl.hpp"
 
 #include <chrono>
+#include <iomanip>
 #include <lava/chamber/logger.hpp>
 #include <lava/magma/material.hpp>
 
@@ -43,7 +44,9 @@ GameEngine::Impl::Impl(GameEngine& base)
 
 void GameEngine::Impl::run()
 {
-    static const std::chrono::nanoseconds updateTime(11111111); // 1/60s * 2/3
+    // @todo If we want two GameEngine at the same time on day,
+    // these statics cannot stay there.
+    static const std::chrono::nanoseconds updateTime(11'111'111); // 1/60s * 2/3
     static float updateDt = std::chrono::duration<float>(updateTime).count();
     static auto currentTime = std::chrono::high_resolution_clock::now();
     static std::chrono::nanoseconds updateTimeLag(updateTime);
@@ -53,6 +56,19 @@ void GameEngine::Impl::run()
         auto elapsedTime = std::chrono::high_resolution_clock::now() - currentTime;
         updateTimeLag += elapsedTime;
         currentTime += elapsedTime;
+
+        if (m_fpsCounterEnabled) {
+            m_fpsCount += 1u;
+            m_fpsElapsedTime += elapsedTime;
+
+            if (m_fpsElapsedTime > std::chrono::nanoseconds(1'000'000'000)) {
+                logger.info("sill.game-engine")
+                    << std::setprecision(3) << std::chrono::duration<float>(elapsedTime).count() * 1000.f << "ms " << m_fpsCount
+                    << "FPS" << std::endl;
+                m_fpsCount = 0u;
+                m_fpsElapsedTime = std::chrono::nanoseconds(0);
+            }
+        }
 
         // We play the game at a constant rate (updateTime).
         while (updateTimeLag >= updateTime) {
@@ -150,6 +166,10 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
         }
         else if (event.key.which == Key::F11) {
             m_window->fullscreen(!m_window->fullscreen());
+        }
+        else if (event.key.which == Key::F) {
+            // @todo Move that to ashe.
+            m_fpsCounterEnabled = true;
         }
 
         break;

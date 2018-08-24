@@ -73,6 +73,11 @@ namespace lava::sill {
         magma::RenderScene* m_renderScene = nullptr;
         magma::DirectionalLight* m_light = nullptr;
 
+        // User control
+        bool m_fpsCounterEnabled = false;
+        std::chrono::nanoseconds m_fpsElapsedTime;
+        uint32_t m_fpsCount = 0u;
+
         // Physics
         std::unique_ptr<dike::PhysicsEngine> m_physicsEngine = nullptr;
 
