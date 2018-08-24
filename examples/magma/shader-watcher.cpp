@@ -11,15 +11,14 @@ int main(void)
 {
     ashe::Application app("ashe - magma | Translucency");
 
-    // Go and open ./data/tmp/watched-material.simpl in your text editor
+    // Go and open ./data/tmp/watched-material.shmag in your text editor
     // while this example is running.
     // Any modfication (on save) will be repercuted instantly in the rendering.
-    system("cp ./examples/magma/ashe-material.simpl ./data/tmp/watched-material.simpl");
+    system("cp ./examples/magma/ashe-material.shmag ./data/tmp/watched-material.shmag");
 
     // Register the material with registerMaterialFromFile() - it will be watched from now on.
     // Use registerMaterial() to not watch a file.
-    app.engine().registerMaterialFromFile("watched", "./data/tmp/watched-material.simpl",
-                                          {{"color", magma::UniformType::VEC4, glm::vec4(1.f)}});
+    app.engine().registerMaterialFromFile("watched", "./data/tmp/watched-material.shmag");
 
     // Making a scene
     auto& watchedMaterial = app.scene().make<magma::Material>("watched");

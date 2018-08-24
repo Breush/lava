@@ -6,6 +6,7 @@
 #include <lava/magma/texture.hpp>
 #include <unordered_map>
 
+#include "../uniform.hpp"
 #include "./holders/image-holder.hpp"
 #include "./holders/ubo-holder.hpp"
 #include "./ubos.hpp"
@@ -17,7 +18,7 @@ namespace lava::magma {
     class Material::Impl {
     private:
         struct Attribute {
-            UniformType type = UniformType::UNKNOWN;
+            UniformType type = UniformType::Unknown;
             UniformFallback fallback;
             uint32_t offset = -1u;
             const Texture::Impl* texture = nullptr;

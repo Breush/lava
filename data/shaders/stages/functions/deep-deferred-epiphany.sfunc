@@ -1,39 +1,3 @@
-//----- Unpacking
-
-float gBufferUnpackFloat(GBufferNode node, inout uint startIndex) {
-    float value = uintBitsToFloat(node.materialData[startIndex++]);
-    return value;
-}
-
-vec3 gBufferUnpackVec3(GBufferNode node, inout uint startIndex) {
-    vec3 value;
-    value.x = uintBitsToFloat(node.materialData[startIndex++]);
-    value.y = uintBitsToFloat(node.materialData[startIndex++]);
-    value.z = uintBitsToFloat(node.materialData[startIndex++]);
-    return value;
-}
-
-// Stored using spherical coordinates
-vec3 gBufferUnpackVec3Normalized(GBufferNode node, inout uint startIndex) {
-    float phi = uintBitsToFloat(node.materialData[startIndex++]);
-    float theta = uintBitsToFloat(node.materialData[startIndex++]);
-    
-    vec3 value;
-    value.x = sin(phi) * cos(theta);
-    value.y = sin(phi) * sin(theta);
-    value.z = cos(phi);
-    return value;
-}
-
-vec4 gBufferUnpackVec4(GBufferNode node, inout uint startIndex) {
-    vec4 value;
-    value.x = uintBitsToFloat(node.materialData[startIndex++]);
-    value.y = uintBitsToFloat(node.materialData[startIndex++]);
-    value.z = uintBitsToFloat(node.materialData[startIndex++]);
-    value.w = uintBitsToFloat(node.materialData[startIndex++]);
-    return value;
-}
-
 //----- Lights
 
 // @note The lightDirection is defined as the normalized vector

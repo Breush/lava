@@ -35,10 +35,7 @@ namespace lava::ashe {
             m_engine = std::make_unique<magma::RenderEngine>();
 
             // Custom material
-            std::ifstream fileStream("./examples/magma/ashe-material.simpl");
-            std::stringstream buffer;
-            buffer << fileStream.rdbuf();
-            m_engine->registerMaterial("ashe", buffer.str(), {{"color", magma::UniformType::VEC4, glm::vec4(1.f)}});
+            m_engine->registerMaterialFromFile("ashe", "./examples/magma/ashe-material.shmag");
 
             // A window we can draw to.
             m_window = std::make_unique<crater::Window>(Extent2d{800, 600}, title);

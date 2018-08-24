@@ -60,26 +60,28 @@ namespace lava::chamber::macros {
     constexpr const char* stringify(Namespace::Enum value)                                                                       \
     {                                                                                                                            \
         switch (value) {                                                                                                         \
-            $enum_stringify_cases(Namespace::Enum, __VA_ARGS__);                                                                 \
+            $enum_stringify_cases(Namespace, Enum, __VA_ARGS__);                                                                 \
         default: break;                                                                                                          \
         }                                                                                                                        \
-        return #Namespace "::" #Enum "::<Unknown>";                                                                              \
+        return #Enum "::<Unknown>";                                                                                              \
     }
 
-#define $enum_stringify_cases(Enum, ...) $eval($enum_stringify_cases_(Enum, __VA_ARGS__))
-#define $enum_stringify_cases_(Enum, ...) $enum_stringify_case_($are_arguments_empty(__VA_ARGS__), Enum, __VA_ARGS__)
+#define $enum_stringify_cases(Namespace, Enum, ...) $eval($enum_stringify_cases_(Namespace, Enum, __VA_ARGS__))
+#define $enum_stringify_cases_(Namespace, Enum, ...)                                                                             \
+    $enum_stringify_case_($are_arguments_empty(__VA_ARGS__), Namespace, Enum, __VA_ARGS__)
 #define $enum_stringify_cases_indirect() $enum_stringify_cases_
 
-#define $enum_stringify_case_(n, Enum, ...) $cat($enum_stringify_case_, n)(Enum, __VA_ARGS__)
-#define $enum_stringify_case_0(Enum, ...) /* Empty end case */
-#define $enum_stringify_case_1(Enum, Value, ...)                                                                                 \
-    $enum_stringify_case(Enum, Value);                                                                                           \
-    $obstruct($enum_stringify_cases_indirect)()(Enum, __VA_ARGS__)
+#define $enum_stringify_case_(n, Namespace, Enum, ...) $cat($enum_stringify_case_, n)(Namespace, Enum, __VA_ARGS__)
+#define $enum_stringify_case_0(Namespace, Enum, ...) /* Empty end case */
+#define $enum_stringify_case_1(Namespace, Enum, Value, ...)                                                                      \
+    $enum_stringify_case(Namespace, Enum, Value);                                                                                \
+    $obstruct($enum_stringify_cases_indirect)()(Namespace, Enum, __VA_ARGS__)
 
-#define $enum_stringify_case(Enum, Value) $cat($enum_stringify_case_check_, $is_string_empty(Value))(Enum, Value)
+#define $enum_stringify_case(Namespace, Enum, Value)                                                                             \
+    $cat($enum_stringify_case_check_, $is_string_empty(Value))(Namespace, Enum, Value)
 #define $enum_stringify_case_check_1(...) /* Empty end case */
-#define $enum_stringify_case_check_0(Enum, Value)                                                                                \
-    case Enum::Value: {                                                                                                          \
+#define $enum_stringify_case_check_0(Namespace, Enum, Value)                                                                     \
+    case Namespace::Enum::Value: {                                                                                               \
         return #Enum "::" #Value;                                                                                                \
     }
 

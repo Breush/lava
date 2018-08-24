@@ -2,9 +2,7 @@
 
 #include <lava/magma/cameras/i-camera.hpp>
 
-#include <fstream>
 #include <lava/core/macros.hpp>
-#include <sstream>
 
 #include "./vulkan/render-engine-impl.hpp"
 
@@ -16,10 +14,7 @@ RenderEngine::RenderEngine()
 
     // Register fallback material
     // @todo Should be inlined as const string somehow
-    std::ifstream fileStream("./data/shaders/materials/fallback-material.simpl");
-    std::stringstream buffer;
-    buffer << fileStream.rdbuf();
-    registerMaterial("fallback", buffer.str(), {});
+    registerMaterialFromFile("fallback", "./data/shaders/materials/fallback-material.shmag");
 }
 
 RenderEngine::~RenderEngine()
@@ -29,10 +24,7 @@ RenderEngine::~RenderEngine()
 
 $pimpl_method(RenderEngine, void, update);
 $pimpl_method(RenderEngine, void, draw);
-$pimpl_method(RenderEngine, uint32_t, registerMaterial, const std::string&, hrid, const std::string&, shaderImplementation,
-              const UniformDefinitions&, uniformDefinitions);
-$pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath,
-              const UniformDefinitions&, uniformDefinitions);
+$pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 
 uint32_t RenderEngine::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
 {

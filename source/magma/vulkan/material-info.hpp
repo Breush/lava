@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/uniform.hpp>
+#include "../uniform.hpp"
 
 #include <cstdint>
 #include <lava/core/filesystem.hpp>

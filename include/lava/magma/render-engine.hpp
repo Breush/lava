@@ -3,7 +3,6 @@
 #include <functional>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/viewport.hpp>
-#include <lava/magma/uniform.hpp>
 #include <memory>
 
 namespace lava::magma {
@@ -29,17 +28,12 @@ namespace lava::magma {
         void draw();
 
         /**
-         * Register a material to the engine.
+         * Register a material (.shmag) to the engine.
          *
          * All materials have to be registered before adding anything,
          * especially render scenes or render targets.
          */
-        // @todo These definitions could be extracted with some shader introspection.
-        // Have our own shading "language"?
-        uint32_t registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
-                                  const UniformDefinitions& uniformDefinitions);
-        uint32_t registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath,
-                                          const UniformDefinitions& uniformDefinitions);
+        uint32_t registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
 
         /**
          * Add a view of render scene's camera to a render-target.

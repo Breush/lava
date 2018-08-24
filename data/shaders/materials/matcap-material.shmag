@@ -1,0 +1,32 @@
+/**
+ * Matcap material.
+ *
+ * Picking in the texture is based on the normal of the surface.
+ */
+
+struct {
+    vec3 color;
+} gBuffer;
+
+geometry {
+    uniform {
+        texture2d matcapTexture = "white";
+    };
+
+    bool main() {
+        vec3 normal = tbn[2];
+        vec4 projection = camera.viewTransform * vec4(normal, 0);
+        vec2 matcapUv = projection.xy / 2 + 0.5;
+        
+        gBuffer.color = texture(matcapTexture, matcapUv).rgb;
+
+        return false;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        return vec4(gBuffer.color, 1);
+    }
+}
+ 

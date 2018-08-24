@@ -27,16 +27,16 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
         attribute.fallback = uniformDefinition.fallback;
 
         switch (attribute.type) {
-        case UniformType::TEXTURE: {
+        case UniformType::Texture: {
             attribute.offset = textureUniformCount++;
             break;
         }
-        case UniformType::FLOAT: {
+        case UniformType::Float: {
             attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.floatValue);
             break;
         }
-        case UniformType::VEC4: {
+        case UniformType::Vec4: {
             attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.vec4Value);
             break;
@@ -133,14 +133,14 @@ void Material::Impl::updateBindings()
 
     for (const auto& attributePair : m_attributes) {
         const auto& attribute = attributePair.second;
-        if (attribute.type == UniformType::TEXTURE) {
+        if (attribute.type == UniformType::Texture) {
             if (attribute.texture) {
                 imageView = attribute.texture->imageView();
             }
-            else if (attribute.fallback.textureTypeValue == UniformTextureType::NORMAL) {
+            else if (attribute.fallback.textureTypeValue == UniformTextureType::Normal) {
                 imageView = engine.dummyNormalImageView();
             }
-            else if (attribute.fallback.textureTypeValue == UniformTextureType::INVISIBLE) {
+            else if (attribute.fallback.textureTypeValue == UniformTextureType::Invisible) {
                 imageView = engine.dummyInvisibleImageView();
             }
             else {

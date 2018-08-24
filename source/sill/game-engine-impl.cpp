@@ -121,31 +121,19 @@ void GameEngine::Impl::updateEntities(float dt)
 
 void GameEngine::Impl::registerMaterials()
 {
-    // @todo Could be moved to ashe via a nice API.
-    // Which means a simple parser to be able not to write all that by ourselves.
+    // Font material (used in TextMeshComponent)
+    m_renderEngine->registerMaterialFromFile("font", "./data/shaders/materials/font-material.shmag");
+
+    // Roughness-metallic material (used in GLB loader)
+    m_renderEngine->registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
+
+    // @fixme Can be moved to ashe, since there is no need to know magma uniform thingy.
 
     // Sky material
-    m_renderEngine->registerMaterialFromFile("sky", "./data/shaders/materials/sky-material.simpl",
-                                             {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
-
-    // Font material
-    m_renderEngine->registerMaterialFromFile("font", "./data/shaders/materials/font-material.simpl",
-                                             {{"fontTexture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
-
-    // Roughness-metallic material
-    m_renderEngine->registerMaterialFromFile(
-        "roughness-metallic", "./data/shaders/materials/rm-material.simpl",
-        {{"albedoColor", magma::UniformType::VEC4, glm::vec4(1.f, 1.f, 1.f, 1.f)},
-         {"roughnessFactor", magma::UniformType::FLOAT, 1.f},
-         {"metallicFactor", magma::UniformType::FLOAT, 1.f},
-         {"normalMap", magma::UniformType::TEXTURE, magma::UniformTextureType::NORMAL},
-         {"albedoMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
-         {"ormMap", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE},
-         {"emissiveMap", magma::UniformType::TEXTURE, magma::UniformTextureType::INVISIBLE}});
+    m_renderEngine->registerMaterialFromFile("sky", "./data/shaders/materials/sky-material.shmag");
 
     // Matcap material
-    m_renderEngine->registerMaterialFromFile("matcap", "./data/shaders/materials/matcap-material.simpl",
-                                             {{"texture", magma::UniformType::TEXTURE, magma::UniformTextureType::WHITE}});
+    m_renderEngine->registerMaterialFromFile("matcap", "./data/shaders/materials/matcap-material.shmag");
 }
 
 void GameEngine::Impl::handleEvent(WsEvent& event)

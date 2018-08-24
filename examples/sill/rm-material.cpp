@@ -21,7 +21,7 @@ int main(void)
     // @todo No depth buffer and always centered on the camera
     auto& skyboxEntity = engine.make<sill::GameEntity>();
     auto& skyboxMaterial = engine.make<sill::Material>("sky");
-    skyboxMaterial.set("texture", skyTexture);
+    skyboxMaterial.set("skyTexture", skyTexture);
     auto& skyboxMeshComponent = skyboxEntity.make<sill::MeshComponent>();
 
     sill::makers::SphereMeshOptions sphereMeshOptions;

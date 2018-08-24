@@ -1,0 +1,30 @@
+/**
+ * Font material.
+ */
+
+struct {
+    float opacity;
+} gBuffer;
+
+geometry {
+    uniform {
+        texture2d fontTexture = "invisible";
+    };
+
+    bool main() {
+        float opacity = texture(fontTexture, uv).r;
+        if (opacity == 0) discard;
+
+        gBuffer.opacity = opacity;
+
+        return opacity < 1.0;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        // @todo Handle colors?
+        return vec4(1, 1, 1, gBuffer.opacity);
+    }
+}
+ 

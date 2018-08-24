@@ -1,0 +1,27 @@
+/**
+ * Simple material used in examples.
+ *
+ * Does not react to lighting, just show plain (possibly translucent) color.
+ */
+
+struct {
+    vec4 color;
+} gBuffer;
+
+geometry {
+    uniform {
+        vec4 color = vec4(1, 1, 1, 1);
+    };
+
+    bool main() {
+        gBuffer.color = color;
+
+        return color.a < 1.0;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        return gBuffer.color;
+    }
+}

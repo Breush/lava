@@ -6,17 +6,17 @@
 
 namespace lava::magma {
     enum class UniformType {
-        FLOAT,
-        VEC4,
-        TEXTURE,
-        UNKNOWN,
+        Unknown,
+        Float,
+        Vec4,
+        Texture,
     };
 
     enum class UniformTextureType {
-        WHITE,
-        NORMAL,
-        INVISIBLE,
-        UNKNOWN,
+        Unknown,
+        White,
+        Normal,
+        Invisible,
     };
 
     union UniformFallback {
@@ -32,7 +32,7 @@ namespace lava::magma {
 
     struct UniformDefinition {
         std::string name;
-        UniformType type = UniformType::UNKNOWN;
+        UniformType type = UniformType::Unknown;
         UniformFallback fallback;
     };
 

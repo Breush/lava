@@ -1,10 +1,9 @@
 #include "./render-engine-impl.hpp"
 
 #include <chrono>
-#include <fstream>
 #include <lava/chamber/logger.hpp>
-#include <sstream>
 
+#include "../shmag-reader.hpp"
 #include "./cameras/i-camera-impl.hpp"
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
@@ -37,15 +36,19 @@ void RenderEngine::Impl::update()
             logger.info("magma.render-engine") << "Material source file " << event->path << " has changed." << std::endl;
             logger.log().tab(1);
 
-            std::ifstream fileStream(materialPath.string());
-            std::stringstream buffer;
-            buffer << fileStream.rdbuf();
-
             auto materialInfo =
                 std::find_if(m_materialInfos.begin(), m_materialInfos.end(),
                              [&watchId](const auto& materialInfo) { return materialInfo.second.watchId == watchId; });
 
-            m_shadersManager.updateImplGroup(materialInfo->first, buffer.str());
+            ShmagReader shmagReader(materialPath);
+            auto shaderImplementation = shmagReader.processedString();
+            if (shmagReader.errored()) {
+                logger.warning("magma.vulkan.render-engine")
+                    << "Cannot update watched material " << materialInfo->first << ", shmag reading failed." << std::endl;
+                return;
+            }
+
+            m_shadersManager.updateImplGroup(materialInfo->first, shaderImplementation);
 
             logger.log().tab(-1);
         }
@@ -87,35 +90,34 @@ void RenderEngine::Impl::draw()
     }
 }
 
-uint32_t RenderEngine::Impl::registerMaterial(const std::string& hrid, const std::string& shaderImplementation,
-                                              const UniformDefinitions& uniformDefinitions)
+uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath)
 {
     auto materialId = m_registeredMaterialsMap.size();
+    m_registeredMaterialsMap[hrid] = materialId;
 
     logger.info("magma.vulkan.render-engine") << "Registering material " << hrid << " as " << materialId << "." << std::endl;
 
-    m_registeredMaterialsMap[hrid] = materialId;
+    // @note ShaderManager cannot handle shmag directly, it uses @magma:impl thingy
+    // to be able to switch-case them or so in other renderer shaders.
 
-    m_shadersManager.registerImplGroup(hrid, shaderImplementation);
+    ShmagReader shmagReader(shaderPath);
+    auto uniformDefinitions = shmagReader.uniformDefinitions();
+    auto shaderImplementation = shmagReader.processedString();
+    if (shmagReader.errored()) {
+        logger.warning("magma.vulkan.render-engine")
+            << "Cannot register material " << hrid << ", shmag reading failed." << std::endl;
+        return -1u;
+    }
+
+    // Start watching the file
+    const auto watchId = m_shadersWatcher.watch(shaderPath);
     auto& materialInfo = m_materialInfos[hrid];
     materialInfo.id = materialId;
     materialInfo.uniformDefinitions = uniformDefinitions;
-    return materialId;
-}
+    materialInfo.sourcePath = shaderPath;
+    materialInfo.watchId = watchId;
 
-uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath,
-                                                      const UniformDefinitions& uniformDefinitions)
-{
-    // Read the file
-    std::ifstream fileStream(shaderPath.string());
-    std::stringstream buffer;
-    buffer << fileStream.rdbuf();
-
-    // Start watching the file
-    const auto materialId = registerMaterial(hrid, buffer.str(), uniformDefinitions);
-    const auto watchId = m_shadersWatcher.watch(shaderPath);
-    m_materialInfos[hrid].sourcePath = shaderPath;
-    m_materialInfos[hrid].watchId = watchId;
+    m_shadersManager.registerImplGroup(hrid, shaderImplementation);
 
     return materialId;
 }
