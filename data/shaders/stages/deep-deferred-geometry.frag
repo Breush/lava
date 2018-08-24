@@ -14,7 +14,7 @@
 layout(location = 0) in mat3 inTbn;
 layout(location = 3) in vec2 inUv;
 
-layout (location = 0) out uvec4 outGBufferNodes[DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT];
+layout (location = 0) out uvec4 outGBufferRenderTargets[DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT];
 
 //----- Functions
 
@@ -40,16 +40,18 @@ void main()
         // as the depth resolution will occur further in the pipeline
 
         // Storing the node in the render targets
-        outGBufferNodes[0].x = node.materialId6_next26;
-        outGBufferNodes[0].y = floatBitsToUint(node.depth);
-        outGBufferNodes[0].z = node.materialData[0];
-        outGBufferNodes[0].w = node.materialData[1];
+        outGBufferRenderTargets[0].x = node.materialId6_next26;
+        outGBufferRenderTargets[0].y = floatBitsToUint(node.depth);
+        outGBufferRenderTargets[0].z = node.materialData[0];
+        outGBufferRenderTargets[0].w = node.materialData[1];
 
+        // @note We might write uninitialized memory if we go over materialData's size,
+        // but checking would cost us more in terms of performences.
         for (uint i = 1; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
-            outGBufferNodes[i].x = node.materialData[4 * (i - 1) + 2];
-            outGBufferNodes[i].y = node.materialData[4 * (i - 1) + 3];
-            outGBufferNodes[i].z = node.materialData[4 * (i - 1) + 4];
-            outGBufferNodes[i].w = node.materialData[4 * (i - 1) + 5];
+            outGBufferRenderTargets[i].x = node.materialData[4 * i - 2];
+            outGBufferRenderTargets[i].y = node.materialData[4 * i - 1];
+            outGBufferRenderTargets[i].z = node.materialData[4 * i + 0];
+            outGBufferRenderTargets[i].w = node.materialData[4 * i + 1];
         }
     } else {
         // If the material is translucent, we add it to the linked list,

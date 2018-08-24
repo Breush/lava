@@ -5,7 +5,9 @@ layout(set = DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, binding = 1, inpu
 layout(set = DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, binding = 2, input_attachment_index = 2) uniform usubpassInput gBufferInputNode2;
 layout(set = DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, binding = 3, input_attachment_index = 3) uniform usubpassInput gBufferInputNode3;
 
-uvec4 gBufferNode0 = subpassLoad(gBufferInputNode0);
-uvec4 gBufferNode1 = subpassLoad(gBufferInputNode1);
-uvec4 gBufferNode2 = subpassLoad(gBufferInputNode2);
-uvec4 gBufferNode3 = subpassLoad(gBufferInputNode3);
+uvec4 gBufferRenderTargets[] = {
+    subpassLoad(gBufferInputNode0),
+    subpassLoad(gBufferInputNode1),
+    subpassLoad(gBufferInputNode2),
+    subpassLoad(gBufferInputNode3)
+};

@@ -38,7 +38,6 @@ function useGlm()
     includedirs(externalPath .. "/include")
 
     defines { "GLM_FORCE_RADIANS", "GLM_FORCE_DEPTH_ZERO_TO_ONE" }
-    -- @fixme defines { "GLM_ENABLE_EXPERIMENTAL" }
 end
 
 print("[Dependencies] " .. NAME .. " (" .. VERSION .. ") is ready.")

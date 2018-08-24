@@ -32,27 +32,31 @@ void main()
 
     // If depth is not zero, there are material data
     float opaqueDepth = INFINITY;
-    if (gBufferNode0.y != 0) {
+    if (gBufferRenderTargets[0].y != 0) {
         GBufferNode node;
-        node.materialId6_next26 = gBufferNode0.x;
-        node.depth = uintBitsToFloat(gBufferNode0.y);
-        node.materialData[0] = gBufferNode0.z;
-        node.materialData[1] = gBufferNode0.w;
+        node.materialId6_next26 = gBufferRenderTargets[0].x;
+        node.depth = uintBitsToFloat(gBufferRenderTargets[0].y);
+        node.materialData[0] = gBufferRenderTargets[0].z;
+        node.materialData[1] = gBufferRenderTargets[0].w;
 
-        // @fixme Can't this be an array,
-        // making it easier to factorize?
-        node.materialData[2] = gBufferNode1.x;
-        node.materialData[3] = gBufferNode1.y;
-        node.materialData[4] = gBufferNode1.z;
-        node.materialData[5] = gBufferNode1.w;
+        uint i;
+        for (i = 1; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT - 1; ++i) {
+            node.materialData[4 * i - 2] = gBufferRenderTargets[i].x;
+            node.materialData[4 * i - 1] = gBufferRenderTargets[i].y;
+            node.materialData[4 * i + 0] = gBufferRenderTargets[i].z;
+            node.materialData[4 * i + 1] = gBufferRenderTargets[i].w;
+        }
 
-        node.materialData[6] = gBufferNode2.x;
-        node.materialData[7] = gBufferNode2.y;
-        node.materialData[8] = gBufferNode2.z;
-        node.materialData[9] = gBufferNode2.w;
-
-        node.materialData[10] = gBufferNode3.x;
-        node.materialData[11] = gBufferNode3.y;
+        // @note We make sure not to go above the materialData's size.
+        // We cannot use a constant instead of i because otherwise,
+        // the compiler can say out of bounds by itself.
+        node.materialData[4 * i - 2] = gBufferRenderTargets[i].x;
+        if (4 * i - 1 < DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE)
+            node.materialData[4 * i - 1] = gBufferRenderTargets[i].x;
+        if (4 * i + 0 < DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE)
+            node.materialData[4 * i + 0] = gBufferRenderTargets[i].x;
+        if (4 * i + 1 < DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE)
+            node.materialData[4 * i + 1] = gBufferRenderTargets[i].x;
 
         opaqueDepth = node.depth;
 
