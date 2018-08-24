@@ -57,7 +57,7 @@ void RenderScene::Impl::render(vk::CommandBuffer commandBuffer)
     }
 
     for (const auto& cameraBundle : m_cameraBundles) {
-        cameraBundle.deepDeferredStage->render(commandBuffer);
+        cameraBundle.rendererStage->render(commandBuffer);
     }
 }
 
@@ -71,11 +71,13 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
     m_cameraBundles.emplace_back();
     auto& cameraBundle = m_cameraBundles.back();
     cameraBundle.camera = std::move(camera);
-    cameraBundle.deepDeferredStage = std::make_unique<DeepDeferredStage>(*this);
+
+    // @fixme Let the user choose between renderers when others are implemented.
+    cameraBundle.rendererStage = std::make_unique<DeepDeferredStage>(*this);
 
     if (m_initialized) {
         cameraBundle.camera->interfaceImpl().init(cameraId);
-        cameraBundle.deepDeferredStage->init(cameraId);
+        cameraBundle.rendererStage->init(cameraId);
         updateStages(cameraId);
     }
 
@@ -205,7 +207,7 @@ RenderImage RenderScene::Impl::cameraRenderImage(uint32_t cameraIndex) const
         return RenderImage();
     }
 
-    return m_cameraBundles[cameraIndex].deepDeferredStage->renderImage();
+    return m_cameraBundles[cameraIndex].rendererStage->renderImage();
 }
 
 RenderImage RenderScene::Impl::cameraDepthRenderImage(uint32_t cameraIndex) const
@@ -223,7 +225,7 @@ RenderImage RenderScene::Impl::cameraDepthRenderImage(uint32_t cameraIndex) cons
         return RenderImage();
     }
 
-    return m_cameraBundles[cameraIndex].deepDeferredStage->depthRenderImage();
+    return m_cameraBundles[cameraIndex].rendererStage->depthRenderImage();
 }
 
 RenderImage RenderScene::Impl::lightShadowsRenderImage(uint32_t lightIndex) const
@@ -253,7 +255,7 @@ void RenderScene::Impl::initStages()
 
     for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
         auto& cameraBundle = m_cameraBundles[cameraId];
-        cameraBundle.deepDeferredStage->init(cameraId);
+        cameraBundle.rendererStage->init(cameraId);
         updateCamera(cameraId);
     }
 
@@ -288,9 +290,9 @@ void RenderScene::Impl::initResources()
 void RenderScene::Impl::updateStages(uint32_t cameraId)
 {
     auto& cameraBundle = m_cameraBundles[cameraId];
-    auto& deepDeferredStage = *cameraBundle.deepDeferredStage;
+    auto& rendererStage = *cameraBundle.rendererStage;
 
     // Extent update
     const auto& extent = cameraBundle.camera->interfaceImpl().renderExtent();
-    deepDeferredStage.update(extent);
+    rendererStage.update(extent);
 }

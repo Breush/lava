@@ -1,5 +1,7 @@
 #pragma once
 
+#include "./i-renderer-stage.hpp"
+
 #include <glm/vec3.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
@@ -12,10 +14,11 @@
 
 namespace lava::magma {
     /**
-     * Pipeline layout for the deep deferred rendering.
-     * It constructs a linked-list deep GBuffer.
+     * Deep deferred renderer.
+     *
+     * Constructs a deeply-linked-list for its GBuffer.
      */
-    class DeepDeferredStage final {
+    class DeepDeferredStage final : public IRendererStage {
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH = 3u;
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE = 12u;
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT = 4u;
@@ -41,12 +44,13 @@ namespace lava::magma {
     public:
         DeepDeferredStage(RenderScene::Impl& scene);
 
-        void init(uint32_t cameraId);
-        void update(vk::Extent2D extent);
-        void render(vk::CommandBuffer commandBuffer);
+        // IRendererStage
+        void init(uint32_t cameraId) override final;
+        void update(vk::Extent2D extent) override final;
+        void render(vk::CommandBuffer commandBuffer) override final;
 
-        RenderImage renderImage() const;
-        RenderImage depthRenderImage() const;
+        RenderImage renderImage() const override final;
+        RenderImage depthRenderImage() const override final;
 
     protected:
         void initGBuffer();
