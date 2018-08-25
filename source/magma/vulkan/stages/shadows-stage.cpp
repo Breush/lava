@@ -99,6 +99,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
 RenderImage ShadowsStage::renderImage() const
 {
     RenderImage renderImage;
+    renderImage.impl().uuid(RenderImage::Impl::UUID_CONTEXT_LIGHT_SHADOW_MAP + m_lightId);
     renderImage.impl().view(m_depthImageHolder.view());
     renderImage.impl().layout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
     return renderImage;

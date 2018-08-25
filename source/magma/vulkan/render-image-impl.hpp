@@ -12,6 +12,7 @@ namespace lava::magma {
     public:
         static constexpr auto UUID_CONTEXT_CAMERA = 0x00010000;
         static constexpr auto UUID_CONTEXT_CAMERA_DEPTH = 0x00020000;
+        static constexpr auto UUID_CONTEXT_LIGHT_SHADOW_MAP = 0x00030000;
 
     public:
         /**
