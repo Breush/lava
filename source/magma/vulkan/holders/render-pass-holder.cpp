@@ -36,6 +36,8 @@ void RenderPassHolder::init()
         // Color attachments
         auto& colorAttachmentReferences = attachmentsReferences[3 * i];
         for (const auto& colorAttachment : colorAttachments) {
+            bool previouslyUsed = colorAttachment.blending != PipelineHolder::ColorAttachmentBlending::None;
+
             vk::AttachmentReference reference;
             reference.attachment = attachmentDescriptions.size();
             reference.layout = vk::ImageLayout::eColorAttachmentOptimal;
@@ -44,7 +46,8 @@ void RenderPassHolder::init()
             vk::AttachmentDescription description;
             description.format = colorAttachment.format;
             description.samples = vk::SampleCountFlagBits::e1;
-            description.loadOp = vk::AttachmentLoadOp::eClear;
+            description.initialLayout = previouslyUsed ? colorAttachment.finalLayout : vk::ImageLayout::eUndefined;
+            description.loadOp = previouslyUsed ? vk::AttachmentLoadOp::eLoad : vk::AttachmentLoadOp::eClear;
             description.storeOp = vk::AttachmentStoreOp::eStore;
             description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
             description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;

@@ -5,6 +5,7 @@
 #include <glm/vec3.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include "../../g-buffer-data.hpp"
 #include "../holders/buffer-holder.hpp"
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"
@@ -20,25 +21,22 @@ namespace lava::magma {
      */
     class DeepDeferredStage final : public IRendererStage {
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH = 3u;
-        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE = 12u;
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT = 4u;
 
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX = 0u;
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX = 1u;
 
         constexpr static const uint32_t CAMERA_DESCRIPTOR_SET_INDEX = 2u;
-
         constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 3u;
         constexpr static const uint32_t GEOMETRY_MESH_DESCRIPTOR_SET_INDEX = 4u;
-
-        constexpr static const uint32_t EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX = 3u;
+        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 3u;
 
         struct GBufferNode {
             // 26 bits can handle 8K resolution
             // 6 bits allows 64 different material shaders
             uint32_t materialId6_next26;
             float depth;
-            uint8_t materialData[DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE];
+            uint32_t data[G_BUFFER_DATA_SIZE];
         };
 
     public:

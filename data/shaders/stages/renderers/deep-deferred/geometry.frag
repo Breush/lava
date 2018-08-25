@@ -5,9 +5,9 @@
 // @note Don't use early depth test,
 // otherwise transparent objects rendering will be erroneous.
 
-#include "./sets/deep-deferred-g-buffer-ssbo.set"
-#include "./sets/camera.set"
-#include "./sets/material.set"
+#include "./g-buffer-ssbo.set"
+#include "../../sets/camera.set"
+#include "../../sets/material.set"
 
 //----- Fragment forwarded in
 
@@ -18,9 +18,8 @@ layout (location = 0) out uvec4 outGBufferRenderTargets[DEEP_DEFERRED_GBUFFER_RE
 
 //----- Functions
 
-#include "./functions/defines.sfunc"
-#include "./functions/deep-deferred-common.sfunc"
-#include "./functions/deep-deferred-geometry-compose.sfunc"
+#include "../../helpers.sfunc"
+#include "./geometry-compose.sfunc"
 
 //----- Program
 
@@ -33,7 +32,9 @@ void main()
     node.materialId6_next26 = materialId << 26;
     node.depth = gl_FragCoord.z;
 
-    bool translucent = composeGeometry(node);
+    GBufferData gBufferData;
+    bool translucent = composeGeometry(materialId, gBufferData, node.depth);
+    node.data = gBufferData.data;
 
     if (!translucent) {
         // If the material is opaque, we just output to the render targets,
@@ -42,16 +43,16 @@ void main()
         // Storing the node in the render targets
         outGBufferRenderTargets[0].x = node.materialId6_next26;
         outGBufferRenderTargets[0].y = floatBitsToUint(node.depth);
-        outGBufferRenderTargets[0].z = node.materialData[0];
-        outGBufferRenderTargets[0].w = node.materialData[1];
+        outGBufferRenderTargets[0].z = node.data[0];
+        outGBufferRenderTargets[0].w = node.data[1];
 
-        // @note We might write uninitialized memory if we go over materialData's size,
+        // @note We might write uninitialized memory if we go over data's size,
         // but checking would cost us more in terms of performences.
         for (uint i = 1; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
-            outGBufferRenderTargets[i].x = node.materialData[4 * i - 2];
-            outGBufferRenderTargets[i].y = node.materialData[4 * i - 1];
-            outGBufferRenderTargets[i].z = node.materialData[4 * i + 0];
-            outGBufferRenderTargets[i].w = node.materialData[4 * i + 1];
+            outGBufferRenderTargets[i].x = node.data[4 * i - 2];
+            outGBufferRenderTargets[i].y = node.data[4 * i - 1];
+            outGBufferRenderTargets[i].z = node.data[4 * i + 0];
+            outGBufferRenderTargets[i].w = node.data[4 * i + 1];
         }
     } else {
         // If the material is translucent, we add it to the linked list,

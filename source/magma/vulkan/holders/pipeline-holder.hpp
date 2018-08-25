@@ -10,9 +10,15 @@ namespace lava::magma::vulkan {
      */
     class PipelineHolder final {
     public:
+        enum class ColorAttachmentBlending {
+            None,
+            AlphaBlending,
+        };
+
         struct ColorAttachment {
             vk::Format format;
             vk::ImageLayout finalLayout;
+            ColorAttachmentBlending blending = ColorAttachmentBlending::None;
         };
 
         struct DepthStencilAttachment {

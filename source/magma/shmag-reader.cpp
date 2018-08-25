@@ -224,7 +224,7 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
     parseToken(TokenType::RightParenthesis);
     parseToken(TokenType::LeftBrace);
 
-    adaptedCode << "bool @magma:impl:main (inout GBufferNode node) {" << std::endl;
+    adaptedCode << "bool @magma:impl:main (out GBufferData gBufferData, float fragmentDepth) {" << std::endl;
 
     // ----- Inject G-Buffer definitions
 
@@ -249,7 +249,7 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
             else if (inMap.find(token->string) != inMap.end())
                 tokenString = inMap[token->string];
             else if (token->string == "return")
-                injectGeometryNodeInsertion(adaptedCode);
+                injectGeometryGBufferDataInsertion(adaptedCode);
         }
 
         adaptedCode << tokenString << " ";
@@ -307,35 +307,35 @@ void ShmagReader::injectGeometryUniformDefinitions(std::stringstream& adaptedCod
     adaptedCode << std::endl;
 }
 
-void ShmagReader::injectGeometryNodeInsertion(std::stringstream& adaptedCode)
+void ShmagReader::injectGeometryGBufferDataInsertion(std::stringstream& adaptedCode)
 {
     uint16_t dataOffset = 0u;
 
     // @todo Handle ranges to reduce size by a lot!
 
     adaptedCode << std::endl;
-    adaptedCode << "// [shmag-reader] Injected final node insertion." << std::endl;
+    adaptedCode << "// [shmag-reader] Injected final G-Buffer data insertion." << std::endl;
     for (auto& gBufferDeclaration : m_gBufferDeclarations) {
         auto name = "gBuffer." + gBufferDeclaration.name;
         if (gBufferDeclaration.type == GBufferType::Float) {
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << ");" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << ");" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec3) {
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << "[0]);" << std::endl;
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << "[1]);" << std::endl;
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << "[2]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[0]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[1]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[2]);" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::NormalizedVec3) {
             // Storing spherical coordinates
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(acos(" << name << "[2]));" << std::endl;
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(atan(" << name << "[1]"
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(acos(" << name << "[2]));" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(atan(" << name << "[1]"
                         << ", " << name << "[0]));" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec4) {
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << "[0]);" << std::endl;
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << "[1]);" << std::endl;
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << "[2]);" << std::endl;
-            adaptedCode << "node.materialData[" << dataOffset++ << "] = floatBitsToUint(" << name << "[3]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[0]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[1]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[2]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[3]);" << std::endl;
         }
         else {
             logger.error("magma.shmag-reader") << "Unhandled G-Buffer declaration type." << std::endl;
@@ -428,7 +428,8 @@ void ShmagReader::parseEpiphanyMain(std::stringstream& adaptedCode)
     parseToken(TokenType::RightParenthesis);
     parseToken(TokenType::LeftBrace);
 
-    adaptedCode << "@magma:impl:main (GBufferNode node) {" << std::endl;
+    adaptedCode << "@magma:impl:main (GBufferData gBufferData, float fragmentDepth) {" << std::endl;
+    adaptedCode << "    vec2 fragmentPosition = gl_FragCoord.xy / vec2(camera.extent);" << std::endl;
 
     // ----- Inject G-Buffer definitions
 
@@ -436,21 +437,14 @@ void ShmagReader::parseEpiphanyMain(std::stringstream& adaptedCode)
 
     // ----- Inject node extraction
 
-    injectEpiphanyNodeExtraction(adaptedCode);
+    injectEpiphanyGBufferDataExtraction(adaptedCode);
 
     // ----- Remap original code
-
-    // @todo These are fixed?
-    std::unordered_map<std::string, std::string> inMap = {{"fragmentPosition", "inUv"}, {"fragmentDepth", "node.depth"}};
 
     adaptedCode << "// [shmag-reader] Remapped original epiphany code." << std::endl;
     auto bracesCount = 1u;
     while (auto token = m_lexer->nextToken()) {
         auto tokenString = token->string;
-        if (token->type == TokenType::Identifier && inMap.find(token->string) != inMap.end()) {
-            tokenString = inMap[token->string];
-        }
-
         adaptedCode << tokenString << " ";
 
         // @todo Make a better pretty print? (Using it in shader-manager too.)
@@ -470,38 +464,38 @@ void ShmagReader::parseEpiphanyMain(std::stringstream& adaptedCode)
     }
 }
 
-void ShmagReader::injectEpiphanyNodeExtraction(std::stringstream& adaptedCode)
+void ShmagReader::injectEpiphanyGBufferDataExtraction(std::stringstream& adaptedCode)
 {
     uint16_t dataOffset = 0u;
 
     // @todo Handle ranges!
 
-    adaptedCode << "// [shmag-reader] Injected node extraction." << std::endl;
+    adaptedCode << "// [shmag-reader] Injected G-Buffer data extraction." << std::endl;
     for (auto& gBufferDeclaration : m_gBufferDeclarations) {
         auto name = "gBuffer." + gBufferDeclaration.name;
         if (gBufferDeclaration.type == GBufferType::Float) {
-            adaptedCode << name << " = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec3) {
-            adaptedCode << name << "[0] = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
-            adaptedCode << name << "[1] = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
-            adaptedCode << name << "[2] = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[0] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[2] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::NormalizedVec3) {
             // From spherical coordinates
             auto phi = "gBuffer_" + gBufferDeclaration.name + "_phi";
             auto theta = "gBuffer_" + gBufferDeclaration.name + "_theta";
-            adaptedCode << "float " << phi << " = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
-            adaptedCode << "float " << theta << " = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << "float " << phi << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << "float " << theta << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
             adaptedCode << name << "[0] = sin(" << phi << ") * cos(" << theta << ");" << std::endl;
             adaptedCode << name << "[1] = sin(" << phi << ") * sin(" << theta << ");" << std::endl;
             adaptedCode << name << "[2] = cos(" << phi << ");" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec4) {
-            adaptedCode << name << "[0] = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
-            adaptedCode << name << "[1] = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
-            adaptedCode << name << "[2] = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
-            adaptedCode << name << "[3] = uintBitsToFloat(node.materialData[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[0] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[2] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[3] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
         }
         else {
             logger.error("magma.shmag-reader") << "Unhandled G-Buffer declaration type." << std::endl;

@@ -2,10 +2,10 @@
 #pragma shader_stage(fragment)
 #extension GL_ARB_separate_shader_objects : enable
 
-#include "./sets/deep-deferred-g-buffer-input.set"
-#include "./sets/deep-deferred-g-buffer-ssbo.set"
-#include "./sets/camera.set"
-#include "./sets/deep-deferred-epiphany-lights.set"
+#include "./g-buffer-input.set"
+#include "./g-buffer-ssbo.set"
+#include "../../sets/camera.set"
+#include "../../sets/lights.set"
 
 //----- Fragment in
 
@@ -17,9 +17,8 @@ layout(location = 0) out vec3 outColor;
 
 //----- Functions
 
-#include "./functions/defines.sfunc"
-#include "./functions/deep-deferred-common.sfunc"
-#include "./functions/deep-deferred-epiphany-compose.sfunc"
+#include "../../helpers.sfunc"
+#include "./epiphany-compose.sfunc"
 
 //----- Program
 
@@ -36,31 +35,33 @@ void main()
         GBufferNode node;
         node.materialId6_next26 = gBufferRenderTargets[0].x;
         node.depth = uintBitsToFloat(gBufferRenderTargets[0].y);
-        node.materialData[0] = gBufferRenderTargets[0].z;
-        node.materialData[1] = gBufferRenderTargets[0].w;
+        node.data[0] = gBufferRenderTargets[0].z;
+        node.data[1] = gBufferRenderTargets[0].w;
 
         uint i;
         for (i = 1; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT - 1; ++i) {
-            node.materialData[4 * i - 2] = gBufferRenderTargets[i].x;
-            node.materialData[4 * i - 1] = gBufferRenderTargets[i].y;
-            node.materialData[4 * i + 0] = gBufferRenderTargets[i].z;
-            node.materialData[4 * i + 1] = gBufferRenderTargets[i].w;
+            node.data[4 * i - 2] = gBufferRenderTargets[i].x;
+            node.data[4 * i - 1] = gBufferRenderTargets[i].y;
+            node.data[4 * i + 0] = gBufferRenderTargets[i].z;
+            node.data[4 * i + 1] = gBufferRenderTargets[i].w;
         }
 
-        // @note We make sure not to go above the materialData's size.
+        // @note We make sure not to go above the data's size.
         // We cannot use a constant instead of i because otherwise,
         // the compiler can say out of bounds by itself.
-        node.materialData[4 * i - 2] = gBufferRenderTargets[i].x;
-        if (4 * i - 1 < DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE)
-            node.materialData[4 * i - 1] = gBufferRenderTargets[i].x;
-        if (4 * i + 0 < DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE)
-            node.materialData[4 * i + 0] = gBufferRenderTargets[i].x;
-        if (4 * i + 1 < DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE)
-            node.materialData[4 * i + 1] = gBufferRenderTargets[i].x;
+        node.data[4 * i - 2] = gBufferRenderTargets[i].x;
+        if (4 * i - 1 < G_BUFFER_DATA_SIZE)
+            node.data[4 * i - 1] = gBufferRenderTargets[i].x;
+        if (4 * i + 0 < G_BUFFER_DATA_SIZE)
+            node.data[4 * i + 0] = gBufferRenderTargets[i].x;
+        if (4 * i + 1 < G_BUFFER_DATA_SIZE)
+            node.data[4 * i + 1] = gBufferRenderTargets[i].x;
 
         opaqueDepth = node.depth;
 
-        color = composeEpiphany(node).rgb;
+        GBufferData gBufferData;
+        gBufferData.data = node.data;
+        color = composeEpiphany(node.materialId6_next26 >> 26, gBufferData, opaqueDepth).rgb;
     }
 
     //----- Translucent materials
@@ -101,7 +102,11 @@ void main()
     // and composing translucent fragments.
     for (uint i = 0; i < nodeCount; ++i) {
         GBufferNode node = gBufferList.nodes[sortedListIndices[i]];
-        vec4 nodeColor = composeEpiphany(node);
+
+        GBufferData gBufferData;
+        gBufferData.data = node.data;
+        vec4 nodeColor = composeEpiphany(node.materialId6_next26 >> 26, gBufferData, node.depth);
+
         color = mix(color, nodeColor.rgb, nodeColor.a);
     }
 

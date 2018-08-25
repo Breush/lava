@@ -6,3 +6,5 @@ layout(set = CAMERA_DESCRIPTOR_SET_INDEX, binding = 0) uniform CameraUbo {
     vec4 wPosition;
     uvec2 extent;
 } camera;
+
+#include "../helpers/camera.sfunc"

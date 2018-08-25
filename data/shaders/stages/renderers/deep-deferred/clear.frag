@@ -2,7 +2,7 @@
 #pragma shader_stage(fragment)
 #extension GL_ARB_separate_shader_objects : enable
 
-#include "./sets/deep-deferred-g-buffer-ssbo.set"
+#include "./g-buffer-ssbo.set"
 
 //----- Fragment in
 

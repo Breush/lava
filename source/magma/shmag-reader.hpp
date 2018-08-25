@@ -59,14 +59,14 @@ namespace lava::magma {
         void parseGeometryMain(std::stringstream& adaptedCode);
 
         void injectGeometryUniformDefinitions(std::stringstream& adaptedCode);
-        void injectGeometryNodeInsertion(std::stringstream& adaptedCode);
+        void injectGeometryGBufferDataInsertion(std::stringstream& adaptedCode);
 
         // Epiphany
         void parseEpiphany(std::stringstream& adaptedCode);
         void parseEpiphanyBlock(std::stringstream& adaptedCode, bool expectSemicolon = false);
         void parseEpiphanyMain(std::stringstream& adaptedCode);
 
-        void injectEpiphanyNodeExtraction(std::stringstream& adaptedCode);
+        void injectEpiphanyGBufferDataExtraction(std::stringstream& adaptedCode);
 
         // Common
         void injectGBufferDefinitions(std::stringstream& adaptedCode);

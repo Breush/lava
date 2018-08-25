@@ -105,13 +105,25 @@ void PipelineHolder::update(vk::Extent2D extent)
     std::vector<vk::PipelineColorBlendAttachmentState> colorBlendAttachmentStates;
     colorBlendAttachmentStates.resize(m_colorAttachments.size());
 
-    for (auto& colorBlendAttachmentState : colorBlendAttachmentStates) {
+    for (auto i = 0u; i < colorBlendAttachmentStates.size(); ++i) {
+        auto& colorBlendAttachmentState = colorBlendAttachmentStates[i];
         colorBlendAttachmentState.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
                                                    | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+
+        if (m_colorAttachments[i].blending == ColorAttachmentBlending::AlphaBlending) {
+            // finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * oldColor;
+            // finalColor.a = newAlpha.a;
+            colorBlendAttachmentState.blendEnable = true;
+            colorBlendAttachmentState.colorBlendOp = vk::BlendOp::eAdd;
+            colorBlendAttachmentState.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+            colorBlendAttachmentState.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+            colorBlendAttachmentState.alphaBlendOp = vk::BlendOp::eAdd;
+            colorBlendAttachmentState.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+            colorBlendAttachmentState.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        }
     }
 
     vk::PipelineColorBlendStateCreateInfo colorBlendState;
-    colorBlendState.logicOp = vk::LogicOp::eCopy;
     colorBlendState.attachmentCount = colorBlendAttachmentStates.size();
     colorBlendState.pAttachments = colorBlendAttachmentStates.data();
 

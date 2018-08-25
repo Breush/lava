@@ -23,7 +23,7 @@ epiphany {
         vec3 n = gBuffer.normal;
 
         // General ambient
-        vec3 wPosition = wPositionFromDepth(node.depth, inUv);
+        vec3 wPosition = wPositionFromDepth(fragmentDepth, fragmentPosition);
         vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
 
         // Material-specific

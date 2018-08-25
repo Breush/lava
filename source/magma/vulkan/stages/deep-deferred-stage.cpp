@@ -3,6 +3,7 @@
 #include <lava/chamber/logger.hpp>
 
 #include "../cameras/i-camera-impl.hpp"
+#include "../helpers/format.hpp"
 #include "../lights/directional-light-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../lights/point-light-impl.hpp"
@@ -11,32 +12,6 @@
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../vertex.hpp"
-
-namespace {
-    vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, const std::vector<vk::Format>& candidates,
-                                   vk::ImageTiling tiling, vk::FormatFeatureFlags features)
-    {
-        for (auto format : candidates) {
-            vk::FormatProperties props = physicalDevice.getFormatProperties(format);
-
-            if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
-                return format;
-            }
-            else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
-                return format;
-            }
-        }
-
-        return vk::Format::eUndefined;
-    }
-
-    vk::Format findDepthBufferFormat(vk::PhysicalDevice physicalDevice)
-    {
-        return findSupportedFormat(physicalDevice,
-                                   {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
-                                   vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
-    }
-}
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -157,7 +132,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     // @todo Let the lights do that by themselves?
     updateEpiphanyLightsBindings();
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
-                                     EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX, 1, &m_lightsDescriptorSet, 0, nullptr);
+                                     LIGHTS_DESCRIPTOR_SET_INDEX, 1, &m_lightsDescriptorSet, 0, nullptr);
 
     commandBuffer.draw(6, 1, 0, 1);
 
@@ -218,14 +193,13 @@ void DeepDeferredStage::initClearPass()
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
-    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE"] =
-        std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
+    moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
     auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-clear.frag", moduleOptions);
+        m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/deep-deferred/clear.frag", moduleOptions);
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     //----- Descriptor set layouts
@@ -256,7 +230,7 @@ void DeepDeferredStage::initGeometryPass()
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format = findDepthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
     m_geometryPipelineHolder.set(depthStencilAttachment);
 
     vulkan::PipelineHolder::ColorAttachment gBufferNodeColorAttachment;
@@ -319,8 +293,6 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
-    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE"] =
-        std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
@@ -328,14 +300,14 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
     moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MESH_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
     if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryPassShaders(false); };
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.vert", moduleOptions);
+    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/geometry.vert", moduleOptions);
     m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-geometry.frag", moduleOptions);
+        m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/deep-deferred/geometry.frag", moduleOptions);
     m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     if (!firstTime) {
@@ -349,8 +321,6 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
-    moduleOptions.defines["DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE"] =
-        std::to_string(DEEP_DEFERRED_GBUFFER_NODE_MATERIAL_DATA_SIZE);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
@@ -358,7 +328,8 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
-    moduleOptions.defines["EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
     if (firstTime) moduleOptions.updateCallback = [this]() { updateEpiphanyPassShaders(false); };
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
@@ -366,7 +337,7 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
     m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
     auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/deep-deferred-epiphany.frag", moduleOptions);
+        m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/deep-deferred/epiphany.frag", moduleOptions);
     m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     if (!firstTime) {
@@ -406,7 +377,7 @@ void DeepDeferredStage::createResources()
     m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
 
     // Depth
-    auto depthFormat = findDepthBufferFormat(m_scene.engine().physicalDevice());
+    auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
     m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
 }
 

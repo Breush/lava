@@ -1,0 +1,9 @@
+mat4 viewTransformInverse = inverse(camera.viewTransform);
+mat4 projectionTransformInverse = inverse(camera.projectionTransform);
+
+vec3 wPositionFromDepth(float depth, vec2 coord) {
+    vec4 pPosition = vec4(2 * coord - 1, depth, 1);
+    vec4 vPosition = projectionTransformInverse * pPosition;
+    vPosition /= vPosition.w;
+    return (viewTransformInverse * vPosition).xyz;
+}

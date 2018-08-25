@@ -1,0 +1,9 @@
+#softdefine G_BUFFER_DATA_SIZE
+
+/**
+ * The basic G-Buffer data that is sent to geometry and epiphany
+ * functions of each materials.
+ */
+struct GBufferData {
+    uint data[G_BUFFER_DATA_SIZE];
+};
