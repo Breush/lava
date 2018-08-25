@@ -37,7 +37,6 @@ bool WindowRenderTarget::Impl::prepare()
     static const auto MAX = std::numeric_limits<uint64_t>::max();
 
     m_engine.device().waitForFences(1u, &m_fence, true, MAX);
-    m_engine.device().resetFences(1u, &m_fence);
 
     auto result = m_swapchainHolder.acquireNextImage();
 
@@ -57,6 +56,7 @@ bool WindowRenderTarget::Impl::prepare()
         return false;
     }
 
+    m_engine.device().resetFences(1u, &m_fence);
     return true;
 }
 
