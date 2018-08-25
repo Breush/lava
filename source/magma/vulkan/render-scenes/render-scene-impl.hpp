@@ -34,8 +34,10 @@ namespace lava::magma {
 
         // IRenderScene
         void init(uint32_t id) override final;
-
         void render(vk::CommandBuffer commandBuffer) override final;
+
+        // User control.
+        void rendererType(RendererType rendererType) { m_rendererType = rendererType; }
 
         /**
          * @name Adders
@@ -114,6 +116,8 @@ namespace lava::magma {
         RenderEngine::Impl& m_engine;
         bool m_initialized = false;
         uint32_t m_id = -1u;
+
+        RendererType m_rendererType;
 
         // Resources
         vulkan::DescriptorHolder m_lightDescriptorHolder;

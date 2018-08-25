@@ -8,6 +8,7 @@
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
+#include "../stages/forward-renderer-stage.hpp"
 #include "../stages/shadows-stage.hpp"
 #include "../texture-impl.hpp"
 
@@ -16,6 +17,7 @@ using namespace lava::chamber;
 
 RenderScene::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
+    , m_rendererType(RendererType::Forward)
     , m_lightDescriptorHolder(m_engine)
     , m_cameraDescriptorHolder(m_engine)
     , m_materialDescriptorHolder(m_engine)
@@ -65,15 +67,19 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
 {
     const uint32_t cameraId = m_cameraBundles.size();
 
-    logger.info("magma.vulkan.render-scenes.render-scene") << "Adding camera " << cameraId << "." << std::endl;
+    logger.info("magma.vulkan.render-scenes.render-scene")
+        << "Adding camera " << cameraId << " (" << m_rendererType << ")." << std::endl;
     logger.log().tab(1);
 
     m_cameraBundles.emplace_back();
     auto& cameraBundle = m_cameraBundles.back();
     cameraBundle.camera = std::move(camera);
 
-    // @fixme Let the user choose between renderers when others are implemented.
-    cameraBundle.rendererStage = std::make_unique<DeepDeferredStage>(*this);
+    // @note We fallback to a forward renderer if something is not handled.
+    if (m_rendererType == RendererType::DeepDeferred)
+        cameraBundle.rendererStage = std::make_unique<DeepDeferredStage>(*this);
+    else
+        cameraBundle.rendererStage = std::make_unique<ForwardRendererStage>(*this);
 
     if (m_initialized) {
         cameraBundle.camera->interfaceImpl().init(cameraId);

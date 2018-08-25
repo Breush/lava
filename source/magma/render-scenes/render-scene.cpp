@@ -26,6 +26,8 @@ IRenderScene::Impl& RenderScene::interfaceImpl()
     return *m_impl;
 }
 
+$pimpl_method(RenderScene, void, rendererType, RendererType, rendererType);
+
 // Adders
 void RenderScene::add(std::unique_ptr<ICamera>&& camera)
 {
