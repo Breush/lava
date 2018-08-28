@@ -1,6 +1,7 @@
 #include "./deep-deferred-stage.hpp"
 
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/tracker.hpp>
 
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
@@ -109,6 +110,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
+        tracker.counter("draw-calls.renderer") += 1u;
         mesh->interfaceImpl().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_DESCRIPTOR_SET_INDEX,
                                      GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
     }

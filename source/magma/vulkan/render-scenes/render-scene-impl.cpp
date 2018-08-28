@@ -1,6 +1,7 @@
 #include "./render-scene-impl.hpp"
 
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/tracker.hpp>
 
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
@@ -54,6 +55,9 @@ void RenderScene::Impl::init(uint32_t id)
 
 void RenderScene::Impl::render(vk::CommandBuffer commandBuffer)
 {
+    tracker.counter("draw-calls.shadows") = 0u;
+    tracker.counter("draw-calls.renderer") = 0u;
+
     for (const auto& lightBundle : m_lightBundles) {
         if (lightBundle.light->shadowsEnabled()) {
             lightBundle.shadowsStage->render(commandBuffer);

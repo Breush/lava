@@ -45,3 +45,7 @@ void RenderEngine::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 {
     m_impl->add(std::move(renderTarget));
 }
+
+//----- Extra
+
+$pimpl_method(RenderEngine, void, logTrackingOnce);

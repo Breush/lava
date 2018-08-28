@@ -36,6 +36,7 @@ namespace lava::magma {
         uint32_t registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
         uint32_t addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport);
         void removeView(uint32_t viewId);
+        void logTrackingOnce() { m_logTracking = true; }
 
         /**
          * @name Materials
@@ -115,6 +116,8 @@ namespace lava::magma {
         };
 
     private:
+        bool m_logTracking = false;
+
         vulkan::InstanceHolder m_instanceHolder;
         vulkan::DeviceHolder m_deviceHolder;
 

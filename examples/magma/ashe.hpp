@@ -354,6 +354,10 @@ namespace lava::ashe {
                         depthViewId = -1u;
                     }
                 }
+                // Press F to get extra logging
+                else if (event.key.which == Key::F) {
+                    m_engine->logTrackingOnce();
+                }
                 // @todo Write better controls for the light
                 else if (event.key.which == Key::Right) {
                     lightDelta = {-0.1f, 0.f, 0.f};

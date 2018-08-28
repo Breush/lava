@@ -1,6 +1,7 @@
 #include "./shadows-stage.hpp"
 
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/tracker.hpp>
 
 #include "../lights/i-light-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
@@ -81,6 +82,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
     // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
         if (!mesh->canCastShadows()) continue;
+        tracker.counter("draw-calls.shadows") += 1u;
         mesh->interfaceImpl().render(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX, -1u);
     }
 

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/tracker.hpp>
 
 #include "../shmag-reader.hpp"
 #include "./cameras/i-camera-impl.hpp"
@@ -347,8 +348,19 @@ vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTarget
 
     // @todo The scenes should know which cameras to render at any time.
     // And render only those.
-    for (auto& renderScene : m_renderScenes) {
+    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
+        auto& renderScene = m_renderScenes[renderSceneId];
         renderScene->interfaceImpl().render(commandBuffer);
+
+        // Tracking
+        if (m_logTracking) {
+            chamber::logger.info("magma.render-engine") << "Render scene " << renderSceneId << "." << std::endl;
+            chamber::logger.log().tab(1);
+            chamber::logger.log() << "draw-calls.renderer: " << chamber::tracker.counter("draw-calls.renderer") << std::endl;
+            chamber::logger.log() << "draw-calls.shadows: " << chamber::tracker.counter("draw-calls.shadows") << std::endl;
+            chamber::logger.log().tab(-1);
+            m_logTracking = false;
+        }
     }
 
     renderTargetBundle.presentStage->render(commandBuffer);

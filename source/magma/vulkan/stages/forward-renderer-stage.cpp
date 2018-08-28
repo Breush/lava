@@ -1,6 +1,7 @@
 #include "./forward-renderer-stage.hpp"
 
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/tracker.hpp>
 
 #include "../../g-buffer-data.hpp"
 #include "../cameras/i-camera-impl.hpp"
@@ -102,6 +103,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
+        tracker.counter("draw-calls.renderer") += 1u;
         mesh->interfaceImpl().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
                                      MATERIAL_DESCRIPTOR_SET_INDEX);
     }

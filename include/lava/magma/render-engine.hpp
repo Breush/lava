@@ -79,6 +79,9 @@ namespace lava::magma {
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 
+        /// Enable extra logging for next draw.
+        void logTrackingOnce();
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

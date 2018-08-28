@@ -169,6 +169,7 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
         }
         else if (event.key.which == Key::F) {
             // @todo Move that to ashe.
+            m_renderEngine->logTrackingOnce();
             m_fpsCounterEnabled = true;
         }
 
