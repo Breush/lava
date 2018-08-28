@@ -12,7 +12,7 @@ namespace lava::magma {
      * Creating a shadows maps for the lights.
      */
     class ShadowsStage final {
-        constexpr static const uint32_t SHADOWS_LIGHT_DESCRIPTOR_SET_INDEX = 0u;
+        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 0u;
         constexpr static const uint32_t MESH_DESCRIPTOR_SET_INDEX = 1u;
 
     public:

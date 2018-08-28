@@ -2,7 +2,7 @@
 #pragma shader_stage(vertex)
 #extension GL_ARB_separate_shader_objects : enable
 
-#include "./sets/shadows-light.set"
+#include "./sets/lights.set"
 #include "./sets/mesh.set"
 
 //----- Vertex data in
@@ -22,5 +22,8 @@ out gl_PerVertex {
 //----- Program
 
 void main() {
+    // @note This light will become lights[0] one day, when we handle
+    // multiple runtime lights.
+
     gl_Position = light.transform * mesh.transform * vec4(inMPosition, 1);
 }

@@ -21,15 +21,15 @@ namespace lava::magma {
         RenderImage shadowsRenderImage() const override final;
         ILight::Impl& interfaceImpl() override final;
 
+        // @note Shadows are currently forced.
+        bool shadowsEnabled() const override final { return true; }
+
         // In order to cast shadows, the light needs a translation
         const glm::vec3& translation() const;
         void translation(const glm::vec3& translation);
 
         const glm::vec3& direction() const;
         void direction(const glm::vec3& direction);
-
-        // World-space shadow-map projection transform.
-        const glm::mat4& shadowsTransform() const;
 
     public:
         class Impl;

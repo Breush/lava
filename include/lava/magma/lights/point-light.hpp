@@ -21,6 +21,9 @@ namespace lava::magma {
         RenderImage shadowsRenderImage() const override final;
         ILight::Impl& interfaceImpl() override final;
 
+        // @note Shadows for point lights are currently not handled.
+        bool shadowsEnabled() const override final { return false; }
+
         const glm::vec3& translation() const;
         void translation(const glm::vec3& translation);
 

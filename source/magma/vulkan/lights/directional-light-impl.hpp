@@ -7,7 +7,6 @@
 #include <lava/core/macros.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
-#include "../holders/image-holder.hpp"
 #include "../holders/ubo-holder.hpp"
 
 namespace lava::magma {
@@ -26,13 +25,12 @@ namespace lava::magma {
         void init(uint32_t id) override final;
         LightType type() const override final { return LightType::Directional; };
 
-        void renderShadows(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                           uint32_t descriptorSetIndex) const override final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
+                    uint32_t descriptorSetIndex) const override final;
 
         // DirectionalLight
         void translation(const glm::vec3& translation);
         void direction(const glm::vec3& direction);
-        const glm::mat4& shadowsTransform() const { return m_shadowsTransform; }
 
     protected:
         void updateBindings();
@@ -53,6 +51,6 @@ namespace lava::magma {
         $attribute(glm::vec3, direction);
 
         // Attributes
-        glm::mat4 m_shadowsTransform;
+        glm::mat4 m_transform;
     };
 }

@@ -76,7 +76,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
 
     auto& light = m_scene.light(m_lightId);
-    light.renderShadows(commandBuffer, m_pipelineHolder.pipelineLayout(), SHADOWS_LIGHT_DESCRIPTOR_SET_INDEX);
+    light.render(commandBuffer, m_pipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
 
     // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
@@ -112,7 +112,9 @@ void ShadowsStage::initPass()
     //----- Shaders
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["SHADOWS_LIGHT_DESCRIPTOR_SET_INDEX"] = std::to_string(SHADOWS_LIGHT_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
+    moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(MESH_DESCRIPTOR_SET_INDEX);
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
@@ -122,7 +124,7 @@ void ShadowsStage::initPass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_pipelineHolder.add(m_scene.lightDescriptorHolder().setLayout());
+    m_pipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
     m_pipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
 
     //----- Attachments

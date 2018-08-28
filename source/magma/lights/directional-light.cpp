@@ -15,5 +15,3 @@ ILight::Impl& DirectionalLight::interfaceImpl()
 
 $pimpl_property(DirectionalLight, glm::vec3, translation);
 $pimpl_property(DirectionalLight, glm::vec3, direction);
-
-$pimpl_method_const(DirectionalLight, const glm::mat4&, shadowsTransform);

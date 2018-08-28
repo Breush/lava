@@ -4,9 +4,7 @@
 
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
-#include "../lights/directional-light-impl.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../lights/point-light-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
@@ -22,8 +20,6 @@ DeepDeferredStage::DeepDeferredStage(RenderScene::Impl& scene)
     , m_clearPipelineHolder(m_scene.engine())
     , m_geometryPipelineHolder(m_scene.engine())
     , m_epiphanyPipelineHolder(m_scene.engine())
-    , m_lightsDescriptorHolder(m_scene.engine())
-    , m_lightsUboHolder(m_scene.engine())
     , m_gBufferInputDescriptorHolder(m_scene.engine())
     , m_gBufferSsboDescriptorHolder(m_scene.engine())
     , m_gBufferSsboHeaderBufferHolder(m_scene.engine())
@@ -129,10 +125,10 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
                                      DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0,
                                      nullptr);
 
-    // @todo Let the lights do that by themselves?
-    updateEpiphanyLightsBindings();
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
-                                     LIGHTS_DESCRIPTOR_SET_INDEX, 1, &m_lightsDescriptorSet, 0, nullptr);
+    // Bind lights
+    for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
+        m_scene.light(lightId).render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
+    }
 
     commandBuffer.draw(6, 1, 0, 1);
 
@@ -176,11 +172,6 @@ void DeepDeferredStage::initGBuffer()
     m_gBufferSsboDescriptorHolder.storageBufferSizes({1, 1});
     m_gBufferSsboDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
     m_gBufferSsboDescriptorSet = m_gBufferSsboDescriptorHolder.allocateSet("deep-deferred.g-buffer-ssbo");
-
-    m_lightsDescriptorHolder.uniformBufferSizes({1});
-    m_lightsDescriptorHolder.combinedImageSamplerSizes({1});
-    m_lightsDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
-    m_lightsDescriptorSet = m_lightsDescriptorHolder.allocateSet("deep-deferred.lights");
 }
 
 void DeepDeferredStage::initClearPass()
@@ -264,12 +255,7 @@ void DeepDeferredStage::initEpiphanyPass()
     m_epiphanyPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
-    m_epiphanyPipelineHolder.add(m_lightsDescriptorHolder.setLayout());
-
-    //----- Uniform buffers
-
-    m_lightsUboHolder.init(m_lightsDescriptorSet, m_lightsDescriptorHolder.uniformBufferBindingOffset(),
-                           {sizeof(vulkan::LightUbo)});
+    m_epiphanyPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
     //----- Attachments
 
@@ -329,6 +315,8 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
+    moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
     if (firstTime) moduleOptions.updateCallback = [this]() { updateEpiphanyPassShaders(false); };
 
@@ -409,47 +397,5 @@ void DeepDeferredStage::createFramebuffers()
 
     if (m_scene.engine().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.deep-deferred-stage") << "Failed to create framebuffers." << std::endl;
-    }
-}
-
-void DeepDeferredStage::updateEpiphanyLightsBindings()
-{
-    if (m_scene.lightsCount() > 0) {
-        // @todo Handle more than one light.
-        const auto lightId = 0u;
-        const auto& light = m_scene.light(lightId);
-
-        // @todo Let the light fill the data, right?
-        vulkan::LightUbo ubo;
-        ubo.type = static_cast<uint32_t>(light.type());
-
-        if (light.type() == LightType::Point) {
-            const auto& pointLight = reinterpret_cast<const PointLight::Impl&>(light);
-
-            ubo.wPosition = glm::vec4(pointLight.translation(), 1.f);
-            ubo.data[0].x = reinterpret_cast<const uint32_t&>(pointLight.radius());
-        }
-        else if (light.type() == LightType::Directional) {
-            const auto& directionalLight = reinterpret_cast<const DirectionalLight::Impl&>(light);
-            const auto direction = directionalLight.direction();
-
-            ubo.transform = directionalLight.shadowsTransform();
-            ubo.wPosition = glm::vec4(directionalLight.translation(), 1.f);
-            ubo.data[0].x = reinterpret_cast<const uint32_t&>(direction.x);
-            ubo.data[0].y = reinterpret_cast<const uint32_t&>(direction.y);
-            ubo.data[0].z = reinterpret_cast<const uint32_t&>(direction.z);
-
-            // Bind the shadow map
-            const auto binding = m_lightsDescriptorHolder.combinedImageSamplerBindingOffset();
-            auto shadowsRenderImage = directionalLight.shadowsRenderImage();
-            auto imageView = shadowsRenderImage.impl().view();
-            auto imageLayout = shadowsRenderImage.impl().layout();
-
-            const auto& sampler = m_scene.engine().shadowsSampler();
-            vulkan::updateDescriptorSet(m_scene.engine().device(), m_lightsDescriptorSet, imageView, sampler, imageLayout,
-                                        binding, 0u);
-        }
-
-        m_lightsUboHolder.copy(0, ubo);
     }
 }

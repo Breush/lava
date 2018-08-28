@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../light-type.hpp"
+
 #include <glm/glm.hpp>
 
 // @fixme UBO definitions should not be in 'vulkan' namespace...
@@ -38,9 +40,11 @@ namespace lava::magma::vulkan {
         };
 
         glm::mat4 transform;
-        glm::vec4 wPosition;
         glm::uvec4 data[2];
 
-        LightUbo() {}
+        LightUbo(LightType lightType)
+            : type(static_cast<uint32_t>(lightType))
+        {
+        }
     };
 }

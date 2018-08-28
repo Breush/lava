@@ -1,5 +1,0 @@
-#softdefine SHADOWS_LIGHT_DESCRIPTOR_SET_INDEX
-
-layout(set = SHADOWS_LIGHT_DESCRIPTOR_SET_INDEX, binding = 0) uniform LightUbo {
-    mat4 transform;
-} light;

@@ -18,7 +18,7 @@ using namespace lava::chamber;
 RenderScene::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
     , m_rendererType(RendererType::Forward)
-    , m_lightDescriptorHolder(m_engine)
+    , m_lightsDescriptorHolder(m_engine)
     , m_cameraDescriptorHolder(m_engine)
     , m_materialDescriptorHolder(m_engine)
     , m_meshDescriptorHolder(m_engine)
@@ -34,8 +34,9 @@ void RenderScene::Impl::init(uint32_t id)
     m_id = id;
     m_initialized = true;
 
-    m_lightDescriptorHolder.uniformBufferSizes({1});
-    m_lightDescriptorHolder.init(64, vk::ShaderStageFlagBits::eVertex);
+    m_lightsDescriptorHolder.uniformBufferSizes({1});
+    m_lightsDescriptorHolder.combinedImageSamplerSizes({1});
+    m_lightsDescriptorHolder.init(64, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
     m_cameraDescriptorHolder.uniformBufferSizes({1});
     m_cameraDescriptorHolder.init(16, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
@@ -54,8 +55,9 @@ void RenderScene::Impl::init(uint32_t id)
 void RenderScene::Impl::render(vk::CommandBuffer commandBuffer)
 {
     for (const auto& lightBundle : m_lightBundles) {
-        // @fixme Allow not to have a shadow map for some lights
-        lightBundle.shadowsStage->render(commandBuffer);
+        if (lightBundle.light->shadowsEnabled()) {
+            lightBundle.shadowsStage->render(commandBuffer);
+        }
     }
 
     for (const auto& cameraBundle : m_cameraBundles) {
@@ -127,14 +129,19 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
     m_lightBundles.emplace_back();
     auto& lightBundle = m_lightBundles.back();
     lightBundle.light = std::move(light);
-    lightBundle.shadowsStage = std::make_unique<ShadowsStage>(*this);
+
+    // Setting shadows
+    if (lightBundle.light->shadowsEnabled()) {
+        lightBundle.shadowsStage = std::make_unique<ShadowsStage>(*this);
+    }
 
     if (m_initialized) {
-        lightBundle.light->interfaceImpl().init(lightId);
-
         // @todo Currently fixed extent for shadow maps, might need dynamic ones
-        lightBundle.shadowsStage->init(lightId);
-        lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
+        lightBundle.light->interfaceImpl().init(lightId);
+        if (lightBundle.light->shadowsEnabled()) {
+            lightBundle.shadowsStage->init(lightId);
+            lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
+        }
     }
 
     logger.log().tab(-1);
@@ -242,7 +249,7 @@ RenderImage RenderScene::Impl::lightShadowsRenderImage(uint32_t lightIndex) cons
         return RenderImage();
     }
 
-    if (lightIndex >= m_cameraBundles.size()) {
+    if (lightIndex >= m_lightBundles.size()) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
             << "Trying to access light shadows render image " << lightIndex << " but only " << m_lightBundles.size() << " added."
             << std::endl;
@@ -263,6 +270,15 @@ void RenderScene::Impl::initStages()
         auto& cameraBundle = m_cameraBundles[cameraId];
         cameraBundle.rendererStage->init(cameraId);
         updateCamera(cameraId);
+    }
+
+    for (auto lightId = 0u; lightId < m_cameraBundles.size(); ++lightId) {
+        auto& lightBundle = m_lightBundles[lightId];
+        lightBundle.light->interfaceImpl().init(lightId);
+        if (lightBundle.light->shadowsEnabled()) {
+            lightBundle.shadowsStage->init(lightId);
+            lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
+        }
     }
 
     logger.log().tab(-1);

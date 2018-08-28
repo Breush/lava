@@ -34,7 +34,6 @@ namespace lava::magma {
         RenderImage depthRenderImage() const override final;
 
     protected:
-        void initLightsUbo();
         void initOpaquePass();
         void initTranslucentPass();
 
@@ -42,8 +41,6 @@ namespace lava::magma {
 
         void createResources();
         void createFramebuffers();
-
-        void updateLightsBindings();
 
     private:
         // References
@@ -55,11 +52,6 @@ namespace lava::magma {
         vulkan::RenderPassHolder m_renderPassHolder;
         vulkan::PipelineHolder m_opaquePipelineHolder;
         vulkan::PipelineHolder m_translucentPipelineHolder;
-
-        // Lights
-        vulkan::DescriptorHolder m_lightsDescriptorHolder;
-        vk::DescriptorSet m_lightsDescriptorSet = nullptr;
-        vulkan::UboHolder m_lightsUboHolder;
 
         // Resources
         vulkan::ImageHolder m_finalImageHolder;

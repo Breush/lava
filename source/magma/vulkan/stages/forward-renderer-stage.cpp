@@ -5,9 +5,7 @@
 #include "../../g-buffer-data.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
-#include "../lights/directional-light-impl.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../lights/point-light-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
@@ -22,8 +20,6 @@ ForwardRendererStage::ForwardRendererStage(RenderScene::Impl& scene)
     , m_renderPassHolder(m_scene.engine())
     , m_opaquePipelineHolder(m_scene.engine())
     , m_translucentPipelineHolder(m_scene.engine())
-    , m_lightsDescriptorHolder(m_scene.engine())
-    , m_lightsUboHolder(m_scene.engine())
     , m_finalImageHolder(m_scene.engine())
     , m_depthImageHolder(m_scene.engine())
     , m_framebuffer(m_scene.engine().device())
@@ -37,7 +33,6 @@ void ForwardRendererStage::init(uint32_t cameraId)
     logger.info("magma.vulkan.stages.forward-renderer-stage") << "Initializing." << std::endl;
     logger.log().tab(1);
 
-    initLightsUbo();
     updatePassShaders(true);
     initOpaquePass();
     initTranslucentPass();
@@ -96,10 +91,10 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_opaquePipelineHolder.pipeline());
 
-    // @fixme Let the lights do that by themselves. (See #37)
-    updateLightsBindings();
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_opaquePipelineHolder.pipelineLayout(),
-                                     LIGHTS_DESCRIPTOR_SET_INDEX, 1, &m_lightsDescriptorSet, 0, nullptr);
+    // Bind lights
+    for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
+        m_scene.light(lightId).render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
+    }
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
@@ -154,14 +149,6 @@ RenderImage ForwardRendererStage::depthRenderImage() const
 
 //----- Internal
 
-void ForwardRendererStage::initLightsUbo()
-{
-    m_lightsDescriptorHolder.uniformBufferSizes({1});
-    m_lightsDescriptorHolder.combinedImageSamplerSizes({1});
-    m_lightsDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
-    m_lightsDescriptorSet = m_lightsDescriptorHolder.allocateSet("forward-renderer.lights");
-}
-
 void ForwardRendererStage::initOpaquePass()
 {
     //----- Descriptor set layouts
@@ -170,12 +157,7 @@ void ForwardRendererStage::initOpaquePass()
     m_opaquePipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
-    m_opaquePipelineHolder.add(m_lightsDescriptorHolder.setLayout());
-
-    //----- Uniform buffers
-
-    m_lightsUboHolder.init(m_lightsDescriptorSet, m_lightsDescriptorHolder.uniformBufferBindingOffset(),
-                           {sizeof(vulkan::LightUbo)});
+    m_opaquePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
     //----- Rasterization
 
@@ -214,11 +196,7 @@ void ForwardRendererStage::initTranslucentPass()
     m_translucentPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
-    m_translucentPipelineHolder.add(m_lightsDescriptorHolder.setLayout());
-
-    //----- Uniform buffers
-
-    // @fixme Already set by opaque pass. Should be fixed with #37.
+    m_translucentPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
     //----- Rasterization
 
@@ -253,6 +231,8 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(MESH_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
+    moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
     if (firstTime) moduleOptions.updateCallback = [this]() { updatePassShaders(false); };
 
@@ -305,48 +285,5 @@ void ForwardRendererStage::createFramebuffers()
 
     if (m_scene.engine().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.forward-renderer-stage") << "Failed to create framebuffers." << std::endl;
-    }
-}
-
-// @fixme Should be factored with deep-deferred one - letting the lights do that when needed. (See #37)
-void ForwardRendererStage::updateLightsBindings()
-{
-    if (m_scene.lightsCount() > 0) {
-        // @todo Handle more than one light.
-        const auto lightId = 0u;
-        const auto& light = m_scene.light(lightId);
-
-        // @todo Let the light fill the data, right?
-        vulkan::LightUbo ubo;
-        ubo.type = static_cast<uint32_t>(light.type());
-
-        if (light.type() == LightType::Point) {
-            const auto& pointLight = reinterpret_cast<const PointLight::Impl&>(light);
-
-            ubo.wPosition = glm::vec4(pointLight.translation(), 1.f);
-            ubo.data[0].x = reinterpret_cast<const uint32_t&>(pointLight.radius());
-        }
-        else if (light.type() == LightType::Directional) {
-            const auto& directionalLight = reinterpret_cast<const DirectionalLight::Impl&>(light);
-            const auto direction = directionalLight.direction();
-
-            ubo.transform = directionalLight.shadowsTransform();
-            ubo.wPosition = glm::vec4(directionalLight.translation(), 1.f);
-            ubo.data[0].x = reinterpret_cast<const uint32_t&>(direction.x);
-            ubo.data[0].y = reinterpret_cast<const uint32_t&>(direction.y);
-            ubo.data[0].z = reinterpret_cast<const uint32_t&>(direction.z);
-
-            // Bind the shadow map
-            const auto binding = m_lightsDescriptorHolder.combinedImageSamplerBindingOffset();
-            auto shadowsRenderImage = directionalLight.shadowsRenderImage();
-            auto imageView = shadowsRenderImage.impl().view();
-            auto imageLayout = shadowsRenderImage.impl().layout();
-
-            const auto& sampler = m_scene.engine().shadowsSampler();
-            vulkan::updateDescriptorSet(m_scene.engine().device(), m_lightsDescriptorSet, imageView, sampler, imageLayout,
-                                        binding, 0u);
-        }
-
-        m_lightsUboHolder.copy(0, ubo);
     }
 }

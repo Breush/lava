@@ -63,8 +63,6 @@ namespace lava::magma {
         void createResources();
         void createFramebuffers();
 
-        void updateEpiphanyLightsBindings();
-
     private:
         // References
         RenderScene::Impl& m_scene;
@@ -76,11 +74,6 @@ namespace lava::magma {
         vulkan::PipelineHolder m_clearPipelineHolder;
         vulkan::PipelineHolder m_geometryPipelineHolder;
         vulkan::PipelineHolder m_epiphanyPipelineHolder;
-
-        // Lights
-        vulkan::DescriptorHolder m_lightsDescriptorHolder;
-        vk::DescriptorSet m_lightsDescriptorSet = nullptr;
-        vulkan::UboHolder m_lightsUboHolder;
 
         // GBuffer
         vulkan::DescriptorHolder m_gBufferInputDescriptorHolder;

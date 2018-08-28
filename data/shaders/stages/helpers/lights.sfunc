@@ -6,20 +6,18 @@ bool epiphanyLight(vec3 wPosition, out vec3 lightDirection, out float lightInten
     lightIntensity = 0;
 
     switch (light.type) {
-        // Point light
-        case 0: {
-            lightDirection = light.wPosition.xyz - wPosition;
+        case LIGHT_TYPE_POINT: {
+            lightDirection = light.transform[3].xyz - wPosition;
             float lightDistance = length(lightDirection);
 
             float radius = uintBitsToFloat(light.data[0].x);
-            if (lightDistance < radius) {
-                lightIntensity = 1 - (lightDistance * lightDistance) / (radius * radius);
-            }
+            if (lightDistance >= radius) return false;
+
+            lightIntensity = 1 - (lightDistance * lightDistance) / (radius * radius);
             break;
         }
 
-        // Directional light
-        case 1: {
+        case LIGHT_TYPE_DIRECTIONAL: {
             lightDirection.x = -uintBitsToFloat(light.data[0].x);
             lightDirection.y = -uintBitsToFloat(light.data[0].y);
             lightDirection.z = -uintBitsToFloat(light.data[0].z);

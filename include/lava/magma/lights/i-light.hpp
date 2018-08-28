@@ -16,6 +16,9 @@ namespace lava::magma {
         /// The shadow map rendered image (if any).
         virtual RenderImage shadowsRenderImage() const = 0;
 
+        /// Whether the light should cast dynamic shadows.
+        virtual bool shadowsEnabled() const = 0;
+
         class Impl;
         virtual Impl& interfaceImpl() = 0;
     };
