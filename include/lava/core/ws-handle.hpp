@@ -4,6 +4,8 @@
 
 // Forward declarations
 struct xcb_connection_t;
+struct wl_display;
+struct wl_surface;
 
 namespace lava {
     struct WsHandle {
@@ -13,6 +15,12 @@ namespace lava {
                 xcb_connection_t* connection;
                 uint32_t window;
             } xcb;
+
+            // Wayland handle
+            struct {
+                wl_display* display;
+                wl_surface* surface;
+            } wayland;
 
             // Windows' DWM handle
             struct {
