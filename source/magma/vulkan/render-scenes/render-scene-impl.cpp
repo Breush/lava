@@ -320,5 +320,6 @@ void RenderScene::Impl::updateStages(uint32_t cameraId)
 
     // Extent update
     const auto& extent = cameraBundle.camera->interfaceImpl().renderExtent();
-    rendererStage.update(extent);
+    const auto polygonMode = cameraBundle.camera->polygonMode();
+    rendererStage.update(extent, (polygonMode == PolygonMode::Line) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
 }

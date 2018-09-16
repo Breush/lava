@@ -22,6 +22,8 @@ namespace lava::magma {
         void extent(Extent2d extent) override final;
         RenderImage renderImage() const override final;
         RenderImage depthRenderImage() const override final;
+        PolygonMode polygonMode() const override final;
+        void polygonMode(PolygonMode polygonMode) override final;
 
         ICamera::Impl& interfaceImpl();
 

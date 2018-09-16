@@ -53,12 +53,12 @@ void DeepDeferredStage::init(uint32_t cameraId)
     logger.log().tab(-1);
 }
 
-void DeepDeferredStage::update(vk::Extent2D extent)
+void DeepDeferredStage::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
 {
     m_extent = extent;
 
     m_clearPipelineHolder.update(extent);
-    m_geometryPipelineHolder.update(extent);
+    m_geometryPipelineHolder.update(extent, polygonMode);
     m_epiphanyPipelineHolder.update(extent);
 
     createResources();

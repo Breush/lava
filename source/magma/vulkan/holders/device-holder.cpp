@@ -170,6 +170,7 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
     vk::PhysicalDeviceFeatures deviceFeatures;
     deviceFeatures.samplerAnisotropy = true;
     deviceFeatures.fragmentStoresAndAtomics = true;
+    deviceFeatures.fillModeNonSolid = true;
 
     // Extensions
     auto enabledExtensions(m_extensions);

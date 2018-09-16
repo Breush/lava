@@ -36,6 +36,15 @@ RenderImage OrbitCamera::Impl::depthRenderImage() const
     return m_scene.cameraDepthRenderImage(m_id);
 }
 
+void OrbitCamera::Impl::polygonMode(PolygonMode polygonMode)
+{
+    m_polygonMode = polygonMode;
+
+    if (m_initialized) {
+        m_scene.updateCamera(m_id);
+    }
+}
+
 //----- ICamera::Impl
 
 void OrbitCamera::Impl::init(uint32_t id)

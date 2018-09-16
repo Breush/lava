@@ -44,7 +44,7 @@ namespace lava::magma {
 
         // IRendererStage
         void init(uint32_t cameraId) override final;
-        void update(vk::Extent2D extent) override final;
+        void update(vk::Extent2D extent, vk::PolygonMode polygonMode) override final;
         void render(vk::CommandBuffer commandBuffer) override final;
 
         RenderImage renderImage() const override final;

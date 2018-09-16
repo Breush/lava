@@ -23,6 +23,8 @@ namespace lava::magma {
         void extent(Extent2d extent);
         RenderImage renderImage() const;
         RenderImage depthRenderImage() const;
+        PolygonMode polygonMode() const { return m_polygonMode; }
+        void polygonMode(PolygonMode polygonMode);
 
         // ICamera::Impl
         void init(uint32_t id) override final;
@@ -55,6 +57,7 @@ namespace lava::magma {
         // Configuration
         vk::Extent2D m_extent;
         $attribute(glm::vec3, target);
+        PolygonMode m_polygonMode = PolygonMode::Fill;
 
         // Attributes
         glm::vec3 m_translation;

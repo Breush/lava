@@ -21,7 +21,7 @@ void PipelineHolder::init(uint32_t subpassIndex)
     initPipelineLayout();
 }
 
-void PipelineHolder::update(vk::Extent2D extent)
+void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
 {
     // Cannot reconstruct pipeline with an active GPU
     m_engine.device().waitIdle();
@@ -81,6 +81,7 @@ void PipelineHolder::update(vk::Extent2D extent)
     rasterizationState.lineWidth = 1.f;
     rasterizationState.cullMode = m_cullMode;
     rasterizationState.frontFace = vk::FrontFace::eCounterClockwise;
+    rasterizationState.polygonMode = polygonMode;
 
     //--- Multisample state
 

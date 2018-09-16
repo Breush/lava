@@ -47,12 +47,12 @@ void ForwardRendererStage::init(uint32_t cameraId)
     logger.log().tab(-1);
 }
 
-void ForwardRendererStage::update(vk::Extent2D extent)
+void ForwardRendererStage::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
 {
     m_extent = extent;
 
-    m_opaquePipelineHolder.update(extent);
-    m_translucentPipelineHolder.update(extent);
+    m_opaquePipelineHolder.update(extent, polygonMode);
+    m_translucentPipelineHolder.update(extent, polygonMode);
 
     createResources();
     createFramebuffers();

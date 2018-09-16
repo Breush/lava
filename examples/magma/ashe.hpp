@@ -43,7 +43,7 @@ namespace lava::ashe {
 
             // Render scene: holds what has to be drawn.
             m_scene = &m_engine->make<magma::RenderScene>();
-            m_scene->rendererType(magma::RendererType::DeepDeferred);
+            m_scene->rendererType(magma::RendererType::Forward);
 
             // A camera.
             m_camera = &m_scene->make<magma::OrbitCamera>(m_window->extent());
@@ -357,6 +357,11 @@ namespace lava::ashe {
                 // Press F to get extra logging
                 else if (event.key.which == Key::F) {
                     m_engine->logTrackingOnce();
+                }
+                // Press W for toggle wireframe
+                else if (event.key.which == Key::W) {
+                    m_camera->polygonMode((m_camera->polygonMode() == magma::PolygonMode::Line) ? magma::PolygonMode::Fill
+                                                                                                : magma::PolygonMode::Line);
                 }
                 // @todo Write better controls for the light
                 else if (event.key.which == Key::Right) {
