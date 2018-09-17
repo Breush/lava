@@ -441,7 +441,7 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR surface)
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);
 
-    m_deviceHolder.init(instance(), surface, true);
+    m_deviceHolder.init(instance(), surface, m_instanceHolder.debugEnabled());
 
     createCommandPool(surface);
     createDummyTextures();

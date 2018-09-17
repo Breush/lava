@@ -13,6 +13,7 @@ namespace lava::magma::vulkan {
         // ----- Getters
 
         const vk::Instance& instance() const { return m_instance; }
+        bool debugEnabled() const { return m_debugEnabled; }
 
     protected:
         void createInstance();

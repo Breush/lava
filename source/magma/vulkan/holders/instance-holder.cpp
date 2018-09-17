@@ -126,10 +126,12 @@ void InstanceHolder::initApplication(vk::InstanceCreateInfo& instanceCreateInfo)
 void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCreateInfo)
 {
     // Logging all available extensions
+    bool debugUtilsExtensionAvailable = false;
     auto extensions = vk::enumerateInstanceExtensionProperties();
-    logger.info("magma.vulkan.extension") << "Available extensions:" << std::endl;
+    logger.info("magma.vulkan.instance-holder") << "Available extensions:" << std::endl;
     logger.log().tab(1);
     for (const auto& extension : extensions) {
+        debugUtilsExtensionAvailable |= (extension.extensionName == std::string(VK_EXT_DEBUG_UTILS_EXTENSION_NAME));
         logger.log() << extension.extensionName << std::endl;
     }
     logger.log().tab(-1);
@@ -145,14 +147,21 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
 
     // Validation layers
     if (m_debugEnabled) {
-        m_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        if (debugUtilsExtensionAvailable) {
+            m_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
+        else {
+            m_debugEnabled = false;
+            logger.warning("magma.vulkan.instance-holder")
+                << "Disabling debug because " VK_EXT_DEBUG_UTILS_EXTENSION_NAME << " extension is not available." << std::endl;
+        }
     }
 
     instanceCreateInfo.enabledExtensionCount = m_extensions.size();
     instanceCreateInfo.ppEnabledExtensionNames = m_extensions.data();
 
     // Logging all enabled extensions
-    logger.log() << "Enabled extensions:" << std::endl;
+    logger.info("magma.vulkan.instance-holder") << "Enabled extensions:" << std::endl;
     logger.log().tab(1);
     for (const auto& extensionName : m_extensions) {
         logger.log() << extensionName << std::endl;
