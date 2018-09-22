@@ -21,13 +21,14 @@ int main(void)
         app.makePlane({10, 10});
     }
 
+    const auto minScaling = 0.3;
+    const auto maxScaling = 0.5;
+
     // Structure
     for (auto i = 0u; i < 5u; ++i) {
-        auto& mesh = app.makeCube(0.3f + 0.2f * random01());
-        // @fixme Invert the two of these will make a very different
-        // transform matrix. We might want to store each independently
-        // and recompose the transform matrix (keeping it TRS).
-        mesh.translate({2.f * random01() - 1.f, 3.f * random01() - 1.5f, random01()});
+        auto& mesh = app.makeCube(1.f);
+        mesh.scale(minScaling + (maxScaling - minScaling) * random01());
+        mesh.translate({random01() - 1.f, 2.f * random01() - 1.f, random01()});
         mesh.rotate({random01(), random01(), random01()}, 3.14f / 4.f * random01());
     }
 

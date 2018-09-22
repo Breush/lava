@@ -3,6 +3,7 @@
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/tracker.hpp>
 
+#include "../../helpers/frustum.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
@@ -74,6 +75,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Set render pass
     std::array<vk::ClearValue, 8> clearValues;
+    clearValues[0].color = vk::ClearColorValue(std::array<float, 4u>{1.f, 1.f, 1.f, 1.f});
     clearValues[DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
 
     vk::RenderPassBeginInfo renderPassInfo;
@@ -107,12 +109,16 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
     camera.render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
+    const auto& cameraFrustum = camera.frustum();
 
     // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
-        tracker.counter("draw-calls.renderer") += 1u;
-        mesh->interfaceImpl().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_DESCRIPTOR_SET_INDEX,
-                                     GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+        const auto& boundingSphere = mesh->interfaceImpl().boundingSphere();
+        if (helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+            tracker.counter("draw-calls.renderer") += 1u;
+            mesh->interfaceImpl().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(),
+                                         GEOMETRY_MESH_DESCRIPTOR_SET_INDEX, GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+        }
     }
 
     deviceHolder.debugEndRegion(commandBuffer);

@@ -4,6 +4,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "../../bounding-sphere.hpp"
+
 namespace lava::magma {
     /**
      * Interface for meshes.
@@ -17,5 +19,8 @@ namespace lava::magma {
         /// Render the mesh.
         virtual void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
                             uint32_t materialDescriptorSetIndex) = 0;
+
+        /// The bounding sphere of the mesh vertices (world-space).
+        virtual const BoundingSphere& boundingSphere() const = 0;
     };
 }

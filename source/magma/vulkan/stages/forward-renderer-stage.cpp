@@ -4,6 +4,7 @@
 #include <lava/chamber/tracker.hpp>
 
 #include "../../g-buffer-data.hpp"
+#include "../../helpers/frustum.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
@@ -100,12 +101,16 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
     camera.render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
+    const auto& cameraFrustum = camera.frustum();
 
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
-        tracker.counter("draw-calls.renderer") += 1u;
-        mesh->interfaceImpl().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
-                                     MATERIAL_DESCRIPTOR_SET_INDEX);
+        const auto& boundingSphere = mesh->interfaceImpl().boundingSphere();
+        if (helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+            tracker.counter("draw-calls.renderer") += 1u;
+            mesh->interfaceImpl().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
+                                         MATERIAL_DESCRIPTOR_SET_INDEX);
+        }
     }
 
     deviceHolder.debugEndRegion(commandBuffer);

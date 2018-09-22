@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "../../frustum.hpp"
+
 namespace lava::magma {
     /**
      * Interface for cameras.
@@ -34,5 +36,8 @@ namespace lava::magma {
 
         /// Its projection transform.
         virtual const glm::mat4& projectionTransform() const = 0;
+
+        /// Its frustum.
+        virtual const Frustum& frustum() const = 0;
     };
 }

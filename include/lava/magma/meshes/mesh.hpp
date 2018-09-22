@@ -42,9 +42,6 @@ namespace lava::magma {
         // @todo Return rotation, as a glm::quat
         void rotate(const glm::vec3& axis, float angleDelta);
 
-        glm::vec3 scaling() const;
-        void scaling(const glm::vec3& scaling);
-        void scale(const glm::vec3& factors);
         void scale(float factor);
         /// @}
 

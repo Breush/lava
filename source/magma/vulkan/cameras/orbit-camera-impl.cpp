@@ -97,21 +97,67 @@ void OrbitCamera::Impl::target(const glm::vec3& target)
 void OrbitCamera::Impl::updateViewTransform()
 {
     // @todo Make up vector configurable?
-    m_viewTransform = glm::lookAt(m_translation, m_target, glm::vec3(0.f, 0.f, 1.f));
+    m_viewTransform = glm::lookAtRH(m_translation, m_target, glm::vec3(0.f, 0.f, 1.f));
+
+    updateFrustum();
     updateBindings();
 }
 
 void OrbitCamera::Impl::updateProjectionTransform()
 {
-    const auto viewportRatio = static_cast<float>(m_extent.width) / static_cast<float>(m_extent.height);
+    const auto aspectRatio = static_cast<float>(m_extent.width) / static_cast<float>(m_extent.height);
 
     // @todo FOV and clippings configurable?
-    const auto nearClipping = 0.1f;
-    const auto farClipping = 100.f;
-    m_projectionTransform = glm::perspective(glm::radians(45.f), viewportRatio, nearClipping, farClipping);
+    const auto n = 0.1f;
+    const auto f = 100.f;
+    const auto FOVy = glm::radians(45.f);
+
+    m_projectionTransform = glm::perspectiveRH(FOVy, aspectRatio, n, f);
     m_projectionTransform[1][1] *= -1;
 
+    updateFrustum();
     updateBindings();
+}
+
+void OrbitCamera::Impl::updateFrustum()
+{
+    auto viewTransformInverse = glm::inverse(m_viewTransform);
+    auto projectionTransformInverse = glm::inverse(m_projectionTransform);
+
+    auto topLeftLocal = projectionTransformInverse * glm::vec4(-1, -1, 0, 1);
+    auto topRightLocal = projectionTransformInverse * glm::vec4(1, -1, 0, 1);
+    auto bottomLeftLocal = projectionTransformInverse * glm::vec4(-1, 1, 0, 1);
+    auto bottomRightLocal = projectionTransformInverse * glm::vec4(1, 1, 0, 1);
+
+    auto topLeft = glm::vec3(viewTransformInverse * (topLeftLocal / topLeftLocal.w));
+    auto topRight = glm::vec3(viewTransformInverse * (topRightLocal / topRightLocal.w));
+    auto bottomLeft = glm::vec3(viewTransformInverse * (bottomLeftLocal / bottomLeftLocal.w));
+    auto bottomRight = glm::vec3(viewTransformInverse * (bottomRightLocal / bottomRightLocal.w));
+
+    // Left plane
+    m_frustum.leftNormal = glm::normalize(glm::cross(topLeft - m_translation, bottomLeft - m_translation));
+    m_frustum.leftDistance = glm::dot(m_translation, m_frustum.leftNormal);
+
+    // Right plane
+    m_frustum.rightNormal = glm::normalize(glm::cross(bottomRight - m_translation, topRight - m_translation));
+    m_frustum.rightDistance = glm::dot(m_translation, m_frustum.rightNormal);
+
+    // Bottom plane
+    m_frustum.bottomNormal = glm::normalize(glm::cross(bottomLeft - m_translation, bottomRight - m_translation));
+    m_frustum.bottomDistance = glm::dot(m_translation, m_frustum.bottomNormal);
+
+    // Top plane
+    m_frustum.topNormal = glm::normalize(glm::cross(topRight - m_translation, topLeft - m_translation));
+    m_frustum.topDistance = glm::dot(m_translation, m_frustum.topNormal);
+
+    // Forward
+    const auto n = 0.1f;
+    const auto f = 100.f;
+    auto forwardNormal = glm::normalize(m_target - m_translation);
+    auto cameraDistance = glm::dot(m_translation, forwardNormal);
+    m_frustum.forward = forwardNormal;
+    m_frustum.near = cameraDistance + n;
+    m_frustum.far = cameraDistance + f;
 }
 
 //----- Private

@@ -1,6 +1,7 @@
 #include "./mesh-impl.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/mat4x4.hpp>
 #include <lava/chamber/logger.hpp>
 
@@ -40,19 +41,32 @@ void Mesh::Impl::init()
 void Mesh::Impl::transform(const glm::mat4& transform)
 {
     m_transform = transform;
+    // @todo Should decompose translation/rotation/scaling
+    updateBoundingSphere();
     updateBindings();
 }
 
 void Mesh::Impl::translate(const glm::vec3& delta)
 {
-    // @todo Should use local one and dirtify the world one
-    m_transform = glm::translate(m_transform, delta);
+    m_translation += delta;
+    updateTransform();
+    updateBoundingSphere();
     updateBindings();
 }
 
 void Mesh::Impl::rotate(const glm::vec3& axis, float angleDelta)
 {
-    m_transform = glm::rotate(m_transform, angleDelta, axis);
+    m_rotation = glm::rotate(m_rotation, angleDelta, axis);
+    updateTransform();
+    updateBoundingSphere();
+    updateBindings();
+}
+
+void Mesh::Impl::scale(float factor)
+{
+    m_scaling *= factor;
+    updateTransform();
+    updateBoundingSphere();
     updateBindings();
 }
 
@@ -65,11 +79,29 @@ void Mesh::Impl::verticesCount(const uint32_t count)
 
 void Mesh::Impl::verticesPositions(VectorView<glm::vec3> positions)
 {
+    // @note We compute the center of the bounding sphere as the average
+    // of all vertices. That is surely not perfect, but that's some heuristic so far.
+    m_boundingSphereLocal.center = glm::vec3(0.f);
+    for (const auto& position : positions) {
+        m_boundingSphereLocal.center += position;
+    }
+    m_boundingSphereLocal.center /= positions.size();
+
+    auto maxDistanceSquared = 0.f;
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), positions.size());
     for (uint32_t i = 0u; i < length; ++i) {
-        m_vertices[i].pos = positions[i];
+        // Storing the position.
+        const auto& position = positions[i];
+        m_vertices[i].pos = position;
+
+        // Finding the bounding sphere radius.
+        auto vertexVector = position - m_boundingSphereLocal.center;
+        maxDistanceSquared = glm::dot(vertexVector, vertexVector);
     }
 
+    m_boundingSphereLocal.radius = std::sqrt(maxDistanceSquared);
+
+    updateBoundingSphere();
     createVertexBuffer();
 }
 
@@ -124,6 +156,30 @@ void Mesh::Impl::material(Material& material)
 }
 
 // ----- Internal
+
+void Mesh::Impl::updateTransform()
+{
+    m_transform = glm::mat4();
+    m_transform = glm::scale(m_transform, m_scaling);
+    m_transform = glm::mat4_cast(m_rotation) * m_transform;
+    // @note glm::translate wrongly takes scaling into account
+    m_transform[3] = glm::vec4(m_translation, 1.f);
+}
+
+void Mesh::Impl::updateBoundingSphere()
+{
+    // @note The bounding radius can be overestimated if
+    // the three scaling components are not the same,
+    // but this is way faster than reevaluating from all transformed
+    // vertices.
+    // auto scalingX = glm::length(m_transform[0]);
+    // auto scalingY = glm::length(m_transform[1]);
+    // auto scalingZ = glm::length(m_transform[2]);
+    auto maxScaling = std::max(std::max(m_scaling[0], m_scaling[1]), m_scaling[2]);
+
+    m_boundingSphere.center = glm::vec3(m_transform * glm::vec4(m_boundingSphereLocal.center, 1));
+    m_boundingSphere.radius = maxScaling * m_boundingSphereLocal.radius;
+}
 
 void Mesh::Impl::updateBindings()
 {
