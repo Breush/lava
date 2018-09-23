@@ -1,7 +1,5 @@
 #include <lava/chamber/string-tools.hpp>
 
-#include <sstream>
-
 using namespace lava;
 
 std::string chamber::camelToSnakeCase(const std::string& camelCaseString, std::string separator)

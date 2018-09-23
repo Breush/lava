@@ -2,8 +2,6 @@
 
 #include <lava/flow/sound-data.hpp>
 
-#include <vector>
-
 namespace lava::flow {
     class SoundData::Impl {
     public:

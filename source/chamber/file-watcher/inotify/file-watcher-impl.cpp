@@ -1,7 +1,6 @@
 #include "./file-watcher-impl.hpp"
 
 #include <fcntl.h>
-#include <fstream>
 #include <lava/chamber/logger.hpp>
 #include <sys/inotify.h>
 #include <unistd.h>

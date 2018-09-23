@@ -2,9 +2,7 @@
 
 #include "../uniform.hpp"
 
-#include <cstdint>
 #include <lava/core/filesystem.hpp>
-#include <string>
 
 namespace lava::magma {
     struct MaterialInfo {

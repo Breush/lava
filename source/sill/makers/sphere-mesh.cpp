@@ -1,6 +1,5 @@
 #include <lava/sill/makers/sphere-mesh.hpp>
 
-#include <algorithm>
 #include <lava/chamber/math.hpp>
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/game-entity.hpp>

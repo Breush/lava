@@ -1,6 +1,5 @@
 #include "./audio-engine-impl.hpp"
 
-#include <algorithm>
 #include <lava/chamber.hpp>
 
 #include "./music-impl.hpp"

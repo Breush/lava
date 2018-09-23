@@ -5,7 +5,6 @@
 #include <lava/flow/i-music-data.hpp>
 
 #include <lava/chamber/stb/vorbis.hpp>
-#include <memory>
 
 namespace lava::flow {
     /**

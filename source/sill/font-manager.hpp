@@ -1,9 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-
 #include "./font.hpp"
 
 namespace lava::sill {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <lava/magma/render-engine.hpp>
-#include <vector>
 #include <vulkan/vulkan.hpp>
 
 #include "../helpers/descriptor.hpp"

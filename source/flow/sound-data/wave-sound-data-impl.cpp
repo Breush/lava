@@ -1,6 +1,5 @@
 #include "./wave-sound-data-impl.hpp"
 
-#include <fstream>
 #include <lava/chamber/buffer.hpp>
 #include <lava/chamber/logger.hpp>
 

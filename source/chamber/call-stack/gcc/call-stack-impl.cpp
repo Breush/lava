@@ -6,10 +6,6 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <execinfo.h>
-#include <memory>
-#include <sstream>
-#include <string>
-#include <typeinfo>
 
 namespace {
     std::string executeCommand(const std::string& command)

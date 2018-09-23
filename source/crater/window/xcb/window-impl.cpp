@@ -1,15 +1,12 @@
 #include "./window-impl.hpp"
 
-#include <algorithm>
 #include <cstring>
 #include <fcntl.h>
 #include <lava/chamber/logger.hpp>
 #include <libgen.h>
-#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <vector>
 #include <xcb/xcb_keysyms.h>
 
 // @note Most on this code has been written thanks to

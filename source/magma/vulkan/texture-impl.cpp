@@ -1,6 +1,5 @@
 #include "./texture-impl.hpp"
 
-#include <fstream>
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/stb/image.hpp>
 

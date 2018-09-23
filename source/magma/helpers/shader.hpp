@@ -1,8 +1,5 @@
 #pragma once
 
-#include <string>
-#include <unordered_map>
-
 namespace lava::magma {
     /**
      * Return the text of glsl file with all defines resolved.

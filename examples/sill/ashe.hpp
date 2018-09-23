@@ -2,8 +2,6 @@
 
 #include <lava/sill.hpp>
 
-#include <iostream>
-
 namespace lava::ashe {
     class Application {
     public:

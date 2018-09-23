@@ -2,7 +2,6 @@
 
 #include <lava/core/macros/pimpl.hpp>
 #include <lava/flow/sound-data.hpp>
-#include <memory>
 
 #if defined(LAVA_FLOW_AUDIO_PULSE)
 #include "./backends/pulse/sound-impl.hpp"

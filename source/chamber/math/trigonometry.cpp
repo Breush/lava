@@ -1,7 +1,5 @@
 #include <lava/chamber/math/trigonometry.hpp>
 
-#include <cmath>
-
 using namespace lava::chamber;
 
 float math::cos(float t)

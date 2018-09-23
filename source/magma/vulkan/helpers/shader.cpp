@@ -1,6 +1,5 @@
 #include "./shader.hpp"
 
-#include <fstream>
 #include <lava/chamber/logger.hpp>
 #include <shaderc/shaderc.hpp>
 

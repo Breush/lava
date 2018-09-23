@@ -1,6 +1,5 @@
 #include "./font.hpp"
 
-#include <fstream>
 #include <lava/chamber/logger.hpp>
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/texture.hpp>

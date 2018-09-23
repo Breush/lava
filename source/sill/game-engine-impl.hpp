@@ -12,7 +12,6 @@
 #include <lava/sill/input-manager.hpp>
 #include <lava/sill/material.hpp>
 #include <lava/sill/texture.hpp>
-#include <vector>
 
 #include "./font-manager.hpp"
 

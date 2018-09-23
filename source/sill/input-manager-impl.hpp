@@ -3,8 +3,6 @@
 #include <lava/sill/input-manager.hpp>
 
 #include <glm/vec2.hpp>
-#include <set>
-#include <unordered_map>
 
 namespace lava::sill {
     class InputManager::Impl {

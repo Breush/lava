@@ -2,8 +2,6 @@
 
 #include <lava/flow/sample-format.hpp>
 
-#include <cstdint>
-
 namespace lava::flow {
     /**
      * Interface for music decoders.

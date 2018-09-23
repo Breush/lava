@@ -4,7 +4,6 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/texture.hpp>
-#include <unordered_map>
 
 #include "../uniform.hpp"
 #include "./holders/image-holder.hpp"

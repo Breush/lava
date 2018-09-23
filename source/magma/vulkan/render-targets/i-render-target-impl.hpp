@@ -2,7 +2,6 @@
 
 #include <lava/magma/render-targets/i-render-target.hpp>
 
-#include <cstdint>
 #include <vulkan/vulkan.hpp>
 
 namespace lava::magma::vulkan {

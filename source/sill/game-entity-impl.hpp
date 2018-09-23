@@ -4,7 +4,6 @@
 
 #include <lava/sill/components/i-component.hpp>
 #include <lava/sill/game-engine.hpp>
-#include <unordered_map>
 
 namespace lava::sill {
     class GameEntity::Impl {

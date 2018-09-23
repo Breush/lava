@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fstream>
 #include <glm/mat4x4.hpp>
 #include <lava/core/vector-view.hpp>
 #include <nlohmann/json.hpp>

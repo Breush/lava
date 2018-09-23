@@ -3,9 +3,6 @@
 #include <lava/flow/audio-engine.hpp>
 #include <lava/flow/sound.hpp>
 
-#include <memory>
-#include <vector>
-
 #include "./audio-source-impl.hpp"
 
 namespace lava::flow {

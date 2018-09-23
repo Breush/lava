@@ -4,7 +4,6 @@
 #include "./helpers/shader.hpp"
 
 #include <lava/chamber/logger.hpp>
-#include <sstream>
 
 using namespace lava::magma;
 using namespace lava::chamber;

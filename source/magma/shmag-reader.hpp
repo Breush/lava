@@ -2,7 +2,6 @@
 
 #include <lava/chamber/lexer.hpp>
 #include <lava/core/filesystem.hpp>
-#include <unordered_map>
 
 #include "./uniform.hpp"
 

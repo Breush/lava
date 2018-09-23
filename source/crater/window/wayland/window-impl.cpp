@@ -1,6 +1,5 @@
 #include "./window-impl.hpp"
 
-#include <functional>
 #include <lava/chamber/logger.hpp>
 
 using namespace lava::crater;

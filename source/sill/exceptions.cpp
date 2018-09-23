@@ -12,7 +12,6 @@ namespace {
 
 #include <cxxabi.h>
 #include <dlfcn.h>
-#include <typeinfo>
 
 extern "C" {
 void __cxa_throw(void* ex, void* info, void (*dest)(void*))

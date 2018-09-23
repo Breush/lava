@@ -11,6 +11,9 @@
         "external/source": true,
         "assets": true
     },
+    "C_Cpp.default.forcedInclude": [
+        "include/stdafx.hpp"
+    ],
     "C_Cpp.intelliSenseEngine": "Default",
     "C_Cpp.clang_format_sortIncludes": true,
     "C_Cpp.formatting": "Default",

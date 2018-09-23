@@ -4,10 +4,6 @@
 #include <lava/core/ws-handle.hpp>
 #include <lava/crater/video-mode.hpp>
 
-#include <optional>
-#include <queue>
-#include <string>
-
 namespace lava::crater {
     /**
      * Will be inherited by platform-specific implementations.

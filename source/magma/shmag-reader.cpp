@@ -1,8 +1,6 @@
 #include "./shmag-reader.hpp"
 
-#include <fstream>
 #include <lava/chamber/logger.hpp>
-#include <unordered_map>
 
 using namespace lava::chamber;
 using namespace lava::magma;

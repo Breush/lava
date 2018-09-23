@@ -1,8 +1,6 @@
 #include "./material-impl.hpp"
 
-#include <cstring>
 #include <lava/chamber/logger.hpp>
-#include <memory>
 
 #include "./helpers/descriptor.hpp"
 #include "./render-engine-impl.hpp"

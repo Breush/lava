@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"

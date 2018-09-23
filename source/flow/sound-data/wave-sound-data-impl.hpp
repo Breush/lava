@@ -1,8 +1,5 @@
 #include "./sound-data-impl.hpp"
 
-#include <string>
-#include <vector>
-
 namespace lava::flow {
     class WaveSoundDataImpl : public SoundData::Impl {
     public:

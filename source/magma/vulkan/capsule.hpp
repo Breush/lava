@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <lava/core/macros.hpp>
 #include <vulkan/vulkan.hpp>
 

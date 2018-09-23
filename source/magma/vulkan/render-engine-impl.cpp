@@ -1,6 +1,5 @@
 #include "./render-engine-impl.hpp"
 
-#include <chrono>
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/tracker.hpp>
 

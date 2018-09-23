@@ -2,7 +2,6 @@
  * Shows how to create a window and handle events.
  */
 
-#include <iostream>
 #include <lava/crater.hpp>
 
 using namespace lava;

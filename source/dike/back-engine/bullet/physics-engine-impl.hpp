@@ -5,8 +5,6 @@
 #include <lava/dike/static-rigid-bodies/i-static-rigid-body.hpp>
 
 #include <bullet/btBulletDynamicsCommon.h>
-#include <memory>
-#include <vector>
 
 namespace lava::dike {
     class PhysicsEngine::Impl {

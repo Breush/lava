@@ -1,8 +1,6 @@
 #include "./i-call-stack-impl.hpp"
 
-#include <cstdlib>
 #include <lava/chamber/string-tools.hpp>
-#include <sstream>
 
 using namespace lava::chamber;
 

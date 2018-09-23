@@ -1,10 +1,6 @@
 #include "./call-stack-impl.hpp"
 
-#include <algorithm>
-#include <codecvt>
 #include <cxxabi.h>
-#include <locale>
-#include <sstream>
 #include <windows.h>
 
 #include <DbgHelp.h> // @note To be kept below windows.h

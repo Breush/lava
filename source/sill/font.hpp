@@ -1,11 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include <glm/vec2.hpp>
 #include <lava/chamber/stb/truetype.hpp>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace lava::sill {
     class GameEngine;

@@ -2,11 +2,6 @@
 
 #include <lava/chamber/file-watcher.hpp>
 
-#include <atomic>
-#include <queue>
-#include <thread>
-#include <unordered_map>
-
 namespace lava::chamber {
     /// Inotify implementation of the FileWatcher.
     class FileWatcher::Impl {

@@ -1,9 +1,5 @@
 #pragma once
 
-#include <ostream>
-#include <string>
-#include <vector>
-
 namespace lava::chamber {
     /**
      * Base interface for platform specific CallStack::Impl.

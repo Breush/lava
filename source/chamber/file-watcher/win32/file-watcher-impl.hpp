@@ -2,10 +2,7 @@
 
 #include <lava/chamber/file-watcher.hpp>
 
-#include <atomic>
 #include <experimental/filesystem>
-#include <queue>
-#include <thread>
 #include <windows.h>
 
 namespace lava::chamber {
