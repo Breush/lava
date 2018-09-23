@@ -1,7 +1,5 @@
 #include <lava/sill/mesh-primitive.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./mesh-primitive-impl.hpp"
 
 using namespace lava::sill;

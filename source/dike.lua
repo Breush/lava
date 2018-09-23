@@ -2,6 +2,7 @@ project "lava-dike"
     kind "SharedLib"
     pic "on"
 
+    pchheader "dike/pch.hpp"
     files "dike/**"
 
     function dikeDependencies()

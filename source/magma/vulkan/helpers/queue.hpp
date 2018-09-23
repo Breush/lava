@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-
 namespace lava::magma::vulkan {
     /// Holds queue family indices.
     class QueueFamilyIndices {

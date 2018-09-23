@@ -1,7 +1,5 @@
 #include "./sphere-rigid-body-impl.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "../physics-engine-impl.hpp"
 
 using namespace lava::dike;

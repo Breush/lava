@@ -1,8 +1,5 @@
 #pragma once
 
-#include <lava/core/macros.hpp>
-#include <vulkan/vulkan.hpp>
-
 namespace lava::magma::vulkan {
 /**
  * Encapsulate destructor behavior for Vulkan types.

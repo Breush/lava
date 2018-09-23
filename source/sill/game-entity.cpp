@@ -1,7 +1,5 @@
 #include <lava/sill/game-entity.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./game-entity-impl.hpp"
 
 using namespace lava::sill;

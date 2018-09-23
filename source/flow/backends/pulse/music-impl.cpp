@@ -2,8 +2,6 @@
 
 #include <lava/flow/i-music-data.hpp>
 
-#include <lava/chamber/logger.hpp>
-
 #include "../../music-decoders/vorbis-music-decoder.hpp"
 #include "./audio-engine-impl.hpp"
 #include "./sample-helper.hpp"

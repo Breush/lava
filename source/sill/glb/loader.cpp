@@ -1,8 +1,5 @@
 #include "./loader.hpp"
 
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/transform.hpp>
-
 using namespace lava;
 using namespace lava::glb;
 

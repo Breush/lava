@@ -2,8 +2,6 @@
 
 #include <lava/magma/render-targets/i-render-target.hpp>
 
-#include <vulkan/vulkan.hpp>
-
 namespace lava::magma::vulkan {
     class SwapchainHolder;
 }

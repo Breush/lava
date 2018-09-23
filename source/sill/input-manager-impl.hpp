@@ -2,8 +2,6 @@
 
 #include <lava/sill/input-manager.hpp>
 
-#include <glm/vec2.hpp>
-
 namespace lava::sill {
     class InputManager::Impl {
     public:

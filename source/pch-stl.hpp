@@ -1,4 +1,4 @@
-// Precompiled headers
+// Default precompiled headers for STL
 
 #include <algorithm>
 #include <atomic>

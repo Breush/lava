@@ -4,7 +4,6 @@
 // in their own folder. And renamed as i-xxx.hpp
 #include "./i-render-scene-impl.hpp"
 
-#include <lava/core/macros.hpp>
 #include <lava/magma/cameras/i-camera.hpp>
 #include <lava/magma/lights/i-light.hpp>
 #include <lava/magma/material.hpp>

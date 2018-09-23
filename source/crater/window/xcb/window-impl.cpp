@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include <fcntl.h>
-#include <lava/chamber/logger.hpp>
 #include <libgen.h>
 #include <sys/stat.h>
 #include <sys/types.h>

@@ -1,8 +1,5 @@
 #include "./transform-component-impl.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-
 using namespace lava::sill;
 
 TransformComponent::Impl::Impl(GameEntity& entity)

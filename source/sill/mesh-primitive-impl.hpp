@@ -2,7 +2,6 @@
 
 #include <lava/sill/mesh-primitive.hpp>
 
-#include <lava/magma/meshes/mesh.hpp>
 #include <lava/sill/game-engine.hpp>
 
 namespace lava::sill {

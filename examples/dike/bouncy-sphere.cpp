@@ -4,6 +4,9 @@
 
 #include <lava/dike.hpp>
 
+#include <cmath>
+#include <iostream>
+
 using namespace lava;
 
 int main(void)

@@ -1,7 +1,5 @@
 #include "./audio-engine-impl.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "./audio-source-impl.hpp"
 
 using namespace lava::flow;

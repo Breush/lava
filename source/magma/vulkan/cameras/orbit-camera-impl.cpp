@@ -1,8 +1,5 @@
 #include "./orbit-camera-impl.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <lava/chamber/logger.hpp>
-
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"
 

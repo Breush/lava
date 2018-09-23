@@ -1,7 +1,8 @@
 project "lava-sill"
     kind "SharedLib"
     pic "on"
-
+    
+    pchheader "sill/pch.hpp"
     files "sill/**"
 
     function sillDependencies()

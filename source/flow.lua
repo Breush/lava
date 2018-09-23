@@ -2,6 +2,7 @@ project "lava-flow"
     kind "SharedLib"
     pic "on"
 
+    pchheader "flow/pch.hpp"
     files "flow/**"
     excludes "flow/backends/**"
 

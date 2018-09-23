@@ -1,7 +1,5 @@
 #include "./game-entity-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 using namespace lava::chamber;
 using namespace lava::sill;
 

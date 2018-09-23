@@ -1,7 +1,5 @@
 #include <lava/sill/components/text-mesh-component.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./text-mesh-component-impl.hpp"
 
 using namespace lava::sill;

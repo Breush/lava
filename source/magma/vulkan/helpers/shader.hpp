@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-
 #include "../../helpers/shader.hpp"
 
 namespace lava::magma::vulkan {

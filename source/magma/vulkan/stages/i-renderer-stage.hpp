@@ -2,8 +2,6 @@
 
 #include <lava/magma/render-image.hpp>
 
-#include <vulkan/vulkan.hpp>
-
 namespace lava::magma {
     /// Interface for renderer stages, as used by RenderScene::Impl.
     class IRendererStage {

@@ -1,9 +1,5 @@
 #pragma once
 
-#include <glm/mat4x4.hpp>
-#include <lava/core/vector-view.hpp>
-#include <nlohmann/json.hpp>
-
 namespace lava::glb {
     struct Header {
         uint8_t magic[4];

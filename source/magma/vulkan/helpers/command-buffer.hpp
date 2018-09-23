@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-
 namespace lava::magma::vulkan {
     /// Start a command.
     vk::CommandBuffer beginSingleTimeCommands(vk::Device device, vk::CommandPool commandPool);

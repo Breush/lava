@@ -2,8 +2,6 @@
 
 #include <lava/sill/components/camera-component.hpp>
 
-#include <lava/magma/cameras/orbit-camera.hpp>
-
 #include "./component-impl.hpp"
 
 namespace lava::sill {

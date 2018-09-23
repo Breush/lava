@@ -1,7 +1,5 @@
 #include "./render-pass-holder.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "../render-engine-impl.hpp"
 #include "./pipeline-holder.hpp"
 

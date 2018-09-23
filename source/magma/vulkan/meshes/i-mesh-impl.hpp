@@ -2,8 +2,6 @@
 
 #include <lava/magma/meshes/i-mesh.hpp>
 
-#include <vulkan/vulkan.hpp>
-
 #include "../../bounding-sphere.hpp"
 
 namespace lava::magma {

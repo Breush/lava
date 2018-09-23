@@ -1,7 +1,5 @@
 #include <lava/sill/components/behavior-component.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./behavior-component-impl.hpp"
 
 using namespace lava::sill;

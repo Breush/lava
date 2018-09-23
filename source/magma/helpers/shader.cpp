@@ -1,7 +1,5 @@
 #include "./shader.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 using namespace lava;
 using namespace lava::chamber;
 

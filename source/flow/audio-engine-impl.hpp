@@ -2,8 +2,6 @@
 
 #include <lava/flow/audio-engine.hpp>
 
-#include <glm/glm.hpp>
-
 namespace lava::flow {
     class AudioEngineImpl;
 }

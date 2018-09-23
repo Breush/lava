@@ -2,12 +2,6 @@
 
 #include <lava/sill/game-engine.hpp>
 
-#include <lava/crater/window.hpp>
-#include <lava/dike/physics-engine.hpp>
-#include <lava/magma/lights.hpp>
-#include <lava/magma/render-engine.hpp>
-#include <lava/magma/render-scenes/render-scene.hpp>
-#include <lava/magma/render-targets/window-render-target.hpp>
 #include <lava/sill/game-entity.hpp>
 #include <lava/sill/input-manager.hpp>
 #include <lava/sill/material.hpp>

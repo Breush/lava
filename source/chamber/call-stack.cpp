@@ -1,7 +1,5 @@
 #include <lava/chamber/call-stack.hpp>
 
-#include <lava/core/macros.hpp>
-
 #if defined(LAVA_CHAMBER_CALLSTACK_GCC)
 #include "./call-stack/gcc/call-stack-impl.hpp"
 #elif defined(LAVA_CHAMBER_CALLSTACK_MINGW)

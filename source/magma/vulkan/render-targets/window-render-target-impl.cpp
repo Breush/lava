@@ -1,12 +1,10 @@
 #include "./window-render-target-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "../render-engine-impl.hpp"
 
 using namespace lava::magma;
-using namespace lava::crater;
 using namespace lava::chamber;
 
 WindowRenderTarget::Impl::Impl(RenderEngine& engine, WsHandle handle, const Extent2d& extent)

@@ -1,7 +1,5 @@
 #include "./shmag-reader.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 using namespace lava::chamber;
 using namespace lava::magma;
 

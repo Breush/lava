@@ -5,7 +5,6 @@
 #include "./i-camera-impl.hpp"
 
 #include <lava/magma/render-scenes/render-scene.hpp>
-#include <vulkan/vulkan.hpp>
 
 #include "../holders/ubo-holder.hpp"
 

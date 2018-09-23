@@ -1,8 +1,5 @@
 #pragma once
 
-#include <lava/chamber/lexer.hpp>
-#include <lava/core/filesystem.hpp>
-
 #include "./uniform.hpp"
 
 namespace lava::magma {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <lava/core/ws-event.hpp>
-#include <lava/core/ws-handle.hpp>
 #include <lava/crater/video-mode.hpp>
 
 namespace lava::crater {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 namespace lava::magma::vulkan {
     class Vertex {
     public:

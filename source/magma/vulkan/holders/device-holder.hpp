@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-
 #include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {

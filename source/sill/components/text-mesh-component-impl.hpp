@@ -2,8 +2,6 @@
 
 #include <lava/sill/components/text-mesh-component.hpp>
 
-#include <lava/core/extent.hpp>
-
 #include "../font.hpp"
 #include "./component-impl.hpp"
 

@@ -1,7 +1,5 @@
 #include <lava/crater/window.hpp>
 
-#include <lava/core/macros.hpp>
-
 #if defined(LAVA_CRATER_WINDOW_XCB)
 #include "./window/xcb/window-impl.hpp"
 #elif defined(LAVA_CRATER_WINDOW_WAYLAND)

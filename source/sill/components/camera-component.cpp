@@ -1,7 +1,5 @@
 #include <lava/sill/components/camera-component.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./camera-component-impl.hpp"
 
 using namespace lava::sill;

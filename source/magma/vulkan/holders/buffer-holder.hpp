@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lava/core/macros.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "../wrappers.hpp"

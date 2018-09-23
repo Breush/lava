@@ -4,8 +4,6 @@
 
 #include <lava/flow/i-music-data.hpp>
 
-#include <lava/chamber/stb/vorbis.hpp>
-
 namespace lava::flow {
     /**
      * Ogg Vorbis implementation of music decoder.

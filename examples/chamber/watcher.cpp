@@ -4,6 +4,9 @@
 
 #include <lava/chamber.hpp>
 
+#include <fstream>
+#include <thread>
+
 using namespace lava;
 using namespace std::chrono_literals;
 

@@ -9,7 +9,6 @@ workspace "lava-renderer"
 
     configurations { "debug", "release" }
 
-    pchheader "stdafx.hpp"
     includedirs "include"
 
     filter { "configurations:debug" }

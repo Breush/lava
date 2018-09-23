@@ -1,8 +1,5 @@
 #include "./texture-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
-#include <lava/chamber/stb/image.hpp>
-
 #include "./render-scenes/render-scene-impl.hpp"
 
 using namespace lava::chamber;

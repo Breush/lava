@@ -1,8 +1,6 @@
 
 #include "./buffer.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "../helpers/device.hpp"
 
 using namespace lava::chamber;

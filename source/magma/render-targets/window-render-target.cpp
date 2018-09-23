@@ -1,11 +1,8 @@
 #include <lava/magma/render-targets/window-render-target.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "../vulkan/render-targets/window-render-target-impl.hpp"
 
 using namespace lava::magma;
-using namespace lava::crater;
 
 $pimpl_class(WindowRenderTarget, RenderEngine&, engine, WsHandle, handle, const Extent2d&, extent);
 

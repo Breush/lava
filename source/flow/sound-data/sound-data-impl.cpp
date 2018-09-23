@@ -1,8 +1,5 @@
 #include "./sound-data-impl.hpp"
 
-#include <lava/chamber/buffer.hpp>
-#include <lava/chamber/logger.hpp>
-
 using namespace lava;
 
 namespace {

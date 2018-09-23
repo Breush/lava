@@ -1,6 +1,5 @@
 #include "./sound-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
 #include <lava/flow/sound-data.hpp>
 
 #include "./audio-engine-impl.hpp"

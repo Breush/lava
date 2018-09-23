@@ -2,8 +2,6 @@
 
 #include "../../audio-engine-impl.hpp"
 
-#include <pulse/pulseaudio.h>
-
 namespace lava::flow {
     /**
      * PulseAudio implementation of AudioEngine.

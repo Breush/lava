@@ -1,7 +1,6 @@
 #pragma once
 
 #include <lava/magma/lights/i-light.hpp>
-#include <vulkan/vulkan.hpp>
 
 #include "../../light-type.hpp"
 

@@ -1,7 +1,5 @@
 #include <lava/flow/music-data/file-music-data.hpp>
 
-#include <lava/chamber/logger.hpp>
-
 using namespace lava::flow;
 using namespace lava::chamber;
 

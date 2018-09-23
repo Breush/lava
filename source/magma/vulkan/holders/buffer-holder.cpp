@@ -1,7 +1,5 @@
 #include "./buffer-holder.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "../helpers/buffer.hpp"
 #include "../render-engine-impl.hpp"
 

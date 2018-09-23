@@ -2,8 +2,6 @@
 
 #include <lava/flow/audio-engine.hpp>
 
-#include <pulse/pulseaudio.h>
-
 #include "../../audio-engine-impl.hpp"
 #include "../../sound-base-impl.hpp"
 

@@ -1,7 +1,5 @@
 #include "./ubo-holder.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "../render-engine-impl.hpp"
 
 using namespace lava::magma::vulkan;

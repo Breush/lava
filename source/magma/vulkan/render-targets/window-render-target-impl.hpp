@@ -4,8 +4,6 @@
 
 #include "./i-render-target-impl.hpp"
 
-#include <lava/core/macros.hpp>
-#include <lava/crater/window.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "../holders/swapchain-holder.hpp"

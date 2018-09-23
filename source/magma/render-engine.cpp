@@ -2,8 +2,6 @@
 
 #include <lava/magma/cameras/i-camera.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./vulkan/render-engine-impl.hpp"
 
 using namespace lava::magma;

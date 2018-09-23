@@ -2,9 +2,6 @@
 
 #include <lava/flow/sample-format.hpp>
 
-#include <lava/chamber/logger.hpp>
-#include <pulse/pulseaudio.h>
-
 namespace lava::flow::helpers {
     inline pa_sample_format_t pulseSampleFormat(SampleFormat sampleFormat)
     {

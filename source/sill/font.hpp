@@ -1,8 +1,5 @@
 #pragma once
 
-#include <glm/vec2.hpp>
-#include <lava/chamber/stb/truetype.hpp>
-
 namespace lava::sill {
     class GameEngine;
     class Texture;

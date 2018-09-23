@@ -1,7 +1,5 @@
 #include "./device-holder.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "../helpers/queue.hpp"
 #include "../helpers/swapchain.hpp"
 

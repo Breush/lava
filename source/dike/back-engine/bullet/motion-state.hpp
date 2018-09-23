@@ -1,8 +1,5 @@
 #pragma once
 
-#include <bullet/btBulletDynamicsCommon.h>
-#include <glm/mat4x4.hpp>
-
 namespace lava::dike {
     class MotionState final : public btMotionState {
     public:

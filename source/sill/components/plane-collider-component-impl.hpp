@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lava/dike/static-rigid-bodies/plane-static-rigid-body.hpp>
 #include <lava/sill/components/plane-collider-component.hpp>
 #include <lava/sill/components/transform-component.hpp>
 

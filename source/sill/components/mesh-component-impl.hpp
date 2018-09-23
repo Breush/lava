@@ -2,8 +2,6 @@
 
 #include <lava/sill/components/mesh-component.hpp>
 
-#include <lava/magma/meshes/mesh.hpp>
-
 #include "./component-impl.hpp"
 
 namespace lava::sill {

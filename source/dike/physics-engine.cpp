@@ -1,7 +1,5 @@
 #include <lava/dike/physics-engine.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./back-engine/bullet/physics-engine-impl.hpp"
 
 using namespace lava::dike;

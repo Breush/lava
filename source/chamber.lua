@@ -2,6 +2,7 @@ project "lava-chamber"
     kind "SharedLib"
     pic "on"
 
+    pchheader "chamber/pch.hpp"
     files "chamber/**"
     excludes "chamber/call-stack/**"
     excludes "chamber/file-watcher/**"

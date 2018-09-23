@@ -1,7 +1,5 @@
 #include <lava/sill/game-engine.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./game-engine-impl.hpp"
 
 using namespace lava;

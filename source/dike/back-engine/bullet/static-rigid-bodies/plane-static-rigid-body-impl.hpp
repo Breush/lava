@@ -2,9 +2,6 @@
 
 #include <lava/dike/static-rigid-bodies/plane-static-rigid-body.hpp>
 
-#include <bullet/btBulletDynamicsCommon.h>
-#include <glm/vec3.hpp>
-
 namespace lava::dike {
     class PlaneStaticRigidBody::Impl {
     public:

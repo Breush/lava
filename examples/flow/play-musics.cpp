@@ -4,6 +4,8 @@
 
 #include <lava/flow.hpp>
 
+#include <chrono>
+
 using namespace lava;
 using namespace std::chrono;
 using namespace std::chrono_literals;

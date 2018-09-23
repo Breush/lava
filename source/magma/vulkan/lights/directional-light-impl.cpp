@@ -1,7 +1,5 @@
 #include "./directional-light-impl.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"

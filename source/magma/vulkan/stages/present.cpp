@@ -1,7 +1,5 @@
 #include "./present.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "../helpers/descriptor.hpp"
 #include "../holders/swapchain-holder.hpp"
 #include "../render-engine-impl.hpp"

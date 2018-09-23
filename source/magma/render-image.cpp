@@ -1,7 +1,5 @@
 #include <lava/magma/render-image.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./vulkan/render-image-impl.hpp"
 
 using namespace lava::magma;

@@ -12,4 +12,4 @@ fi
 
 #===== Build
 
-${MAKE} -j 2
+${MAKE} -j 3

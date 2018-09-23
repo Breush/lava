@@ -1,7 +1,5 @@
 #include "./text-mesh-component-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
-#include <lava/chamber/string-tools.hpp>
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/game-entity.hpp>

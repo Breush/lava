@@ -3,8 +3,6 @@
 #include "../helpers/shader.hpp"
 #include "./helpers/shader.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 using namespace lava::magma;
 using namespace lava::chamber;
 

@@ -1,7 +1,5 @@
 #include <lava/flow/sound-data.hpp>
 
-#include <lava/core/macros/pimpl.hpp>
-
 #include "./sound-data/wave-sound-data-impl.hpp"
 
 using namespace lava::flow;

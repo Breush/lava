@@ -1,8 +1,5 @@
 #include "./instance-holder.hpp"
 
-#include <lava/chamber/logger.hpp>
-#include <lava/chamber/string-tools.hpp>
-
 // @note Instanciation of declared-only in vulkan.h.
 
 VkResult vkCreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,

@@ -1,7 +1,5 @@
 #include <lava/magma/material.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./vulkan/texture-impl.hpp"
 
 using namespace lava::magma;

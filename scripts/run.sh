@@ -30,7 +30,7 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
     
     echo -e "\e[35mBuilding ${TARGET}...\e[39m"
     
-    ${MAKE} -j 2 ${TARGET}
+    ${MAKE} -j 3 ${TARGET}
 
     # Run
     if [ $? -eq 0 ]; then

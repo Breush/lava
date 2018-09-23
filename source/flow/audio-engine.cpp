@@ -1,7 +1,5 @@
 #include <lava/flow/audio-engine.hpp>
 
-#include <lava/core/macros/pimpl.hpp>
-
 #if defined(LAVA_FLOW_AUDIO_PULSE)
 #include "./backends/pulse/audio-engine-impl.hpp"
 #endif

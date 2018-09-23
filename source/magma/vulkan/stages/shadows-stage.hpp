@@ -1,7 +1,6 @@
 #pragma once
 
 #include <lava/magma/render-scenes/render-scene.hpp>
-#include <vulkan/vulkan.hpp>
 
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"

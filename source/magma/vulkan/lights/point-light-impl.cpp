@@ -1,7 +1,5 @@
 #include "./point-light-impl.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "../render-engine-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"

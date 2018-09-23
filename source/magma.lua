@@ -2,6 +2,7 @@ project "lava-magma"
     kind "SharedLib"
     pic "on"
 
+    pchheader "magma/pch.hpp"
     files "magma/**"
 
     function magmaDependencies()

@@ -4,7 +4,6 @@
 
 #include "./i-light-impl.hpp"
 
-#include <lava/core/macros.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/ubo-holder.hpp"

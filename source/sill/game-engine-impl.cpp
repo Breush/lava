@@ -1,8 +1,5 @@
 #include "./game-engine-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
-#include <lava/magma/material.hpp>
-
 #include "./game-entity-impl.hpp"
 
 using namespace lava::sill;

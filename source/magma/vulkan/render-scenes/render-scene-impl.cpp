@@ -1,8 +1,5 @@
 #include "./render-scene-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
-#include <lava/chamber/tracker.hpp>
-
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../material-impl.hpp"

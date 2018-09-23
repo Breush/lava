@@ -3,7 +3,6 @@
 #include "../../music-base-impl.hpp"
 
 #include <lava/flow/audio-engine.hpp>
-#include <pulse/pulseaudio.h>
 
 #include "../../audio-engine-impl.hpp"
 #include "../../i-music-decoder.hpp"

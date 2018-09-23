@@ -1,8 +1,5 @@
 #include "./sound-base-impl.hpp"
 
-#include <glm/glm.hpp>
-#include <lava/chamber/math.hpp>
-
 #include "./audio-engine-impl.hpp"
 
 using namespace lava::flow;

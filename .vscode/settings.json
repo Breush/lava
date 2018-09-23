@@ -12,7 +12,12 @@
         "assets": true
     },
     "C_Cpp.default.forcedInclude": [
-        "include/stdafx.hpp"
+        "source/chamber/pch.hpp",
+        "source/crater/pch.hpp",
+        "source/dike/pch.hpp",
+        "source/flow/pch.hpp",
+        "source/magma/pch.hpp",
+        "source/sill/pch.hpp"
     ],
     "C_Cpp.intelliSenseEngine": "Default",
     "C_Cpp.clang_format_sortIncludes": true,

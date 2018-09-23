@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lava/dike/rigid-bodies/sphere-rigid-body.hpp>
 #include <lava/sill/components/sphere-collider-component.hpp>
 #include <lava/sill/components/transform-component.hpp>
 

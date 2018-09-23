@@ -1,7 +1,5 @@
 #include <lava/sill/mesh.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./mesh-impl.hpp"
 
 using namespace lava::sill;

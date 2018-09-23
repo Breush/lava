@@ -1,8 +1,5 @@
 #include "./forward-renderer-stage.hpp"
 
-#include <lava/chamber/logger.hpp>
-#include <lava/chamber/tracker.hpp>
-
 #include "../../g-buffer-data.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../cameras/i-camera-impl.hpp"

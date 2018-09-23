@@ -4,6 +4,8 @@
 
 #include <lava/crater.hpp>
 
+#include <iostream>
+
 using namespace lava;
 
 int main(void)

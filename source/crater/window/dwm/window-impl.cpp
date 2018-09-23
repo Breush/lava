@@ -1,7 +1,5 @@
 #include "./window-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include <windowsx.h>
 
 using namespace lava;

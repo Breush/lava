@@ -1,7 +1,5 @@
 #include <lava/sill/components/transform-component.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./transform-component-impl.hpp"
 
 using namespace lava::sill;

@@ -1,8 +1,5 @@
 #include <lava/magma/meshes/mesh.hpp>
 
-#include <lava/chamber/logger.hpp>
-#include <lava/core/macros.hpp>
-
 #include "../vulkan/meshes/mesh-impl.hpp"
 
 using namespace lava::magma;

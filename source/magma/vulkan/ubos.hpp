@@ -2,8 +2,6 @@
 
 #include "../light-type.hpp"
 
-#include <glm/glm.hpp>
-
 // @fixme UBO definitions should not be in 'vulkan' namespace...
 namespace lava::magma::vulkan {
     struct CameraUbo {

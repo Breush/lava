@@ -1,7 +1,5 @@
 #include "./swapchain-holder.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "../helpers/queue.hpp"
 #include "../helpers/swapchain.hpp"
 #include "../render-engine-impl.hpp"

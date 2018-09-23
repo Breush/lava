@@ -1,7 +1,5 @@
 #include "./material-impl.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 #include "./helpers/descriptor.hpp"
 #include "./render-engine-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"

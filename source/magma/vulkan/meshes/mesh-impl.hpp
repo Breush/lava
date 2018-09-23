@@ -2,7 +2,6 @@
 
 #include <lava/magma/meshes/mesh.hpp>
 
-#include <glm/gtc/quaternion.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/buffer-holder.hpp"

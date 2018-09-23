@@ -1,5 +1,3 @@
-#include <lava/chamber/logger.hpp>
-
 using namespace lava;
 
 #if defined(LAVA_CHAMBER_CALLSTACK_GCC)

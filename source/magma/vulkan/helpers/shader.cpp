@@ -1,6 +1,5 @@
 #include "./shader.hpp"
 
-#include <lava/chamber/logger.hpp>
 #include <shaderc/shaderc.hpp>
 
 using namespace lava::magma;

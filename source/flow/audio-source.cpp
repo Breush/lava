@@ -1,7 +1,5 @@
 #include <lava/flow/audio-source.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./audio-source-impl.hpp"
 
 using namespace lava::flow;

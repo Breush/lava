@@ -1,8 +1,5 @@
 #include "./shadows-stage.hpp"
 
-#include <lava/chamber/logger.hpp>
-#include <lava/chamber/tracker.hpp>
-
 #include "../lights/i-light-impl.hpp"
 #include "../meshes/i-mesh-impl.hpp"
 #include "../render-engine-impl.hpp"

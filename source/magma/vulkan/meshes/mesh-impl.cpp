@@ -1,10 +1,5 @@
 #include "./mesh-impl.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/mat4x4.hpp>
-#include <lava/chamber/logger.hpp>
-
 #include "../material-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
 #include "../ubos.hpp"

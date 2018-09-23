@@ -2,8 +2,6 @@
 
 #include "../uniform.hpp"
 
-#include <lava/core/filesystem.hpp>
-
 namespace lava::magma {
     struct MaterialInfo {
         uint32_t id;

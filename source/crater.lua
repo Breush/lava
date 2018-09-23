@@ -2,6 +2,7 @@ project "lava-crater"
     kind "SharedLib"
     pic "on"
 
+    pchheader "crater/pch.hpp"
     files "crater/**"
     excludes "crater/window/**"
 

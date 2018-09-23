@@ -2,9 +2,6 @@
 
 #include <lava/magma/cameras/i-camera.hpp>
 
-#include <glm/glm.hpp>
-#include <vulkan/vulkan.hpp>
-
 #include "../../frustum.hpp"
 
 namespace lava::magma {

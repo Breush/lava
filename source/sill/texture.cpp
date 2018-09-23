@@ -1,7 +1,5 @@
 #include <lava/sill/texture.hpp>
 
-#include <lava/magma/texture.hpp>
-
 #include "./game-engine-impl.hpp"
 
 using namespace lava::sill;

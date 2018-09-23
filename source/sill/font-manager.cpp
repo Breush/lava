@@ -1,7 +1,5 @@
 #include "./font-manager.hpp"
 
-#include <lava/chamber/logger.hpp>
-
 using namespace lava::sill;
 using namespace lava::chamber;
 

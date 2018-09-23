@@ -2,7 +2,6 @@
 
 #include "./i-renderer-stage.hpp"
 
-#include <glm/vec3.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/buffer-holder.hpp"

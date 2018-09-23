@@ -1,8 +1,5 @@
 #include <lava/sill/makers/glb-mesh.hpp>
 
-#include <lava/chamber/logger.hpp>
-#include <lava/chamber/stb/image.hpp>
-#include <lava/core/axis.hpp>
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/game-entity.hpp>

@@ -1,7 +1,5 @@
 #include <lava/sill/input-manager.hpp>
 
-#include <lava/core/macros.hpp>
-
 #include "./input-manager-impl.hpp"
 
 using namespace lava::sill;

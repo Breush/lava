@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/vec4.hpp>
-
 namespace lava::magma {
     enum class UniformType {
         Unknown,
