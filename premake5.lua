@@ -13,6 +13,7 @@ workspace "lava-renderer"
 
     filter { "configurations:debug" }
         cppdialect "C++17"
+        optimize "debug"
         buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
         -- vulkan.hpp was not ready for that
         -- buildoptions { "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
