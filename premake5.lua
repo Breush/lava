@@ -4,23 +4,27 @@ workspace "lava-renderer"
     language "C++"
 
     architecture "x86_64"
+    cppdialect "C++17"
 
     -- Configurations
 
-    configurations { "debug", "release" }
+    configurations { "debug", "fast-compile", "release" }
 
     includedirs "include"
 
     filter { "configurations:debug" }
-        cppdialect "C++17"
+        symbols "on"
         optimize "debug"
         buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
         -- vulkan.hpp was not ready for that
         -- buildoptions { "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
-        symbols "on"
+
+    filter { "configurations:fast-compile" }
+        symbols "off"
+        optimize "debug"
+        buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
 
     filter { "configurations:release" }
-        cppdialect "C++17"
         optimize "on"
 
         -- For release only, copy all the shared libs
