@@ -10,36 +10,43 @@ function updateSkip {
     # $1 lua script file to extract version
     # $2 last known version
 
-    SCRIPT="$1"
-    LAST="$2"
+    local script="$1"
+    local last="$2"
 
-    NAME=$(cat "${SCRIPT}" | grep NAME -m 1 | cut -d '"' -f2)
-    CURRENT=$(cat "${SCRIPT}" | grep VERSION -m 1 | cut -d'"' -f2)
+    local name=$(cat "${script}" | grep NAME -m 1 | cut -d '"' -f2)
+    local current=$(cat "${script}" | grep VERSION -m 1 | cut -d'"' -f2)
 
-    echo -e "\e[1m${NAME}\e[0m\n    ${CURRENT} (current)\n    ${LAST} (last)"
+    echo -e "\e[1m${name}\e[0m\n    ${current} (current)\n    ${last} (last)"
     echo -e "    \e[93mSkipped.\e[39m\n"
 }
 
 function updateDependencyByVersion {
     # $1 lua script file to extract version
     # $2 last known version
+    # $NEED_UPDATE set to "true" if something changed
 
-    SCRIPT="$1"
-    LAST="$2"
+    local script="$1"
+    local last="$2"
 
-    NAME=$(cat "${SCRIPT}" | grep NAME -m 1 | cut -d '"' -f2)
-    CURRENT=$(cat "${SCRIPT}" | grep VERSION -m 1 | cut -d'"' -f2)
+    local name=$(cat "${script}" | grep NAME -m 1 | cut -d '"' -f2)
+    local current=$(cat "${script}" | grep VERSION -m 1 | cut -d'"' -f2)
 
-    echo -e "\e[1m${NAME}\e[0m\n    ${CURRENT} (current)\n    ${LAST} (last)"
+    echo -e "\e[1m${name}\e[0m\n    ${current} (current)\n    ${last} (last)"
 
-    if [ "${CURRENT}" != "${LAST}" ]; then
+    if [ -z "${last}" ]; then
+            echo -e "    \e[91mWrong version number.\e[39m"
+            echo -e "    \e[93mUpdate ignored.\e[39m\n"
+            return
+    fi
+
+    if [ "${current}" != "${last}" ]; then
         echo -n -e "    \e[93mUpdate to last?\e[39m (y/N) "
-        read -n 1 REPLY
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo -e "\n    \e[94mMarked ${NAME} to be updated to ${LAST}.\e[39m"
-            sed -i "s/${CURRENT}/${LAST}/" "${SCRIPT}"
-            git add "${SCRIPT}" > /dev/null
-            git commit -m "Updated ${NAME} to ${LAST}" > /dev/null
+        read -n 1 reply
+        if [[ $reply =~ ^[Yy]$ ]]; then
+            echo -e "\n    \e[94mMarked ${name} to be updated to ${last}.\e[39m"
+            sed -i "s/${current}/${last}/" "${script}"
+            git add "${script}" > /dev/null
+            git commit -m "Updated ${name} to ${last}" > /dev/null
             NEED_UPDATE="true"
         else
             echo -e "\n    \e[93mUpdate ignored.\e[39m"
@@ -54,31 +61,32 @@ function updateDependencyByVersion {
 function updateDependencyByDate {
     # $1 lua script file to extract repository
     # $2 last known timestamp
+    # $NEED_UPDATE set to "true" if something changed
 
-    SCRIPT="$1"
-    LAST="$2"
+    local script="$1"
+    local last="$2"
 
-    NAME=$(cat "${SCRIPT}" | grep NAME -m 1 | cut -d '"' -f2)
-    FILE=$(cat "${SCRIPT}" | grep fileExist -m 1 | cut -d'"' -f2)
+    local name=$(cat "${script}" | grep NAME -m 1 | cut -d '"' -f2)
+    local file=$(cat "${script}" | grep fileExist -m 1 | cut -d'"' -f2)
 
-    CURRENT=$(stat "./external/${FILE}" --format="%Y" 2> /dev/null)
+    local current=$(stat "./external/${file}" --format="%Y" 2> /dev/null)
 
-    echo -e "\e[1m${NAME}\e[0m"
+    echo -e "\e[1m${name}\e[0m"
 
-    if [ -z "${CURRENT}" ]; then
+    if [ -z "${current}" ]; then
         NEED_UPDATE="true"
 
         echo -e "    Never downloaded.\n    \e[94mMarked to be updated.\e[39m\n"
         return
     fi
 
-    echo -e "    ${CURRENT} (last download)\n    ${LAST} (remote last commit)"
+    echo -e "    ${current} (last download)\n    ${last} (remote last commit)"
 
-    if [ "${CURRENT}" -lt "${LAST}" ]; then
+    if [ "${current}" -lt "${last}" ]; then
         NEED_UPDATE="true"
 
-        rm -rf external/${FILE}
-        echo -e "    \e[94mMarked ${NAME} to be updated.\e[39m"
+        rm -rf external/${file}
+        echo -e "    \e[94mMarked ${name} to be updated.\e[39m"
     else
         echo -e "    \e[92mAlready up-to-date.\e[39m"
     fi
@@ -86,23 +94,41 @@ function updateDependencyByDate {
     echo ""
 }
 
+function extractFromGithubTags {
+    # $1 repository name "entity/repo"
+    # $LAST return value of version number
+
+    local repository="$1"
+
+    LAST=$(wget https://github.com/${repository}/tags -q -O - | grep -m 1 'tag/' | rev | cut -d'/' -f1 | cut -d'v' -f1 | rev | cut -d'"' -f1)
+}
+
+function extractFromGithubLastCommit {
+    # $1 repository name "entity/repo"
+    # $LAST return value of version number
+
+    local repository="$1"
+
+    LAST=$(wget https://github.com/${repository}/commits/master -q -O - | grep relative-time -m 1 | cut -d'"' -f2 | xargs date +"%s" -d)
+}
+
 # Bullet
-LAST=$(wget https://github.com/bulletphysics/bullet3/tags -q -O - | grep '\.' -m 1 | cut -d'>' -f2 | rev | cut -d'<' -f2 | rev)
+extractFromGithubTags "bulletphysics/bullet3"
 updateDependencyByVersion "external/bullet.lua" "${LAST}"
 
 # GLM
-LAST=$(wget https://github.com/g-truc/glm/tags -q -O - | grep '\.' -m 1 | cut -d'>' -f2 | rev | cut -d'<' -f2 | rev)
-# @note Skipped as only trunk branches are currently working (0.9.9.0 is wrong, like 0.9.8.5) 
+extractFromGithubTags "g-truc/glm"
+# @note Skipped as only trunk branches are currently working (0.9.9.0 is wrong, like 0.9.8.5)
 # updateDependencyByVersion "external/glm.lua" "${LAST}"
 updateSkip "external/glm.lua" "${LAST}"
 
 
 # Nlohmann JSON
-LAST=$(wget https://github.com/nlohmann/json/tags -q -O - | grep '\.' -m 1 | cut -d'>' -f2 | rev | cut -d'v' -f1 | cut -d'<' -f2 | rev)
+extractFromGithubTags "nlohmann/json"
 updateDependencyByVersion "external/nlohmann-json.lua" "${LAST}"
 
 # STB libraries
-LAST=$(wget https://github.com/nothings/stb/commits/master -q -O - | grep relative-time -m 1 | cut -d'"' -f2 | xargs date +"%s" -d)
+extractFromGithubLastCommit "nothings/stb"
 updateDependencyByDate "external/stb.lua" "${LAST}"
 
 # Vulkan SDK
