@@ -24,7 +24,7 @@ TARGETS=($TARGETS)
 TARGETS_COUNT=${#TARGETS[@]}
 
 CONFIG="fast-compile"
-if [ "$2" <> "" ]; then
+if [ "$2" != "" ]; then
     CONFIG="$2"
 fi
 
@@ -32,9 +32,9 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
     # Build
     TARGET=${TARGETS[0]}
     EXECUTABLE="./build/${CONFIG}/${TARGET}"
-    
+
     echo -e "\e[35mBuilding ${TARGET}...\e[39m"
-    
+
     ${MAKE} config=${CONFIG} -j 3 ${TARGET}
 
     # Run
