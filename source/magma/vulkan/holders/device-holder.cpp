@@ -55,8 +55,8 @@ namespace {
         auto extensionsSupported = deviceExtensionsSupported(physicalDevice, deviceExtensions);
         if (!extensionsSupported) return false;
 
-        auto swapChainSupport = magma::vulkan::swapchainSupportDetails(physicalDevice, surface);
-        if (!swapChainSupport.valid()) return false;
+        auto swapchainSupport = magma::vulkan::swapchainSupportDetails(physicalDevice, surface);
+        if (!swapchainSupport.valid()) return false;
 
         auto supportedFeatures = physicalDevice.getFeatures();
         if (!supportedFeatures.samplerAnisotropy) return false;

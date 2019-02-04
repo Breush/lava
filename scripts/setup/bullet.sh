@@ -3,6 +3,8 @@
 cd "$(dirname "$0")"
 ROOT_DIR="$(pwd)/../../external"
 
+VERSION="$1"
+
 MAKE="make"
 if [ `uname -o` == "Msys" ]; then
     MAKE="mingw32-make"
@@ -10,8 +12,8 @@ fi
 
 # Setting up
 cd "${ROOT_DIR}/.tmp"
-unzip -n bullet_*.zip
-cd bullet3-*
+unzip -n bullet_${VERSION}.zip
+cd bullet3-${VERSION}
 FOLDER=`pwd`
 
 # Building
