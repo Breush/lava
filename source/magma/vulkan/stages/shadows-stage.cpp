@@ -19,7 +19,7 @@ ShadowsStage::ShadowsStage(RenderScene::Impl& scene)
 {
 }
 
-void ShadowsStage::init(uint lightId)
+void ShadowsStage::init(uint32_t lightId)
 {
     m_lightId = lightId;
 

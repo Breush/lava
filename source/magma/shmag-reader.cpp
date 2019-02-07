@@ -1,5 +1,9 @@
 #include "./shmag-reader.hpp"
 
+// @note Due to windows.h leaking so much BS into global namespace,
+// we cannot rely on using namespace lava::chamber.
+using namespace lava;
+
 using namespace lava::chamber;
 using namespace lava::magma;
 
@@ -43,15 +47,15 @@ void ShmagReader::parseGBuffer()
     parseGBufferDeclarations();
 
     parseIdentifier("gBuffer");
-    parseToken(TokenType::Semicolon);
+    parseToken(chamber::TokenType::Semicolon);
 }
 
 void ShmagReader::parseGBufferDeclarations()
 {
-    parseToken(TokenType::LeftBrace);
+    parseToken(chamber::TokenType::LeftBrace);
 
     m_gBufferDeclarations.clear();
-    while (auto token = getNotToken(TokenType::RightBrace)) {
+    while (auto token = getNotToken(chamber::TokenType::RightBrace)) {
         auto gBufferDeclaration = parseGBufferDeclaration();
         m_gBufferDeclarations.emplace_back(gBufferDeclaration);
     }
@@ -82,7 +86,7 @@ ShmagReader::GBufferDeclaration ShmagReader::parseGBufferDeclaration()
 
     // Optional range
     auto token = m_lexer->nextToken();
-    if (token->type == TokenType::LeftParenthesis) {
+    if (token->type == chamber::TokenType::LeftParenthesis) {
         auto range = parseFloat();
 
         if (range == 8.f)
@@ -97,7 +101,7 @@ ShmagReader::GBufferDeclaration ShmagReader::parseGBufferDeclaration()
             errorExpected("bitsize: 8, 16, 32, 64");
         }
 
-        parseToken(TokenType::RightParenthesis);
+        parseToken(chamber::TokenType::RightParenthesis);
         token = m_lexer->nextToken();
     }
 
@@ -105,7 +109,7 @@ ShmagReader::GBufferDeclaration ShmagReader::parseGBufferDeclaration()
     gBufferDeclaration.name = parseCurrentIdentifier();
 
     // Semicolon
-    parseToken(TokenType::Semicolon);
+    parseToken(chamber::TokenType::Semicolon);
 
     return gBufferDeclaration;
 }
@@ -116,10 +120,10 @@ void ShmagReader::parseGeometry(std::stringstream& adaptedCode)
 {
     adaptedCode << "@magma:impl:begin geometry" << std::endl;
 
-    parseToken(TokenType::LeftBrace);
+    parseToken(chamber::TokenType::LeftBrace);
 
     // Optional gBuffer definition
-    while (auto token = getNotToken(TokenType::RightBrace)) {
+    while (auto token = getNotToken(chamber::TokenType::RightBrace)) {
         auto firstIdentifier = parseCurrentIdentifier();
 
         if (firstIdentifier == "uniform") {
@@ -141,14 +145,14 @@ UniformDefinitions ShmagReader::parseGeometryUniform()
 {
     UniformDefinitions uniformDefinitions;
 
-    parseToken(TokenType::LeftBrace);
+    parseToken(chamber::TokenType::LeftBrace);
 
-    while (auto token = getNotToken(TokenType::RightBrace)) {
+    while (auto token = getNotToken(chamber::TokenType::RightBrace)) {
         auto uniformDefinition = parseGeometryUniformDefinition();
         uniformDefinitions.emplace_back(uniformDefinition);
     }
 
-    parseToken(TokenType::Semicolon);
+    parseToken(chamber::TokenType::Semicolon);
 
     return uniformDefinitions;
 }
@@ -177,7 +181,7 @@ UniformDefinition ShmagReader::parseGeometryUniformDefinition()
     uniformDefinition.name = parseIdentifier();
 
     // Default value
-    parseToken(TokenType::Equal);
+    parseToken(chamber::TokenType::Equal);
 
     switch (uniformDefinition.type) {
     case UniformType::Float: {
@@ -209,16 +213,16 @@ UniformDefinition ShmagReader::parseGeometryUniformDefinition()
     }
 
     // Semicolon
-    parseToken(TokenType::Semicolon);
+    parseToken(chamber::TokenType::Semicolon);
 
     return uniformDefinition;
 }
 
 void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
 {
-    parseToken(TokenType::LeftParenthesis);
-    parseToken(TokenType::RightParenthesis);
-    parseToken(TokenType::LeftBrace);
+    parseToken(chamber::TokenType::LeftParenthesis);
+    parseToken(chamber::TokenType::RightParenthesis);
+    parseToken(chamber::TokenType::LeftBrace);
 
     adaptedCode << "bool @magma:impl:main (out GBufferData gBufferData, float fragmentDepth) {" << std::endl;
 
@@ -239,7 +243,7 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
     auto bracesCount = 1u;
     while (auto token = m_lexer->nextToken()) {
         auto tokenString = token->string;
-        if (token->type == TokenType::Identifier) {
+        if (token->type == chamber::TokenType::Identifier) {
             if (m_samplersMap.find(token->string) != m_samplersMap.end())
                 tokenString = m_samplersMap[token->string];
             else if (inMap.find(token->string) != inMap.end())
@@ -251,14 +255,14 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
         adaptedCode << tokenString << " ";
 
         // @todo Make a better pretty print? (Using it in shader-manager too.)
-        if (token->type == TokenType::Semicolon) {
+        if (token->type == chamber::TokenType::Semicolon) {
             adaptedCode << std::endl;
         }
-        else if (token->type == TokenType::LeftBrace) {
+        else if (token->type == chamber::TokenType::LeftBrace) {
             adaptedCode << std::endl;
             bracesCount++;
         }
-        else if (token->type == TokenType::RightBrace) {
+        else if (token->type == chamber::TokenType::RightBrace) {
             adaptedCode << std::endl << std::endl;
             bracesCount--;
         }
@@ -346,10 +350,10 @@ void ShmagReader::parseEpiphany(std::stringstream& adaptedCode)
 {
     adaptedCode << "@magma:impl:begin epiphany" << std::endl;
 
-    parseToken(TokenType::LeftBrace);
+    parseToken(chamber::TokenType::LeftBrace);
 
     // Optional gBuffer definition
-    while (auto token = getNotToken(TokenType::RightBrace)) {
+    while (auto token = getNotToken(chamber::TokenType::RightBrace)) {
         auto firstIdentifier = parseCurrentIdentifier();
         adaptedCode << firstIdentifier << " ";
 
@@ -379,12 +383,12 @@ void ShmagReader::parseEpiphany(std::stringstream& adaptedCode)
 
 void ShmagReader::parseEpiphanyBlock(std::stringstream& adaptedCode, bool expectSemicolon)
 {
-    while (auto token = getNotToken(TokenType::LeftBrace)) {
+    while (auto token = getNotToken(chamber::TokenType::LeftBrace)) {
         adaptedCode << token->string << " ";
 
         // It might be a function declaration, with a semicolon and not braces,
         // so we end there.
-        if (token->type == TokenType::Semicolon) {
+        if (token->type == chamber::TokenType::Semicolon) {
             adaptedCode << std::endl;
             return;
         }
@@ -396,14 +400,14 @@ void ShmagReader::parseEpiphanyBlock(std::stringstream& adaptedCode, bool expect
         adaptedCode << token->string << " ";
 
         // @todo Make a better pretty print? (Using it in shader-manager too.)
-        if (token->type == TokenType::Semicolon) {
+        if (token->type == chamber::TokenType::Semicolon) {
             adaptedCode << std::endl;
         }
-        else if (token->type == TokenType::LeftBrace) {
+        else if (token->type == chamber::TokenType::LeftBrace) {
             adaptedCode << std::endl;
             bracesCount++;
         }
-        else if (token->type == TokenType::RightBrace) {
+        else if (token->type == chamber::TokenType::RightBrace) {
             bracesCount--;
             if (bracesCount == 0u && expectSemicolon) break;
             adaptedCode << std::endl << std::endl;
@@ -413,16 +417,16 @@ void ShmagReader::parseEpiphanyBlock(std::stringstream& adaptedCode, bool expect
     }
 
     if (expectSemicolon) {
-        parseToken(TokenType::Semicolon);
+        parseToken(chamber::TokenType::Semicolon);
         adaptedCode << ";" << std::endl << std::endl;
     }
 }
 
 void ShmagReader::parseEpiphanyMain(std::stringstream& adaptedCode)
 {
-    parseToken(TokenType::LeftParenthesis);
-    parseToken(TokenType::RightParenthesis);
-    parseToken(TokenType::LeftBrace);
+    parseToken(chamber::TokenType::LeftParenthesis);
+    parseToken(chamber::TokenType::RightParenthesis);
+    parseToken(chamber::TokenType::LeftBrace);
 
     adaptedCode << "@magma:impl:main (GBufferData gBufferData, float fragmentDepth) {" << std::endl;
     adaptedCode << "    vec2 fragmentPosition = gl_FragCoord.xy / vec2(camera.extent);" << std::endl;
@@ -444,14 +448,14 @@ void ShmagReader::parseEpiphanyMain(std::stringstream& adaptedCode)
         adaptedCode << tokenString << " ";
 
         // @todo Make a better pretty print? (Using it in shader-manager too.)
-        if (token->type == TokenType::Semicolon) {
+        if (token->type == chamber::TokenType::Semicolon) {
             adaptedCode << std::endl;
         }
-        else if (token->type == TokenType::LeftBrace) {
+        else if (token->type == chamber::TokenType::LeftBrace) {
             adaptedCode << std::endl;
             bracesCount++;
         }
-        else if (token->type == TokenType::RightBrace) {
+        else if (token->type == chamber::TokenType::RightBrace) {
             bracesCount--;
             adaptedCode << std::endl << std::endl;
         }
@@ -521,7 +525,7 @@ void ShmagReader::injectGBufferDefinitions(std::stringstream& adaptedCode)
     adaptedCode << "} gBuffer;" << std::endl << std::endl;
 }
 
-void ShmagReader::parseToken(TokenType tokenType)
+void ShmagReader::parseToken(chamber::TokenType tokenType)
 {
     auto token = m_lexer->nextToken();
     if (token->type != tokenType) {
@@ -532,7 +536,7 @@ void ShmagReader::parseToken(TokenType tokenType)
 void ShmagReader::parseIdentifier(const std::string& expectedIdentifier)
 {
     auto token = m_lexer->nextToken();
-    if (token->type != TokenType::Identifier || token->string != expectedIdentifier) {
+    if (token->type != chamber::TokenType::Identifier || token->string != expectedIdentifier) {
         errorExpected("'" + expectedIdentifier + "'");
     }
 }
@@ -546,8 +550,8 @@ std::string ShmagReader::parseIdentifier()
 float ShmagReader::parseFloat()
 {
     auto token = m_lexer->nextToken();
-    if (token->type != TokenType::Number) {
-        errorExpected(TokenType::Number);
+    if (token->type != chamber::TokenType::Number) {
+        errorExpected(chamber::TokenType::Number);
     }
     return static_cast<float>(token->number);
 }
@@ -555,8 +559,8 @@ float ShmagReader::parseFloat()
 std::string ShmagReader::parseString()
 {
     auto token = m_lexer->nextToken();
-    if (token->type != TokenType::String) {
-        errorExpected(TokenType::String);
+    if (token->type != chamber::TokenType::String) {
+        errorExpected(chamber::TokenType::String);
     }
     return token->string;
 }
@@ -566,20 +570,20 @@ glm::vec4 ShmagReader::parseVec4()
     glm::vec4 vector;
 
     parseIdentifier("vec4");
-    parseToken(TokenType::LeftParenthesis);
+    parseToken(chamber::TokenType::LeftParenthesis);
 
     for (auto i = 0u; i < 3u; ++i) {
         vector[i] = parseFloat();
-        parseToken(TokenType::Comma);
+        parseToken(chamber::TokenType::Comma);
     }
     vector[3u] = parseFloat();
 
-    parseToken(TokenType::RightParenthesis);
+    parseToken(chamber::TokenType::RightParenthesis);
 
     return vector;
 }
 
-std::optional<Lexer::Token> ShmagReader::getNotToken(TokenType tokenType)
+std::optional<Lexer::Token> ShmagReader::getNotToken(chamber::TokenType tokenType)
 {
     auto token = m_lexer->nextToken();
     return (token->type != tokenType) ? token : std::nullopt;
@@ -588,8 +592,8 @@ std::optional<Lexer::Token> ShmagReader::getNotToken(TokenType tokenType)
 std::string ShmagReader::parseCurrentIdentifier()
 {
     auto token = m_lexer->currentToken();
-    if (token->type != TokenType::Identifier) {
-        errorExpected(TokenType::Identifier);
+    if (token->type != chamber::TokenType::Identifier) {
+        errorExpected(chamber::TokenType::Identifier);
     }
     return token->string;
 }
@@ -611,7 +615,7 @@ void ShmagReader::errorExpected(const std::string& expectedChoices)
     logger.warning("magma.shmag-reader") << "Expected " << expectedChoices << "." << std::endl;
 }
 
-void ShmagReader::errorExpected(TokenType expectedTokenType)
+void ShmagReader::errorExpected(chamber::TokenType expectedTokenType)
 {
     errorExpected(stringify(expectedTokenType));
 }

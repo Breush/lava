@@ -29,7 +29,7 @@ RenderImage DirectionalLight::Impl::shadowsRenderImage() const
 
 //----- ILight::Impl
 
-void DirectionalLight::Impl::init(uint id)
+void DirectionalLight::Impl::init(uint32_t id)
 {
     m_id = id;
     m_descriptorSet = m_scene.lightsDescriptorHolder().allocateSet("directional-light." + std::to_string(id));

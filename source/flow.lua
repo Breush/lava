@@ -10,6 +10,9 @@ project "lava-flow"
         defines { "LAVA_FLOW_AUDIO_PULSE" }
         files "flow/backends/pulse/**"
 
+    elseif options.audioSystem == "was" then
+        defines { "LAVA_FLOW_AUDIO_WAS" }
+
     else
         error("Unsupported audio system " .. options.audioSystem)
 
@@ -23,6 +26,9 @@ project "lava-flow"
             end
             libdirs(lib)
             links { "pulse", "pulse-simple" }
+
+        elseif options.audioSystem == "was" then
+            -- Nothing to do
 
         else
             error("Unsupported audio system " .. options.audioSystem)

@@ -86,7 +86,7 @@ namespace lava::magma {
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
         const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
 
-        uint lightsCount() const { return m_lightBundles.size(); }
+        uint32_t lightsCount() const { return m_lightBundles.size(); }
 
         RenderImage cameraRenderImage(uint32_t cameraIndex) const;
         RenderImage cameraDepthRenderImage(uint32_t cameraIndex) const;

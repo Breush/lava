@@ -30,7 +30,7 @@ end
 
 -- Set up
 
-if not fileExists("./include/bullet") then
+if not fileExists("./include/bullet/btBulletCollisionCommon.h") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
 
     os.execute("bash ../scripts/setup/bullet.sh " .. VERSION)
@@ -43,7 +43,7 @@ function useBullet()
     includedirs(externalPath .. "/include")
 
     -- Sadly necessary... as this how the bullet is internally referenced
-    includedirs(externalPath .. "/include/bullet") 
+    includedirs(externalPath .. "/include/bullet")
 
     libdirs(externalPath .. "/lib")
 

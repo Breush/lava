@@ -43,6 +43,38 @@
             "compilerPath": "/usr/bin/clang++-4.0",
             "cStandard": "c11",
             "cppStandard": "c++17"
+        },
+        {
+            "name": "Windows",
+            "includePath": [
+                "C:/Users/Sherlock/bin/mingw64/include",
+                "C:/Users/Sherlock/bin/mingw64/x86_64-w64-mingw32/include",
+                "${workspaceRoot}",
+                "${workspaceRoot}/include",
+                "${workspaceRoot}/external/include",
+                "${workspaceRoot}/external/include/bullet"
+            ],
+            "defines": [
+                "LAVA_CHAMBER_FILEWATCHER_WIN32",
+                "LAVA_CHAMBER_CALLSTACK_GCC",
+                "LAVA_CRATER_WINDOW_DWM",
+                "LAVA_FLOW_AUDIO_WAS",
+                "VK_USE_PLATFORM_WIN32_KHR"
+            ],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "C:/Users/Sherlock/bin/mingw64/lib/gcc/x86_64-w64-mingw32/7.3.0/include",
+                    "C:/Users/Sherlock/bin/mingw64/lib/gcc/x86_64-w64-mingw32/7.3.0/include-fixed",
+                    "C:/Users/Sherlock/bin/mingw64/x86_64-w64-mingw32/include",
+                    "${workspaceRoot}",
+                    "${workspaceRoot}/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "cStandard": "c11",
+            "cppStandard": "c++17"
         }
     ],
     "version": 4

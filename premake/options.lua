@@ -17,6 +17,7 @@ end
 -- Some default values
 if os.host() == "windows" then
     setOption("windowingSystem", "dwm")
+    setOption("audioSystem", "was")
 end
 
 -- Add command-line options

@@ -18,7 +18,7 @@ if not fileValid(localFile) then
     if os.host() == "windows" then
         filename = "windows/VulkanSDK-" .. VERSION .. ".run"
     end
-    
+
     local url = "https://vulkan.lunarg.com/sdk/download/" .. VERSION .. "/" .. filename .. "?Human=true"
 
     downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
@@ -45,7 +45,7 @@ if not fileExists("./include/vulkan") then
         os.execute("vulkan-sdk.exe /S /D=" .. installFolder)
         os.execute("mv vulkan-sdk.exe " .. localFile)
     end
-    
+
     os.execute("bash ../scripts/setup/vulkan-sdk.sh " .. VERSION)
 end
 
@@ -56,20 +56,25 @@ function useVulkanSdk()
     includedirs(externalPath .. "/include")
     libdirs(externalPath .. "/lib")
 
-    if os.host() == "windows" then 
+    if os.host() == "windows" then
         links { "vulkan-1" }
+        links {
+            "shadercd", "shaderc_utild",
+            "glslangd", "OSDependentd", "OGLCompilerd",
+            "SPIRVd", "HLSLd", "SPIRV-Tools-optd", "SPIRV-Toolsd",
+        }
     else
         links { "vulkan" }
+        links {
+            "shaderc", "shaderc_util",
+            "glslang", "OSDependent", "OGLCompiler",
+            "SPIRV", "HLSL", "SPIRV-Tools-opt", "SPIRV-Tools",
+        }
     end
 
-    links {
-        "shaderc", "shaderc_util",
-        "glslang", "OSDependent", "OGLCompiler",
-        "SPIRV", "HLSL", "SPIRV-Tools-opt", "SPIRV-Tools",
-    }
 
     linkoptions("-pthread")
-    
+
     filter { "configurations:debug" }
         linkoptions("-Wl,-rpath," .. externalPath .. "/lib")
 
