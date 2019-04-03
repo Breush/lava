@@ -41,15 +41,18 @@ void RenderPassHolder::init()
             reference.layout = vk::ImageLayout::eColorAttachmentOptimal;
             colorAttachmentReferences.emplace_back(reference);
 
+            // @fixme Made colorAttachment.finalLayout useless most of the time...
             vk::AttachmentDescription description;
             description.format = colorAttachment.format;
             description.samples = vk::SampleCountFlagBits::e1;
-            description.initialLayout = previouslyUsed ? colorAttachment.finalLayout : vk::ImageLayout::eUndefined;
+            description.initialLayout = previouslyUsed ? vk::ImageLayout::eShaderReadOnlyOptimal : vk::ImageLayout::eUndefined;
             description.loadOp = previouslyUsed ? vk::AttachmentLoadOp::eLoad : vk::AttachmentLoadOp::eClear;
             description.storeOp = vk::AttachmentStoreOp::eStore;
             description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
             description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-            description.finalLayout = colorAttachment.finalLayout;
+            description.finalLayout = (colorAttachment.finalLayout == vk::ImageLayout::ePresentSrcKHR)
+                                          ? colorAttachment.finalLayout
+                                          : vk::ImageLayout::eShaderReadOnlyOptimal;
             description.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
             attachmentDescriptions.emplace_back(description);
         }
@@ -69,7 +72,7 @@ void RenderPassHolder::init()
             description.storeOp = vk::AttachmentStoreOp::eStore;
             description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
             description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-            description.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+            description.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
             attachmentDescriptions.emplace_back(description);
         }
 
@@ -119,7 +122,7 @@ void RenderPassHolder::init()
         subpassDependency.dstSubpass = (i == m_pipelineHolders.size()) ? VK_SUBPASS_EXTERNAL : i;
         // @todo Be clever about these stage mask
         subpassDependency.srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
-        subpassDependency.dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
+        subpassDependency.dstStageMask = vk::PipelineStageFlagBits::eAllGraphics;
         subpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite
                                           | vk::AccessFlagBits::eDepthStencilAttachmentWrite
                                           | vk::AccessFlagBits::eInputAttachmentRead;

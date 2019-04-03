@@ -9,7 +9,7 @@ using namespace lava;
 
 int main(void)
 {
-    ashe::Application app("ashe - magma | Translucency");
+    ashe::Application app("ashe - magma | Shader watcher");
 
     // Go and open ./data/tmp/watched-material.shmag in your text editor
     // while this example is running.

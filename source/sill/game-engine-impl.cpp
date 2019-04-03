@@ -21,6 +21,7 @@ GameEngine::Impl::Impl(GameEngine& base)
 
     m_windowRenderTarget = &m_renderEngine->make<magma::WindowRenderTarget>(m_window->handle(), windowExtent);
     m_renderScene = &m_renderEngine->make<magma::RenderScene>();
+    m_renderScene->rendererType(magma::RendererType::Forward);
 
     // @todo Handle custom lights
     m_light = &m_renderScene->make<magma::DirectionalLight>();

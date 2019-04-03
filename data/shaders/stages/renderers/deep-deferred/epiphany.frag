@@ -50,12 +50,15 @@ void main()
         // We cannot use a constant instead of i because otherwise,
         // the compiler can say out of bounds by itself.
         node.data[4 * i - 2] = gBufferRenderTargets[i].x;
-        if (4 * i - 1 < G_BUFFER_DATA_SIZE)
-            node.data[4 * i - 1] = gBufferRenderTargets[i].x;
-        if (4 * i + 0 < G_BUFFER_DATA_SIZE)
-            node.data[4 * i + 0] = gBufferRenderTargets[i].x;
-        if (4 * i + 1 < G_BUFFER_DATA_SIZE)
-            node.data[4 * i + 1] = gBufferRenderTargets[i].x;
+        if (4 * i - 1 < G_BUFFER_DATA_SIZE) {
+            node.data[4 * i - 1] = gBufferRenderTargets[i].y;
+            if (4 * i + 0 < G_BUFFER_DATA_SIZE) {
+                node.data[4 * i + 0] = gBufferRenderTargets[i].z;
+                if (4 * i + 1 < G_BUFFER_DATA_SIZE) {
+                    node.data[4 * i + 1] = gBufferRenderTargets[i].w;
+                }
+            }
+        }
 
         opaqueDepth = node.depth;
 

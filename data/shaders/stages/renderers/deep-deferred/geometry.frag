@@ -53,6 +53,10 @@ void main()
             outGBufferRenderTargets[i].y = node.data[4 * i - 1];
             outGBufferRenderTargets[i].z = node.data[4 * i + 0];
             outGBufferRenderTargets[i].w = node.data[4 * i + 1];
+
+            // @fixme This fixes a bug that makes the above lines not to be executed
+            // or optimized out... Don't know why, it must be the GLSL compiler.
+            outGBufferRenderTargets[i] = outGBufferRenderTargets[i];
         }
     } else {
         // If the material is translucent, we add it to the linked list,

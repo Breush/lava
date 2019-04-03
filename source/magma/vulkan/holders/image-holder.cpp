@@ -17,9 +17,17 @@ ImageHolder::ImageHolder(const RenderEngine::Impl& engine)
 {
 }
 
+ImageHolder::ImageHolder(const RenderEngine::Impl& engine, const std::string& name)
+    : ImageHolder(engine)
+{
+    engine.deviceHolder().debugObjectName(m_image, name);
+    engine.deviceHolder().debugObjectName(m_view, name);
+}
+
 void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect)
 {
     m_extent = extent;
+    m_aspect = imageAspect;
 
     vk::ImageAspectFlags aspectFlags;
     vk::ImageUsageFlags usageFlags;
@@ -28,8 +36,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
     vk::AccessFlags srcAccessMask;
     vk::AccessFlags dstAccessMask;
-    vk::ImageLayout oldLayout;
-    vk::ImageLayout newLayout;
+    vk::ImageLayout oldLayout = vk::ImageLayout::eUndefined;
 
     // Depth
     if (imageAspect == vk::ImageAspectFlagBits::eDepth) {
@@ -38,8 +45,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
         dstStageMask |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
         dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        oldLayout = vk::ImageLayout::eUndefined;
-        newLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        m_layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
     }
     // Color
     else if (imageAspect == vk::ImageAspectFlagBits::eColor) {
@@ -54,7 +60,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
         srcAccessMask = vk::AccessFlagBits::eHostWrite;
         dstAccessMask = vk::AccessFlagBits::eTransferWrite;
         oldLayout = vk::ImageLayout::ePreinitialized;
-        newLayout = vk::ImageLayout::eTransferDstOptimal;
+        m_layout = vk::ImageLayout::eShaderReadOnlyOptimal; // Cannot use eColorAttachmentOptimal, somehow
     }
     else {
         logger.error("magma.vulkan.image-holder") << "Unknown image aspect for image holder. "
@@ -117,7 +123,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
 
     vk::ImageMemoryBarrier barrier;
     barrier.oldLayout = oldLayout;
-    barrier.newLayout = newLayout;
+    barrier.newLayout = m_layout;
     barrier.image = m_image;
     barrier.subresourceRange.levelCount = 1;
     barrier.subresourceRange.layerCount = 1;
@@ -156,8 +162,29 @@ void ImageHolder::copy(const void* data, vk::DeviceSize size)
     bufferImageCopy.imageSubresource.layerCount = 1;
     bufferImageCopy.imageExtent = vk::Extent3D{m_extent.width, m_extent.height, 1};
 
+    vk::ImageMemoryBarrier layoutToTransferDstBarrier;
+    layoutToTransferDstBarrier.oldLayout = m_layout;
+    layoutToTransferDstBarrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
+    layoutToTransferDstBarrier.image = m_image;
+    layoutToTransferDstBarrier.subresourceRange.levelCount = 1;
+    layoutToTransferDstBarrier.subresourceRange.layerCount = 1;
+    layoutToTransferDstBarrier.subresourceRange.aspectMask = m_aspect;
+
+    vk::ImageMemoryBarrier transferDstToLayoutBarrier;
+    transferDstToLayoutBarrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    transferDstToLayoutBarrier.newLayout = m_layout;
+    transferDstToLayoutBarrier.image = m_image;
+    transferDstToLayoutBarrier.subresourceRange.levelCount = 1;
+    transferDstToLayoutBarrier.subresourceRange.layerCount = 1;
+    transferDstToLayoutBarrier.subresourceRange.aspectMask = m_aspect;
+
+    vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+    vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
+    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &layoutToTransferDstBarrier);
     commandBuffer.copyBufferToImage(stagingBuffer, m_image, vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
+    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &transferDstToLayoutBarrier);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
 

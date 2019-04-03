@@ -40,7 +40,7 @@ namespace lava::ashe {
 
             // Render scene: holds what has to be drawn.
             m_scene = &m_engine->make<magma::RenderScene>();
-            m_scene->rendererType(magma::RendererType::Forward);
+            m_scene->rendererType(magma::RendererType::DeepDeferred);
 
             // A camera.
             m_camera = &m_scene->make<magma::OrbitCamera>(m_window->extent());

@@ -8,6 +8,7 @@ external/bin/
 external/etc/
 source/_*
 data/tmp/*
+.vscode/ipch
 Makefile
 *.make
 *.spv

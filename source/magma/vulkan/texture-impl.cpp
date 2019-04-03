@@ -7,7 +7,7 @@ using namespace lava::magma;
 
 Texture::Impl::Impl(RenderScene& scene)
     : m_scene(scene.impl())
-    , m_imageHolder(m_scene.engine())
+    , m_imageHolder(m_scene.engine(), "magma.vulkan.texture.image")
 {
 }
 

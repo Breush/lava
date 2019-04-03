@@ -5,6 +5,12 @@ using namespace lava::magma;
 void vulkan::updateDescriptorSet(vk::Device device, vk::DescriptorSet descriptorSet, vk::ImageView imageView, vk::Sampler sampler,
                                  vk::ImageLayout imageLayout, uint32_t dstBinding, uint32_t dstArrayElement)
 {
+    if (imageLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+        imageLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+    } else if (imageLayout == vk::ImageLayout::eColorAttachmentOptimal) {
+        imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    }
+
     vk::DescriptorImageInfo imageInfo;
     imageInfo.imageLayout = imageLayout;
     imageInfo.imageView = imageView;

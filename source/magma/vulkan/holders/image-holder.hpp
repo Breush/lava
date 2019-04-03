@@ -14,6 +14,7 @@ namespace lava::magma::vulkan {
     public:
         ImageHolder() = delete;
         ImageHolder(const RenderEngine::Impl& engine);
+        ImageHolder(const RenderEngine::Impl& engine, const std::string& name);
 
         /// Allocate all image memory for the specified format.
         void create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect);
@@ -34,5 +35,7 @@ namespace lava::magma::vulkan {
         $attribute(vulkan::Image, image);
         $attribute(vulkan::DeviceMemory, memory);
         $attribute(vulkan::ImageView, view);
+        $attribute(vk::ImageLayout, layout, = vk::ImageLayout::eUndefined);
+        $attribute(vk::ImageAspectFlagBits, aspect);
     };
 }

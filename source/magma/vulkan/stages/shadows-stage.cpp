@@ -14,7 +14,7 @@ ShadowsStage::ShadowsStage(RenderScene::Impl& scene)
     : m_scene(scene)
     , m_renderPassHolder(m_scene.engine())
     , m_pipelineHolder(m_scene.engine())
-    , m_depthImageHolder(scene.engine())
+    , m_depthImageHolder(scene.engine(), "magma.vulkan.stages.shadows-stage.depth-image")
     , m_framebuffer(m_scene.engine().device())
 {
 }

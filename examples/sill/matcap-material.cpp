@@ -23,7 +23,7 @@ int main(void)
     for (auto& matcapFile : matcapFiles) {
         auto& texture = engine.make<sill::Texture>(matcapFile);
         auto& material = engine.make<sill::Material>("matcap");
-        material.set("texture", texture);
+        material.set("matcapTexture", texture);
 
         auto& sphereEntity = engine.make<sill::GameEntity>();
         auto& sphereMeshComponent = sphereEntity.make<sill::MeshComponent>();

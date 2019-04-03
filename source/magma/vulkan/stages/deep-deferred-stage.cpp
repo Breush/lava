@@ -23,8 +23,8 @@ DeepDeferredStage::DeepDeferredStage(RenderScene::Impl& scene)
     , m_gBufferSsboDescriptorHolder(m_scene.engine())
     , m_gBufferSsboHeaderBufferHolder(m_scene.engine())
     , m_gBufferSsboListBufferHolder(m_scene.engine())
-    , m_finalImageHolder(m_scene.engine())
-    , m_depthImageHolder(m_scene.engine())
+    , m_finalImageHolder(m_scene.engine(), "magma.vulkan.stages.deep-deferred-stage.final-image")
+    , m_depthImageHolder(m_scene.engine(), "magma.vulkan.stages.deep-deferred-stage.depth-image")
     , m_framebuffer(m_scene.engine().device())
 {
 }
@@ -72,7 +72,11 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Set render pass
     std::array<vk::ClearValue, 8> clearValues;
-    clearValues[0].color = vk::ClearColorValue(std::array<float, 4u>{1.f, 1.f, 1.f, 1.f});
+
+    // @note This clear color is used to reset gBufferRenderTargets[0].y to zero,
+    // meaning that there is no opaque material there. The effective clear color
+    // is currently hard-coded (@fixme) in epiphany.frag.
+    clearValues[0].color = vk::ClearColorValue(std::array<float, 4u>{0.f, 0.f, 0.f, 0.f});
     clearValues[DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
 
     vk::RenderPassBeginInfo renderPassInfo;

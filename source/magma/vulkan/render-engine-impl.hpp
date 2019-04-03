@@ -131,13 +131,13 @@ namespace lava::magma {
          */
         /// @{
         /// Dummy texture for colors. 1x1 pixel of rgba(255, 255, 255, 255)
-        vulkan::ImageHolder m_dummyImageHolder{*this};
+        vulkan::ImageHolder m_dummyImageHolder{*this, "magma.vulkan.render-engine.dummy-image"};
 
         /// Dummy texture for normal mapping. 1x1 pixel of rgba(128, 128, 255, 255)
-        vulkan::ImageHolder m_dummyNormalImageHolder{*this};
+        vulkan::ImageHolder m_dummyNormalImageHolder{*this, "magma.vulkan.render-engine.dummy-normal-image"};
 
         /// Dummy texture for black-invisible. 1x1 pixel of rgba(0, 0, 0, 0)
-        vulkan::ImageHolder m_dummyInvisibleImageHolder{*this};
+        vulkan::ImageHolder m_dummyInvisibleImageHolder{*this, "magma.vulkan.render-engine.dummy-invisible-image"};
 
         /// Dummy texture sampler.
         $attribute(vulkan::Sampler, dummySampler, {device()});
