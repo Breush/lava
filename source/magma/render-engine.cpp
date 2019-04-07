@@ -20,6 +20,8 @@ RenderEngine::~RenderEngine()
     delete m_impl;
 }
 
+$pimpl_method(RenderEngine, bool, vrEnabled);
+
 $pimpl_method(RenderEngine, void, update);
 $pimpl_method(RenderEngine, void, draw);
 $pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);

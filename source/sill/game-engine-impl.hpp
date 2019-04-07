@@ -63,6 +63,7 @@ namespace lava::sill {
         std::unique_ptr<crater::Window> m_window = nullptr;
         std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
         magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
+        magma::VrRenderTarget* m_vrRenderTarget = nullptr;
         magma::RenderScene* m_renderScene = nullptr;
         magma::DirectionalLight* m_light = nullptr;
 

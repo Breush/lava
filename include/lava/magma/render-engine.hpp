@@ -27,6 +27,9 @@ namespace lava::magma {
         /// Render the current state to all the targets.
         void draw();
 
+        /// Whether a VR system can be used (initialization worked).
+        bool vrEnabled();
+
         /**
          * Register a material (.shmag) to the engine.
          *
