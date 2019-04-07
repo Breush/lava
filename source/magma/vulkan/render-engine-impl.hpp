@@ -59,6 +59,8 @@ namespace lava::magma {
         const vk::PhysicalDevice& physicalDevice() const { return m_deviceHolder.physicalDevice(); }
         const vk::Queue& graphicsQueue() const { return m_deviceHolder.graphicsQueue(); }
         const vk::Queue& presentQueue() const { return m_deviceHolder.presentQueue(); }
+        uint32_t graphicsQueueFamilyIndex() const { return m_deviceHolder.graphicsQueueFamilyIndex(); }
+        uint32_t presentQueueFamilyIndex() const { return m_deviceHolder.presentQueueFamilyIndex(); }
 
         ShadersManager& shadersManager() { return m_shadersManager; }
         /// @}
@@ -76,31 +78,33 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
+        bool vrEnabled() { return m_vrSystem != nullptr; }
+        vr::IVRSystem& vrSystem() { return *m_vrSystem; }
         const MaterialInfo& materialInfo(const std::string& hrid) const;
 
-        void updateRenderTarget(uint32_t renderTargetId);
         void updateRenderViews(RenderImage renderImage);
         /// @}
 
     protected:
+        void initVr();
         void initVulkan();
-        void initVulkanDevice(vk::SurfaceKHR surface);
+        void initVulkanDevice(vk::SurfaceKHR* pSurface);
         void initRenderScenes();
 
         // Resources
-        void createSemaphores();
         void createDummyTextures();
 
         // Command buffers
         vk::CommandBuffer& recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex);
-        void createCommandPool(vk::SurfaceKHR surface);
+        void createCommandPool(vk::SurfaceKHR* pSurface);
         void createCommandBuffers(uint32_t renderTargetIndex);
 
     private:
         /// This bundle is what each render target needs.
         struct RenderTargetBundle {
             std::unique_ptr<IRenderTarget> renderTarget;
-            std::unique_ptr<Present> presentStage;
+            // @fixme Add a compositor stage for every render targets
+            // std::unique_ptr<Present> presentStage;
             std::vector<vk::CommandBuffer> commandBuffers;
         };
 
@@ -120,11 +124,14 @@ namespace lava::magma {
         // Commands
         $attribute(vulkan::CommandPool, commandPool, {device()});
 
-        /// Shaders.
+        /// Shaders
         ShadersManager m_shadersManager{device()};
         std::unordered_map<std::string, MaterialInfo> m_materialInfos;
         std::unordered_map<std::string, uint32_t> m_registeredMaterialsMap;
         chamber::FileWatcher m_shadersWatcher;
+
+        /// VR
+        vr::IVRSystem* m_vrSystem = nullptr;
 
         /**
          * @name Textures
@@ -145,9 +152,6 @@ namespace lava::magma {
         /// Shadow-map sampler.
         $attribute(vulkan::Sampler, shadowsSampler, {device()});
         /// @}
-
-        // Semaphores
-        vulkan::Semaphore m_renderFinishedSemaphore{device()};
 
         // Data
         std::vector<std::unique_ptr<IRenderScene>> m_renderScenes;

@@ -8,12 +8,13 @@ namespace lava::magma::vulkan {
      */
     class InstanceHolder final {
     public:
-        void init(bool debugEnabled);
+        void init(bool debugEnabled, bool vrEnabled);
 
         // ----- Getters
 
         const vk::Instance& instance() const { return m_instance; }
         bool debugEnabled() const { return m_debugEnabled; }
+        bool vrEnabled() const { return m_vrEnabled; }
 
     protected:
         void createInstance();
@@ -31,6 +32,9 @@ namespace lava::magma::vulkan {
         // Application
         vk::ApplicationInfo m_applicationInfo;
         std::vector<const char*> m_extensions;
+
+        // VR
+        bool m_vrEnabled = false;
 
         // Validation layers
         bool m_debugEnabled = true;

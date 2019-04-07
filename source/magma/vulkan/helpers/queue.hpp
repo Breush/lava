@@ -11,5 +11,5 @@ namespace lava::magma::vulkan {
     };
 
     /// Find correct queue families of a device.
-    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
+    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR* pSurface = nullptr);
 }

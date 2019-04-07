@@ -7,6 +7,7 @@
 #include "../render-image-impl.hpp"
 
 using namespace lava::magma::vulkan;
+using namespace lava::magma;
 using namespace lava::chamber;
 
 ImageHolder::ImageHolder(const RenderEngine::Impl& engine)
@@ -53,7 +54,9 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
         // @fixme eColorAttachment is not always necessary... we should be able to control that
         // And same goes for eSampled.
         usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
-                     | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eInputAttachment;
+                     | vk::ImageUsageFlagBits::eTransferDst
+                     | vk::ImageUsageFlagBits::eTransferSrc // @fixme We would love an option to not enable everything every time
+                     | vk::ImageUsageFlagBits::eInputAttachment;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
         srcStageMask |= vk::PipelineStageFlagBits::eHost;
         dstStageMask |= vk::PipelineStageFlagBits::eTransfer;
@@ -162,29 +165,10 @@ void ImageHolder::copy(const void* data, vk::DeviceSize size)
     bufferImageCopy.imageSubresource.layerCount = 1;
     bufferImageCopy.imageExtent = vk::Extent3D{m_extent.width, m_extent.height, 1};
 
-    vk::ImageMemoryBarrier layoutToTransferDstBarrier;
-    layoutToTransferDstBarrier.oldLayout = m_layout;
-    layoutToTransferDstBarrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
-    layoutToTransferDstBarrier.image = m_image;
-    layoutToTransferDstBarrier.subresourceRange.levelCount = 1;
-    layoutToTransferDstBarrier.subresourceRange.layerCount = 1;
-    layoutToTransferDstBarrier.subresourceRange.aspectMask = m_aspect;
-
-    vk::ImageMemoryBarrier transferDstToLayoutBarrier;
-    transferDstToLayoutBarrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
-    transferDstToLayoutBarrier.newLayout = m_layout;
-    transferDstToLayoutBarrier.image = m_image;
-    transferDstToLayoutBarrier.subresourceRange.levelCount = 1;
-    transferDstToLayoutBarrier.subresourceRange.layerCount = 1;
-    transferDstToLayoutBarrier.subresourceRange.aspectMask = m_aspect;
-
-    vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
-    vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
-
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
-    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &layoutToTransferDstBarrier);
+    changeLayout(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
     commandBuffer.copyBufferToImage(stagingBuffer, m_image, vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
-    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &transferDstToLayoutBarrier);
+    changeLayout(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
 
@@ -216,4 +200,30 @@ void ImageHolder::setup(const uint8_t* pixels, uint32_t width, uint32_t height, 
     //----- Copy
 
     copy(pixels, width * height * channels);
+}
+
+void ImageHolder::changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
+{
+    // @note Not sure what this is for...
+    vk::PipelineStageFlags stageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+
+    vk::ImageMemoryBarrier barrier;
+    barrier.oldLayout = vk::ImageLayout::eUndefined; // @todo Well, that works, but it is definitly ugly
+    barrier.newLayout = imageLayout;
+    barrier.image = m_image;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.aspectMask = m_aspect;
+
+    commandBuffer.pipelineBarrier(stageMask, stageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
+}
+
+RenderImage ImageHolder::renderImage(uint32_t uuid) const
+{
+    RenderImage renderImage;
+    renderImage.impl().uuid(uuid);
+    renderImage.impl().image(m_image);
+    renderImage.impl().view(m_view);
+    renderImage.impl().layout(m_layout);
+    return renderImage;
 }

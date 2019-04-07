@@ -25,12 +25,14 @@ namespace lava::magma {
         ForwardRendererStage(RenderScene::Impl& scene);
 
         // IRendererStage
-        void init(uint32_t cameraId) override final;
-        void update(vk::Extent2D extent, vk::PolygonMode polygonMode) override final;
-        void render(vk::CommandBuffer commandBuffer) override final;
+        void init(uint32_t cameraId) final;
+        void update(vk::Extent2D extent, vk::PolygonMode polygonMode) final;
+        void render(vk::CommandBuffer commandBuffer) final;
 
-        RenderImage renderImage() const override final;
-        RenderImage depthRenderImage() const override final;
+        RenderImage renderImage() const final;
+        RenderImage depthRenderImage() const final;
+
+        void changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) final;
 
     protected:
         void initOpaquePass();

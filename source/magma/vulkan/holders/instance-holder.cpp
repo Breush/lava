@@ -1,5 +1,7 @@
 #include "./instance-holder.hpp"
 
+#include "../helpers/vr.hpp"
+
 // @note Instanciation of declared-only in vulkan.h.
 
 VkResult vkCreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
@@ -21,8 +23,9 @@ void vkDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerE
 using namespace lava;
 
 namespace {
-    bool debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity, vk::DebugUtilsMessageTypeFlagBitsEXT messageType,
-                       const vk::DebugUtilsMessengerCallbackDataEXT* callbackData, void*)
+    uint32_t debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                           vk::DebugUtilsMessageTypeFlagBitsEXT messageType,
+                           const vk::DebugUtilsMessengerCallbackDataEXT* callbackData, void*)
     {
         auto type = "magma.vulkan.debug." + chamber::camelToSnakeCase(vk::to_string(messageType));
         auto message = "[" + std::string(callbackData->pMessageIdName) + "] " + callbackData->pMessage;
@@ -47,7 +50,7 @@ namespace {
             chamber::logger.info(type) << message << std::endl;
         }
 
-        return false;
+        return 0;
     }
 
     bool layersSupported(const std::vector<const char*>& layers)
@@ -75,9 +78,10 @@ namespace {
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-void InstanceHolder::init(bool debugEnabled)
+void InstanceHolder::init(bool debugEnabled, bool vrEnabled)
 {
     m_debugEnabled = debugEnabled;
+    m_vrEnabled = vrEnabled;
 
     createInstance();
     setupDebug();
@@ -102,8 +106,13 @@ void InstanceHolder::setupDebug()
     if (!m_debugEnabled) return;
 
     vk::DebugUtilsMessengerCreateInfoEXT createInfo;
-    createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
-                             | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+    createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
+
+    // @note We can't show Performance issues when using VR, because OpenVR/SteamVR makes it emit a warning at each loop.
+    if (!m_vrEnabled) {
+        createInfo.messageType |= vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+    }
+
     createInfo.messageSeverity =
         vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
     createInfo.pfnUserCallback = reinterpret_cast<PFN_vkDebugUtilsMessengerCallbackEXT>(debugCallback);
@@ -133,6 +142,7 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
     }
     logger.log().tab(-1);
 
+    // @fixme The surface extension might not always be needed...
     m_extensions = {VK_KHR_SURFACE_EXTENSION_NAME};
 #if defined(VK_USE_PLATFORM_XCB_KHR)
     m_extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
@@ -141,6 +151,13 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
     m_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
+
+    if (m_vrEnabled) {
+        const auto& vrExtensions = vulkan::vrRequiredInstanceExtensions();
+        for (const auto& vrExtension : vrExtensions) {
+            m_extensions.emplace_back(vrExtension.c_str());
+        }
+    }
 
     // Validation layers
     if (m_debugEnabled) {

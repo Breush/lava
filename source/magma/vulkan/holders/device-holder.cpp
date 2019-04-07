@@ -2,6 +2,7 @@
 
 #include "../helpers/queue.hpp"
 #include "../helpers/swapchain.hpp"
+#include "../helpers/vr.hpp"
 
 // @note Instanciation of declared-only in vulkan.h.
 
@@ -47,16 +48,18 @@ namespace {
      * Checks if a device is suitable for our operations.
      */
     inline bool deviceSuitable(vk::PhysicalDevice physicalDevice, const std::vector<const char*>& deviceExtensions,
-                               vk::SurfaceKHR surface)
+                               vk::SurfaceKHR* pSurface)
     {
-        auto indices = magma::vulkan::findQueueFamilies(physicalDevice, surface);
+        auto indices = magma::vulkan::findQueueFamilies(physicalDevice, pSurface);
         if (!indices.valid()) return false;
 
         auto extensionsSupported = deviceExtensionsSupported(physicalDevice, deviceExtensions);
         if (!extensionsSupported) return false;
 
-        auto swapchainSupport = magma::vulkan::swapchainSupportDetails(physicalDevice, surface);
-        if (!swapchainSupport.valid()) return false;
+        if (pSurface != nullptr) {
+            auto swapchainSupport = magma::vulkan::swapchainSupportDetails(physicalDevice, *pSurface);
+            if (!swapchainSupport.valid()) return false;
+        }
 
         auto supportedFeatures = physicalDevice.getFeatures();
         if (!supportedFeatures.samplerAnisotropy) return false;
@@ -68,12 +71,13 @@ namespace {
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR surface, bool debugEnabled)
+void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR* pSurface, bool debugEnabled, bool vrEnabled)
 {
     m_debugEnabled = debugEnabled;
+    m_vrEnabled = vrEnabled;
 
-    pickPhysicalDevice(instance, surface);
-    createLogicalDevice(surface);
+    pickPhysicalDevice(instance, pSurface);
+    createLogicalDevice(pSurface);
 }
 
 void DeviceHolder::debugObjectName(uint64_t object, vk::ObjectType objectType, const std::string& name) const
@@ -125,7 +129,7 @@ void DeviceHolder::debugEndRegion(vk::CommandBuffer commandBuffer) const
     cmdEndDebugUtilsLabelEXT(device(), commandBuffer);
 }
 
-void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface)
+void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* pSurface)
 {
     logger.info("magma.vulkan.device-holder") << "Picking the right GPU." << std::endl;
     logger.log().tab(1);
@@ -138,7 +142,7 @@ void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surf
     }
 
     for (const auto& physicalDevice : physicalDevices) {
-        if (!deviceSuitable(physicalDevice, m_extensions, surface)) continue;
+        if (!deviceSuitable(physicalDevice, m_extensions, pSurface)) continue;
         m_physicalDevice = physicalDevice;
 
         auto properties = m_physicalDevice.getProperties();
@@ -153,13 +157,13 @@ void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surf
     logger.error("magma.vulkan.device-holder") << "Unable to find suitable GPU." << std::endl;
 }
 
-void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
+void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
 {
     // Queues
     float queuePriority = 1.0f;
-    auto indices = findQueueFamilies(m_physicalDevice, surface);
+    m_queueFamilyIndices = findQueueFamilies(m_physicalDevice, pSurface);
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::set<int> uniqueQueueFamilies = {indices.graphics, indices.present};
+    std::set<int> uniqueQueueFamilies = {m_queueFamilyIndices.graphics, m_queueFamilyIndices.present};
 
     for (int queueFamily : uniqueQueueFamilies) {
         vk::DeviceQueueCreateInfo queueCreateInfo = {};
@@ -178,6 +182,22 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
     // Extensions
     auto enabledExtensions(m_extensions);
 
+    // Checking VR extensions
+    if (m_vrEnabled) {
+        const auto& vrExtensions = vulkan::vrRequiredDeviceExtensions(m_physicalDevice);
+        for (const auto& vrExtension : vrExtensions) {
+            enabledExtensions.emplace_back(vrExtension.c_str());
+        }
+    }
+
+    // Logging all enabled extensions
+    logger.info("magma.vulkan.device-holder") << "Enabled extensions:" << std::endl;
+    logger.log().tab(1);
+    for (const auto& extensionName : enabledExtensions) {
+        logger.log() << extensionName << std::endl;
+    }
+    logger.log().tab(-1);
+
     // Really create
     vk::DeviceCreateInfo createInfo;
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -190,6 +210,6 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR surface)
         logger.error("magma.vulkan.device-holder") << "Unable to create logical device. " << std::endl;
     };
 
-    m_graphicsQueue = m_device.vk().getQueue(indices.graphics, 0);
-    m_presentQueue = m_device.vk().getQueue(indices.present, 0);
+    m_graphicsQueue = m_device.vk().getQueue(m_queueFamilyIndices.graphics, 0);
+    m_presentQueue = m_device.vk().getQueue(m_queueFamilyIndices.present, 0);
 }

@@ -1,5 +1,7 @@
 #include "./render-engine-impl.hpp"
 
+#include <lava/magma/vr-tools.hpp>
+
 #include "../shmag-reader.hpp"
 #include "./cameras/i-camera-impl.hpp"
 #include "./helpers/queue.hpp"
@@ -14,11 +16,14 @@ using namespace lava::chamber;
 
 RenderEngine::Impl::Impl()
 {
+    initVr();
     initVulkan();
 }
 
 RenderEngine::Impl::~Impl()
 {
+    vr::VR_Shutdown();
+
     device().waitIdle();
 }
 
@@ -57,32 +62,16 @@ void RenderEngine::Impl::draw()
     for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
         auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
         auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
-        const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
+        // const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
 
         if (!renderTargetImpl.prepare()) continue;
 
         // Record command buffer each frame
-        auto& commandBuffer = recordCommandBuffer(renderTargetId, swapchainHolder.currentIndex());
-
-        // Submit it to the queue
-        vk::Semaphore waitSemaphores[] = {swapchainHolder.imageAvailableSemaphore()};
-        vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-
-        vk::SubmitInfo submitInfo;
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-
-        auto fence = renderTargetImpl.fence();
-        if (graphicsQueue().submit(1, &submitInfo, fence) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.render-engine") << "Failed to submit draw command buffer." << std::endl;
-        }
-
-        renderTargetImpl.draw(m_renderFinishedSemaphore);
+        // @fixme Are we really re-recording all scenes for each renderTarget?
+        // Seems overkill!
+        auto currentIndex = renderTargetImpl.currentBufferIndex();
+        auto commandBuffer = recordCommandBuffer(renderTargetId, currentIndex);
+        renderTargetImpl.draw(commandBuffer);
     }
 }
 
@@ -143,7 +132,10 @@ uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& ren
     // Add a new image to the present stage
     auto imageView = renderImageImpl.view();
     auto imageLayout = renderImageImpl.layout();
-    renderView.presentViewId = renderTargetBundle.presentStage->addView(imageView, imageLayout, m_dummySampler, viewport);
+
+    // @fixme Should be "compositorViewId"...
+    renderView.presentViewId =
+        renderTargetBundle.renderTarget->interfaceImpl().addView(imageView, imageLayout, m_dummySampler, viewport);
 
     return m_renderViews.size() - 1u;
 }
@@ -160,7 +152,7 @@ void RenderEngine::Impl::removeView(uint32_t viewId)
 
     auto& renderView = m_renderViews[viewId];
     auto& renderTargetBundle = m_renderTargetBundles[renderView.renderTargetId];
-    renderTargetBundle.presentStage->removeView(renderView.presentViewId);
+    renderTargetBundle.renderTarget->interfaceImpl().removeView(renderView.presentViewId);
     m_renderViews.erase(std::begin(m_renderViews) + viewId);
 }
 
@@ -195,22 +187,23 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
     // However - what can be the solution?
     // Device creation requires a surface, which requires a handle.
     // Thus, no window => unable to init the device.
-    // So we init what's left of the engine write here, when adding a renderTarget.
+    // So we init what's left of the engine right here, when adding a renderTarget.
     if (!m_deviceHolder.device()) {
-        initVulkanDevice(renderTargetImpl.surface());
+        // @fixme We never call it with a surface, so all that thingy thing might not be useful...
+        // But we *should* use it... Otherwise the selected queueFamily might not be adapted.
+        // To do so, we need a flag on RenderEngine creation (usage: Vr, Window, Offscreen).
+        // We would then init with surface only when a WindowRenderTarget is created,
+        // if the Window flag is on.
+        initVulkanDevice(nullptr);
+        // initVulkanDevice(&renderTargetImpl.surface());
     }
 
     uint32_t renderTargetId = m_renderTargetBundles.size();
     renderTargetImpl.init(renderTargetId);
 
-    const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
     m_renderTargetBundles.emplace_back();
     auto& renderTargetBundle = m_renderTargetBundles.back();
     renderTargetBundle.renderTarget = std::move(renderTarget);
-    renderTargetBundle.presentStage = std::make_unique<Present>(*this);
-    renderTargetBundle.presentStage->bindSwapchainHolder(swapchainHolder);
-    renderTargetBundle.presentStage->init();
-    renderTargetBundle.presentStage->update(swapchainHolder.extent());
 
     createCommandBuffers(renderTargetId);
 
@@ -232,7 +225,8 @@ void RenderEngine::Impl::updateRenderViews(RenderImage renderImage)
 
         auto imageView = renderImageImpl.view();
         auto imageLayout = renderImageImpl.layout();
-        renderTargetBundle.presentStage->updateView(renderView.presentViewId, imageView, imageLayout, m_dummySampler);
+        renderTargetBundle.renderTarget->interfaceImpl().updateView(renderView.presentViewId, imageView, imageLayout,
+                                                                    m_dummySampler);
     }
 }
 
@@ -245,25 +239,11 @@ const MaterialInfo& RenderEngine::Impl::materialInfo(const std::string& hrid) co
     return iMaterialInfo->second;
 }
 
-void RenderEngine::Impl::updateRenderTarget(uint32_t renderTargetId)
-{
-    if (renderTargetId > m_renderTargetBundles.size()) {
-        logger.warning("magma.vulkan.render-engine")
-            << "Updating render target with invalid id: " << renderTargetId << "." << std::endl;
-        return;
-    }
-
-    auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
-    const auto& swapchainHolder = renderTargetBundle.renderTarget->interfaceImpl().swapchainHolder();
-
-    renderTargetBundle.presentStage->update(swapchainHolder.extent());
-}
-
-void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR surface)
+void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR* pSurface)
 {
     logger.info("magma.vulkan.render-engine") << "Creating command pool." << std::endl;
 
-    auto queueFamilyIndices = vulkan::findQueueFamilies(physicalDevice(), surface);
+    auto queueFamilyIndices = vulkan::findQueueFamilies(physicalDevice(), pSurface);
 
     vk::CommandPoolCreateInfo poolInfo;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
@@ -359,7 +339,8 @@ vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTarget
         }
     }
 
-    renderTargetBundle.presentStage->render(commandBuffer);
+    // @todo The names are unclear, what's the difference between render and draw?
+    renderTargetBundle.renderTarget->interfaceImpl().render(commandBuffer);
 
     //----- Epilogue
 
@@ -381,8 +362,7 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
     }
 
     // Allocate them all
-    const auto& swapchainHolder = renderTargetBundle.renderTarget->interfaceImpl().swapchainHolder();
-    commandBuffers.resize(swapchainHolder.imagesCount());
+    commandBuffers.resize(renderTargetBundle.renderTarget->interfaceImpl().buffersCount());
 
     vk::CommandBufferAllocateInfo allocateInfo;
     allocateInfo.commandPool = m_commandPool;
@@ -392,19 +372,6 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
     if (device().allocateCommandBuffers(&allocateInfo, commandBuffers.data()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
     }
-}
-
-void RenderEngine::Impl::createSemaphores()
-{
-    logger.info("magma.vulkan.render-engine") << "Creating semaphores." << std::endl;
-
-    vk::SemaphoreCreateInfo semaphoreInfo;
-
-    if (device().createSemaphore(&semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine") << "Failed to create semaphores." << std::endl;
-    }
-
-    deviceHolder().debugObjectName(m_renderFinishedSemaphore, "render-engine.render-finished");
 }
 
 void RenderEngine::Impl::initRenderScenes()
@@ -422,26 +389,49 @@ void RenderEngine::Impl::initRenderScenes()
     logger.log().tab(-1);
 }
 
+void RenderEngine::Impl::initVr()
+{
+    logger.info("magma.vulkan.render-engine") << "Initializing VR." << std::endl;
+    logger.log().tab(1);
+
+    // @note This VR initialisation has to be done before initVulkan, because we need
+    // to get the extensions list to be enable.
+    if (vrAvailable()) {
+        // Initializing VR system
+        vr::EVRInitError error = vr::VRInitError_None;
+        m_vrSystem = vr::VR_Init(&error, vr::EVRApplicationType::VRApplication_Scene);
+
+        if (error != vr::VRInitError_None) {
+            logger.warning("magma.vulkan.render-engine")
+                << "VR seems available but we failed to init VR. Is SteamVR ready?" << std::endl;
+        }
+    }
+    else {
+        logger.log() << "VR is not available." << std::endl;
+    }
+
+    logger.log().tab(-1);
+}
+
 void RenderEngine::Impl::initVulkan()
 {
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
     logger.log().tab(1);
 
-    m_instanceHolder.init(true);
+    m_instanceHolder.init(true, vrEnabled());
 
     logger.log().tab(-1);
 }
 
-void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR surface)
+void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR* pSurface)
 {
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);
 
-    m_deviceHolder.init(instance(), surface, m_instanceHolder.debugEnabled());
+    m_deviceHolder.init(instance(), pSurface, m_instanceHolder.debugEnabled(), m_instanceHolder.vrEnabled());
 
-    createCommandPool(surface);
+    createCommandPool(pSurface);
     createDummyTextures();
-    createSemaphores();
 
     initRenderScenes();
 

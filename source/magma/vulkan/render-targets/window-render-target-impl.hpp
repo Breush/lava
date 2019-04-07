@@ -7,6 +7,7 @@
 #include <lava/magma/render-engine.hpp>
 
 #include "../holders/swapchain-holder.hpp"
+#include "../stages/present.hpp"
 #include "../wrappers.hpp"
 
 namespace lava::magma {
@@ -15,14 +16,18 @@ namespace lava::magma {
         Impl(RenderEngine& engine, WsHandle handle, const Extent2d& extent);
 
         // IRenderTarget::Impl
-        void init(uint32_t id) override final;
-        bool prepare() override final;
-        void draw(vk::Semaphore renderFinishedSemaphore) const override final;
+        void init(uint32_t id) final;
+        bool prepare() final;
+        void render(vk::CommandBuffer commandBuffer) final;
+        void draw(vk::CommandBuffer commandBuffer) const final;
 
-        uint32_t id() const { return m_id; }
-        const vulkan::SwapchainHolder& swapchainHolder() const override final { return m_swapchainHolder; }
-        vk::SurfaceKHR surface() const override final { return m_surface; }
-        vk::Fence fence() const override final { return m_fence; }
+        uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport) final;
+        void removeView(uint32_t viewId) final;
+        void updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler) final;
+
+        uint32_t id() const final { return m_id; }
+        uint32_t currentBufferIndex() const final { return m_swapchainHolder.currentIndex(); }
+        uint32_t buffersCount() const final { return m_swapchainHolder.imagesCount(); }
 
         // WindowRenderTarget
         inline Extent2d extent() const { return {m_windowExtent.width, m_windowExtent.height}; }
@@ -34,7 +39,9 @@ namespace lava::magma {
         void initFence();
         void initSurface();
         void initSwapchain();
+        void initPresentStage();
         void recreateSwapchain();
+        void createSemaphore();
 
     private:
         // References
@@ -43,6 +50,8 @@ namespace lava::magma {
         WsHandle m_handle;
 
         // Resources
+        Present m_presentStage;
+        vulkan::Semaphore m_renderFinishedSemaphore;
         vulkan::Fence m_fence;
         vulkan::SurfaceKHR m_surface;
         vulkan::SwapchainHolder m_swapchainHolder;

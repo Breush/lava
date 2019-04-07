@@ -26,6 +26,12 @@ namespace lava::magma::vulkan {
         void setup(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t channels);
         void setup(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
 
+        /// Adds to commands to the commandBuffer to change the layout. This won't change the return value of layout().
+        void changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
+
+        /// Generate a RenderImage from available information.
+        RenderImage renderImage(uint32_t uuid) const;
+
     private:
         // References
         const RenderEngine::Impl& m_engine;

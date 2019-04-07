@@ -20,19 +20,29 @@ namespace lava::magma {
         /// Prepare the upcoming draw. Returns whether the engine can draw next.
         virtual bool prepare() = 0;
 
-        /// Draw.
-        virtual void draw(vk::Semaphore renderFinishedSemaphore) const = 0;
+        /// Render. Called to fill the commandBuffer with last specific commands of the render target.
+        virtual void render(vk::CommandBuffer commandBuffer) = 0;
+
+        /// Draw. Called to show/present the final image. Should submit the commandBuffer.
+        virtual void draw(vk::CommandBuffer commandBuffer) const = 0;
 
         /// The id used as initialization.
         virtual uint32_t id() const = 0;
 
-        /// The swapchain holder used.
-        virtual const vulkan::SwapchainHolder& swapchainHolder() const = 0;
+        /// The index of the current buffer, as there will be as many commandBuffers as needed.
+        virtual uint32_t currentBufferIndex() const = 0;
 
-        /// The surface used.
-        virtual vk::SurfaceKHR surface() const = 0;
+        /// The index of the current buffer, as there will be as many commandBuffers as needed.
+        virtual uint32_t buffersCount() const = 0;
 
-        /// The associated fence.
-        virtual vk::Fence fence() const = 0;
+        /// Render an image in a specific viewport.
+        virtual uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler,
+                                 Viewport viewport) = 0;
+
+        /// Remove the specified view.
+        virtual void removeView(uint32_t viewId) = 0;
+
+        /// Update the image of the specified view.
+        virtual void updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler) = 0;
     };
 }

@@ -10,6 +10,8 @@ using namespace lava::chamber;
 WindowRenderTarget::Impl::Impl(RenderEngine& engine, WsHandle handle, const Extent2d& extent)
     : m_engine(engine.impl())
     , m_handle(handle)
+    , m_presentStage(m_engine)
+    , m_renderFinishedSemaphore(m_engine.device())
     , m_fence(m_engine.device())
     , m_surface(m_engine.instance())
     , m_swapchainHolder(m_engine)
@@ -28,6 +30,8 @@ void WindowRenderTarget::Impl::init(uint32_t id)
 
     initFence();
     initSwapchain();
+    initPresentStage();
+    createSemaphore();
 }
 
 bool WindowRenderTarget::Impl::prepare()
@@ -58,14 +62,36 @@ bool WindowRenderTarget::Impl::prepare()
     return true;
 }
 
-void WindowRenderTarget::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
+void WindowRenderTarget::Impl::render(vk::CommandBuffer commandBuffer)
 {
+    m_presentStage.render(commandBuffer);
+}
+
+void WindowRenderTarget::Impl::draw(vk::CommandBuffer commandBuffer) const
+{
+    // Submit it to the queue
+    vk::Semaphore waitSemaphores[] = {m_swapchainHolder.imageAvailableSemaphore()};
+    vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+    vk::SubmitInfo submitInfo;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    if (m_engine.graphicsQueue().submit(1, &submitInfo, m_fence) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.window-render-target") << "Failed to submit draw command buffer." << std::endl;
+    }
+
     const uint32_t imageIndex = m_swapchainHolder.currentIndex();
 
     // Submitting the image back to the swapchain
     vk::PresentInfoKHR presentInfo;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &renderFinishedSemaphore;
+    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;
@@ -81,6 +107,24 @@ void WindowRenderTarget::Impl::draw(vk::Semaphore renderFinishedSemaphore) const
     }
 }
 
+uint32_t WindowRenderTarget::Impl::addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler,
+                                           Viewport viewport)
+{
+    // @fixme All these view managements should be a compositor thingy, and not present's business.
+    return m_presentStage.addView(imageView, imageLayout, sampler, viewport);
+}
+
+void WindowRenderTarget::Impl::removeView(uint32_t viewId)
+{
+    m_presentStage.removeView(viewId);
+}
+
+void WindowRenderTarget::Impl::updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout,
+                                          vk::Sampler sampler)
+{
+    m_presentStage.updateView(viewId, imageView, imageLayout, sampler);
+}
+
 //----- WindowRenderTarget
 
 void WindowRenderTarget::Impl::extent(const Extent2d& extent)
@@ -92,6 +136,13 @@ void WindowRenderTarget::Impl::extent(const Extent2d& extent)
 }
 
 //----- Internal
+
+void WindowRenderTarget::Impl::initPresentStage()
+{
+    m_presentStage.bindSwapchainHolder(m_swapchainHolder);
+    m_presentStage.init();
+    m_presentStage.update(m_swapchainHolder.extent());
+}
 
 void WindowRenderTarget::Impl::initFence()
 {
@@ -143,6 +194,18 @@ void WindowRenderTarget::Impl::initSwapchain()
 void WindowRenderTarget::Impl::recreateSwapchain()
 {
     m_swapchainHolder.recreate(m_surface, m_windowExtent);
+    m_presentStage.update(m_swapchainHolder.extent());
+}
 
-    m_engine.updateRenderTarget(m_id);
+void WindowRenderTarget::Impl::createSemaphore()
+{
+    logger.info("magma.vulkan.render-engine") << "Creating semaphores." << std::endl;
+
+    vk::SemaphoreCreateInfo semaphoreInfo;
+
+    if (m_engine.device().createSemaphore(&semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.render-engine") << "Failed to create semaphores." << std::endl;
+    }
+
+    m_engine.deviceHolder().debugObjectName(m_renderFinishedSemaphore, "render-engine.render-finished");
 }

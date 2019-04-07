@@ -135,20 +135,17 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
 RenderImage ForwardRendererStage::renderImage() const
 {
-    RenderImage renderImage;
-    renderImage.impl().uuid(RenderImage::Impl::UUID_CONTEXT_CAMERA + m_cameraId);
-    renderImage.impl().view(m_finalImageHolder.view());
-    renderImage.impl().layout(vk::ImageLayout::eColorAttachmentOptimal);
-    return renderImage;
+    return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + m_cameraId);
 }
 
 RenderImage ForwardRendererStage::depthRenderImage() const
 {
-    RenderImage renderImage;
-    renderImage.impl().uuid(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + m_cameraId);
-    renderImage.impl().view(m_depthImageHolder.view());
-    renderImage.impl().layout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-    return renderImage;
+    return m_depthImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + m_cameraId);
+}
+
+void ForwardRendererStage::changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
+{
+    m_finalImageHolder.changeLayout(imageLayout, commandBuffer);
 }
 
 //----- Internal

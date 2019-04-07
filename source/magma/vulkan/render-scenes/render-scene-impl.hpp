@@ -91,6 +91,8 @@ namespace lava::magma {
         RenderImage cameraRenderImage(uint32_t cameraIndex) const;
         RenderImage cameraDepthRenderImage(uint32_t cameraIndex) const;
         RenderImage lightShadowsRenderImage(uint32_t lightIndex) const;
+
+        void changeCameraRenderImageLayout(uint32_t cameraIndex, vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
         /// @}
 
     protected:

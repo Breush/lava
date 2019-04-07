@@ -26,13 +26,13 @@ project "magma-scenes-and-windows"
     files "magma/scenes-and-windows.cpp"
     useCrater()
     useMagma()
-    
+
 project "magma-translucency"
     kind "WindowedApp"
     files "magma/translucency.cpp"
     useCrater()
     useMagma()
-    
+
 project "magma-shader-watcher"
     kind "WindowedApp"
     files "magma/shader-watcher.cpp"
@@ -42,6 +42,12 @@ project "magma-shader-watcher"
 project "magma-shadows"
     kind "WindowedApp"
     files "magma/shadows.cpp"
+    useCrater()
+    useMagma()
+
+project "magma-vr"
+    kind "WindowedApp"
+    files "magma/vr.cpp"
     useCrater()
     useMagma()
 

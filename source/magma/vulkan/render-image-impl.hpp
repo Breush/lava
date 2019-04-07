@@ -22,6 +22,9 @@ namespace lava::magma {
         uint32_t uuid() const { return m_uuid; }
         void uuid(uint32_t uuid) { m_uuid = uuid; }
 
+        vk::Image image() const { return m_image; }
+        void image(vk::Image image) { m_image = image; }
+
         vk::ImageView view() const { return m_view; }
         void view(vk::ImageView view) { m_view = view; }
 
@@ -30,6 +33,7 @@ namespace lava::magma {
 
     private:
         uint32_t m_uuid = 0u;
+        vk::Image m_image = nullptr;
         vk::ImageView m_view = nullptr;
         vk::ImageLayout m_layout = vk::ImageLayout::eColorAttachmentOptimal;
     };

@@ -2,7 +2,7 @@
 
 using namespace lava::magma;
 
-vulkan::QueueFamilyIndices vulkan::findQueueFamilies(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+vulkan::QueueFamilyIndices vulkan::findQueueFamilies(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR* pSurface)
 {
     QueueFamilyIndices indices;
 
@@ -11,19 +11,26 @@ vulkan::QueueFamilyIndices vulkan::findQueueFamilies(vk::PhysicalDevice physical
         const auto& queueFamily = queueFamilies[i];
         if (queueFamily.queueCount <= 0) continue;
 
+        vk::Bool32 presentSupport = false;
+
         // Graphics
         if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             indices.graphics = i;
+
+            // We don't need present support, the graphics one will do.
+            if (pSurface == nullptr) {
+                presentSupport = true;
+            }
         }
 
         // Check that it can handle surfaces
-        vk::Bool32 presentSupport = false;
-        physicalDevice.getSurfaceSupportKHR(i, surface, &presentSupport);
+        if (pSurface != nullptr) {
+            physicalDevice.getSurfaceSupportKHR(i, *pSurface, &presentSupport);
+        }
+
         if (presentSupport) {
             indices.present = i;
         }
-
-        if (indices.valid()) break;
     }
 
     return indices;

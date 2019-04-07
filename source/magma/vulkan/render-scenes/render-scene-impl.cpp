@@ -260,6 +260,12 @@ RenderImage RenderScene::Impl::lightShadowsRenderImage(uint32_t lightIndex) cons
     return m_lightBundles[lightIndex].shadowsStage->renderImage();
 }
 
+void RenderScene::Impl::changeCameraRenderImageLayout(uint32_t cameraIndex, vk::ImageLayout imageLayout,
+                                                      vk::CommandBuffer commandBuffer)
+{
+    m_cameraBundles[cameraIndex].rendererStage->changeRenderImageLayout(imageLayout, commandBuffer);
+}
+
 //---- Internal
 
 void RenderScene::Impl::initStages()

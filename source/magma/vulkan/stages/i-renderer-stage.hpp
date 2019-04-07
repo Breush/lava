@@ -14,5 +14,7 @@ namespace lava::magma {
 
         virtual RenderImage renderImage() const = 0;
         virtual RenderImage depthRenderImage() const = 0;
+
+        virtual void changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) = 0;
     };
 }

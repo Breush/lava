@@ -114,7 +114,7 @@ void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& wind
     createInfo.clipped = true;
     createInfo.oldSwapchain = m_swapchain;
 
-    auto indices = findQueueFamilies(m_engine.physicalDevice(), surface);
+    auto indices = findQueueFamilies(m_engine.physicalDevice(), &surface);
     std::vector<uint32_t> queueFamilyIndices = {(uint32_t)indices.graphics, (uint32_t)indices.present};
 
     auto sameFamily = (indices.graphics == indices.present);

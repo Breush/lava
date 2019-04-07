@@ -28,7 +28,14 @@ namespace lava::magma {
         /// Its world translation.
         virtual const glm::vec3& translation() const = 0;
 
-        /// Its view transform.
+        /**
+         * Its view transform.
+         *
+         * For the camera, the convention for this specific transform is:
+         *      -Z forward
+         *      +Y up
+         *      +X right (right-handed)
+         */
         virtual const glm::mat4& viewTransform() const = 0;
 
         /// Its projection transform.

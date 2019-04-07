@@ -1,8 +1,5 @@
 #pragma once
 
-#include <string>
-#include <vector>
-
 inline std::string operator*(const std::string& word, uint32_t times)
 {
     std::string result;
@@ -17,4 +14,7 @@ namespace lava::chamber {
 
     /// Split a string into a vector of string views.
     std::vector<std::wstring_view> splitAsViews(const std::wstring& s, wchar_t c);
+
+    /// Split a string into a vector of strings.
+    std::vector<std::string> split(const std::string& s, char c);
 }

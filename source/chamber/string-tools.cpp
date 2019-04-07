@@ -1,5 +1,26 @@
 #include <lava/chamber/string-tools.hpp>
 
+namespace {
+    template <class Output, class String, class Character>
+    inline std::vector<Output> generalSplit(const String& s, Character c)
+    {
+        std::vector<Output> views;
+        Output view(s);
+
+        while (!view.empty()) {
+            auto offset = view.find(c);
+            if (offset == std::string::npos) {
+                views.emplace_back(view);
+                break;
+            }
+            views.emplace_back(view.substr(0u, offset));
+            view = view.substr(offset + 1u);
+        }
+
+        return views;
+    }
+}
+
 using namespace lava;
 
 std::string chamber::camelToSnakeCase(const std::string& camelCaseString, std::string separator)
@@ -24,18 +45,10 @@ std::string chamber::camelToSnakeCase(const std::string& camelCaseString, std::s
 
 std::vector<std::wstring_view> chamber::splitAsViews(const std::wstring& s, wchar_t c)
 {
-    std::vector<std::wstring_view> views;
-    std::wstring_view view(s);
+    return generalSplit<std::wstring_view>(s, c);
+}
 
-    while (!view.empty()) {
-        auto offset = view.find(c);
-        if (offset == std::string::npos) {
-            views.emplace_back(view);
-            break;
-        }
-        views.emplace_back(view.substr(0u, offset));
-        view = view.substr(offset + 1u);
-    }
-
-    return views;
+std::vector<std::string> chamber::split(const std::string& s, char c)
+{
+    return generalSplit<std::string>(s, c);
 }

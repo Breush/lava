@@ -18,7 +18,7 @@ namespace lava::ashe {
 
         crater::Window& window() { return *m_window; }
         magma::RenderEngine& engine() { return *m_engine; }
-        magma::WindowRenderTarget& windowRenderTarget() { return *m_windowRenderTarget; }
+        magma::WindowRenderTarget& windowRenderTarget() { return *m_windowTarget; }
         magma::RenderScene& scene() { return *m_scene; }
         magma::OrbitCamera& camera() { return *m_camera; }
         magma::DirectionalLight& light() { return *m_light; }
@@ -36,7 +36,7 @@ namespace lava::ashe {
 
             // A window we can draw to.
             m_window = std::make_unique<crater::Window>(Extent2d{800, 600}, title);
-            m_windowRenderTarget = &m_engine->make<magma::WindowRenderTarget>(m_window->handle(), m_window->extent());
+            m_windowTarget = &m_engine->make<magma::WindowRenderTarget>(m_window->handle(), m_window->extent());
 
             // Render scene: holds what has to be drawn.
             m_scene = &m_engine->make<magma::RenderScene>();
@@ -62,7 +62,7 @@ namespace lava::ashe {
             m_smallLightMesh->canCastShadows(false);
 
             // We decide to show the scene's camera "0" at a certain translation in the window.
-            m_engine->addView(*m_camera, *m_windowRenderTarget, Viewport{0, 0, 1, 1});
+            m_engine->addView(*m_camera, *m_windowTarget, Viewport{0, 0, 1, 1});
 
             // Gizmos.
             makeAxisGizmo(Axis::X, {1.f, 0.f, 0.f, 1.f});
@@ -332,8 +332,7 @@ namespace lava::ashe {
                 // Press C to show debug of camera
                 else if (event.key.which == Key::C) {
                     if (depthViewId == -1u) {
-                        depthViewId =
-                            m_engine->addView(m_camera->depthRenderImage(), *m_windowRenderTarget, Viewport{0, 0, 1, 1});
+                        depthViewId = m_engine->addView(m_camera->depthRenderImage(), *m_windowTarget, Viewport{0, 0, 1, 1});
                     }
                     else {
                         m_engine->removeView(depthViewId);
@@ -344,7 +343,7 @@ namespace lava::ashe {
                 else if (event.key.which == Key::L) {
                     if (depthViewId == -1u) {
                         depthViewId =
-                            m_engine->addView(m_light->shadowsRenderImage(), *m_windowRenderTarget, Viewport{0.5, 0.5, 0.5, 0.5});
+                            m_engine->addView(m_light->shadowsRenderImage(), *m_windowTarget, Viewport{0.5, 0.5, 0.5, 0.5});
                     }
                     else {
                         m_engine->removeView(depthViewId);
@@ -382,7 +381,7 @@ namespace lava::ashe {
 
             case WsEventType::WindowResized: {
                 Extent2d extent{event.windowSize.width, event.windowSize.height};
-                m_windowRenderTarget->extent(extent);
+                m_windowTarget->extent(extent);
                 m_camera->extent(extent);
                 break;
             }
@@ -430,7 +429,7 @@ namespace lava::ashe {
     private:
         std::unique_ptr<crater::Window> m_window = nullptr;
         std::unique_ptr<magma::RenderEngine> m_engine = nullptr;
-        magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
+        magma::WindowRenderTarget* m_windowTarget = nullptr;
         magma::RenderScene* m_scene = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::DirectionalLight* m_light = nullptr;

@@ -20,7 +20,8 @@ namespace lava::magma {
      */
     class DeepDeferredStage final : public IRendererStage {
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH = 3u;
-        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT = 4u; // Enough to store (G_BUFFER_DATA_SIZE + 2u)
+        constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT =
+            4u; // Enough to store (G_BUFFER_DATA_SIZE + 2u)
 
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX = 0u;
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX = 1u;
@@ -42,12 +43,14 @@ namespace lava::magma {
         DeepDeferredStage(RenderScene::Impl& scene);
 
         // IRendererStage
-        void init(uint32_t cameraId) override final;
-        void update(vk::Extent2D extent, vk::PolygonMode polygonMode) override final;
-        void render(vk::CommandBuffer commandBuffer) override final;
+        void init(uint32_t cameraId) final;
+        void update(vk::Extent2D extent, vk::PolygonMode polygonMode) final;
+        void render(vk::CommandBuffer commandBuffer) final;
 
-        RenderImage renderImage() const override final;
-        RenderImage depthRenderImage() const override final;
+        RenderImage renderImage() const final;
+        RenderImage depthRenderImage() const final;
+
+        void changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) final;
 
     protected:
         void initGBuffer();
