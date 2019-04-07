@@ -127,7 +127,7 @@ void VrEyeCamera::Impl::changeImageLayout(vk::ImageLayout imageLayout, vk::Comma
 // it could exist in ICameraImpl
 void VrEyeCamera::Impl::updateFrustum()
 {
-    auto viewTransformInverse = glm::inverse(m_viewTransform);
+    auto viewTransformInverse = glm::inverse(m_viewTransform * m_fixesTransform);
     auto projectionTransformInverse = glm::inverse(m_projectionTransform);
 
     auto topLeftLocal = projectionTransformInverse * glm::vec4(-1, -1, 0, 1);
@@ -159,7 +159,7 @@ void VrEyeCamera::Impl::updateFrustum()
     // Forward
     const auto n = 0.1f; // @note Keep consistent with update() values
     const auto f = 100.f;
-    auto forwardNormal = glm::normalize(glm::vec3(m_fixesTransform * viewTransformInverse * glm::vec4(0, 0, 1, 1)));
+    auto forwardNormal = glm::normalize(glm::cross(bottomRight - bottomLeft, topLeft - bottomLeft));
     auto cameraDistance = glm::dot(m_translation, forwardNormal);
     m_frustum.forward = forwardNormal;
     m_frustum.near = cameraDistance + n;

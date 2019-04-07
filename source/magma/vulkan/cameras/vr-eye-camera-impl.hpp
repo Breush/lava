@@ -32,6 +32,7 @@ namespace lava::magma {
         const glm::vec3& translation() const final { return m_translation; }
         const glm::mat4& viewTransform() const final { return m_viewTransform; }
         const glm::mat4& projectionTransform() const final { return m_projectionTransform; }
+        bool useFrustumCulling() const final { return false; } // @fixme Can't get that working
         const Frustum& frustum() const final { return m_frustum; }
 
         // Internal interface

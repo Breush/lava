@@ -115,7 +115,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
     // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
         const auto& boundingSphere = mesh->interfaceImpl().boundingSphere();
-        if (helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->interfaceImpl().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(),
                                          GEOMETRY_MESH_DESCRIPTOR_SET_INDEX, GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);

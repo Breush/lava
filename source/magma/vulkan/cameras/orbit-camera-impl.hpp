@@ -33,6 +33,7 @@ namespace lava::magma {
         const glm::vec3& translation() const override final { return m_translation; }
         const glm::mat4& viewTransform() const override final { return m_viewTransform; }
         const glm::mat4& projectionTransform() const override final { return m_projectionTransform; }
+        bool useFrustumCulling() const override final { return true; }
         const Frustum& frustum() const override final { return m_frustum; }
 
         // OrbitCamera

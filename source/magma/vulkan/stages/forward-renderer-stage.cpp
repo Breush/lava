@@ -103,7 +103,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
         const auto& boundingSphere = mesh->interfaceImpl().boundingSphere();
-        if (helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->interfaceImpl().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
                                          MATERIAL_DESCRIPTOR_SET_INDEX);

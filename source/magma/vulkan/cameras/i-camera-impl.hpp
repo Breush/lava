@@ -41,6 +41,9 @@ namespace lava::magma {
         /// Its projection transform.
         virtual const glm::mat4& projectionTransform() const = 0;
 
+        /// Whether frustum culling is enabled.
+        virtual bool useFrustumCulling() const = 0;
+
         /// Its frustum.
         virtual const Frustum& frustum() const = 0;
     };
