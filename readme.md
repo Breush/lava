@@ -61,12 +61,13 @@ confirmation dialog. You have to accept.
 
 ## Dependencies
 
-Everything **lava** needs is downloaded via *Premake* to `external/`. 
+Everything **lava** needs is downloaded via *Premake* to `external/`.
 
 Current awesome dependencies are:
 - [Bullet Physics](https://github.com/bulletphysics/bullet3)
 - [Nlohman's JSON](https://github.com/nlohmann/json)
 - [OpenGL Mathematics](http://glm.g-truc.net/)
+- [OpenVR](https://github.com/ValveSoftware/openvr)
 - [STB libraries](https://github.com/nothings/stb)
 - [VulkanSDK](https://vulkan.lunarg.com/)
 

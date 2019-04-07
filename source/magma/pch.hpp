@@ -3,6 +3,7 @@
 
 // @note We should be #if given technology used
 #include <vulkan/vulkan.hpp>
+#include <openvr/openvr.h>
 
 // @note Compiler mingw's file windev.h defines near and far,
 // and vulkan header does include it because of windows.h,

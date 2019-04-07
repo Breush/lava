@@ -122,10 +122,13 @@ extractFromGithubTags "g-truc/glm"
 # updateDependencyByVersion "external/glm.lua" "${LAST}"
 updateSkip "external/glm.lua" "${LAST}"
 
-
 # Nlohmann JSON
 extractFromGithubTags "nlohmann/json"
 updateDependencyByVersion "external/nlohmann-json.lua" "${LAST}"
+
+# OpenVR
+extractFromGithubTags "ValveSoftware/openvr"
+updateDependencyByVersion "external/openvr.lua" "${LAST}"
 
 # STB libraries
 extractFromGithubLastCommit "nothings/stb"

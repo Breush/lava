@@ -22,6 +22,7 @@ project "lava-magma"
 
         useChamber()
         useGlm()
+        useOpenvr()
         useVulkanSdk()
     end
 

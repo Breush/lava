@@ -14,7 +14,7 @@ workspace "lava-renderer"
 
     filter { "configurations:debug" }
         symbols "on"
-        optimize "debug"
+        optimize "off"
         buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
         -- vulkan.hpp was not ready for that
         -- buildoptions { "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
@@ -25,9 +25,10 @@ workspace "lava-renderer"
         buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
 
     filter { "configurations:release" }
+        symbols "off"
         optimize "on"
 
-        -- For release only, copy all the shared libs
+        -- For release only, copy all the shared libs @fixme Doing that for each individual example...
         postbuildcommands  { "cp -v external/lib/*.so* build/release/" }
 
     filter {}
