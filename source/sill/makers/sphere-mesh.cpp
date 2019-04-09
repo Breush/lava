@@ -68,6 +68,8 @@ std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellatio
 {
     auto radius = diameter / 2;
     return [tessellation, radius, options](MeshComponent& meshComponent) {
+        PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
         std::vector<glm::vec3> positions;
         std::vector<uint16_t> indices;
 

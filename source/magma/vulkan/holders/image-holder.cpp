@@ -27,6 +27,8 @@ ImageHolder::ImageHolder(const RenderEngine::Impl& engine, const std::string& na
 
 void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
     m_extent = extent;
     m_aspect = imageAspect;
 
@@ -141,6 +143,8 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
 
 void ImageHolder::copy(const void* data, vk::DeviceSize size)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
     //----- Staging buffer
 
     Buffer stagingBuffer(m_engine.device());
@@ -204,6 +208,8 @@ void ImageHolder::setup(const uint8_t* pixels, uint32_t width, uint32_t height, 
 
 void ImageHolder::changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
 {
+    PROFILE_FUNCTION();
+
     // @note Not sure what this is for...
     vk::PipelineStageFlags stageMask = vk::PipelineStageFlagBits::eTopOfPipe;
 

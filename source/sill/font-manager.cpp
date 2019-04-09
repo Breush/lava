@@ -10,6 +10,8 @@ FontManager::FontManager(GameEngine& engine)
 
 void FontManager::registerFont(const std::string& hrid, const std::string& fontPath)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
+
     logger.info("sill.font-manager") << "Adding font " << hrid << "." << std::endl;
 
     auto font = std::make_unique<Font>(m_engine, fontPath);

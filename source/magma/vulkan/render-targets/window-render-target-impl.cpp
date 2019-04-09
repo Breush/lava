@@ -36,6 +36,8 @@ void WindowRenderTarget::Impl::init(uint32_t id)
 
 bool WindowRenderTarget::Impl::prepare()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
+
     static const auto MAX = std::numeric_limits<uint64_t>::max();
 
     m_engine.device().waitForFences(1u, &m_fence, true, MAX);
@@ -64,11 +66,15 @@ bool WindowRenderTarget::Impl::prepare()
 
 void WindowRenderTarget::Impl::render(vk::CommandBuffer commandBuffer)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
+
     m_presentStage.render(commandBuffer);
 }
 
 void WindowRenderTarget::Impl::draw(vk::CommandBuffer commandBuffer) const
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_DRAW);
+
     // Submit it to the queue
     vk::Semaphore waitSemaphores[] = {m_swapchainHolder.imageAvailableSemaphore()};
     vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
@@ -139,6 +145,8 @@ void WindowRenderTarget::Impl::extent(const Extent2d& extent)
 
 void WindowRenderTarget::Impl::initPresentStage()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     m_presentStage.bindSwapchainHolder(m_swapchainHolder);
     m_presentStage.init();
     m_presentStage.update(m_swapchainHolder.extent());
@@ -146,6 +154,8 @@ void WindowRenderTarget::Impl::initPresentStage()
 
 void WindowRenderTarget::Impl::initFence()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     vk::FenceCreateInfo fenceInfo;
     fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
@@ -157,6 +167,8 @@ void WindowRenderTarget::Impl::initFence()
 
 void WindowRenderTarget::Impl::initSurface()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     vk::Result result;
 
     const auto wsHandle = handle();
@@ -188,17 +200,23 @@ void WindowRenderTarget::Impl::initSurface()
 
 void WindowRenderTarget::Impl::initSwapchain()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     m_swapchainHolder.init(m_surface, m_windowExtent);
 }
 
 void WindowRenderTarget::Impl::recreateSwapchain()
 {
+    PROFILE_FUNCTION();
+
     m_swapchainHolder.recreate(m_surface, m_windowExtent);
     m_presentStage.update(m_swapchainHolder.extent());
 }
 
 void WindowRenderTarget::Impl::createSemaphore()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
     logger.info("magma.vulkan.render-engine") << "Creating semaphores." << std::endl;
 
     vk::SemaphoreCreateInfo semaphoreInfo;

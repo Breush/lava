@@ -10,6 +10,8 @@ BehaviorComponent::Impl::Impl(GameEntity& entity)
 // IComponent
 void BehaviorComponent::Impl::update(float /* dt */)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     if (m_updateCallback) {
         m_updateCallback();
     }

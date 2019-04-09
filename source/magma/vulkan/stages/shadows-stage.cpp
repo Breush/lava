@@ -48,6 +48,8 @@ void ShadowsStage::update(vk::Extent2D extent)
 
 void ShadowsStage::render(vk::CommandBuffer commandBuffer)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
+
     const auto& deviceHolder = m_scene.engine().deviceHolder();
     deviceHolder.debugBeginRegion(commandBuffer, "shadows");
 

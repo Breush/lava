@@ -13,6 +13,8 @@ MusicImpl::MusicImpl(AudioEngine::Impl& engine, std::shared_ptr<IMusicData> musi
     : MusicBaseImpl(engine)
     , m_backendEngine(engine.backend())
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     // @todo This decoder selection could be done upstream in Music()
     if (musicData->compressionFormat() == MusicCompressionFormat::Vorbis) {
         m_musicDecoder = std::make_unique<VorbisMusicDecoder>(musicData);
@@ -41,6 +43,8 @@ MusicImpl::~MusicImpl()
 void MusicImpl::update()
 {
     if (pa_stream_get_state(m_stream) != PA_STREAM_READY) return;
+
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     const auto writableSize = pa_stream_writable_size(m_stream);
     if (writableSize == 0u) return;

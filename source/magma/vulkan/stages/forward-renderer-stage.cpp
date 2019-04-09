@@ -58,6 +58,8 @@ void ForwardRendererStage::update(vk::Extent2D extent, vk::PolygonMode polygonMo
 
 void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
+
     const auto& deviceHolder = m_scene.engine().deviceHolder();
     deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer");
 

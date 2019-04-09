@@ -8,6 +8,8 @@ using namespace lava::sill;
 std::function<void(MeshComponent&)> makers::cubeMeshMaker(float sideLength, CubeMeshOptions options)
 {
     return [sideLength, options](MeshComponent& meshComponent) {
+        PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
         const auto halfSideLength = sideLength / 2.f;
 
         // Positions

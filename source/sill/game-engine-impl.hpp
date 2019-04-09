@@ -16,6 +16,7 @@ namespace lava::sill {
 
     public:
         Impl(GameEngine& base);
+        ~Impl();
 
         /**
          * @name GameEngine

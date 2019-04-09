@@ -10,6 +10,8 @@ GameEntity::Impl::Impl(GameEngine& engine)
 
 void GameEntity::Impl::update(float dt)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // Add all new components
     for (auto& component : m_pendingAddedComponents) {
         m_components.emplace(std::move(component));

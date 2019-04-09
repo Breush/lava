@@ -25,6 +25,8 @@ SphereColliderComponent::Impl::~Impl() {}
 
 void SphereColliderComponent::Impl::update(float /* dt */)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     m_transformComponent.translation(m_rigidBody->translation(), TransformComponent::ChangeReasonFlag::Physics);
 }
 

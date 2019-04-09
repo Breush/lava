@@ -29,6 +29,8 @@ RenderEngine::Impl::~Impl()
 
 void RenderEngine::Impl::update()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // Updating shaders
     while (auto event = m_shadersWatcher.pollEvent()) {
         if (event->type == chamber::FileWatchEvent::Type::Modified) {
@@ -59,6 +61,9 @@ void RenderEngine::Impl::update()
 
 void RenderEngine::Impl::draw()
 {
+    // @note This function does both render and draw, so no color.
+    PROFILE_FUNCTION();
+
     for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
         auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
         auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
@@ -77,6 +82,8 @@ void RenderEngine::Impl::draw()
 
 uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
+
     auto materialId = m_registeredMaterialsMap.size();
     m_registeredMaterialsMap[hrid] = materialId;
 
@@ -119,6 +126,8 @@ uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& ren
         return -1u;
     }
 
+    PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
+
     // Find the render target bundle
     uint32_t renderTargetId = renderTarget.interfaceImpl().id();
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
@@ -149,6 +158,8 @@ void RenderEngine::Impl::removeView(uint32_t viewId)
             << "Currently unable to remove a view that is not the last one added." << std::endl;
         return;
     }
+
+    PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
 
     auto& renderView = m_renderViews[viewId];
     auto& renderTargetBundle = m_renderTargetBundles[renderView.renderTargetId];
@@ -241,6 +252,8 @@ const MaterialInfo& RenderEngine::Impl::materialInfo(const std::string& hrid) co
 
 void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR* pSurface)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
     logger.info("magma.vulkan.render-engine") << "Creating command pool." << std::endl;
 
     auto queueFamilyIndices = vulkan::findQueueFamilies(physicalDevice(), pSurface);
@@ -256,6 +269,8 @@ void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR* pSurface)
 
 void RenderEngine::Impl::createDummyTextures()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
     logger.info("magma.vulkan.render-engine") << "Creating dummy textures." << std::endl;
 
     // Plain white
@@ -305,6 +320,8 @@ void RenderEngine::Impl::createDummyTextures()
 
 vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTargetId, uint32_t bufferIndex)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
+
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
 
     if (bufferIndex >= renderTargetBundle.commandBuffers.size()) {
@@ -351,6 +368,8 @@ vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTarget
 
 void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
     logger.log() << "Creating command buffers for render target " << renderTargetId << "." << std::endl;
 
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
@@ -378,6 +397,8 @@ void RenderEngine::Impl::initRenderScenes()
 {
     if (m_renderScenes.size() == 0u) return;
 
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     logger.info("magma.vulkan.render-engine") << "Initializing render scenes." << std::endl;
     logger.log().tab(1);
 
@@ -391,6 +412,8 @@ void RenderEngine::Impl::initRenderScenes()
 
 void RenderEngine::Impl::initVr()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     logger.info("magma.vulkan.render-engine") << "Initializing VR." << std::endl;
     logger.log().tab(1);
 
@@ -415,6 +438,8 @@ void RenderEngine::Impl::initVr()
 
 void RenderEngine::Impl::initVulkan()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
     logger.log().tab(1);
 
@@ -425,6 +450,8 @@ void RenderEngine::Impl::initVulkan()
 
 void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR* pSurface)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);
 

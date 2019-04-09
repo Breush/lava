@@ -66,6 +66,8 @@ void DirectionalLight::Impl::updateBindings()
 {
     if (!m_initialized) return;
 
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     vulkan::LightUbo ubo(type());
     ubo.transform = m_transform;
     ubo.data[0].x = reinterpret_cast<const uint32_t&>(m_direction.x);
@@ -87,6 +89,8 @@ void DirectionalLight::Impl::updateBindings()
 
 void DirectionalLight::Impl::updateTransform()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // @fixme We might need to position the light to scene bounding extremities
 
     // @note This `projectionTransform[1][1] *= -1` is due to vulkan conventions

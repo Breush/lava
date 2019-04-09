@@ -11,6 +11,8 @@ SoundImpl::SoundImpl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> sound
     : SoundBaseImpl(engine, soundData)
     , m_backendEngine(engine.backend())
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     // @todo This 2 channels rule should be decided by the engine,
     // as we might want to manage surround system some day.
 
@@ -35,6 +37,8 @@ SoundImpl::~SoundImpl()
 void SoundImpl::update()
 {
     if (pa_stream_get_state(m_stream) != PA_STREAM_READY) return;
+
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     const auto writableSize = pa_stream_writable_size(m_stream);
     const auto remainingSize = (m_soundData->normalizedSize() - m_playingOffset) * sizeof(float);

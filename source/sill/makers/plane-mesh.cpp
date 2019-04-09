@@ -8,6 +8,8 @@ using namespace lava::sill;
 std::function<void(MeshComponent&)> makers::planeMeshMaker(Extent2d dimensions)
 {
     return [dimensions](MeshComponent& meshComponent) {
+        PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
         std::vector<glm::vec3> positions(4);
         std::vector<glm::vec3> normals(4, {0.f, 0.f, 1.f});
         std::vector<glm::vec4> tangents(4, {1.f, 0.f, 0.f, 1.f});

@@ -33,6 +33,8 @@ CameraComponent::Impl::~Impl()
 
 void CameraComponent::Impl::update(float dt)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // @note We delay updates as it might take a while
     // recontructing buffers and such.
     if (m_updateDelay > 0.f) {

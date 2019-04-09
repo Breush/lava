@@ -65,6 +65,8 @@ void PointLight::Impl::updateBindings()
 {
     if (!m_initialized) return;
 
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     vulkan::LightUbo ubo(type());
     ubo.transform = glm::translate(glm::mat4(), m_translation);
     ubo.data[0].x = reinterpret_cast<const uint32_t&>(m_radius);

@@ -102,6 +102,8 @@ namespace {
     std::unique_ptr<sill::Mesh> loadMesh(sill::GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk,
                                          const nlohmann::json& json, CacheData& cacheData)
     {
+        PROFILE_FUNCTION();
+
         glb::Mesh mesh(json["meshes"][meshIndex]);
 
         auto& engine = entity.engine();
@@ -220,6 +222,8 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
 {
     return [&fileName](MeshComponent& meshComponent) {
         logger.info("sill.makers.glb-mesh") << "Loading file " << fileName << std::endl;
+
+        PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         std::ifstream file(fileName, std::ifstream::binary);
 

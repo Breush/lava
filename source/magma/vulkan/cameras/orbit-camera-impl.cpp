@@ -95,6 +95,8 @@ void OrbitCamera::Impl::target(const glm::vec3& target)
 
 void OrbitCamera::Impl::updateViewTransform()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // @todo Make up vector configurable?
     m_viewTransform = glm::lookAtRH(m_translation, m_target, glm::vec3(0.f, 0.f, 1.f));
 
@@ -104,6 +106,8 @@ void OrbitCamera::Impl::updateViewTransform()
 
 void OrbitCamera::Impl::updateProjectionTransform()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     const auto aspectRatio = static_cast<float>(m_extent.width) / static_cast<float>(m_extent.height);
 
     // @todo FOV and clippings configurable?
@@ -120,6 +124,8 @@ void OrbitCamera::Impl::updateProjectionTransform()
 
 void OrbitCamera::Impl::updateFrustum()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     auto viewTransformInverse = glm::inverse(m_viewTransform);
     auto projectionTransformInverse = glm::inverse(m_projectionTransform);
 
@@ -162,6 +168,8 @@ void OrbitCamera::Impl::updateFrustum()
 void OrbitCamera::Impl::updateBindings()
 {
     if (!m_initialized) return;
+
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     vulkan::CameraUbo ubo;
     ubo.view = m_viewTransform;

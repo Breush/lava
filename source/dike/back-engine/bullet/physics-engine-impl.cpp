@@ -6,6 +6,8 @@ PhysicsEngine::Impl::Impl() {}
 
 void PhysicsEngine::Impl::update(float dt)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     m_dynamicsWorld.stepSimulation(dt);
 }
 

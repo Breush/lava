@@ -85,6 +85,8 @@ void VrEyeCamera::Impl::extent(Extent2d extent)
 
 void VrEyeCamera::Impl::update(vr::EVREye eye, const glm::mat4& hmdTransform)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     auto& vrSystem = m_scene.engine().vrSystem();
 
     vr::HmdMatrix44_t mat = vrSystem.GetProjectionMatrix(eye, 0.1f, 100.f);
@@ -127,6 +129,8 @@ void VrEyeCamera::Impl::changeImageLayout(vk::ImageLayout imageLayout, vk::Comma
 // it could exist in ICameraImpl
 void VrEyeCamera::Impl::updateFrustum()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     auto viewTransformInverse = glm::inverse(m_viewTransform * m_fixesTransform);
     auto projectionTransformInverse = glm::inverse(m_projectionTransform);
 
@@ -169,6 +173,8 @@ void VrEyeCamera::Impl::updateFrustum()
 void VrEyeCamera::Impl::updateBindings()
 {
     if (!m_initialized) return;
+
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     vulkan::CameraUbo ubo;
     ubo.view = m_viewTransform * m_fixesTransform;

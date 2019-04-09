@@ -8,6 +8,9 @@ using namespace lava::chamber;
 GameEngine::Impl::Impl(GameEngine& base)
     : m_fontManager(base)
 {
+    chamber::startProfiling();
+    PROFILE_FUNCTION(PROFILER_COLOR_INIT);
+
     //----- Initializing window
 
     Extent2d windowExtent = {800, 600};
@@ -44,8 +47,15 @@ GameEngine::Impl::Impl(GameEngine& base)
     m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
 }
 
+GameEngine::Impl::~Impl()
+{
+    chamber::stopProfiling();
+}
+
 void GameEngine::Impl::run()
 {
+    PROFILE_FUNCTION();
+
     // @todo If we want two GameEngine at the same time on day,
     // these statics cannot stay there.
     static const std::chrono::nanoseconds updateTime(11'111'111); // 1/60s * 2/3
@@ -113,6 +123,8 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
 
 void GameEngine::Impl::updateInput()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     m_inputManager.updateReset();
     while (auto event = m_window->pollEvent()) {
         handleEvent(*event);
@@ -123,6 +135,8 @@ void GameEngine::Impl::updateInput()
 
 void GameEngine::Impl::updateEntities(float dt)
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // Add all new components
     for (auto& entity : m_pendingAddedEntities) {
         m_entities.emplace_back(std::move(entity));
@@ -139,6 +153,8 @@ void GameEngine::Impl::updateEntities(float dt)
 
 void GameEngine::Impl::registerMaterials()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
+
     // Font material (used in TextMeshComponent)
     m_renderEngine->registerMaterialFromFile("font", "./data/shaders/materials/font-material.shmag");
 
@@ -156,6 +172,8 @@ void GameEngine::Impl::registerMaterials()
 
 void GameEngine::Impl::handleEvent(WsEvent& event)
 {
+    PROFILE_FUNCTION();
+
     switch (event.type) {
     case WsEventType::WindowClosed: {
         m_window->close();

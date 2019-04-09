@@ -21,6 +21,8 @@ void TextMeshComponent::Impl::update(float /* dt */)
     if (!m_dirty) return;
     m_dirty = false;
 
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // Getting the font
     auto& font = m_entity.engine().font(m_fontHrid);
     const auto glyphsRatio = font.glyphsRatio();
