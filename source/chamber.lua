@@ -33,12 +33,17 @@ project "lava-chamber"
         elseif os.host() == "windows" then
             buildoptions { "-mwindows", "-municode" }
             links { "DbgHelp" }
-        
+
         end
 
         links { "pthread" }
 
         useStb()
+
+        if _OPTIONS["profile"] then
+            useEasyProfiler()
+            defines { "LAVA_CHAMBER_PROFILER_ENABLED" }
+        end
     end
 
     -- This is a static lib, thus it shouldn't be linked multiple times

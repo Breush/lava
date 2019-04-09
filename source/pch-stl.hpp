@@ -6,6 +6,7 @@
 #include <cmath>
 #include <codecvt>
 #include <cstdint>
+#include <ctime>
 #include <fstream>
 #include <functional>
 #include <iomanip>

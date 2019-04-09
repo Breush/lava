@@ -18,5 +18,6 @@ FOLDER=`pwd`
 
 # Copying libs
 cd "${FOLDER}"
+mkdir -p ../../include/openvr
 cp -R headers/* ../../include/openvr
 cp -R lib/linux64/* ../../lib

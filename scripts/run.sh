@@ -16,7 +16,11 @@ export LD_LIBRARY_PATH=`pwd`/external/lib:${LD_LIBRARY_PATH}
 export VK_LAYER_PATH=`pwd`/external/etc/explicit_layer.d
 
 echo -e "\e[35mSetting up dependencies...\e[39m"
-./scripts/setup.sh
+if [ "$2" == "profile" ]; then
+    ./scripts/setup.sh --profile=true
+else
+    ./scripts/setup.sh
+fi
 
 # Find a make target that match the name
 TARGETS=$(${MAKE} help | grep -P '^   (?!all|clean|lava-)' | grep "$1")
@@ -43,10 +47,19 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
         if [ "$2" == "debug" ]; then
             echo "... in debug mode."
             EXECUTABLE="gdb --quiet --directory=./external/source/vulkan/layers -ex run ${EXECUTABLE}*"
+        elif [ "$2" == "profile" ]; then
+            echo "... in profile mode."
         fi
         echo -en "\e[39m"
 
         ${EXECUTABLE}
+
+        if [ "$2" == "profile" ]; then
+            mkdir -p "./build/profiling"
+            mv *.prof "./build/profiling/"
+            PROFILER_FILE=$(ls -t ./build/profiling/*.prof | head -1)
+            ./external/bin/profiler_gui "${PROFILER_FILE}"
+        fi
     else
         echo -e "\e[31m\nError during build...\e[39m"
     fi

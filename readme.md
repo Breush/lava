@@ -35,6 +35,8 @@ This will enable Vulkan's validation layer, check dependencies,
 compile only what's necessary, and run the associated executable.
 If you don't know any target name, run the command without any.
 Adding `debug` at the end of the command, will launch `gdb`.
+Similarly, adding `profile` at the end of the command, will enable
+profiling through `easy_profiler`, generating a `./build/profiling/xxx.prof` file.
 
 ### Compiling on Windows
 
@@ -65,6 +67,7 @@ Everything **lava** needs is downloaded via *Premake* to `external/`.
 
 Current awesome dependencies are:
 - [Bullet Physics](https://github.com/bulletphysics/bullet3)
+- [easy_profiler](https://github.com/yse/easy_profiler) (optional)
 - [Nlohman's JSON](https://github.com/nlohmann/json)
 - [OpenGL Mathematics](http://glm.g-truc.net/)
 - [OpenVR](https://github.com/ValveSoftware/openvr)

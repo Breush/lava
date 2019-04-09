@@ -122,6 +122,10 @@ extractFromGithubTags "g-truc/glm"
 # updateDependencyByVersion "external/glm.lua" "${LAST}"
 updateSkip "external/glm.lua" "${LAST}"
 
+# EasyProfiler
+extractFromGithubTags "yse/easy_profiler"
+updateDependencyByVersion "external/easy-profiler.lua" "${LAST}"
+
 # Nlohmann JSON
 extractFromGithubTags "nlohmann/json"
 updateDependencyByVersion "external/nlohmann-json.lua" "${LAST}"

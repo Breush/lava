@@ -6,9 +6,17 @@ workspace "lava-renderer"
     architecture "x86_64"
     cppdialect "C++17"
 
+    -- Arguments
+
+    newoption {
+        trigger     = "profile",
+        value       = "BOOL",
+        description = "Enable profiling dependencies"
+    }
+
     -- Configurations
 
-    configurations { "debug", "fast-compile", "release" }
+    configurations { "debug", "fast-compile", "profile", "release" }
 
     includedirs "include"
 
@@ -20,6 +28,11 @@ workspace "lava-renderer"
         -- buildoptions { "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
 
     filter { "configurations:fast-compile" }
+        symbols "off"
+        optimize "debug"
+        buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
+
+    filter { "configurations:profile" }
         symbols "off"
         optimize "debug"
         buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
