@@ -20,7 +20,7 @@ FOLDER=`pwd`
 cd "${FOLDER}"
 mkdir -p build
 cd build
-cmake .. -G"Unix Makefiles" -DCMAKE_MAKE_PROGRAM="${MAKE}" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_MAKE_PROGRAM="${MAKE}" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 ${MAKE} -j 2
 
 # Copying libs
