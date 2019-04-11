@@ -50,19 +50,40 @@ void RenderScene::Impl::init(uint32_t id)
     initResources();
 }
 
-void RenderScene::Impl::render(vk::CommandBuffer commandBuffer)
+void RenderScene::Impl::record()
 {
     tracker.counter("draw-calls.shadows") = 0u;
     tracker.counter("draw-calls.renderer") = 0u;
 
-    for (const auto& lightBundle : m_lightBundles) {
+    m_commandBuffers.resize(0);
+
+    // Threading rendering
+
+    for (auto& lightBundle : m_lightBundles) {
         if (lightBundle.light->shadowsEnabled()) {
-            lightBundle.shadowsStage->render(commandBuffer);
+            lightBundle.shadowsThread->record(*lightBundle.shadowsStage);
+            m_commandBuffers.emplace_back(lightBundle.shadowsThread->commandBuffer());
         }
     }
 
     for (const auto& cameraBundle : m_cameraBundles) {
-        cameraBundle.rendererStage->render(commandBuffer);
+        cameraBundle.rendererThread->record(*cameraBundle.rendererStage);
+        m_commandBuffers.emplace_back(cameraBundle.rendererThread->commandBuffer());
+    }
+
+    // Wait for all threads to finish
+    // @todo We should make a wait() function,
+    // so that the RenderEngine could just record multiple scenes
+    // at once and call all scenes.wait() afterwards
+
+    for (auto& lightBundle : m_lightBundles) {
+        if (lightBundle.light->shadowsEnabled()) {
+            lightBundle.shadowsThread->wait();
+        }
+    }
+
+    for (const auto& cameraBundle : m_cameraBundles) {
+        cameraBundle.rendererThread->wait();
     }
 }
 
@@ -77,6 +98,7 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
     m_cameraBundles.emplace_back();
     auto& cameraBundle = m_cameraBundles.back();
     cameraBundle.camera = std::move(camera);
+    cameraBundle.rendererThread = std::make_unique<vulkan::CommandBufferThread>(m_engine, "camera.renderer");
 
     // @note We fallback to a forward renderer if something is not handled.
     if (m_rendererType == RendererType::DeepDeferred)
@@ -134,6 +156,7 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
     // Setting shadows
     if (lightBundle.light->shadowsEnabled()) {
         lightBundle.shadowsStage = std::make_unique<ShadowsStage>(*this);
+        lightBundle.shadowsThread = std::make_unique<vulkan::CommandBufferThread>(m_engine, "light.shadows");
     }
 
     if (m_initialized) {

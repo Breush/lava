@@ -23,6 +23,8 @@ namespace lava::chamber {
 
     void startProfiling();
     void stopProfiling(std::string dumpFile = "");
+
+    inline void profilerThreadName(const char* threadName) { EASY_THREAD(threadName); }
 }
 
 #else
@@ -35,6 +37,8 @@ namespace lava::chamber {
 
     inline void startProfiling() {}
     inline void stopProfiling(std::string /* dumpFile */ = "") {}
+
+    inline void profilerThreadName(const char* threadName) {}
 }
 
 #endif

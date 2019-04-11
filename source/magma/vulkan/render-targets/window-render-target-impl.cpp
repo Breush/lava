@@ -71,7 +71,7 @@ void WindowRenderTarget::Impl::render(vk::CommandBuffer commandBuffer)
     m_presentStage.render(commandBuffer);
 }
 
-void WindowRenderTarget::Impl::draw(vk::CommandBuffer commandBuffer) const
+void WindowRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuffers) const
 {
     PROFILE_FUNCTION(PROFILER_COLOR_DRAW);
 
@@ -85,8 +85,8 @@ void WindowRenderTarget::Impl::draw(vk::CommandBuffer commandBuffer) const
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
+    submitInfo.commandBufferCount = commandBuffers.size();
+    submitInfo.pCommandBuffers = commandBuffers.data();
 
     if (m_engine.graphicsQueue().submit(1, &submitInfo, m_fence) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.window-render-target") << "Failed to submit draw command buffer." << std::endl;

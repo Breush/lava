@@ -11,6 +11,7 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/texture.hpp>
 
+#include "../command-buffer-thread.hpp"
 #include "../holders/descriptor-holder.hpp"
 
 namespace lava::magma {
@@ -32,8 +33,9 @@ namespace lava::magma {
         const RenderEngine::Impl& engine() const { return m_engine; }
 
         // IRenderScene
-        void init(uint32_t id) override final;
-        void render(vk::CommandBuffer commandBuffer) override final;
+        void init(uint32_t id) final;
+        void record() final;
+        const std::vector<vk::CommandBuffer>& commandBuffers() const final { return m_commandBuffers; }
 
         // User control.
         void rendererType(RendererType rendererType) { m_rendererType = rendererType; }
@@ -106,11 +108,13 @@ namespace lava::magma {
         struct LightBundle {
             std::unique_ptr<ILight> light;
             std::unique_ptr<ShadowsStage> shadowsStage;
+            std::unique_ptr<vulkan::CommandBufferThread> shadowsThread;
         };
 
         struct CameraBundle {
             std::unique_ptr<ICamera> camera;
             std::unique_ptr<IRendererStage> rendererStage;
+            std::unique_ptr<vulkan::CommandBufferThread> rendererThread;
         };
 
     private:
@@ -136,5 +140,7 @@ namespace lava::magma {
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<std::unique_ptr<IMesh>> m_meshes;
+
+        std::vector<vk::CommandBuffer> m_commandBuffers; // All recorded command buffers during last record() call.
     };
 }

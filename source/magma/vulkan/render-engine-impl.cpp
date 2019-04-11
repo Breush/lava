@@ -64,6 +64,22 @@ void RenderEngine::Impl::draw()
     // @note This function does both render and draw, so no color.
     PROFILE_FUNCTION();
 
+    // We record all render scenes cameras once
+    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
+        auto& renderScene = m_renderScenes[renderSceneId];
+        renderScene->interfaceImpl().record();
+
+        // Tracking
+        if (m_logTracking) {
+            logger.info("magma.render-engine") << "Render scene " << renderSceneId << "." << std::endl;
+            logger.log().tab(1);
+            logger.log() << "draw-calls.renderer: " << tracker.counter("draw-calls.renderer") << std::endl;
+            logger.log() << "draw-calls.shadows: " << tracker.counter("draw-calls.shadows") << std::endl;
+            logger.log().tab(-1);
+            m_logTracking = false;
+        }
+    }
+
     for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
         auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
         auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
@@ -72,11 +88,9 @@ void RenderEngine::Impl::draw()
         if (!renderTargetImpl.prepare()) continue;
 
         // Record command buffer each frame
-        // @fixme Are we really re-recording all scenes for each renderTarget?
-        // Seems overkill!
         auto currentIndex = renderTargetImpl.currentBufferIndex();
-        auto commandBuffer = recordCommandBuffer(renderTargetId, currentIndex);
-        renderTargetImpl.draw(commandBuffer);
+        const auto& commandBuffers = recordCommandBuffer(renderTargetId, currentIndex);
+        renderTargetImpl.draw(commandBuffers);
     }
 }
 
@@ -318,7 +332,7 @@ void RenderEngine::Impl::createDummyTextures()
     }
 }
 
-vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTargetId, uint32_t bufferIndex)
+std::vector<vk::CommandBuffer> RenderEngine::Impl::recordCommandBuffer(uint32_t renderTargetId, uint32_t bufferIndex)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
@@ -330,40 +344,35 @@ vk::CommandBuffer& RenderEngine::Impl::recordCommandBuffer(uint32_t renderTarget
             << renderTargetBundle.commandBuffers.size() - 1u << "." << std::endl;
     }
 
-    auto& commandBuffer = renderTargetBundle.commandBuffers[bufferIndex];
+    //----- Render all scenes
 
-    //----- Prologue
+    // @fixme Feels like we should be able to generate all render scenes images,
+    // and use these directly without having to re-render everything.
+    std::vector<vk::CommandBuffer> commandBuffers;
+
+    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
+        auto& renderScene = m_renderScenes[renderSceneId];
+        const auto& sceneCommandBuffers = renderScene->interfaceImpl().commandBuffers();
+        commandBuffers.insert(commandBuffers.end(), sceneCommandBuffers.begin(), sceneCommandBuffers.end());
+    }
+
+    //----- Render targets' specific rendering
+
+    auto& commandBuffer = renderTargetBundle.commandBuffers[bufferIndex];
 
     vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eSimultaneousUse};
     commandBuffer.begin(&beginInfo);
 
-    //----- Render
-
-    // @todo The scenes should know which cameras to render at any time.
-    // And render only those.
-    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
-        auto& renderScene = m_renderScenes[renderSceneId];
-        renderScene->interfaceImpl().render(commandBuffer);
-
-        // Tracking
-        if (m_logTracking) {
-            chamber::logger.info("magma.render-engine") << "Render scene " << renderSceneId << "." << std::endl;
-            chamber::logger.log().tab(1);
-            chamber::logger.log() << "draw-calls.renderer: " << chamber::tracker.counter("draw-calls.renderer") << std::endl;
-            chamber::logger.log() << "draw-calls.shadows: " << chamber::tracker.counter("draw-calls.shadows") << std::endl;
-            chamber::logger.log().tab(-1);
-            m_logTracking = false;
-        }
-    }
-
     // @todo The names are unclear, what's the difference between render and draw?
+    // @fixme We probably don't need handle a render target command buffer by ourself
+    // because this line is the only thing we do with it.
     renderTargetBundle.renderTarget->interfaceImpl().render(commandBuffer);
-
-    //----- Epilogue
 
     commandBuffer.end();
 
-    return commandBuffer;
+    commandBuffers.emplace_back(commandBuffer);
+
+    return commandBuffers;
 }
 
 void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
@@ -389,7 +398,7 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
     allocateInfo.commandBufferCount = commandBuffers.size();
 
     if (device().allocateCommandBuffers(&allocateInfo, commandBuffers.data()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.command-buffers") << "Failed to create command buffers." << std::endl;
+        logger.error("magma.vulkan.render-engine") << "Failed to create command buffers." << std::endl;
     }
 }
 

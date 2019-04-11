@@ -38,9 +38,6 @@ void VrRenderTarget::Impl::init(uint32_t id)
 
 bool VrRenderTarget::Impl::prepare()
 {
-    static const auto MAX = std::numeric_limits<uint64_t>::max();
-
-    m_engine.device().waitForFences(1u, &m_fence, true, MAX);
     m_engine.device().resetFences(1u, &m_fence);
 
     // Update all known devices...
@@ -78,8 +75,10 @@ void VrRenderTarget::Impl::render(vk::CommandBuffer commandBuffer)
     m_rightEyeCamera->impl().changeImageLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
 }
 
-void VrRenderTarget::Impl::draw(vk::CommandBuffer commandBuffer) const
+void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuffers) const
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_DRAW);
+
     vr::VRTextureBounds_t bounds;
     bounds.uMin = 0.0f;
     bounds.uMax = 1.0f;
@@ -87,8 +86,8 @@ void VrRenderTarget::Impl::draw(vk::CommandBuffer commandBuffer) const
     bounds.vMax = 1.0f;
 
     vk::SubmitInfo submitInfo;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
+    submitInfo.commandBufferCount = commandBuffers.size();
+    submitInfo.pCommandBuffers = commandBuffers.data();
 
     if (m_engine.graphicsQueue().submit(1, &submitInfo, m_fence) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.vr-render-target") << "Failed to submit draw command buffer." << std::endl;
@@ -121,6 +120,10 @@ void VrRenderTarget::Impl::draw(vk::CommandBuffer commandBuffer) const
     if (error != 0) {
         logger.warning("magma.vulkan.vr-render-target") << "Rendering with error: " << error << std::endl;
     }
+
+    // @fixme This is bad, as we are waiting for full drawing before returning
+    static const auto MAX = std::numeric_limits<uint64_t>::max();
+    m_engine.device().waitForFences(1u, &m_fence, true, MAX);
 }
 
 //----- VrRenderTarget

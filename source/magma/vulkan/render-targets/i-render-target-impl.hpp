@@ -23,8 +23,8 @@ namespace lava::magma {
         /// Render. Called to fill the commandBuffer with last specific commands of the render target.
         virtual void render(vk::CommandBuffer commandBuffer) = 0;
 
-        /// Draw. Called to show/present the final image. Should submit the commandBuffer.
-        virtual void draw(vk::CommandBuffer commandBuffer) const = 0;
+        /// Draw. Called to show/present the final image. Should submit the commandBuffers.
+        virtual void draw(const std::vector<vk::CommandBuffer>& commandBuffers) const = 0;
 
         /// The id used as initialization.
         virtual uint32_t id() const = 0;

@@ -20,7 +20,7 @@ namespace lava::magma {
         void init(uint32_t id) override final;
         bool prepare() override final;
         void render(vk::CommandBuffer commandBuffer) override final;
-        void draw(vk::CommandBuffer commandBuffer) const override final;
+        void draw(const std::vector<vk::CommandBuffer>& commandBuffers) const override final;
 
         // @fixme Implement the views for this VrRenderTarget, somehow
         uint32_t addView(vk::ImageView, vk::ImageLayout, vk::Sampler, Viewport) final { return 0u; }

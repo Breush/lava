@@ -95,7 +95,7 @@ namespace lava::magma {
         void createDummyTextures();
 
         // Command buffers
-        vk::CommandBuffer& recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex);
+        std::vector<vk::CommandBuffer> recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex);
         void createCommandPool(vk::SurfaceKHR* pSurface);
         void createCommandBuffers(uint32_t renderTargetIndex);
 

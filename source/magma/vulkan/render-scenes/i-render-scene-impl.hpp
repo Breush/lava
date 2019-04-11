@@ -13,7 +13,10 @@ namespace lava::magma {
         /// Initialize the scene.
         virtual void init(uint32_t id) = 0;
 
-        /// Render the scene.
-        virtual void render(vk::CommandBuffer commandBuffer) = 0;
+        /// Render the scene. Fills the commandBuffers array.
+        virtual void record() = 0;
+
+        /// All generated command buffers since last call.
+        virtual const std::vector<vk::CommandBuffer>& commandBuffers() const = 0;
     };
 }
