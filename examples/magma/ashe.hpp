@@ -14,7 +14,13 @@ namespace lava::ashe {
         };
 
     public:
-        Application(const std::string& title) { create(title); }
+        Application(const std::string& title)
+        {
+            chamber::startProfiling();
+            create(title);
+        }
+
+        ~Application() { chamber::stopProfiling(); }
 
         crater::Window& window() { return *m_window; }
         magma::RenderEngine& engine() { return *m_engine; }

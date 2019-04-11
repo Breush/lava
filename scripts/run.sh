@@ -57,8 +57,13 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
         if [ "$2" == "profile" ]; then
             mkdir -p "./build/profiling"
             mv *.prof "./build/profiling/"
-            PROFILER_FILE=$(ls -t ./build/profiling/*.prof | head -1)
-            ./external/bin/profiler_gui "${PROFILER_FILE}"
+
+            if [ $? -eq 0 ]; then
+                PROFILER_FILE=$(ls -t ./build/profiling/*.prof | head -1)
+                ./external/bin/profiler_gui "${PROFILER_FILE}"
+            else
+                echo -e "\e[31m\nLooks like no .prof file has been generated.\e[39m"
+            fi
         fi
     else
         echo -e "\e[31m\nError during build...\e[39m"
