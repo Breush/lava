@@ -9,4 +9,5 @@
 #include <lava/chamber/profiler.hpp>
 #include <lava/chamber/stb.hpp>
 #include <lava/chamber/string-tools.hpp>
+#include <lava/chamber/thread.hpp>
 #include <lava/chamber/tracker.hpp>
