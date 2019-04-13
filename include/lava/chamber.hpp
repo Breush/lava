@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/chamber/bucket-allocator.hpp>
 #include <lava/chamber/buffer.hpp>
 #include <lava/chamber/call-stack.hpp>
 #include <lava/chamber/file-watcher.hpp>
