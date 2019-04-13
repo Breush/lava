@@ -1,7 +1,7 @@
 #include "./shadows-stage.hpp"
 
 #include "../lights/i-light-impl.hpp"
-#include "../meshes/i-mesh-impl.hpp"
+#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
@@ -82,7 +82,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
     for (auto& mesh : m_scene.meshes()) {
         if (!mesh->canCastShadows()) continue;
         tracker.counter("draw-calls.shadows") += 1u;
-        mesh->interfaceImpl().render(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX, -1u);
+        mesh->impl().render(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX, -1u);
     }
 
     // Draw

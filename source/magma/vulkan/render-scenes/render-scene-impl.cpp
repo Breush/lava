@@ -3,7 +3,7 @@
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../material-impl.hpp"
-#include "../meshes/i-mesh-impl.hpp"
+#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
 #include "../stages/forward-renderer-stage.hpp"
@@ -133,10 +133,10 @@ void RenderScene::Impl::add(std::unique_ptr<Texture>&& texture)
     m_textures.emplace_back(std::move(texture));
 }
 
-void RenderScene::Impl::add(std::unique_ptr<IMesh>&& mesh)
+void RenderScene::Impl::add(std::unique_ptr<Mesh>&& mesh)
 {
     if (m_initialized) {
-        mesh->interfaceImpl().init();
+        mesh->impl().init();
     }
 
     m_meshes.emplace_back(std::move(mesh));
@@ -171,7 +171,7 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
     logger.log().tab(-1);
 }
 
-void RenderScene::Impl::remove(const IMesh& mesh)
+void RenderScene::Impl::remove(const Mesh& mesh)
 {
     m_engine.device().waitIdle();
     for (auto iMesh = m_meshes.begin(); iMesh != m_meshes.end(); ++iMesh) {
@@ -330,7 +330,7 @@ void RenderScene::Impl::initResources()
     }
 
     for (auto& mesh : m_meshes) {
-        mesh->interfaceImpl().init();
+        mesh->impl().init();
     }
 
     for (auto lightId = 0u; lightId < m_lightBundles.size(); ++lightId) {

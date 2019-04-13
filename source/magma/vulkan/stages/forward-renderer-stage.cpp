@@ -5,7 +5,7 @@
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../meshes/i-mesh-impl.hpp"
+#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
@@ -104,11 +104,11 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
-        const auto& boundingSphere = mesh->interfaceImpl().boundingSphere();
+        const auto& boundingSphere = mesh->impl().boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->interfaceImpl().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
-                                         MATERIAL_DESCRIPTOR_SET_INDEX);
+            mesh->impl().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
+                                MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
 

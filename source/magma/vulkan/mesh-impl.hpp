@@ -1,29 +1,29 @@
 #pragma once
 
-#include <lava/magma/meshes/mesh.hpp>
+#include <lava/magma/mesh.hpp>
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
-#include "../holders/buffer-holder.hpp"
-#include "../holders/ubo-holder.hpp"
-#include "../vertex.hpp"
-#include "./i-mesh-impl.hpp"
+#include "../bounding-sphere.hpp"
+#include "./holders/buffer-holder.hpp"
+#include "./holders/ubo-holder.hpp"
+#include "./vertex.hpp"
 
 namespace lava::magma {
     /**
      * Vulkan-based implementation of a mesh.
      */
-    class Mesh::Impl final : public IMesh::Impl {
+    class Mesh::Impl {
     public:
         Impl(RenderScene& scene);
         ~Impl();
 
-        // IMesh::Impl
-        void init() override final;
+        // Internal interface
+        void init();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
-                    uint32_t materialDescriptorSetIndex) override final;
+                    uint32_t materialDescriptorSetIndex);
 
-        const BoundingSphere& boundingSphere() const override final { return m_boundingSphere; }
+        const BoundingSphere& boundingSphere() const { return m_boundingSphere; }
 
         // Mesh
         const glm::mat4& transform() const { return m_transform; }

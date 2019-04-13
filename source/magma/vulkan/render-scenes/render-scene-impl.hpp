@@ -7,7 +7,7 @@
 #include <lava/magma/cameras/i-camera.hpp>
 #include <lava/magma/lights/i-light.hpp>
 #include <lava/magma/material.hpp>
-#include <lava/magma/meshes/i-mesh.hpp>
+#include <lava/magma/mesh.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/texture.hpp>
 
@@ -41,13 +41,21 @@ namespace lava::magma {
         void rendererType(RendererType rendererType) { m_rendererType = rendererType; }
 
         /**
+         * @name Allocators
+         */
+        /// @{
+        chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
+        chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
+        /// @}
+
+        /**
          * @name Adders
          */
         /// @{
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
-        void add(std::unique_ptr<IMesh>&& mesh);
+        void add(std::unique_ptr<Mesh>&& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
 
@@ -55,7 +63,7 @@ namespace lava::magma {
          * @name Removers
          */
         /// @{
-        void remove(const IMesh& mesh);
+        void remove(const Mesh& mesh);
         void remove(const Material& material);
         void remove(const Texture& texture);
         /// @}
@@ -81,12 +89,12 @@ namespace lava::magma {
 
         const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
         const Material::Impl& material(uint32_t index) const { return m_materials[index]->impl(); }
-        const IMesh::Impl& mesh(uint32_t index) const { return m_meshes[index]->interfaceImpl(); }
+        const Mesh::Impl& mesh(uint32_t index) const { return m_meshes[index]->impl(); }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
 
         const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
-        const std::vector<std::unique_ptr<IMesh>>& meshes() const { return m_meshes; }
+        const std::vector<std::unique_ptr<Mesh>>& meshes() const { return m_meshes; }
 
         uint32_t lightsCount() const { return m_lightBundles.size(); }
 
@@ -124,6 +132,10 @@ namespace lava::magma {
 
         RendererType m_rendererType;
 
+        // Allocators
+        chamber::BucketAllocator m_meshAllocator;
+        chamber::BucketAllocator m_materialAllocator;
+
         // Resources
         vulkan::DescriptorHolder m_lightsDescriptorHolder;
         vulkan::DescriptorHolder m_cameraDescriptorHolder;
@@ -139,7 +151,7 @@ namespace lava::magma {
         std::vector<LightBundle> m_lightBundles;
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
-        std::vector<std::unique_ptr<IMesh>> m_meshes;
+        std::vector<std::unique_ptr<Mesh>> m_meshes;
 
         std::vector<vk::CommandBuffer> m_commandBuffers; // All recorded command buffers during last record() call.
     };

@@ -1,8 +1,8 @@
 #include "./mesh-impl.hpp"
 
-#include "../material-impl.hpp"
-#include "../render-scenes/render-scene-impl.hpp"
-#include "../ubos.hpp"
+#include "./material-impl.hpp"
+#include "./render-scenes/render-scene-impl.hpp"
+#include "./ubos.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
@@ -206,7 +206,7 @@ void Mesh::Impl::createIndexBuffer()
     m_indexBufferHolder.copy(m_indices.data(), bufferSize);
 }
 
-// ----- IMesh -----
+// ----- Internal interface -----
 
 void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
                         uint32_t materialDescriptorSetIndex)

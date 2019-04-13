@@ -9,9 +9,9 @@
 namespace lava::magma {
     class RenderEngine;
     class ICamera;
-    class IMesh;
     class ILight;
     class Material;
+    class Mesh;
     class Texture;
 }
 
@@ -57,7 +57,7 @@ namespace lava::magma {
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
-        void add(std::unique_ptr<IMesh>&& mesh);
+        void add(std::unique_ptr<Mesh>&& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
 
@@ -66,7 +66,7 @@ namespace lava::magma {
          * Remove a previously added (or made) resource.
          */
         /// @{
-        void remove(const IMesh& mesh);
+        void remove(const Mesh& mesh);
         void remove(const Material& material);
         void remove(const Texture& texture);
         /// @}

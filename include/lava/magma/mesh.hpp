@@ -1,7 +1,5 @@
 #pragma once
 
-#include <lava/magma/meshes/i-mesh.hpp>
-
 #include <glm/glm.hpp>
 #include <lava/core/axis.hpp>
 #include <lava/core/vector-view.hpp>
@@ -17,15 +15,14 @@ namespace lava::magma {
     /**
      * A mesh, holding geometry and transform.
      */
-    class Mesh final : public IMesh {
+    class Mesh {
     public:
         Mesh(RenderScene& scene);
         ~Mesh();
 
-        // IMesh
-        IMesh::Impl& interfaceImpl() override final;
-        bool canCastShadows() const override final;
-        void canCastShadows(bool canCastShadows) override final;
+        // @fixme Documentation
+        bool canCastShadows() const;
+        void canCastShadows(bool canCastShadows);
 
         /**
          * @name Transforms
@@ -70,6 +67,7 @@ namespace lava::magma {
         Impl& impl() { return *m_impl; }
 
     private:
+        RenderScene& m_scene;
         Impl* m_impl = nullptr;
     };
 }

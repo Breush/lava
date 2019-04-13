@@ -4,7 +4,7 @@
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../meshes/i-mesh-impl.hpp"
+#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
@@ -116,11 +116,11 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
-        const auto& boundingSphere = mesh->interfaceImpl().boundingSphere();
+        const auto& boundingSphere = mesh->impl().boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->interfaceImpl().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(),
-                                         GEOMETRY_MESH_DESCRIPTOR_SET_INDEX, GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+            mesh->impl().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_DESCRIPTOR_SET_INDEX,
+                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
 

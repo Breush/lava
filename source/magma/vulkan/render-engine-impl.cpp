@@ -80,10 +80,12 @@ void RenderEngine::Impl::draw()
         }
     }
 
+    // @fixme We should be able to call prepare() on renderTargets while renderScenes are recording,
+    // we need a renderScene->wait() for that.
+
     for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
         auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
         auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
-        // const auto& swapchainHolder = renderTargetImpl.swapchainHolder();
 
         if (!renderTargetImpl.prepare()) continue;
 

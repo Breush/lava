@@ -44,7 +44,7 @@ void RenderScene::add(std::unique_ptr<Texture>&& texture)
     m_impl->add(std::move(texture));
 }
 
-void RenderScene::add(std::unique_ptr<IMesh>&& mesh)
+void RenderScene::add(std::unique_ptr<Mesh>&& mesh)
 {
     m_impl->add(std::move(mesh));
 }
@@ -55,6 +55,6 @@ void RenderScene::add(std::unique_ptr<ILight>&& light)
 }
 
 // Removers
-$pimpl_method(RenderScene, void, remove, const IMesh&, mesh);
+$pimpl_method(RenderScene, void, remove, const Mesh&, mesh);
 $pimpl_method(RenderScene, void, remove, const Material&, material);
 $pimpl_method(RenderScene, void, remove, const Texture&, texture);

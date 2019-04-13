@@ -29,6 +29,7 @@ namespace lava::magma {
         Impl& impl() { return *m_impl; }
 
     private:
+        RenderScene& m_scene;
         Impl* m_impl = nullptr;
     };
 }

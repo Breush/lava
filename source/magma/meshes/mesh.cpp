@@ -1,24 +1,23 @@
-#include <lava/magma/meshes/mesh.hpp>
+#include <lava/magma/mesh.hpp>
 
-#include "../vulkan/meshes/mesh-impl.hpp"
+#include "../vulkan/mesh-impl.hpp"
+
+// @fixme Should not reference vulkan folder here, somehow
+// Go through interfaceImpl()?
+#include "../vulkan/render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
 Mesh::Mesh(RenderScene& scene)
+    : m_scene(scene)
 {
-    m_impl = new Impl(scene);
+    m_impl = m_scene.impl().meshAllocator().allocate<Mesh::Impl>(scene);
 }
 
 Mesh::~Mesh()
 {
-    delete m_impl;
-}
-
-// IMesh
-IMesh::Impl& Mesh::interfaceImpl()
-{
-    return *m_impl;
+    m_scene.impl().meshAllocator().deallocate(m_impl);
 }
 
 $pimpl_method_const(Mesh, const glm::mat4&, transform);
