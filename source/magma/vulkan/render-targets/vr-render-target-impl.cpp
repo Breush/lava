@@ -38,10 +38,16 @@ void VrRenderTarget::Impl::init(uint32_t id)
 
 bool VrRenderTarget::Impl::prepare()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
+
     // Waiting for previous rendering to be over
-    static const auto MAX = std::numeric_limits<uint64_t>::max();
-    m_engine.device().waitForFences(1u, &m_fence, true, MAX);
-    m_engine.device().resetFences(1u, &m_fence);
+    {
+        PROFILE_BLOCK("VrRenderTarget - waitForFences", PROFILER_COLOR_DRAW);
+
+        static const auto MAX = std::numeric_limits<uint64_t>::max();
+        m_engine.device().waitForFences(1u, &m_fence, true, MAX);
+        m_engine.device().resetFences(1u, &m_fence);
+    }
 
     // Update all known devices...
     auto error = vr::VRCompositor()->WaitGetPoses(m_vrDevicesPoses.data(), vr::k_unMaxTrackedDeviceCount, nullptr, 0);

@@ -38,8 +38,13 @@ bool WindowRenderTarget::Impl::prepare()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
-    static const auto MAX = std::numeric_limits<uint64_t>::max();
-    m_engine.device().waitForFences(1u, &m_fence, true, MAX);
+    {
+        PROFILE_BLOCK("WindowRenderTarget - waitForFences", PROFILER_COLOR_DRAW);
+
+        static const auto MAX = std::numeric_limits<uint64_t>::max();
+        m_engine.device().waitForFences(1u, &m_fence, true, MAX);
+        m_engine.device().resetFences(1u, &m_fence);
+    }
 
     auto result = m_swapchainHolder.acquireNextImage();
 
@@ -59,7 +64,6 @@ bool WindowRenderTarget::Impl::prepare()
         return false;
     }
 
-    m_engine.device().resetFences(1u, &m_fence);
     return true;
 }
 

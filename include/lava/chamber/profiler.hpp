@@ -18,6 +18,7 @@ namespace lava::chamber {
 namespace lava::chamber {
 #define PROFILE_ENABLED
 #define PROFILE_FUNCTION(...) EASY_BLOCK(__PRETTY_FUNCTION__, ##__VA_ARGS__)
+#define PROFILE_BLOCK(...) EASY_BLOCK(__VA_ARGS__)
 
     void startProfilingOverNetwork();
     void stopProfilingOverNetwork();
@@ -33,6 +34,7 @@ namespace lava::chamber {
 namespace lava::chamber {
 // #define PROFILE_ENABLED
 #define PROFILE_FUNCTION(...) /* empty */
+#define PROFILE_BLOCK(...)    /* empty */
 
     inline void startProfilingOverNetwork() {}
     inline void stopProfilingOverNetwork() {}
