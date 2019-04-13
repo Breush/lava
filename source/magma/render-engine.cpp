@@ -36,7 +36,7 @@ $pimpl_method(RenderEngine, void, removeView, uint32_t, viewId);
 
 //----- Adders
 
-void RenderEngine::add(std::unique_ptr<IRenderScene>&& renderScene)
+void RenderEngine::add(std::unique_ptr<RenderScene>&& renderScene)
 {
     m_impl->add(std::move(renderScene));
 }

@@ -7,7 +7,7 @@
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
 #include "./render-image-impl.hpp"
-#include "./render-scenes/i-render-scene-impl.hpp"
+#include "./render-scenes/render-scene-impl.hpp"
 #include "./render-targets/i-render-target-impl.hpp"
 #include "./stages/present.hpp"
 
@@ -67,7 +67,21 @@ void RenderEngine::Impl::draw()
     // We record all render scenes cameras once
     for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
         auto& renderScene = m_renderScenes[renderSceneId];
-        renderScene->interfaceImpl().record();
+        renderScene->impl().record();
+    }
+
+    // Prepare all render targets
+    for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
+        auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
+        auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
+
+        renderTargetBundle.prepareOk = renderTargetImpl.prepare();
+    }
+
+    // Wait for all scenes to be done with recording
+    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
+        auto& renderScene = m_renderScenes[renderSceneId];
+        renderScene->impl().waitRecord();
 
         // Tracking
         if (m_logTracking) {
@@ -80,16 +94,14 @@ void RenderEngine::Impl::draw()
         }
     }
 
-    // @fixme We should be able to call prepare() on renderTargets while renderScenes are recording,
-    // we need a renderScene->wait() for that.
-
+    // Submit all the command buffers and present to the render targets
     for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
         auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
-        auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
 
-        if (!renderTargetImpl.prepare()) continue;
+        if (!renderTargetBundle.prepareOk) continue;
 
         // Record command buffer each frame
+        auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
         auto currentIndex = renderTargetImpl.currentBufferIndex();
         const auto& commandBuffers = recordCommandBuffer(renderTargetId, currentIndex);
         renderTargetImpl.draw(commandBuffers);
@@ -185,7 +197,7 @@ void RenderEngine::Impl::removeView(uint32_t viewId)
 
 //----- Adders
 
-void RenderEngine::Impl::add(std::unique_ptr<IRenderScene>&& renderScene)
+void RenderEngine::Impl::add(std::unique_ptr<RenderScene>&& renderScene)
 {
     const uint32_t renderSceneId = m_renderScenes.size();
 
@@ -195,7 +207,7 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderScene>&& renderScene)
     // If no device yet, the scene initialization will be postponed
     // until it is created.
     if (m_deviceHolder.device()) {
-        renderScene->interfaceImpl().init(renderSceneId);
+        renderScene->impl().init(renderSceneId);
     }
 
     m_renderScenes.emplace_back(std::move(renderScene));
@@ -354,7 +366,7 @@ std::vector<vk::CommandBuffer> RenderEngine::Impl::recordCommandBuffer(uint32_t 
 
     for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
         auto& renderScene = m_renderScenes[renderSceneId];
-        const auto& sceneCommandBuffers = renderScene->interfaceImpl().commandBuffers();
+        const auto& sceneCommandBuffers = renderScene->impl().commandBuffers();
         commandBuffers.insert(commandBuffers.end(), sceneCommandBuffers.begin(), sceneCommandBuffers.end());
     }
 
@@ -414,7 +426,7 @@ void RenderEngine::Impl::initRenderScenes()
     logger.log().tab(1);
 
     for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
-        auto& renderSceneImpl = m_renderScenes[renderSceneId]->interfaceImpl();
+        auto& renderSceneImpl = m_renderScenes[renderSceneId]->impl();
         renderSceneImpl.init(renderSceneId);
     }
 

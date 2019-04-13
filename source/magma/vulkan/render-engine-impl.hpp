@@ -2,7 +2,7 @@
 
 #include <lava/magma/render-engine.hpp>
 
-#include <lava/magma/render-scenes/i-render-scene.hpp>
+#include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/render-targets/i-render-target.hpp>
 
 #include "./holders/buffer-holder.hpp"
@@ -45,7 +45,7 @@ namespace lava::magma {
          * @name Adders
          */
         /// @{
-        void add(std::unique_ptr<IRenderScene>&& renderScene);
+        void add(std::unique_ptr<RenderScene>&& renderScene);
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 
@@ -106,6 +106,7 @@ namespace lava::magma {
             // @fixme Add a compositor stage for every render targets
             // std::unique_ptr<Present> presentStage;
             std::vector<vk::CommandBuffer> commandBuffers;
+            bool prepareOk = false; //!< Whether we can draw this frame.
         };
 
         /// A view bind a scene and a target.
@@ -154,7 +155,7 @@ namespace lava::magma {
         /// @}
 
         // Data
-        std::vector<std::unique_ptr<IRenderScene>> m_renderScenes;
+        std::vector<std::unique_ptr<RenderScene>> m_renderScenes;
         std::vector<RenderTargetBundle> m_renderTargetBundles;
         std::vector<RenderView> m_renderViews;
     };

@@ -70,12 +70,10 @@ void RenderScene::Impl::record()
         cameraBundle.rendererThread->record(*cameraBundle.rendererStage);
         m_commandBuffers.emplace_back(cameraBundle.rendererThread->commandBuffer());
     }
+}
 
-    // Wait for all threads to finish
-    // @todo We should make a wait() function,
-    // so that the RenderEngine could just record multiple scenes
-    // at once and call all scenes.wait() afterwards
-
+void RenderScene::Impl::waitRecord()
+{
     for (auto& lightBundle : m_lightBundles) {
         if (lightBundle.light->shadowsEnabled()) {
             lightBundle.shadowsThread->wait();

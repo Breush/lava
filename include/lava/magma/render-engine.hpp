@@ -7,9 +7,9 @@
 
 namespace lava::magma {
     class ICamera;
-    class IRenderScene;
     class IRenderTarget;
     class RenderImage;
+    class RenderScene;
 }
 
 namespace lava::magma {
@@ -78,7 +78,7 @@ namespace lava::magma {
          * For convenience, you usually want to use makers (see above).
          */
         /// @{
-        void add(std::unique_ptr<IRenderScene>&& renderScene);
+        void add(std::unique_ptr<RenderScene>&& renderScene);
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 

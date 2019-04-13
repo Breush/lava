@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lava/magma/render-scenes/i-render-scene.hpp>
 #include <lava/magma/renderer-type.hpp>
 
 #include <functional>
@@ -17,14 +16,12 @@ namespace lava::magma {
 
 namespace lava::magma {
     /**
-     * A basic render scene.
+     * A basic render scene for 3D elements.
      */
-    class RenderScene final : public IRenderScene {
+    class RenderScene {
     public:
         RenderScene(RenderEngine& engine);
         ~RenderScene();
-
-        IRenderScene::Impl& interfaceImpl() override final;
 
         /// Choose the type of renderer.
         void rendererType(RendererType rendererType);

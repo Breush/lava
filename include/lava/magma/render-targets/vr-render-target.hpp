@@ -28,9 +28,9 @@ namespace lava::magma {
         /**
          * Decides which scene the VR should render.
          *
-         * Please note that RenderScene is used here, not a IRenderScene.
+         * Please note that 3D RenderScene is used here.
          * This is because a 3D context is needed for the VR to render
-         * coherently, and IRenderScene would be too general.
+         * coherently.
          */
         void bindScene(RenderScene& scene);
 

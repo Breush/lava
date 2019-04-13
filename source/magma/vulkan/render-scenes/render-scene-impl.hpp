@@ -1,9 +1,5 @@
 #pragma once
 
-// @todo Have every interface organized this way:
-// in their own folder. And renamed as i-xxx.hpp
-#include "./i-render-scene-impl.hpp"
-
 #include <lava/magma/cameras/i-camera.hpp>
 #include <lava/magma/lights/i-light.hpp>
 #include <lava/magma/material.hpp>
@@ -23,7 +19,7 @@ namespace lava::magma {
     /**
      * Vulkan-based implementation of the lava::RenderScene.
      */
-    class RenderScene::Impl final : public IRenderScene::Impl {
+    class RenderScene::Impl {
     public:
         Impl(RenderEngine& engine);
         ~Impl();
@@ -32,10 +28,11 @@ namespace lava::magma {
         RenderEngine::Impl& engine() { return m_engine; }
         const RenderEngine::Impl& engine() const { return m_engine; }
 
-        // IRenderScene
-        void init(uint32_t id) final;
-        void record() final;
-        const std::vector<vk::CommandBuffer>& commandBuffers() const final { return m_commandBuffers; }
+        // Internal interface
+        void init(uint32_t id);
+        void record();
+        void waitRecord();
+        const std::vector<vk::CommandBuffer>& commandBuffers() const { return m_commandBuffers; }
 
         // User control.
         void rendererType(RendererType rendererType) { m_rendererType = rendererType; }

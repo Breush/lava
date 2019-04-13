@@ -20,12 +20,6 @@ RenderScene::~RenderScene()
     delete m_impl;
 }
 
-// IRenderScene
-IRenderScene::Impl& RenderScene::interfaceImpl()
-{
-    return *m_impl;
-}
-
 $pimpl_method(RenderScene, void, rendererType, RendererType, rendererType);
 
 // Adders
