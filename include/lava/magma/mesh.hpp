@@ -65,6 +65,7 @@ namespace lava::magma {
     public:
         class Impl;
         Impl& impl() { return *m_impl; }
+        const Impl& impl() const { return *m_impl; }
 
     private:
         RenderScene& m_scene;

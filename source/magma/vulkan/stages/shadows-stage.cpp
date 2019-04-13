@@ -82,7 +82,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
     for (auto& mesh : m_scene.meshes()) {
         if (!mesh->canCastShadows()) continue;
         tracker.counter("draw-calls.shadows") += 1u;
-        mesh->impl().render(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX, -1u);
+        mesh->render(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX, -1u);
     }
 
     // Draw

@@ -140,6 +140,7 @@ void RenderScene::Impl::add(std::unique_ptr<Mesh>&& mesh)
     }
 
     m_meshes.emplace_back(std::move(mesh));
+    m_meshesImpls.emplace_back(&m_meshes.back()->impl());
 }
 
 void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
@@ -174,6 +175,17 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
 void RenderScene::Impl::remove(const Mesh& mesh)
 {
     m_engine.device().waitIdle();
+
+    // @fixme Wait, these remove break all meshId references, right?
+    // We should put a uuid with Mesh and Mesh::Impl
+
+    for (auto iMeshImpl = m_meshesImpls.begin(); iMeshImpl != m_meshesImpls.end(); ++iMeshImpl) {
+        if (*iMeshImpl == &mesh.impl()) {
+            m_meshesImpls.erase(iMeshImpl);
+            break;
+        }
+    }
+
     for (auto iMesh = m_meshes.begin(); iMesh != m_meshes.end(); ++iMesh) {
         if (iMesh->get() == &mesh) {
             m_meshes.erase(iMesh);

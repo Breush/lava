@@ -89,12 +89,12 @@ namespace lava::magma {
 
         const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
         const Material::Impl& material(uint32_t index) const { return m_materials[index]->impl(); }
-        const Mesh::Impl& mesh(uint32_t index) const { return m_meshes[index]->impl(); }
+        const Mesh::Impl& mesh(uint32_t index) const { return *m_meshesImpls[index]; }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
 
         const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
-        const std::vector<std::unique_ptr<Mesh>>& meshes() const { return m_meshes; }
+        const std::vector<Mesh::Impl*>& meshes() const { return m_meshesImpls; }
 
         uint32_t lightsCount() const { return m_lightBundles.size(); }
 
@@ -152,6 +152,9 @@ namespace lava::magma {
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<std::unique_ptr<Mesh>> m_meshes;
+
+        // Data references
+        std::vector<Mesh::Impl*> m_meshesImpls;
 
         std::vector<vk::CommandBuffer> m_commandBuffers; // All recorded command buffers during last record() call.
     };
