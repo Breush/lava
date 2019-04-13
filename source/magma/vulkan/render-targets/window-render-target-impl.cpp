@@ -39,7 +39,6 @@ bool WindowRenderTarget::Impl::prepare()
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
     static const auto MAX = std::numeric_limits<uint64_t>::max();
-
     m_engine.device().waitForFences(1u, &m_fence, true, MAX);
 
     auto result = m_swapchainHolder.acquireNextImage();

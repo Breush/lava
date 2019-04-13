@@ -38,7 +38,7 @@ namespace lava::chamber {
     inline void startProfiling() {}
     inline void stopProfiling(std::string /* dumpFile */ = "") {}
 
-    inline void profilerThreadName(const char* threadName) {}
+    inline void profilerThreadName(const char* /* threadName */) {}
 }
 
 #endif

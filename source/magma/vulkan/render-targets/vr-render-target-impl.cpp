@@ -38,6 +38,9 @@ void VrRenderTarget::Impl::init(uint32_t id)
 
 bool VrRenderTarget::Impl::prepare()
 {
+    // Waiting for previous rendering to be over
+    static const auto MAX = std::numeric_limits<uint64_t>::max();
+    m_engine.device().waitForFences(1u, &m_fence, true, MAX);
     m_engine.device().resetFences(1u, &m_fence);
 
     // Update all known devices...
@@ -120,10 +123,6 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
     if (error != 0) {
         logger.warning("magma.vulkan.vr-render-target") << "Rendering with error: " << error << std::endl;
     }
-
-    // @fixme This is bad, as we are waiting for full drawing before returning
-    static const auto MAX = std::numeric_limits<uint64_t>::max();
-    m_engine.device().waitForFences(1u, &m_fence, true, MAX);
 }
 
 //----- VrRenderTarget

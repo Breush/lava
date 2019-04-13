@@ -39,9 +39,9 @@ void CommandBufferThread::createCommandBuffers()
         vk::CommandBufferAllocateInfo allocateInfo;
         allocateInfo.commandPool = m_commandPool;
         allocateInfo.level = vk::CommandBufferLevel::ePrimary;
-        allocateInfo.commandBufferCount = 1;
+        allocateInfo.commandBufferCount = m_commandBuffers.size();
 
-        if (m_engine.device().allocateCommandBuffers(&allocateInfo, &m_commandBuffer) != vk::Result::eSuccess) {
+        if (m_engine.device().allocateCommandBuffers(&allocateInfo, m_commandBuffers.data()) != vk::Result::eSuccess) {
             logger.error("magma.vulkan.command-buffer-thread") << "Failed to create command buffers." << std::endl;
         }
     });
