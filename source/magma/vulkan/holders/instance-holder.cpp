@@ -189,6 +189,20 @@ void InstanceHolder::initValidationLayers(vk::InstanceCreateInfo& instanceCreate
 
     if (!m_debugEnabled) return;
 
+#if defined(PROFILE_ENABLED)
+    logger.warning("magma.vulkan.instance-holder") << "Validation layers enabled, but profiling is enabled too. " << std::endl;
+    logger.log() << "We don't enable validation layers as they add a way too big overhead." << std::endl;
+    m_debugEnabled = false;
+    return;
+#endif
+
+    if (m_vrEnabled) {
+        logger.warning("magma.vulkan.instance-holder") << "Validation layers enabled, but VR is enabled too. " << std::endl;
+        logger.log() << "We don't enable validation layers as they add a way too big overhead." << std::endl;
+        m_debugEnabled = false;
+        return;
+    }
+
     if (!layersSupported(m_validationLayers)) {
         logger.warning("magma.vulkan.instance-holder") << "Validation layers enabled, but are not available." << std::endl;
         m_debugEnabled = false;

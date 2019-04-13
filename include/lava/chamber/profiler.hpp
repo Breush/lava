@@ -16,6 +16,7 @@ namespace lava::chamber {
 #include <easy/profiler.h>
 
 namespace lava::chamber {
+#define PROFILE_ENABLED
 #define PROFILE_FUNCTION(...) EASY_BLOCK(__PRETTY_FUNCTION__, ##__VA_ARGS__)
 
     void startProfilingOverNetwork();
@@ -30,6 +31,7 @@ namespace lava::chamber {
 #else
 
 namespace lava::chamber {
+// #define PROFILE_ENABLED
 #define PROFILE_FUNCTION(...) /* empty */
 
     inline void startProfilingOverNetwork() {}
