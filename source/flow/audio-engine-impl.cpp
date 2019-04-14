@@ -47,6 +47,6 @@ void AudioEngine::Impl::listenerPosition(const glm::vec3& listenerPosition)
 
 void AudioEngine::Impl::updateTransform()
 {
-    m_listenerTransform = glm::mat4();
+    m_listenerTransform = glm::mat4(1.f);
     m_listenerTransform = glm::translate(m_listenerTransform, m_listenerPosition);
 }

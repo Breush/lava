@@ -41,7 +41,7 @@ namespace lava::sill {
 
     private:
         // Data
-        glm::mat4 m_transform;
+        glm::mat4 m_transform = glm::mat4(1.f);
 
         // Callbacks
         std::vector<TransformChangedCallbackInfo> m_transformChangedCallbacks;

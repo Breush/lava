@@ -29,7 +29,7 @@ namespace lava::glb {
         std::string name;
         uint32_t meshIndex = -1u;
         std::vector<uint32_t> children;
-        glm::mat4 transform;
+        glm::mat4 transform = glm::mat4(1.f);
 
         Node(const typename nlohmann::json::basic_json& json);
     };

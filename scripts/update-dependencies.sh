@@ -118,9 +118,7 @@ updateDependencyByVersion "external/bullet.lua" "${LAST}"
 
 # GLM
 extractFromGithubTags "g-truc/glm"
-# @note Skipped as only trunk branches are currently working (0.9.9.0 is wrong, like 0.9.8.5)
-# updateDependencyByVersion "external/glm.lua" "${LAST}"
-updateSkip "external/glm.lua" "${LAST}"
+updateDependencyByVersion "external/glm.lua" "${LAST}"
 
 # EasyProfiler
 extractFromGithubTags "yse/easy_profiler"

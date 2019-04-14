@@ -63,8 +63,8 @@ namespace lava::magma {
 
         // Attributes
         glm::vec3 m_translation;
-        glm::mat4 m_viewTransform;
-        glm::mat4 m_projectionTransform;
+        glm::mat4 m_viewTransform = glm::mat4(1.f);
+        glm::mat4 m_projectionTransform = glm::mat4(1.f);
         Frustum m_frustum;
     };
 }

@@ -154,7 +154,7 @@ void Mesh::Impl::material(Material& material)
 
 void Mesh::Impl::updateTransform()
 {
-    m_transform = glm::mat4();
+    m_transform = glm::mat4(1.f);
     m_transform = glm::scale(m_transform, m_scaling);
     m_transform = glm::mat4_cast(m_rotation) * m_transform;
     // @note glm::translate wrongly takes scaling into account

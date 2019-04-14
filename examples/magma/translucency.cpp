@@ -16,7 +16,7 @@ int main(void)
         blueMaterial.set("color", {0.f, 0.f, 1.f, 0.3f});
 
         auto& blueMesh = app.makePlane({1, 1});
-        blueMesh.rotate({0.f, 1.f, 0.f}, 1.6f);
+        blueMesh.rotate({0.f, 1.f, 0.f}, -1.6f);
         blueMesh.material(blueMaterial);
     }
 

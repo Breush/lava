@@ -22,7 +22,7 @@ namespace lava::dike {
 
         // @note This transform will always be up-to-date
         // thanks to the motion state bindings.
-        glm::mat4 m_transform;
+        glm::mat4 m_transform = glm::mat4(1.f);
         MotionState m_motionState{m_transform};
 
         btSphereShape m_shape;

@@ -21,7 +21,7 @@ namespace lava::sill {
         std::unique_ptr<Mesh> mesh = nullptr;
 
         /// The local transform of the node.
-        glm::mat4 transform;
+        glm::mat4 transform = glm::mat4(1.f);
 
         /// A list of all children.
         std::vector<MeshNode*> children;

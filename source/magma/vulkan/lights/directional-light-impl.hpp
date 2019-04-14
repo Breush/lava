@@ -50,6 +50,6 @@ namespace lava::magma {
         $attribute(glm::vec3, direction);
 
         // Attributes
-        glm::mat4 m_transform;
+        glm::mat4 m_transform = glm::mat4(1.f);
     };
 }

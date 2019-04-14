@@ -46,7 +46,7 @@ namespace lava::flow {
         std::vector<const AudioSource::Impl*> m_sourcesToRemove;
 
         // Spatialization
-        glm::mat4 m_listenerTransform;
+        glm::mat4 m_listenerTransform = glm::mat4(1.f);
         glm::vec3 m_listenerPosition;
     };
 }

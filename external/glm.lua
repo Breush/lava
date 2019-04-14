@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "GLM"
-local VERSION = "0.9.8"
+local VERSION = "0.9.9.5"
 
 -- Download
 
@@ -10,7 +10,7 @@ if not fileValid(localFile) then
     os.mkdir("./.tmp")
     os.execute('bash -c "rm --recursive ./include/glm 2> /dev/null"')
     local url = "https://github.com/g-truc/glm/archive/" .. VERSION .. ".zip"
-    
+
     downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
     local downloadResult = http.download(url, localFile, { progress = downloadProgress })
 
@@ -37,7 +37,7 @@ local externalPath = path.getabsolute(".")
 function useGlm()
     includedirs(externalPath .. "/include")
 
-    defines { "GLM_FORCE_RADIANS", "GLM_FORCE_DEPTH_ZERO_TO_ONE" }
+    defines { "GLM_FORCE_DEPTH_ZERO_TO_ONE" }
 end
 
 print("[Dependencies] " .. NAME .. " (" .. VERSION .. ") is ready.")

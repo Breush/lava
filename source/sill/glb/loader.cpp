@@ -14,7 +14,7 @@ Node::Node(const typename nlohmann::json::basic_json& json)
         }
     }
 
-    transform = glm::mat4();
+    transform = glm::mat4(1.f);
 
     if (json.find("matrix") != json.end()) {
         transform[0u][0u] = json["matrix"][0u];
