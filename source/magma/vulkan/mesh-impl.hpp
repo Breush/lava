@@ -39,11 +39,14 @@ namespace lava::magma {
         void verticesTangents(VectorView<glm::vec4> tangents);
         void indices(VectorView<uint16_t> indices);
 
+        bool canCastShadows() const { return m_canCastShadows; }
+        void canCastShadows(bool canCastShadows) { m_canCastShadows = canCastShadows; }
+
         Material& material() { return *m_material; }
         void material(Material& material);
 
-        bool canCastShadows() const { return m_canCastShadows; }
-        void canCastShadows(bool canCastShadows) { m_canCastShadows = canCastShadows; }
+        bool translucent() const { return m_translucent; }
+        void translucent(bool translucent) { m_translucent = translucent; }
 
     private:
         void updateTransform();
@@ -62,6 +65,7 @@ namespace lava::magma {
         std::vector<uint16_t> m_indices;
         Material* m_material = nullptr;
         bool m_canCastShadows = true;
+        bool m_translucent = false;
 
         // Computed
         BoundingSphere m_boundingSphereLocal;

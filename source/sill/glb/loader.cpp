@@ -106,6 +106,12 @@ Material::Material(const typename nlohmann::json::basic_json& json)
 PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json)
     : Material(json)
 {
+    if (json.find("alphaMode") != json.end()) {
+        if (json["alphaMode"] != "OPAQUE") {
+            translucent = true;
+        }
+    }
+
     if (json.find("pbrMetallicRoughness") == json.end()) return;
     auto& pbrMetallicRoughness = json["pbrMetallicRoughness"];
 

@@ -70,7 +70,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     // during construction.
 
     // Set render pass
-    std::array<vk::ClearValue, 3> clearValues;
+    std::array<vk::ClearValue, 4> clearValues;
     // @todo Allow clear color to be configurable
     std::array<float, 4> clearColor{0.2f, 0.6f, 0.4f, 1.f};
     clearValues[0u].color = vk::ClearColorValue(clearColor);
@@ -104,6 +104,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
+        if (mesh->translucent()) continue;
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
@@ -122,9 +123,17 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_translucentPipelineHolder.pipeline());
 
     // Draw all translucent meshes
-    // @fixme In forward, we have to sort transparent meshes,
-    // they are currently drawn as opaque too. (See #36)
-    // But this pass is ready!
+    // @fixme We should sort the meshes
+    // https://github.com/Breush/lava/issues/36
+    for (auto& mesh : m_scene.meshes()) {
+        if (!mesh->translucent()) continue;
+        const auto& boundingSphere = mesh->boundingSphere();
+        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+            tracker.counter("draw-calls.renderer") += 1u;
+            mesh->render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
+                         MATERIAL_DESCRIPTOR_SET_INDEX);
+        }
+    }
 
     deviceHolder.debugEndRegion(commandBuffer);
 
@@ -191,7 +200,7 @@ void ForwardRendererStage::initOpaquePass()
 void ForwardRendererStage::initTranslucentPass()
 {
     // @note Translucent pass differs from opaque pass just by having
-    // no depth test and alpha blending enabled.
+    // depth writing disabled and alpha blending enabled.
 
     //----- Descriptor set layouts
 
@@ -206,6 +215,12 @@ void ForwardRendererStage::initTranslucentPass()
     m_translucentPipelineHolder.set(vk::CullModeFlagBits::eBack);
 
     //----- Attachments
+
+    vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.depthWriteEnabled = false;
+    depthStencilAttachment.clear = false;
+    m_translucentPipelineHolder.set(depthStencilAttachment);
 
     vulkan::PipelineHolder::ColorAttachment finalColorAttachment;
     finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
@@ -276,6 +291,7 @@ void ForwardRendererStage::createFramebuffers()
     attachments.emplace_back(m_finalImageHolder.view());
     attachments.emplace_back(m_depthImageHolder.view());
     attachments.emplace_back(m_finalImageHolder.view());
+    attachments.emplace_back(m_depthImageHolder.view());
 
     // Framebuffer
     vk::FramebufferCreateInfo framebufferInfo;

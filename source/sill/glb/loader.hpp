@@ -74,6 +74,10 @@ namespace lava::glb {
     };
 
     struct PbrMetallicRoughnessMaterial : public Material {
+        // @fixme We might to separate alpha blended (BLEND) materials
+        // from MASK ones. Because the latter could go to the
+        // opaque pipeline without too much issues.
+        bool translucent = false;
         uint32_t baseColorTextureIndex = -1u;
         uint32_t metallicRoughnessTextureIndex = -1u;
 

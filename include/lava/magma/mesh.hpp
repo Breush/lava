@@ -60,6 +60,14 @@ namespace lava::magma {
         /// @{
         Material& material();
         void material(Material& material);
+
+        /**
+         * Whether the mesh should be considered translucent.
+         * If so, it will go to a specific pipeline to be
+         * rendered with alpha blending.
+         */
+        bool translucent() const;
+        void translucent(bool translucent);
         /// @}
 
     public:

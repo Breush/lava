@@ -23,6 +23,7 @@ namespace {
     struct CacheData {
         std::unordered_map<uint32_t, sill::Texture*> textures;
         std::unordered_map<uint32_t, sill::Material*> materials;
+        std::unordered_map<uint32_t, bool> materialTranslucencies;
     };
 
     using PixelsCallback = std::function<void(uint8_t*, uint32_t, uint32_t)>;
@@ -155,13 +156,16 @@ namespace {
             }
 
             // Material
+            bool translucent = false;
             sill::Material* rmMaterial = nullptr;
             if (cacheData.materials.find(primitive.materialIndex) != cacheData.materials.end()) {
                 rmMaterial = cacheData.materials.at(primitive.materialIndex);
+                translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
             }
             else {
                 glb::PbrMetallicRoughnessMaterial material(materials[primitive.materialIndex]);
                 rmMaterial = &engine.make<sill::Material>("roughness-metallic");
+                translucent = material.translucent;
 
                 // Material textures
                 setTexture(engine, *rmMaterial, "albedoMap", material.baseColorTextureIndex, binChunk, json, cacheData);
@@ -171,6 +175,7 @@ namespace {
                               binChunk, json, cacheData);
 
                 cacheData.materials[primitive.materialIndex] = rmMaterial;
+                cacheData.materialTranslucencies[primitive.materialIndex] = translucent;
             }
 
             // Apply the geometry
@@ -182,6 +187,7 @@ namespace {
             meshPrimitive.verticesTangents(tangents);
             meshPrimitive.verticesUvs(uv1s);
             meshPrimitive.material(*rmMaterial);
+            meshPrimitive.translucent(translucent);
         }
 
         return std::move(meshData);

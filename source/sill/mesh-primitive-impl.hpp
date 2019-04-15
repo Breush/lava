@@ -23,6 +23,7 @@ namespace lava::sill {
 
         // Material
         void material(Material& material);
+        void translucent(bool translucent);
 
     private:
         // References

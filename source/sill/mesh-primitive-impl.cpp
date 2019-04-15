@@ -54,3 +54,8 @@ void MeshPrimitive::Impl::material(Material& material)
 {
     m_magma->material(material.magma());
 }
+
+void MeshPrimitive::Impl::translucent(bool translucent)
+{
+    m_magma->translucent(translucent);
+}

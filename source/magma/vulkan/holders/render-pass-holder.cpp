@@ -68,10 +68,12 @@ void RenderPassHolder::init()
             vk::AttachmentDescription description;
             description.format = depthStencilAttachment->format;
             description.samples = vk::SampleCountFlagBits::e1;
-            description.loadOp = vk::AttachmentLoadOp::eClear;
+            description.loadOp = depthStencilAttachment->clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad;
             description.storeOp = vk::AttachmentStoreOp::eStore;
             description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
             description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+            description.initialLayout =
+                depthStencilAttachment->clear ? vk::ImageLayout::eUndefined : vk::ImageLayout::eDepthStencilReadOnlyOptimal;
             description.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
             attachmentDescriptions.emplace_back(description);
         }

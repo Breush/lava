@@ -22,3 +22,4 @@ $pimpl_method(MeshPrimitive, void, indices, VectorView<uint16_t>, indices);
 
 // Material
 $pimpl_method(MeshPrimitive, void, material, Material&, material);
+$pimpl_method(MeshPrimitive, void, translucent, bool, translucent);

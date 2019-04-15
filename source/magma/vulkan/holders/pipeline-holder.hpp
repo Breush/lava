@@ -23,6 +23,8 @@ namespace lava::magma::vulkan {
 
         struct DepthStencilAttachment {
             vk::Format format;
+            bool depthWriteEnabled = true;
+            bool clear = true;
         };
 
         struct InputAttachment {
