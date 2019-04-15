@@ -22,6 +22,7 @@ namespace lava::magma {
         void init();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
                     uint32_t materialDescriptorSetIndex);
+        void renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex);
 
         const BoundingSphere& boundingSphere() const { return m_boundingSphere; }
 
@@ -61,6 +62,7 @@ namespace lava::magma {
         bool m_initialized = false;
 
         // Data
+        std::vector<vulkan::UnlitVertex> m_unlitVertices;
         std::vector<vulkan::Vertex> m_vertices;
         std::vector<uint16_t> m_indices;
         Material* m_material = nullptr;
@@ -82,6 +84,7 @@ namespace lava::magma {
         vulkan::UboHolder m_uboHolder;
 
         // Vertices
+        vulkan::BufferHolder m_unlitVertexBufferHolder;
         vulkan::BufferHolder m_vertexBufferHolder;
         vulkan::BufferHolder m_indexBufferHolder;
     };

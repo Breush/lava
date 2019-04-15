@@ -1,6 +1,11 @@
 #pragma once
 
 namespace lava::magma::vulkan {
+    class UnlitVertex {
+    public:
+        glm::vec3 pos;
+    };
+
     class Vertex {
     public:
         glm::vec3 pos;

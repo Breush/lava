@@ -82,7 +82,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
     for (auto& mesh : m_scene.meshes()) {
         if (!mesh->canCastShadows()) continue;
         tracker.counter("draw-calls.shadows") += 1u;
-        mesh->render(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX, -1u);
+        mesh->renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX);
     }
 
     // Draw
@@ -138,11 +138,8 @@ void ShadowsStage::initPass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::Vertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
-                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
-                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
-                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
+    vertexInput.stride = sizeof(vulkan::UnlitVertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)}};
     m_pipelineHolder.set(vertexInput);
 }
 

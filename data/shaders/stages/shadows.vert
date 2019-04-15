@@ -7,11 +7,7 @@
 
 //----- Vertex data in
 
-// @fixme Do a renderShadows() in mesh - just passing the position
 layout(location = 0) in vec3 inMPosition;
-layout(location = 1) in vec2 inUv;
-layout(location = 2) in vec3 inMNormal;
-layout(location = 3) in vec4 inMTangent;
 
 //----- Out
 

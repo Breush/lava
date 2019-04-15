@@ -10,6 +10,7 @@ using namespace lava::magma;
 Mesh::Impl::Impl(RenderScene& scene)
     : m_scene(scene.impl())
     , m_uboHolder(m_scene.engine())
+    , m_unlitVertexBufferHolder(m_scene.engine())
     , m_vertexBufferHolder(m_scene.engine())
     , m_indexBufferHolder(m_scene.engine())
 {
@@ -69,6 +70,7 @@ void Mesh::Impl::scale(float factor)
 
 void Mesh::Impl::verticesCount(const uint32_t count)
 {
+    m_unlitVertices.resize(count);
     m_vertices.resize(count);
 }
 
@@ -88,6 +90,7 @@ void Mesh::Impl::verticesPositions(VectorView<glm::vec3> positions)
         // Storing the position.
         const auto& position = positions[i];
         m_vertices[i].pos = position;
+        m_unlitVertices[i].pos = position;
 
         // Finding the bounding sphere radius.
         auto vertexVector = position - m_boundingSphereLocal.center;
@@ -154,6 +157,8 @@ void Mesh::Impl::material(Material& material)
 
 void Mesh::Impl::updateTransform()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     m_transform = glm::mat4(1.f);
     m_transform = glm::scale(m_transform, m_scaling);
     m_transform = glm::mat4_cast(m_rotation) * m_transform;
@@ -163,6 +168,8 @@ void Mesh::Impl::updateTransform()
 
 void Mesh::Impl::updateBoundingSphere()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // @note The bounding radius can be overestimated if
     // the three scaling components are not the same,
     // but this is way faster than reevaluating from all transformed
@@ -180,6 +187,8 @@ void Mesh::Impl::updateBindings()
 {
     if (!m_initialized) return;
 
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     vulkan::MeshUbo ubo;
     ubo.transform = m_transform;
     m_uboHolder.copy(0, ubo);
@@ -187,14 +196,23 @@ void Mesh::Impl::updateBindings()
 
 void Mesh::Impl::createVertexBuffer()
 {
-    vk::DeviceSize bufferSize = sizeof(vulkan::Vertex) * m_vertices.size();
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
+    // Unlit (just holding vertices' positions)
+    vk::DeviceSize bufferSize = sizeof(vulkan::UnlitVertex) * m_unlitVertices.size();
+    m_unlitVertexBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
+    m_unlitVertexBufferHolder.copy(m_unlitVertices.data(), bufferSize);
+
+    // Lit
+    bufferSize = sizeof(vulkan::Vertex) * m_vertices.size();
     m_vertexBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
     m_vertexBufferHolder.copy(m_vertices.data(), bufferSize);
 }
 
 void Mesh::Impl::createIndexBuffer()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
     if (m_indices.empty()) {
         logger.warning("magma.vulkan.mesh") << "No indices provided. The mesh will not be visible." << std::endl;
         return;
@@ -216,13 +234,11 @@ void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipe
     // Bind the material
     // @todo Have this in a more clever render loop, and not called by this mesh
     // Fact is we shouldn't know about the correct descriptorSetIndex here
-    if (materialDescriptorSetIndex != -1u) {
-        if (m_material != nullptr) {
-            m_material->impl().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
-        }
-        else {
-            m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
-        }
+    if (m_material != nullptr) {
+        m_material->impl().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
+    }
+    else {
+        m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
 
     // Bind with the mesh descriptor set
@@ -232,6 +248,23 @@ void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipe
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0, 1, &m_vertexBufferHolder.buffer(), offsets);
+    commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
+
+    // Draw
+    commandBuffer.drawIndexed(m_indices.size(), 1, 0, 0, 0);
+}
+
+void Mesh::Impl::renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
+{
+    if (m_unlitVertices.empty() || m_indices.empty()) return;
+
+    // Bind with the mesh descriptor set
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
+                                     nullptr);
+
+    // Add the vertex buffer
+    vk::DeviceSize offsets[] = {0};
+    commandBuffer.bindVertexBuffers(0, 1, &m_unlitVertexBufferHolder.buffer(), offsets);
     commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
 
     // Draw
