@@ -126,10 +126,27 @@ void GameEngine::Impl::updateInput()
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     m_inputManager.updateReset();
+
     while (auto event = m_window->pollEvent()) {
         handleEvent(*event);
 
         m_inputManager.update(*event);
+    }
+
+    // Update VR controllers
+    if (m_vrRenderTarget != nullptr) {
+        if (m_renderEngine->vrDeviceValid(VrDeviceType::LeftHand)) {
+            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::LeftHand, *m_renderScene);
+            mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::LeftHand));
+        }
+        if (m_renderEngine->vrDeviceValid(VrDeviceType::RightHand)) {
+            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::RightHand, *m_renderScene);
+            mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::RightHand));
+        }
+        if (m_renderEngine->vrDeviceValid(VrDeviceType::Head)) {
+            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::Head, *m_renderScene);
+            mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::Head));
+        }
     }
 }
 
