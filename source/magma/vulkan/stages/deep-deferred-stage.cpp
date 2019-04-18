@@ -116,6 +116,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all meshes
     for (auto& mesh : m_scene.meshes()) {
+        if (camera.vrAimed() && !mesh->vrRenderable()) continue;
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;

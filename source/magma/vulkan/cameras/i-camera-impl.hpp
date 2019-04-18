@@ -13,6 +13,9 @@ namespace lava::magma {
         virtual ~Impl() = default;
 
     public:
+        /// Whether the camera is used to render in a VR render target.
+        virtual bool vrAimed() const = 0;
+
         //----- ICamera
 
         /// Initialize when all references are ready.

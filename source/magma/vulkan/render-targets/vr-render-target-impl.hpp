@@ -38,13 +38,6 @@ namespace lava::magma {
         // Internal
         void initFence();
 
-    protected:
-        struct VrDevice {
-            bool valid = false;           // Whether the device is valid.
-            vr::ETrackedDeviceClass type; // Which device is being tracked.
-            glm::mat4 transform;          // Last known absolute transform of the device.
-        };
-
     private:
         // References
         RenderEngine::Impl& m_engine;
@@ -52,8 +45,6 @@ namespace lava::magma {
         uint32_t m_id = -1u;
 
         // VR resources
-        std::vector<vr::TrackedDevicePose_t> m_vrDevicesPoses;
-        std::vector<VrDevice> m_vrDevices;
         VrEyeCamera* m_leftEyeCamera = nullptr;
         VrEyeCamera* m_rightEyeCamera = nullptr;
 

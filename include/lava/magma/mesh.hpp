@@ -24,6 +24,10 @@ namespace lava::magma {
         bool canCastShadows() const;
         void canCastShadows(bool canCastShadows);
 
+        /// Whether the mesh should be rendered if the render target is a VR one.
+        bool vrRenderable() const;
+        void vrRenderable(bool vrRenderable);
+
         /**
          * @name Transforms
          */

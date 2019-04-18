@@ -104,7 +104,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
-        if (mesh->translucent()) continue;
+        if (mesh->translucent() || (camera.vrAimed() && !mesh->vrRenderable())) continue;
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
@@ -126,7 +126,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     // @fixme We should sort the meshes
     // https://github.com/Breush/lava/issues/36
     for (auto& mesh : m_scene.meshes()) {
-        if (!mesh->translucent()) continue;
+        if (!mesh->translucent() || (camera.vrAimed() && !mesh->vrRenderable())) continue;
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;

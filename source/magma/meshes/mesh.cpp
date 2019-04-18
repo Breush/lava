@@ -36,6 +36,9 @@ $pimpl_method(Mesh, void, indices, VectorView<uint16_t>, indices);
 $pimpl_method_const(Mesh, bool, canCastShadows);
 $pimpl_method(Mesh, void, canCastShadows, bool, canCastShadows);
 
+$pimpl_method_const(Mesh, bool, vrRenderable);
+$pimpl_method(Mesh, void, vrRenderable, bool, vrRenderable);
+
 $pimpl_method(Mesh, Material&, material);
 $pimpl_method(Mesh, void, material, Material&, material);
 

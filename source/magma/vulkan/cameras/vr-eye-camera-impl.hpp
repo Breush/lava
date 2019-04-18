@@ -6,6 +6,7 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include "../../vr-engine.hpp"
 #include "../holders/ubo-holder.hpp"
 
 namespace lava::magma {
@@ -26,6 +27,7 @@ namespace lava::magma {
         void polygonMode(PolygonMode polygonMode);
 
         // ICamera::Impl
+        bool vrAimed() const final { return true; }
         void init(uint32_t id) final;
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const final;
         vk::Extent2D renderExtent() const final { return m_extent; }
@@ -36,7 +38,7 @@ namespace lava::magma {
         const Frustum& frustum() const final { return m_frustum; }
 
         // Internal interface
-        void update(vr::EVREye eye, const glm::mat4& hmdTransform);
+        void update(VrEngine::Eye eye);
         void forceProjectionTransform(const glm::mat4& projectionTransform);
         void forceViewTransform(glm::mat4 viewTransform);
         void changeImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
@@ -63,7 +65,6 @@ namespace lava::magma {
         glm::vec3 m_translation;
         glm::mat4 m_viewTransform = glm::mat4(1.f);
         glm::mat4 m_projectionTransform = glm::mat4(1.f);
-        glm::mat4 m_fixesTransform = glm::mat4(1.f);
         Frustum m_frustum;
     };
 }

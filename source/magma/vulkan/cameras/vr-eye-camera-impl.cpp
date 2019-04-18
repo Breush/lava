@@ -11,11 +11,6 @@ VrEyeCamera::Impl::Impl(RenderScene& scene, Extent2d extent)
     : m_scene(scene.impl())
     , m_uboHolder(m_scene.engine())
 {
-    m_fixesTransform = glm::mat4(-1, 0, 0, 0, // X
-                                 0, 0, 1, 0,  // Y
-                                 0, 1, 0, 0,  // Z
-                                 0, 0, 0, 1);
-
     this->extent(extent);
 }
 
@@ -83,25 +78,17 @@ void VrEyeCamera::Impl::extent(Extent2d extent)
 
 //----- Internal interface
 
-void VrEyeCamera::Impl::update(vr::EVREye eye, const glm::mat4& hmdTransform)
+void VrEyeCamera::Impl::update(VrEngine::Eye eye)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    auto& vrSystem = m_scene.engine().vrSystem();
+    auto& vrEngine = m_scene.engine().vrEngine();
 
-    vr::HmdMatrix44_t mat = vrSystem.GetProjectionMatrix(eye, 0.1f, 100.f);
-    auto leftProjectionTransform =
-        glm::mat4(mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0], mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
-                  mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2], mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]);
-    leftProjectionTransform[1][1] *= -1;
-    forceProjectionTransform(leftProjectionTransform);
+    auto projectionTransform = vrEngine.eyeProjectionTransform(eye);
+    forceProjectionTransform(projectionTransform);
 
-    auto ethMat = vrSystem.GetEyeToHeadTransform(eye);
-    auto leftEyeToHeadTransform =
-        glm::mat4(ethMat.m[0][0], ethMat.m[1][0], ethMat.m[2][0], 0.f, ethMat.m[0][1], ethMat.m[1][1], ethMat.m[2][1], 0.f,
-                  ethMat.m[0][2], ethMat.m[1][2], ethMat.m[2][2], 0.f, ethMat.m[0][3], ethMat.m[1][3], ethMat.m[2][3], 1.f);
-
-    forceViewTransform(hmdTransform * leftEyeToHeadTransform);
+    auto viewTransform = vrEngine.eyeViewTransform(eye);
+    forceViewTransform(viewTransform);
 }
 
 void VrEyeCamera::Impl::forceProjectionTransform(const glm::mat4& projectionTransform)
@@ -125,49 +112,11 @@ void VrEyeCamera::Impl::changeImageLayout(vk::ImageLayout imageLayout, vk::Comma
 
 //----- Private
 
-// @todo This is duplicated with OrbitCamera,
-// it could exist in ICameraImpl
 void VrEyeCamera::Impl::updateFrustum()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    auto viewTransformInverse = glm::inverse(m_viewTransform * m_fixesTransform);
-    auto projectionTransformInverse = glm::inverse(m_projectionTransform);
-
-    auto topLeftLocal = projectionTransformInverse * glm::vec4(-1, -1, 0, 1);
-    auto topRightLocal = projectionTransformInverse * glm::vec4(1, -1, 0, 1);
-    auto bottomLeftLocal = projectionTransformInverse * glm::vec4(-1, 1, 0, 1);
-    auto bottomRightLocal = projectionTransformInverse * glm::vec4(1, 1, 0, 1);
-
-    auto topLeft = glm::vec3(viewTransformInverse * (topLeftLocal / topLeftLocal.w));
-    auto topRight = glm::vec3(viewTransformInverse * (topRightLocal / topRightLocal.w));
-    auto bottomLeft = glm::vec3(viewTransformInverse * (bottomLeftLocal / bottomLeftLocal.w));
-    auto bottomRight = glm::vec3(viewTransformInverse * (bottomRightLocal / bottomRightLocal.w));
-
-    // Left plane
-    m_frustum.leftNormal = glm::normalize(glm::cross(topLeft - m_translation, bottomLeft - m_translation));
-    m_frustum.leftDistance = glm::dot(m_translation, m_frustum.leftNormal);
-
-    // Right plane
-    m_frustum.rightNormal = glm::normalize(glm::cross(bottomRight - m_translation, topRight - m_translation));
-    m_frustum.rightDistance = glm::dot(m_translation, m_frustum.rightNormal);
-
-    // Bottom plane
-    m_frustum.bottomNormal = glm::normalize(glm::cross(bottomLeft - m_translation, bottomRight - m_translation));
-    m_frustum.bottomDistance = glm::dot(m_translation, m_frustum.bottomNormal);
-
-    // Top plane
-    m_frustum.topNormal = glm::normalize(glm::cross(topRight - m_translation, topLeft - m_translation));
-    m_frustum.topDistance = glm::dot(m_translation, m_frustum.topNormal);
-
-    // Forward
-    const auto n = 0.1f; // @note Keep consistent with update() values
-    const auto f = 100.f;
-    auto forwardNormal = glm::normalize(glm::cross(bottomRight - bottomLeft, topLeft - bottomLeft));
-    auto cameraDistance = glm::dot(m_translation, forwardNormal);
-    m_frustum.forward = forwardNormal;
-    m_frustum.near = cameraDistance + n;
-    m_frustum.far = cameraDistance + f;
+    /* @fixme Does not work - frustum culling disabled for this camera */
 }
 
 void VrEyeCamera::Impl::updateBindings()
@@ -177,7 +126,7 @@ void VrEyeCamera::Impl::updateBindings()
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     vulkan::CameraUbo ubo;
-    ubo.view = m_viewTransform * m_fixesTransform;
+    ubo.view = m_viewTransform * m_scene.engine().vrEngine().fixesTransform();
     ubo.projection = m_projectionTransform;
     ubo.wPosition = glm::vec4(m_translation, 1.f);
     ubo.extent = glm::uvec2(m_extent.width, m_extent.height);

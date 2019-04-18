@@ -20,8 +20,6 @@ RenderEngine::~RenderEngine()
     delete m_impl;
 }
 
-$pimpl_method(RenderEngine, bool, vrEnabled);
-
 $pimpl_method(RenderEngine, void, update);
 $pimpl_method(RenderEngine, void, draw);
 $pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
@@ -45,6 +43,13 @@ void RenderEngine::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 {
     m_impl->add(std::move(renderTarget));
 }
+
+//----- VR
+
+$pimpl_method_const(RenderEngine, bool, vrEnabled);
+$pimpl_method_const(RenderEngine, bool, vrDeviceValid, VrDeviceType, deviceType);
+$pimpl_method_const(RenderEngine, const glm::mat4&, vrDeviceTransform, VrDeviceType, deviceType);
+$pimpl_method(RenderEngine, Mesh&, vrDeviceMesh, VrDeviceType, deviceType, RenderScene&, scene);
 
 //----- Extra
 

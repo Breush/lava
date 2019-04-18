@@ -1,0 +1,78 @@
+/**
+ * VR material, to render OpenVR models.
+ *
+ * @fixme There is a lot in common with fallback-material.
+ * Things could be factorized.
+ */
+
+struct {
+    float(8) opacity;
+    vec3(8) diffuse;
+    vec3 normal;
+} gBuffer;
+
+geometry {
+    uniform {
+        texture2d diffuseMap = "white";
+    };
+
+    bool main() {
+        vec4 diffuse = texture(diffuseMap, uv);
+
+        gBuffer.opacity = diffuse.a;
+        gBuffer.diffuse = diffuse.rgb;
+        gBuffer.normal = inTbn[2];
+
+        return diffuse.a < 1.0;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        vec3 n = gBuffer.normal;
+
+        // General ambient
+        vec3 wPosition = wPositionFromDepth(fragmentDepth, fragmentPosition);
+        vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
+
+        // Material-specific
+        float kd = 0.8;
+        float ks = 0.75;
+        float alpha = 8;
+
+        // For each light
+        float id = 1;
+        float is = 0.2;
+
+        vec3 diffuse = vec3(0);
+        vec3 specular = vec3(0);
+
+        // @todo Have specular as uniform
+        vec3 lightDiffuseColor = gBuffer.diffuse;
+        vec3 lightSpecularColor = vec3(0.8);
+
+        // Check whether the lighting should have an effect
+        vec3 l;
+        float lightIntensity;
+        float shadow = 0;
+        if (epiphanyLight(wPosition, l, lightIntensity)) {
+            float n_l = dot(n, l);
+            shadow = max(shadow, epiphanyLightShadow(l, wPosition, n));
+
+            if (n_l > 0) {
+                // Diffuse
+                diffuse += lightIntensity * id * n_l * lightDiffuseColor;
+
+                // Specular
+                vec3 h = normalize(l + v);
+                float n_h = dot(n, h);
+                specular += lightIntensity * is * pow(max(n_h, 0.0), alpha) * lightSpecularColor;
+            }
+        }
+
+        vec3 color = kd * diffuse + ks * specular;
+
+        // Combining all lights k
+        return vec4((1. - shadow) * color, 1);
+    }
+}

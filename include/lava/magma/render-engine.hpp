@@ -3,6 +3,7 @@
 #include <functional>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/viewport.hpp>
+#include <lava/core/vr-device-type.hpp>
 #include <memory>
 
 namespace lava::magma {
@@ -10,6 +11,7 @@ namespace lava::magma {
     class IRenderTarget;
     class RenderImage;
     class RenderScene;
+    class Mesh;
 }
 
 namespace lava::magma {
@@ -26,9 +28,6 @@ namespace lava::magma {
 
         /// Render the current state to all the targets.
         void draw();
-
-        /// Whether a VR system can be used (initialization worked).
-        bool vrEnabled();
 
         /**
          * Register a material (.shmag) to the engine.
@@ -80,6 +79,35 @@ namespace lava::magma {
         /// @{
         void add(std::unique_ptr<RenderScene>&& renderScene);
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
+        /// @}
+
+        /**
+         * @name VR
+         * ```
+         */
+        /// @{
+        /// Whether a VR system can be used (initialization worked).
+        bool vrEnabled() const;
+
+        /// Get whether a device is valid (active and ready to be asked for transform or mesh).
+        bool vrDeviceValid(VrDeviceType deviceType) const;
+
+        /// Get a device transform.
+        const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const;
+
+        /**
+         * Get a device mesh.
+         * Can be requested only if vrDeviceValid() is true.
+         *
+         * @note Requesting VrDeviceType::Head will set
+         * vrRenderable() to false for this mesh, consider tweaking
+         * this parameter if you need to render it within a VrRenderTarget.
+         *
+         * @note The first time this function is called, it will make
+         * a mesh within the provided scene. This means the scene
+         * cannot be removed afterwards or the mesh used in a different scene.
+         */
+        Mesh& vrDeviceMesh(VrDeviceType deviceType, RenderScene& scene);
         /// @}
 
         /// Enable extra logging for next draw.

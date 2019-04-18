@@ -23,3 +23,6 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
+
+// POSIX only
+#include <unistd.h>

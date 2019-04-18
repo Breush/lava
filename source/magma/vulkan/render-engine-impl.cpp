@@ -16,6 +16,8 @@ using namespace lava::chamber;
 
 RenderEngine::Impl::Impl()
 {
+    // @note This VR initialisation has to be done before initVulkan, because we need
+    // to get the extensions list to be enable.
     initVr();
     initVulkan();
 }
@@ -31,32 +33,8 @@ void RenderEngine::Impl::update()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    // Updating shaders
-    while (auto event = m_shadersWatcher.pollEvent()) {
-        if (event->type == chamber::FileWatchEvent::Type::Modified) {
-            auto materialPath = event->path;
-            auto watchId = event->watchId;
-
-            logger.info("magma.render-engine") << "Material source file " << event->path << " has changed." << std::endl;
-            logger.log().tab(1);
-
-            auto materialInfo =
-                std::find_if(m_materialInfos.begin(), m_materialInfos.end(),
-                             [&watchId](const auto& materialInfo) { return materialInfo.second.watchId == watchId; });
-
-            ShmagReader shmagReader(materialPath);
-            auto shaderImplementation = shmagReader.processedString();
-            if (shmagReader.errored()) {
-                logger.warning("magma.vulkan.render-engine")
-                    << "Cannot update watched material " << materialInfo->first << ", shmag reading failed." << std::endl;
-                return;
-            }
-
-            m_shadersManager.updateImplGroup(materialInfo->first, shaderImplementation);
-
-            logger.log().tab(-1);
-        }
-    }
+    updateVr();
+    updateShaders();
 }
 
 void RenderEngine::Impl::draw()
@@ -440,20 +418,9 @@ void RenderEngine::Impl::initVr()
     logger.info("magma.vulkan.render-engine") << "Initializing VR." << std::endl;
     logger.log().tab(1);
 
-    // @note This VR initialisation has to be done before initVulkan, because we need
-    // to get the extensions list to be enable.
-    if (vrAvailable()) {
-        // Initializing VR system
-        vr::EVRInitError error = vr::VRInitError_None;
-        m_vrSystem = vr::VR_Init(&error, vr::EVRApplicationType::VRApplication_Scene);
-
-        if (error != vr::VRInitError_None) {
-            logger.warning("magma.vulkan.render-engine")
-                << "VR seems available but we failed to init VR. Is SteamVR ready?" << std::endl;
-        }
-    }
-    else {
-        logger.log() << "VR is not available." << std::endl;
+    m_vrEngine.init();
+    if (m_vrEngine.enabled()) {
+        registerMaterialFromFile("vr", "./data/shaders/materials/vr-material.shmag");
     }
 
     logger.log().tab(-1);
@@ -486,4 +453,40 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR* pSurface)
     initRenderScenes();
 
     logger.log().tab(-1);
+}
+
+void RenderEngine::Impl::updateVr()
+{
+    if (m_vrEngine.enabled()) {
+        m_vrEngine.update();
+    }
+}
+
+void RenderEngine::Impl::updateShaders()
+{
+    while (auto event = m_shadersWatcher.pollEvent()) {
+        if (event->type == chamber::FileWatchEvent::Type::Modified) {
+            auto materialPath = event->path;
+            auto watchId = event->watchId;
+
+            logger.info("magma.vulkan.render-engine") << "Material source file " << event->path << " has changed." << std::endl;
+            logger.log().tab(1);
+
+            auto materialInfo =
+                std::find_if(m_materialInfos.begin(), m_materialInfos.end(),
+                             [&watchId](const auto& materialInfo) { return materialInfo.second.watchId == watchId; });
+
+            ShmagReader shmagReader(materialPath);
+            auto shaderImplementation = shmagReader.processedString();
+            if (shmagReader.errored()) {
+                logger.warning("magma.vulkan.render-engine")
+                    << "Cannot update watched material " << materialInfo->first << ", shmag reading failed." << std::endl;
+                return;
+            }
+
+            m_shadersManager.updateImplGroup(materialInfo->first, shaderImplementation);
+
+            logger.log().tab(-1);
+        }
+    }
 }

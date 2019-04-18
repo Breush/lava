@@ -5,6 +5,7 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/render-targets/i-render-target.hpp>
 
+#include "../vr-engine.hpp"
 #include "./holders/buffer-holder.hpp"
 #include "./holders/device-holder.hpp"
 #include "./holders/image-holder.hpp"
@@ -50,6 +51,16 @@ namespace lava::magma {
         /// @}
 
         /**
+         * @name VR
+         */
+        /// @{
+        bool vrEnabled() const { return m_vrEngine.enabled(); }
+        bool vrDeviceValid(VrDeviceType deviceType) const { return m_vrEngine.deviceValid(deviceType); }
+        const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const { return m_vrEngine.deviceTransform(deviceType); }
+        Mesh& vrDeviceMesh(VrDeviceType deviceType, RenderScene& scene) { return m_vrEngine.deviceMesh(deviceType, scene); }
+        /// @}
+
+        /**
          * @name Getters
          */
         /// @{
@@ -78,8 +89,9 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
-        bool vrEnabled() { return m_vrSystem != nullptr; }
-        vr::IVRSystem& vrSystem() { return *m_vrSystem; }
+        VrEngine& vrEngine() { return m_vrEngine; }
+        const VrEngine& vrEngine() const { return m_vrEngine; }
+
         const MaterialInfo& materialInfo(const std::string& hrid) const;
 
         void updateRenderViews(RenderImage renderImage);
@@ -90,6 +102,9 @@ namespace lava::magma {
         void initVulkan();
         void initVulkanDevice(vk::SurfaceKHR* pSurface);
         void initRenderScenes();
+
+        void updateVr();
+        void updateShaders();
 
         // Resources
         void createDummyTextures();
@@ -132,7 +147,7 @@ namespace lava::magma {
         chamber::FileWatcher m_shadersWatcher;
 
         /// VR
-        vr::IVRSystem* m_vrSystem = nullptr;
+        VrEngine m_vrEngine;
 
         /**
          * @name Textures

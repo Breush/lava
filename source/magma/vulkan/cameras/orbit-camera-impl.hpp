@@ -26,6 +26,7 @@ namespace lava::magma {
         void polygonMode(PolygonMode polygonMode);
 
         // ICamera::Impl
+        bool vrAimed() const final { return false; }
         void init(uint32_t id) override final;
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
                     uint32_t descriptorSetIndex) const override final;

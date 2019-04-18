@@ -43,6 +43,9 @@ namespace lava::magma {
         bool canCastShadows() const { return m_canCastShadows; }
         void canCastShadows(bool canCastShadows) { m_canCastShadows = canCastShadows; }
 
+        bool vrRenderable() const { return m_vrRenderable; }
+        void vrRenderable(bool vrRenderable) { m_vrRenderable = vrRenderable; }
+
         Material& material() { return *m_material; }
         void material(Material& material);
 
@@ -67,6 +70,7 @@ namespace lava::magma {
         std::vector<uint16_t> m_indices;
         Material* m_material = nullptr;
         bool m_canCastShadows = true;
+        bool m_vrRenderable = true;
         bool m_translucent = false;
 
         // Computed
