@@ -4,6 +4,7 @@
 #include <lava/core/filesystem.hpp>
 #include <lava/core/viewport.hpp>
 #include <lava/core/vr-device-type.hpp>
+#include <lava/core/vr-event.hpp>
 #include <memory>
 
 namespace lava::magma {
@@ -86,6 +87,9 @@ namespace lava::magma {
          * ```
          */
         /// @{
+        /// Poll VR event.
+        std::optional<VrEvent> vrPollEvent();
+
         /// Whether a VR system can be used (initialization worked).
         bool vrEnabled() const;
 

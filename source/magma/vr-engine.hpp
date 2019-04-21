@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/core/vr-device-type.hpp>
+#include <lava/core/vr-event.hpp>
 #include <lava/magma/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
 
@@ -25,6 +26,7 @@ namespace lava::magma {
         bool deviceValid(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).valid; }
         const glm::mat4& deviceTransform(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).fixedTransform; }
         Mesh& deviceMesh(VrDeviceType deviceType, RenderScene& scene);
+        std::optional<VrEvent> pollEvent();
 
         // ----- Internal API
 

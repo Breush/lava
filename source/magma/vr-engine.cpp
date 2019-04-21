@@ -6,6 +6,32 @@
 #include <lava/magma/vr-tools.hpp>
 
 using namespace lava;
+
+namespace {
+    VrDeviceType deviceTypeHandFromOpenVrDeviceIndex(vr::IVRSystem& vrSystem, uint32_t deviceIndex)
+    {
+        auto controllerRole = vrSystem.GetControllerRoleForTrackedDeviceIndex(deviceIndex);
+        if (controllerRole == vr::TrackedControllerRole_RightHand) {
+            return VrDeviceType::RightHand;
+        }
+        else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
+            return VrDeviceType::LeftHand;
+        }
+        return VrDeviceType::UnknownHand;
+    }
+
+    VrButton buttonFromOpenVrButtonId(uint32_t buttonId)
+    {
+        switch (buttonId) {
+        case vr::k_EButton_System: return VrButton::System;
+        case vr::k_EButton_ApplicationMenu: return VrButton::Menu;
+        case vr::k_EButton_SteamVR_Trigger: return VrButton::Trigger;
+        case vr::k_EButton_SteamVR_Touchpad: return VrButton::Touchpad;
+        default: return VrButton::Unknown;
+        }
+    }
+}
+
 using namespace lava::chamber;
 using namespace lava::magma;
 
@@ -70,13 +96,8 @@ void VrEngine::update()
             m_devicesInfos[VrDeviceType::Head] = deviceInfo;
         }
         else if (deviceInfo.type == vr::TrackedDeviceClass_Controller) {
-            auto controllerRole = m_vrSystem->GetControllerRoleForTrackedDeviceIndex(deviceIndex);
-            if (controllerRole == vr::TrackedControllerRole_RightHand) {
-                m_devicesInfos[VrDeviceType::RightHand] = deviceInfo;
-            }
-            else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
-                m_devicesInfos[VrDeviceType::LeftHand] = deviceInfo;
-            }
+            auto deviceType = deviceTypeHandFromOpenVrDeviceIndex(*m_vrSystem, deviceIndex);
+            m_devicesInfos[deviceType] = deviceInfo;
         }
         else if (deviceInfo.type == vr::TrackedDeviceClass_TrackingReference) {
             // @todo Store the info too?
@@ -207,4 +228,28 @@ Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, RenderScene& scene)
 
     logger.log().tab(-1);
     return mesh;
+}
+
+std::optional<VrEvent> VrEngine::pollEvent()
+{
+    vr::VREvent_t event;
+
+    if (m_vrSystem->PollNextEvent(&event, sizeof(vr::VREvent_t))) {
+        if (event.eventType == vr::VREvent_ButtonPress) {
+            VrEvent vrEvent;
+            vrEvent.type = VrEventType::ButtonPressed;
+            vrEvent.button.hand = deviceTypeHandFromOpenVrDeviceIndex(*m_vrSystem, event.trackedDeviceIndex);
+            vrEvent.button.which = buttonFromOpenVrButtonId(event.data.controller.button);
+            return vrEvent;
+        }
+        else if (event.eventType == vr::VREvent_ButtonUnpress) {
+            VrEvent vrEvent;
+            vrEvent.type = VrEventType::ButtonReleased;
+            vrEvent.button.hand = deviceTypeHandFromOpenVrDeviceIndex(*m_vrSystem, event.trackedDeviceIndex);
+            vrEvent.button.which = buttonFromOpenVrButtonId(event.data.controller.button);
+            return vrEvent;
+        }
+    }
+
+    return std::nullopt;
 }

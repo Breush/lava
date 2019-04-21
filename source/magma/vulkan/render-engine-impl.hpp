@@ -54,6 +54,7 @@ namespace lava::magma {
          * @name VR
          */
         /// @{
+        std::optional<VrEvent> vrPollEvent() { return m_vrEngine.pollEvent(); }
         bool vrEnabled() const { return m_vrEngine.enabled(); }
         bool vrDeviceValid(VrDeviceType deviceType) const { return m_vrEngine.deviceValid(deviceType); }
         const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const { return m_vrEngine.deviceTransform(deviceType); }
