@@ -109,3 +109,8 @@ project "sill-text"
     kind "WindowedApp"
     files "sill/text.cpp"
     useSill()
+
+project "vr-sandbox"
+    kind "WindowedApp"
+    files "sill/vr-sandbox.cpp"
+    useSill()

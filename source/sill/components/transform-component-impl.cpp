@@ -11,7 +11,7 @@ TransformComponent::Impl::Impl(GameEntity& entity)
 
 void TransformComponent::Impl::translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag)
 {
-    m_transform = glm::translate(m_transform, translation - this->translation());
+    m_transform[3] = glm::vec4(translation, 1.f);
     callTransformChanged(changeReasonFlag);
 }
 
@@ -43,6 +43,7 @@ glm::vec3 TransformComponent::Impl::scaling() const
 
 void TransformComponent::Impl::scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag)
 {
+    // @fixme That probably doesn't work... Thanks copy-paste!
     m_transform = glm::translate(m_transform, scaling - this->scaling());
     callTransformChanged(changeReasonFlag);
 }
@@ -56,6 +57,12 @@ void TransformComponent::Impl::scale(const glm::vec3& factors, ChangeReasonFlag 
 void TransformComponent::Impl::scale(float factor, ChangeReasonFlag changeReasonFlag)
 {
     m_transform = glm::scale(m_transform, glm::vec3(factor));
+    callTransformChanged(changeReasonFlag);
+}
+
+void TransformComponent::Impl::worldTransform(const glm::mat4& transform, ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = transform;
     callTransformChanged(changeReasonFlag);
 }
 

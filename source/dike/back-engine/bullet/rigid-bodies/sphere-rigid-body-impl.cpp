@@ -29,5 +29,12 @@ void SphereRigidBody::Impl::translate(const glm::vec3& delta)
 
     btTransform worldTransform;
     worldTransform.setFromOpenGLMatrix(reinterpret_cast<float*>(&m_transform));
+
     m_rigidBody->setWorldTransform(worldTransform);
+    m_motionState.setWorldTransform(worldTransform);
+
+    m_rigidBody->activate(true);
+    m_rigidBody->clearForces();
+    m_rigidBody->setLinearVelocity(btVector3(0, 0, 0));
+    m_rigidBody->setAngularVelocity(btVector3(0, 0, 0));
 }

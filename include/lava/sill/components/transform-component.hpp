@@ -53,6 +53,7 @@ namespace lava::sill {
          */
         /// {
         const glm::mat4& worldTransform() const;
+        void worldTransform(const glm::mat4& transform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         /// }
 
         // Callbacks

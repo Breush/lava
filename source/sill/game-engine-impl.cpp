@@ -148,6 +148,11 @@ void GameEngine::Impl::updateInput()
             mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::Head));
         }
     }
+
+    // Handle VR event
+    while (auto event = m_renderEngine->vrPollEvent()) {
+        m_inputManager.update(*event);
+    }
 }
 
 void GameEngine::Impl::updateEntities(float dt)

@@ -13,6 +13,7 @@ $pimpl_method(GameEngine, dike::PhysicsEngine&, physicsEngine);
 // ----- Fonts
 $pimpl_method(GameEngine, Font&, font, const std::string&, hrid);
 
+// ----- Adders
 void GameEngine::add(std::unique_ptr<GameEntity>&& gameEntity)
 {
     m_impl->add(std::move(gameEntity));
@@ -27,5 +28,10 @@ void GameEngine::add(std::unique_ptr<Texture>&& texture)
 {
     m_impl->add(std::move(texture));
 }
+
+// ----- VR
+$pimpl_method_const(GameEngine, bool, vrEnabled);
+$pimpl_method_const(GameEngine, bool, vrDeviceValid, VrDeviceType, deviceType);
+$pimpl_method_const(GameEngine, const glm::mat4&, vrDeviceTransform, VrDeviceType, deviceType);
 
 $pimpl_method(GameEngine, void, run);

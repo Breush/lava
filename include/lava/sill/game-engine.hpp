@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/mat4x4.hpp>
+#include <lava/core/vr-device-type.hpp>
 #include <memory>
 
 namespace lava::dike {
@@ -58,6 +60,22 @@ namespace lava::sill {
         void add(std::unique_ptr<GameEntity>&& gameEntity);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
+        /// @}
+
+        /**
+         * @name VR
+         * ```
+         */
+        /// @{
+        /// Whether a VR system can be used (initialization worked).
+        bool vrEnabled() const;
+
+        /// Get whether a device is valid (active and ready to be asked for transform or mesh).
+        bool vrDeviceValid(VrDeviceType deviceType) const;
+
+        // @todo Could be nice to access a VrDevice entity instead of transform directly.
+        /// Get a device transform.
+        const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const;
         /// @}
 
         /// Main loop.

@@ -7,22 +7,32 @@ namespace lava::sill {
     public:
         // InputManager
         bool down(const std::string& actionName) const;
+        bool up(const std::string& actionName) const;
         bool justDown(const std::string& actionName) const;
+        bool justUp(const std::string& actionName) const;
         bool axisChanged(const std::string& axisName) const;
         float axis(const std::string& axisName) const;
 
         void bindAction(const std::string& actionName, MouseButton mouseButton);
+        void bindAction(const std::string& actionName, VrButton vrButton, VrDeviceType hand);
         void bindAction(const std::string& actionName, Key key);
         void bindAxis(const std::string& axisName, InputAxis inputAxis);
 
         void updateReset();
         void update(WsEvent& event);
+        void update(VrEvent& event);
 
     private:
+        struct VrControllerButton {
+            VrDeviceType hand; // Which controller (left, right or any).
+            VrButton button;   // Which button is pressed or released.
+        };
+
         struct Action {
             uint8_t activeness = 0u;         //!< Number of keys or buttons down.
             uint8_t previousActiveness = 0u; //!< Number of keys or buttons down in the previous update block.
             std::set<MouseButton> mouseButtons;
+            std::vector<VrControllerButton> vrControllerButtons;
             std::set<Key> keys;
         };
 

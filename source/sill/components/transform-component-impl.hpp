@@ -26,6 +26,7 @@ namespace lava::sill {
 
         // TransformComponent world transform
         const glm::mat4& worldTransform() const { return m_transform; } // @todo Concept of nodes/worldTransform
+        void worldTransform(const glm::mat4& transform, ChangeReasonFlag changeReasonFlag);
 
         // TransformComponent callbacks
         void onTransformChanged(std::function<void()> transformChangedCallback, ChangeReasonFlags changeReasonFlags);

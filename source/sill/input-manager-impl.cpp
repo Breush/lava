@@ -8,10 +8,22 @@ bool InputManager::Impl::down(const std::string& actionName) const
     return action.activeness > 0;
 }
 
+bool InputManager::Impl::up(const std::string& actionName) const
+{
+    const auto& action = m_actions.at(actionName);
+    return action.activeness == 0;
+}
+
 bool InputManager::Impl::justDown(const std::string& actionName) const
 {
     const auto& action = m_actions.at(actionName);
     return action.activeness > 0 && action.previousActiveness == 0;
+}
+
+bool InputManager::Impl::justUp(const std::string& actionName) const
+{
+    const auto& action = m_actions.at(actionName);
+    return action.activeness == 0 && action.previousActiveness != 0;
 }
 
 bool InputManager::Impl::axisChanged(const std::string& axisName) const
@@ -29,6 +41,11 @@ float InputManager::Impl::axis(const std::string& axisName) const
 void InputManager::Impl::bindAction(const std::string& actionName, MouseButton mouseButton)
 {
     m_actions[actionName].mouseButtons.emplace(mouseButton);
+}
+
+void InputManager::Impl::bindAction(const std::string& actionName, VrButton vrButton, VrDeviceType hand)
+{
+    m_actions[actionName].vrControllerButtons.emplace_back(VrControllerButton{hand, vrButton});
 }
 
 void InputManager::Impl::bindAction(const std::string& actionName, Key key)
@@ -132,6 +149,43 @@ void InputManager::Impl::update(WsEvent& event)
                 auto& axis = iAxis.second;
                 if (axis.inputAxes.find(InputAxis::MouseWheelHorizontal) != axis.inputAxes.end()) {
                     axis.value += event.mouseWheel.delta;
+                }
+            }
+        }
+    }
+}
+
+void InputManager::Impl::update(VrEvent& event)
+{
+    // VR buttons
+    if (event.type == VrEventType::ButtonPressed) {
+        VrControllerButton vrControllerButton;
+        vrControllerButton.hand = event.button.hand;
+        vrControllerButton.button = event.button.which;
+
+        for (auto& iAction : m_actions) {
+            auto& action = iAction.second;
+            for (auto& actionVrControllerButton : action.vrControllerButtons) {
+                if ((actionVrControllerButton.button == vrControllerButton.button)
+                    && ((actionVrControllerButton.hand == VrDeviceType::UnknownHand)
+                        || (actionVrControllerButton.hand == vrControllerButton.hand))) {
+                    action.activeness += 1u;
+                }
+            }
+        }
+    }
+    else if (event.type == VrEventType::ButtonReleased) {
+        VrControllerButton vrControllerButton;
+        vrControllerButton.hand = event.button.hand;
+        vrControllerButton.button = event.button.which;
+
+        for (auto& iAction : m_actions) {
+            auto& action = iAction.second;
+            for (auto& actionVrControllerButton : action.vrControllerButtons) {
+                if ((actionVrControllerButton.button == vrControllerButton.button)
+                    && ((actionVrControllerButton.hand == VrDeviceType::UnknownHand)
+                        || (actionVrControllerButton.hand == vrControllerButton.hand))) {
+                    action.activeness -= 1u;
                 }
             }
         }
