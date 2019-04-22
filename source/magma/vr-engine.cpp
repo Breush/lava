@@ -232,8 +232,9 @@ Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, RenderScene& scene)
 
 std::optional<VrEvent> VrEngine::pollEvent()
 {
-    vr::VREvent_t event;
+    if (m_vrSystem == nullptr) return std::nullopt;
 
+    vr::VREvent_t event;
     if (m_vrSystem->PollNextEvent(&event, sizeof(vr::VREvent_t))) {
         if (event.eventType == vr::VREvent_ButtonPress) {
             VrEvent vrEvent;
