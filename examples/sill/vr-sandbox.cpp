@@ -22,13 +22,11 @@ int main(void)
     }
 
     // Cube mesh
-    // @fixme Implement CubeColliderComponent, and use it here with a cube,
-    // for more fun.
-    auto& sphereEntity = engine.make<sill::GameEntity>();
-    auto& sphereMeshComponent = sphereEntity.make<sill::MeshComponent>();
-    sill::makers::sphereMeshMaker(32u, 0.2f)(sphereMeshComponent);
-    sphereEntity.get<sill::TransformComponent>().translate({0.f, -1.2f, 2.25f});
-    sphereEntity.make<sill::SphereColliderComponent>();
+    auto& cubeEntity = engine.make<sill::GameEntity>();
+    auto& cubeMeshComponent = cubeEntity.make<sill::MeshComponent>();
+    sill::makers::cubeMeshMaker(0.2f)(cubeMeshComponent);
+    cubeEntity.get<sill::TransformComponent>().translate({0.f, -1.2f, 2.25f});
+    cubeEntity.make<sill::BoxColliderComponent>();
 
     // We bind our VR actions
     engine.input().bindAction("trigger", VrButton::Trigger, VrDeviceType::RightHand);
@@ -59,10 +57,10 @@ int main(void)
             // Update cube to us whenever it is in grabbing state.
             if (grabbingCube) {
                 auto handTransform = engine.vrDeviceTransform(VrDeviceType::RightHand);
-                sphereEntity.get<sill::TransformComponent>().worldTransform(handTransform);
+                cubeEntity.get<sill::TransformComponent>().worldTransform(handTransform);
 
                 // @fixme Would love to be able to get velocity of the hand,
-                // and apply it to the sphere!
+                // and apply it to the cube!
             }
         });
     }
