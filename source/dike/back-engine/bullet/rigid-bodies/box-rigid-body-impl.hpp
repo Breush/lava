@@ -1,14 +1,14 @@
 #pragma once
 
 #include <lava/dike/physics-engine.hpp>
-#include <lava/dike/rigid-bodies/sphere-rigid-body.hpp>
+#include <lava/dike/rigid-bodies/box-rigid-body.hpp>
 
 #include "../motion-state.hpp"
 
 namespace lava::dike {
-    class SphereRigidBody::Impl {
+    class BoxRigidBody::Impl {
     public:
-        Impl(PhysicsEngine& engine, float radius);
+        Impl(PhysicsEngine& engine, const glm::vec3& dimensions);
 
         // IRigidBody
         const glm::mat4& transform() const { return m_transform; }
@@ -28,7 +28,7 @@ namespace lava::dike {
         glm::mat4 m_transform = glm::mat4(1.f);
         MotionState m_motionState{m_transform};
 
-        btSphereShape m_shape;
+        btBoxShape m_shape;
         std::unique_ptr<btRigidBody> m_rigidBody;
     };
 }

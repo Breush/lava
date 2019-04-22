@@ -1,12 +1,12 @@
-#include "./sphere-rigid-body-impl.hpp"
+#include "./box-rigid-body-impl.hpp"
 
 #include "../physics-engine-impl.hpp"
 
 using namespace lava::dike;
 
-SphereRigidBody::Impl::Impl(PhysicsEngine& engine, float radius)
+BoxRigidBody::Impl::Impl(PhysicsEngine& engine, const glm::vec3& dimensions)
     : m_engine(engine.impl())
-    , m_shape(radius)
+    , m_shape(btVector3{dimensions.x, dimensions.y, dimensions.z})
 {
     if (m_mass > 0.f) {
         m_shape.calculateLocalInertia(m_mass, m_inertia);
@@ -18,7 +18,7 @@ SphereRigidBody::Impl::Impl(PhysicsEngine& engine, float radius)
     m_engine.dynamicsWorld().addRigidBody(m_rigidBody.get());
 }
 
-void SphereRigidBody::Impl::transform(const glm::mat4& transform)
+void BoxRigidBody::Impl::transform(const glm::mat4& transform)
 {
     m_transform = transform;
 
@@ -34,7 +34,7 @@ void SphereRigidBody::Impl::transform(const glm::mat4& transform)
     m_rigidBody->setAngularVelocity(btVector3(0, 0, 0));
 }
 
-void SphereRigidBody::Impl::translate(const glm::vec3& delta)
+void BoxRigidBody::Impl::translate(const glm::vec3& delta)
 {
     // @fixme All rigid bodies impl have the very same code,
     // we should be able to factorize things to a IRigidBodyImpl class.

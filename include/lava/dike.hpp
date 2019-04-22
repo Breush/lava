@@ -4,4 +4,5 @@
 
 #include <lava/dike/static-rigid-bodies/plane-static-rigid-body.hpp>
 
+#include <lava/dike/rigid-bodies/box-rigid-body.hpp>
 #include <lava/dike/rigid-bodies/sphere-rigid-body.hpp>

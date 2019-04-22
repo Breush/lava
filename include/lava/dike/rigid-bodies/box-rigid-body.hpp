@@ -4,10 +4,10 @@
 #include <lava/dike/rigid-bodies/i-rigid-body.hpp>
 
 namespace lava::dike {
-    class SphereRigidBody final : public IRigidBody {
+    class BoxRigidBody final : public IRigidBody {
     public:
-        SphereRigidBody(PhysicsEngine& engine, float radius);
-        ~SphereRigidBody();
+        BoxRigidBody(PhysicsEngine& engine, const glm::vec3& dimensions);
+        ~BoxRigidBody();
 
         // IRigidBody
         const glm::mat4& transform() const final;
