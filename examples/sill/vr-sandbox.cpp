@@ -21,12 +21,17 @@ int main(void)
         entity.make<sill::PlaneColliderComponent>();
     }
 
-    // Cube mesh
-    auto& cubeEntity = engine.make<sill::GameEntity>();
-    auto& cubeMeshComponent = cubeEntity.make<sill::MeshComponent>();
-    sill::makers::cubeMeshMaker(0.2f)(cubeMeshComponent);
-    cubeEntity.get<sill::TransformComponent>().translate({0.f, -1.2f, 2.25f});
-    cubeEntity.make<sill::BoxColliderComponent>();
+    // Spawning random cubes
+    std::vector<sill::GameEntity*> cubes;
+    for (auto i = 0u; i < 11u; ++i) {
+        auto& cubeEntity = engine.make<sill::GameEntity>();
+        auto& cubeMeshComponent = cubeEntity.make<sill::MeshComponent>();
+        sill::makers::cubeMeshMaker(0.2f)(cubeMeshComponent);
+        cubeEntity.get<sill::TransformComponent>().translate(
+            {((rand() % 5) - 2.f) / 10.f, ((rand() % 5) - 2.f) / 10.f, 0.3f + (rand() % 20) / 10.f});
+        cubeEntity.make<sill::BoxColliderComponent>();
+        cubes.emplace_back(&cubeEntity);
+    }
 
     // We bind our VR actions
     engine.input().bindAction("trigger", VrButton::Trigger, VrDeviceType::RightHand);
@@ -36,28 +41,30 @@ int main(void)
         auto& entity = engine.make<sill::GameEntity>();
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
         behaviorComponent.onUpdate([&]() {
-            static bool grabbingCube = false;
+            static sill::GameEntity* grabbedCube = nullptr;
+            if (!engine.vrDeviceValid(VrDeviceType::RightHand)) return;
 
+            auto handTransform = engine.vrDeviceTransform(VrDeviceType::RightHand);
+
+            // When the user uses the trigger, we find the closest cube nearby, and grab it.
             if (engine.input().justDown("trigger")) {
-                /**
-                 * We want to see if we are over the cube mesh,
-                 * and if so, start "grabing" it. Making it follow the moving controller.
-                 * @fixme For now, we just say everything is all right.
-                 */
-                grabbingCube = true;
-
-                // @fixme We should have a way to stop physics for a while.
-                // This is working because we are forcing the transform, but still...
-                // it depends on component order on this example.
+                float minDistance = 1000.f;
+                for (auto cube : cubes) {
+                    auto cubeTranslation = cube->get<sill::TransformComponent>().translation();
+                    auto distance = glm::distance(cubeTranslation, glm::vec3(handTransform[3]));
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        grabbedCube = cube;
+                    }
+                }
             }
             else if (engine.input().justUp("trigger")) {
-                grabbingCube = false;
+                grabbedCube = nullptr;
             }
 
             // Update cube to us whenever it is in grabbing state.
-            if (grabbingCube) {
-                auto handTransform = engine.vrDeviceTransform(VrDeviceType::RightHand);
-                cubeEntity.get<sill::TransformComponent>().worldTransform(handTransform);
+            if (grabbedCube != nullptr) {
+                grabbedCube->get<sill::TransformComponent>().worldTransform(handTransform);
 
                 // @fixme Would love to be able to get velocity of the hand,
                 // and apply it to the cube!
