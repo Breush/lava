@@ -4,8 +4,6 @@
 
 #include "./ashe.hpp"
 
-#include <iostream>
-
 using namespace lava;
 
 int main(void)
@@ -30,6 +28,7 @@ int main(void)
         cubeEntity.get<sill::TransformComponent>().translate(
             {((rand() % 5) - 2.f) / 10.f, ((rand() % 5) - 2.f) / 10.f, 0.3f + (rand() % 20) / 10.f});
         cubeEntity.make<sill::BoxColliderComponent>();
+        cubeEntity.make<sill::AnimationComponent>();
         cubes.emplace_back(&cubeEntity);
     }
 
@@ -57,14 +56,18 @@ int main(void)
                         grabbedCube = cube;
                     }
                 }
+
+                // We will animate the world transform over 300ms.
+                grabbedCube->get<sill::AnimationComponent>().start(sill::AnimationFlag::WorldTransform, 0.3f);
             }
             else if (engine.input().justUp("trigger")) {
+                grabbedCube->get<sill::AnimationComponent>().stop(sill::AnimationFlag::WorldTransform);
                 grabbedCube = nullptr;
             }
 
             // Update cube to us whenever it is in grabbing state.
             if (grabbedCube != nullptr) {
-                grabbedCube->get<sill::TransformComponent>().worldTransform(handTransform);
+                grabbedCube->get<sill::AnimationComponent>().target(sill::AnimationFlag::WorldTransform, handTransform);
 
                 // @fixme Would love to be able to get velocity of the hand,
                 // and apply it to the cube!

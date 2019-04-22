@@ -19,6 +19,7 @@ namespace lava::sill {
 
         /// Called once per frame, respecting components dependencies.
         /// dt is expressed in seconds.
+        /// @fixme This is internal, and should be seen from user API.
         virtual void update(float dt) = 0;
 
         // To be implemented

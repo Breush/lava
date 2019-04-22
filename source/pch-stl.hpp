@@ -22,6 +22,7 @@
 #include <thread>
 #include <typeinfo>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 // POSIX only

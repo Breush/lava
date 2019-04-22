@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/sill/components/animation-component.hpp>
 #include <lava/sill/components/behavior-component.hpp>
 #include <lava/sill/components/box-collider-component.hpp>
 #include <lava/sill/components/camera-component.hpp>
