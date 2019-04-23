@@ -77,10 +77,10 @@ Mesh::Mesh(const typename nlohmann::json::basic_json& json)
         primitiveData.positionsAccessorIndex = attributes["POSITION"];
         if (attributes.find("NORMAL") != attributes.end()) primitiveData.normalsAccessorIndex = attributes["NORMAL"];
         if (attributes.find("TANGENT") != attributes.end()) primitiveData.tangentsAccessorIndex = attributes["TANGENT"];
-        primitiveData.uv1sAccessorIndex = attributes["TEXCOORD_0"];
+        if (attributes.find("TEXCOORD_0") != attributes.end()) primitiveData.uv1sAccessorIndex = attributes["TEXCOORD_0"];
 
         primitiveData.indicesAccessorIndex = primitive["indices"];
-        primitiveData.materialIndex = primitive["material"];
+        if (primitive.find("material") != primitive.end()) primitiveData.materialIndex = primitive["material"];
     }
 }
 

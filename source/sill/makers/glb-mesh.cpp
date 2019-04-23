@@ -108,9 +108,9 @@ namespace {
         glb::Mesh mesh(json["meshes"][meshIndex]);
 
         auto& engine = entity.engine();
-        const auto& materials = json["materials"];
         const auto& accessors = json["accessors"];
         const auto& bufferViews = json["bufferViews"];
+        const auto& materials = json.find("materials");
 
         auto meshData = std::make_unique<sill::Mesh>();
         meshData->name(mesh.name);
@@ -128,8 +128,12 @@ namespace {
             // Mandatory elements
             auto positions =
                 glb::Accessor(accessors[primitive.positionsAccessorIndex]).get<glm::vec3>(bufferViews, binChunk.data);
-            auto uv1s = glb::Accessor(accessors[primitive.uv1sAccessorIndex]).get<glm::vec2>(bufferViews, binChunk.data);
             auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint16_t>(bufferViews, binChunk.data);
+
+            VectorView<glm::vec2> uv1s;
+            if (primitive.uv1sAccessorIndex != -1u) {
+                uv1s = glb::Accessor(accessors[primitive.uv1sAccessorIndex]).get<glm::vec2>(bufferViews, binChunk.data);
+            }
 
             // Normals
             VectorView<glm::vec3> normals;
@@ -162,8 +166,8 @@ namespace {
                 rmMaterial = cacheData.materials.at(primitive.materialIndex);
                 translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
             }
-            else {
-                glb::PbrMetallicRoughnessMaterial material(materials[primitive.materialIndex]);
+            else if (materials != json.end()) {
+                glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
                 rmMaterial = &engine.make<sill::Material>("roughness-metallic");
                 translucent = material.translucent;
 
@@ -186,7 +190,7 @@ namespace {
             meshPrimitive.verticesNormals(normals);
             meshPrimitive.verticesTangents(tangents);
             meshPrimitive.verticesUvs(uv1s);
-            meshPrimitive.material(*rmMaterial);
+            if (rmMaterial != nullptr) meshPrimitive.material(*rmMaterial);
             meshPrimitive.translucent(translucent);
         }
 
