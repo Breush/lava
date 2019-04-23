@@ -8,7 +8,7 @@
 namespace lava::dike {
     class SphereRigidBody::Impl {
     public:
-        Impl(PhysicsEngine& engine, float radius);
+        Impl(PhysicsEngine& engine, float diameter);
 
         // IRigidBody
         const glm::mat4& transform() const { return m_transform; }

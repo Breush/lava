@@ -33,8 +33,8 @@ namespace lava::sill {
         const IComponent& getComponent(const std::string& hrid) const;
 
         /// Create a new component on this entity. The entity handles its lifetime.
-        template <class ComponentClass>
-        ComponentClass& make();
+        template <class ComponentClass, class... Arguments>
+        ComponentClass& make(Arguments&&... arguments);
 
         /// Add a created component to this entity. The entity handles its lifetime.
         void add(const std::string& hrid, std::unique_ptr<IComponent>&& component);

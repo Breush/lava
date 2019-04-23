@@ -5,13 +5,12 @@
 
 using namespace lava::sill;
 
-SphereColliderComponent::Impl::Impl(GameEntity& entity)
+SphereColliderComponent::Impl::Impl(GameEntity& entity, float diameter)
     : ComponentImpl(entity)
     , m_physicsEngine(m_entity.engine().physicsEngine())
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
-    // @fixme Get radius from somewhere
-    m_rigidBody = &m_physicsEngine.make<dike::SphereRigidBody>(0.1f);
+    m_rigidBody = &m_physicsEngine.make<dike::SphereRigidBody>(diameter);
 
     m_transformComponent.onTransformChanged([this]() { onTransformChanged(); }, ~TransformComponent::ChangeReasonFlag::Physics);
 

@@ -21,13 +21,15 @@ int main(void)
 
     // Spawning random cubes
     std::vector<sill::GameEntity*> cubes;
-    for (auto i = 0u; i < 11u; ++i) {
+    for (auto i = 0u; i < 20u; ++i) {
+        auto cubeSize = (2 + rand() % 20) / 40.f;
         auto& cubeEntity = engine.make<sill::GameEntity>();
         auto& cubeMeshComponent = cubeEntity.make<sill::MeshComponent>();
-        sill::makers::cubeMeshMaker(0.2f)(cubeMeshComponent);
-        cubeEntity.get<sill::TransformComponent>().translate(
-            {((rand() % 5) - 2.f) / 10.f, ((rand() % 5) - 2.f) / 10.f, 0.3f + (rand() % 20) / 10.f});
-        cubeEntity.make<sill::BoxColliderComponent>();
+        sill::makers::cubeMeshMaker(cubeSize)(cubeMeshComponent);
+        cubeEntity.get<sill::TransformComponent>().translate({(rand() % 5) / 10.f - 0.2f, // X
+                                                              (rand() % 5) / 10.f - 0.2f, // Y
+                                                              0.3f + (rand() % 20) / 10.f});
+        cubeEntity.make<sill::BoxColliderComponent>(cubeSize);
         cubeEntity.make<sill::AnimationComponent>();
         cubes.emplace_back(&cubeEntity);
     }

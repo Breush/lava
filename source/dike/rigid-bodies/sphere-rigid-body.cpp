@@ -4,7 +4,7 @@
 
 using namespace lava::dike;
 
-$pimpl_class(SphereRigidBody, PhysicsEngine&, engine, float, radius);
+$pimpl_class(SphereRigidBody, PhysicsEngine&, engine, float, diameter);
 
 $pimpl_method_const(SphereRigidBody, const glm::mat4&, transform);
 $pimpl_method(SphereRigidBody, void, transform, const glm::mat4&, transform);

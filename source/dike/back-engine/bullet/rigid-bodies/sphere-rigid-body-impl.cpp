@@ -4,9 +4,9 @@
 
 using namespace lava::dike;
 
-SphereRigidBody::Impl::Impl(PhysicsEngine& engine, float radius)
+SphereRigidBody::Impl::Impl(PhysicsEngine& engine, float diameter)
     : m_engine(engine.impl())
-    , m_shape(radius)
+    , m_shape(diameter / 2.f) // @note btSphereShape takes radius
 {
     if (m_mass > 0.f) {
         m_shape.calculateLocalInertia(m_mass, m_inertia);

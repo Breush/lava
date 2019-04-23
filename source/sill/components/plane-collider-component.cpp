@@ -4,6 +4,11 @@
 
 using namespace lava::sill;
 
+PlaneColliderComponent::PlaneColliderComponent(GameEntity& entity)
+    : PlaneColliderComponent(entity, glm::vec3{0.f, 0.f, 1.f})
+{
+}
+
 PlaneColliderComponent::PlaneColliderComponent(GameEntity& entity, const glm::vec3& normal)
     : IComponent(entity)
 {

@@ -8,7 +8,7 @@
 namespace lava::sill {
     class SphereColliderComponent::Impl : public ComponentImpl {
     public:
-        Impl(GameEntity& entity);
+        Impl(GameEntity& entity, float diameter);
         ~Impl();
 
         // IComponent

@@ -8,7 +8,10 @@
 namespace lava::sill {
     class SphereColliderComponent final : public IComponent {
     public:
+        /// Creates a sphere of diameter 1.
         SphereColliderComponent(GameEntity& entity);
+        /// Creates a sphere of specified diameter.
+        SphereColliderComponent(GameEntity& entity, float diameter);
         ~SphereColliderComponent();
 
         // IComponent

@@ -8,7 +8,13 @@
 namespace lava::sill {
     class BoxColliderComponent final : public IComponent {
     public:
+        /// Creates a cube box of size 1.
         BoxColliderComponent(GameEntity& entity);
+        /// Creates a cube box of specified size.
+        BoxColliderComponent(GameEntity& entity, float cubeSize);
+        /// Creates a box of specified size.
+        BoxColliderComponent(GameEntity& entity, const glm::vec3& dimensions);
+
         ~BoxColliderComponent();
 
         // IComponent

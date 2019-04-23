@@ -4,7 +4,21 @@
 
 using namespace lava::sill;
 
-$pimpl_class_base(SphereColliderComponent, IComponent, GameEntity&, entity);
+SphereColliderComponent::SphereColliderComponent(GameEntity& entity)
+    : SphereColliderComponent(entity, 1.f)
+{
+}
+
+SphereColliderComponent::SphereColliderComponent(GameEntity& entity, float diameter)
+    : IComponent(entity)
+{
+    m_impl = new SphereColliderComponent::Impl(entity, diameter);
+}
+
+SphereColliderComponent::~SphereColliderComponent()
+{
+    delete m_impl;
+}
 
 // IComponent
 $pimpl_method(SphereColliderComponent, void, update, float, dt);

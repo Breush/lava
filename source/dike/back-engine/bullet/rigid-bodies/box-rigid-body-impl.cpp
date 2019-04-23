@@ -6,7 +6,7 @@ using namespace lava::dike;
 
 BoxRigidBody::Impl::Impl(PhysicsEngine& engine, const glm::vec3& dimensions)
     : m_engine(engine.impl())
-    , m_shape(btVector3{dimensions.x, dimensions.y, dimensions.z})
+    , m_shape(btVector3{dimensions.x / 2, dimensions.y / 2, dimensions.z / 2}) // @note btBoxShape takes halfExtent
 {
     if (m_mass > 0.f) {
         m_shape.calculateLocalInertia(m_mass, m_inertia);

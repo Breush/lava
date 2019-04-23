@@ -21,10 +21,10 @@ namespace lava::sill {
         return reinterpret_cast<const ComponentClass&>(component);
     }
 
-    template <class ComponentClass>
-    inline ComponentClass& GameEntity::make()
+    template <class ComponentClass, class... Arguments>
+    inline ComponentClass& GameEntity::make(Arguments&&... arguments)
     {
-        auto pComponent = std::make_unique<ComponentClass>(*this);
+        auto pComponent = std::make_unique<ComponentClass>(*this, std::forward<Arguments>(arguments)...);
         auto& component = *pComponent;
         add(ComponentClass::hrid(), std::move(pComponent));
         return component;

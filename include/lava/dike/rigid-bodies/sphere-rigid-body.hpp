@@ -6,7 +6,7 @@
 namespace lava::dike {
     class SphereRigidBody final : public IRigidBody {
     public:
-        SphereRigidBody(PhysicsEngine& engine, float radius);
+        SphereRigidBody(PhysicsEngine& engine, float diameter);
         ~SphereRigidBody();
 
         // IRigidBody

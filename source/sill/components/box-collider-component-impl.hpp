@@ -8,7 +8,7 @@
 namespace lava::sill {
     class BoxColliderComponent::Impl : public ComponentImpl {
     public:
-        Impl(GameEntity& entity);
+        Impl(GameEntity& entity, const glm::vec3& dimensions);
         ~Impl();
 
         // IComponent

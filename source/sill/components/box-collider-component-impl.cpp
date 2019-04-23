@@ -5,13 +5,12 @@
 
 using namespace lava::sill;
 
-BoxColliderComponent::Impl::Impl(GameEntity& entity)
+BoxColliderComponent::Impl::Impl(GameEntity& entity, const glm::vec3& dimensions)
     : ComponentImpl(entity)
     , m_physicsEngine(m_entity.engine().physicsEngine())
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
-    // @fixme Get dimensions from somewhere
-    m_rigidBody = &m_physicsEngine.make<dike::BoxRigidBody>(glm::vec3{0.1f, 0.1f, 0.1f});
+    m_rigidBody = &m_physicsEngine.make<dike::BoxRigidBody>(dimensions);
 
     m_transformComponent.onTransformChanged([this]() { onTransformChanged(); }, ~TransformComponent::ChangeReasonFlag::Physics);
 
@@ -19,7 +18,10 @@ BoxColliderComponent::Impl::Impl(GameEntity& entity)
     onTransformChanged();
 }
 
-BoxColliderComponent::Impl::~Impl() {}
+BoxColliderComponent::Impl::~Impl()
+{
+    // @fixme Remove from dike
+}
 
 //----- IComponent
 
