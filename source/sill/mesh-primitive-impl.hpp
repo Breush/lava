@@ -3,6 +3,7 @@
 #include <lava/sill/mesh-primitive.hpp>
 
 #include <lava/sill/game-engine.hpp>
+#include <lava/sill/material.hpp>
 
 namespace lava::sill {
     class MeshPrimitive::Impl {
@@ -14,16 +15,16 @@ namespace lava::sill {
         const magma::Mesh* magma() const { return m_magma; }
 
         // Geometry
-        void verticesCount(const uint32_t count);
-        void verticesPositions(VectorView<glm::vec3> positions);
-        void verticesUvs(VectorView<glm::vec2> uvs);
-        void verticesNormals(VectorView<glm::vec3> normals);
-        void verticesTangents(VectorView<glm::vec4> tangents);
-        void indices(VectorView<uint16_t> indices);
+        void verticesCount(const uint32_t count) { m_magma->verticesCount(count); }
+        void verticesPositions(VectorView<glm::vec3> positions) { m_magma->verticesPositions(positions); }
+        void verticesUvs(VectorView<glm::vec2> uvs) { m_magma->verticesUvs(uvs); }
+        void verticesNormals(VectorView<glm::vec3> normals) { m_magma->verticesNormals(normals); }
+        void verticesTangents(VectorView<glm::vec4> tangents) { m_magma->verticesTangents(tangents); }
+        void indices(VectorView<uint16_t> indices, bool flipTriangles) { m_magma->indices(indices, flipTriangles); }
 
         // Material
-        void material(Material& material);
-        void translucent(bool translucent);
+        void material(Material& material) { m_magma->material(material.magma()); }
+        void translucent(bool translucent) { m_magma->translucent(translucent); }
 
     private:
         // References

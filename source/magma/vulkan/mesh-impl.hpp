@@ -38,7 +38,7 @@ namespace lava::magma {
         void verticesUvs(VectorView<glm::vec2> uvs);
         void verticesNormals(VectorView<glm::vec3> normals);
         void verticesTangents(VectorView<glm::vec4> tangents);
-        void indices(VectorView<uint16_t> indices);
+        void indices(VectorView<uint16_t> indices, bool flipTriangles);
 
         bool canCastShadows() const { return m_canCastShadows; }
         void canCastShadows(bool canCastShadows) { m_canCastShadows = canCastShadows; }

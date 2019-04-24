@@ -284,7 +284,7 @@ void RenderEngine::Impl::createDummyTextures()
     m_dummyImageHolder.setup(dummyData, 1, 1, 4);
 
     // Flat blue
-    dummyData = {0x80, 0x80, 0xFF, 0xFF};
+    dummyData = {0x80, 0x80, 0xFF, 0xFF}; // 0.5, 0.5, 1.0
     m_dummyNormalImageHolder.setup(dummyData, 1, 1, 4);
 
     // Full zeros

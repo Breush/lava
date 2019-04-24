@@ -133,13 +133,24 @@ void Mesh::Impl::verticesTangents(VectorView<glm::vec4> tangents)
     createVertexBuffer();
 }
 
-void Mesh::Impl::indices(VectorView<uint16_t> indices)
+void Mesh::Impl::indices(VectorView<uint16_t> indices, bool flipTriangles)
 {
     auto length = indices.size();
     m_indices.resize(length);
-    for (auto i = 0u; i < length; ++i) {
-        m_indices[i] = indices[i];
+
+    if (flipTriangles) {
+        for (auto i = 0u; i < length; i += 3) {
+            m_indices[i] = indices[i + 2];
+            m_indices[i + 1] = indices[i + 1];
+            m_indices[i + 2] = indices[i];
+        }
     }
+    else {
+        for (auto i = 0u; i < length; ++i) {
+            m_indices[i] = indices[i];
+        }
+    }
+
     createIndexBuffer();
 
     // @todo The scene should update the main command buffer every frame

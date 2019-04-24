@@ -121,6 +121,12 @@ PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohma
     if (pbrMetallicRoughness.find("metallicRoughnessTexture") != pbrMetallicRoughness.end()) {
         metallicRoughnessTextureIndex = pbrMetallicRoughness["metallicRoughnessTexture"]["index"];
     }
+    if (pbrMetallicRoughness.find("baseColorFactor") != pbrMetallicRoughness.end()) {
+        baseColorFactor.r = pbrMetallicRoughness["baseColorFactor"][0];
+        baseColorFactor.g = pbrMetallicRoughness["baseColorFactor"][1];
+        baseColorFactor.b = pbrMetallicRoughness["baseColorFactor"][2];
+        baseColorFactor.a = pbrMetallicRoughness["baseColorFactor"][3];
+    }
 }
 
 Accessor::Accessor(const typename nlohmann::json::basic_json& json)

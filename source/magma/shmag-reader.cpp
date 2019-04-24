@@ -485,11 +485,11 @@ void ShmagReader::injectEpiphanyGBufferDataExtraction(std::stringstream& adapted
             // From spherical coordinates
             auto phi = "gBuffer_" + gBufferDeclaration.name + "_phi";
             auto theta = "gBuffer_" + gBufferDeclaration.name + "_theta";
-            adaptedCode << "float " << phi << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
             adaptedCode << "float " << theta << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
-            adaptedCode << name << "[0] = sin(" << phi << ") * cos(" << theta << ");" << std::endl;
-            adaptedCode << name << "[1] = sin(" << phi << ") * sin(" << theta << ");" << std::endl;
-            adaptedCode << name << "[2] = cos(" << phi << ");" << std::endl;
+            adaptedCode << "float " << phi << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[0] = sin(" << theta << ") * cos(" << phi << ");" << std::endl;
+            adaptedCode << name << "[1] = sin(" << theta << ") * sin(" << phi << ");" << std::endl;
+            adaptedCode << name << "[2] = cos(" << theta << ");" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec4) {
             adaptedCode << name << "[0] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;

@@ -101,7 +101,7 @@ namespace {
     }
 
     std::unique_ptr<sill::Mesh> loadMesh(sill::GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk,
-                                         const nlohmann::json& json, CacheData& cacheData)
+                                         const nlohmann::json& json, CacheData& cacheData, bool flipTriangles)
     {
         PROFILE_FUNCTION();
 
@@ -172,6 +172,7 @@ namespace {
                 translucent = material.translucent;
 
                 // Material textures
+                rmMaterial->set("albedoColor", material.baseColorFactor);
                 setTexture(engine, *rmMaterial, "albedoMap", material.baseColorTextureIndex, binChunk, json, cacheData);
                 setTexture(engine, *rmMaterial, "normalMap", material.normalTextureIndex, binChunk, json, cacheData);
                 setTexture(engine, *rmMaterial, "emissiveMap", material.emissiveTextureIndex, binChunk, json, cacheData);
@@ -185,7 +186,7 @@ namespace {
             // Apply the geometry
             auto& meshPrimitive = meshData->addPrimitive(entity.engine());
             meshPrimitive.verticesCount(positions.size());
-            meshPrimitive.indices(indices);
+            meshPrimitive.indices(indices, flipTriangles);
             meshPrimitive.verticesPositions(positions);
             meshPrimitive.verticesNormals(normals);
             meshPrimitive.verticesTangents(tangents);
@@ -210,9 +211,15 @@ namespace {
         meshNode.name = node.name;
         meshNode.transform = node.transform;
 
+        // @note From https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#transformations
+        // > If the determinant of the transform is a negative value,
+        // > the winding order of the mesh triangle faces should be reversed.
+        // > This supports negative scales for mirroring geometry.
+        bool flipTriangles = (glm::determinant(meshNode.transform) < 0);
+
         // Load geometry if any
         if (node.meshIndex != -1u) {
-            meshNode.mesh = loadMesh(entity, node.meshIndex, binChunk, json, cacheData);
+            meshNode.mesh = loadMesh(entity, node.meshIndex, binChunk, json, cacheData, flipTriangles);
         }
 
         // Recurse over children
