@@ -114,3 +114,12 @@ project "vr-sandbox"
     kind "WindowedApp"
     files "sill/vr-sandbox.cpp"
     useSill()
+
+-----------
+-- games --
+
+project "sill-vr-puzzle"
+    kind "WindowedApp"
+    files "sill/vr-puzzle/**"
+    useSill()
+

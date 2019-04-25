@@ -36,6 +36,9 @@ IComponent& GameEntity::Impl::getComponent(const std::string& hrid)
 {
     auto pComponent = m_pendingAddedComponents.find(hrid);
     if (pComponent != m_pendingAddedComponents.end()) return *pComponent->second;
+    if (!hasComponent(hrid)) {
+        logger.error("sill.game-entity") << "This entity has no " << hrid << " component." << std::endl;
+    }
     return *m_components.at(hrid);
 }
 
@@ -43,6 +46,9 @@ const IComponent& GameEntity::Impl::getComponent(const std::string& hrid) const
 {
     auto pComponent = m_pendingAddedComponents.find(hrid);
     if (pComponent != m_pendingAddedComponents.end()) return *pComponent->second;
+    if (!hasComponent(hrid)) {
+        logger.error("sill.game-entity") << "This entity has no " << hrid << " component." << std::endl;
+    }
     return *m_components.at(hrid);
 }
 
