@@ -7,5 +7,7 @@ struct GameState {
     lava::sill::GameEngine* engine = nullptr;
     std::vector<lava::sill::GameEntity*> draggableEntities; // Bricks and such
 
+    // Infos about the current table
+    lava::sill::Material* tablePanelMaterial = nullptr;
     std::vector<std::vector<const lava::sill::MeshNode*>> tableBindingNodes;
 };

@@ -237,25 +237,25 @@ using namespace lava::sill;
 
 std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& fileName)
 {
-    return [&fileName](MeshComponent& meshComponent) {
-        logger.info("sill.makers.glb-mesh") << "Loading file " << fileName << std::endl;
+    logger.info("sill.makers.glb-mesh") << "Loading file " << fileName << std::endl;
 
+    std::ifstream file(fileName, std::ifstream::binary);
+
+    if (!file.is_open()) {
+        logger.error("sill.makers.glb-mesh") << "Unable to read file " << fileName << std::endl;
+    }
+
+    // ----- Header
+
+    glb::Header header;
+    glb::Chunk jsonChunk;
+    glb::Chunk binChunk;
+    file >> header >> jsonChunk >> binChunk;
+
+    auto json = nlohmann::json::parse(jsonChunk.data);
+
+    return [=](MeshComponent& meshComponent) {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
-
-        std::ifstream file(fileName, std::ifstream::binary);
-
-        if (!file.is_open()) {
-            logger.error("sill.makers.glb-mesh") << "Unable to read file " << fileName << std::endl;
-        }
-
-        // ----- Header
-
-        glb::Header header;
-        glb::Chunk jsonChunk;
-        glb::Chunk binChunk;
-        file >> header >> jsonChunk >> binChunk;
-
-        auto json = nlohmann::json::parse(jsonChunk.data);
 
         // ----- Resources pre-allocation
 

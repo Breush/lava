@@ -47,7 +47,7 @@ void setupGameLogic(GameState& gameState)
         if (grabbedEntity != nullptr) {
             // Offsetting from hand transform a little bit.
             auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});
-            targetTransform = glm::rotate(targetTransform, -3.14156f * 1.25f, {1, 0, 0});
+            targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
 
             // If the hand is close to a binding point, we snap to it.
             float minDistance = 0.1f;

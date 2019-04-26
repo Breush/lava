@@ -10,6 +10,7 @@ int main(void)
 {
     /**
      * @todo
+     * - Rotation of the brick modules.
      * - Some puzzle rules, and auto-check them.
      * - Visual feedback (success, failure), grabbing brick.
      */
@@ -30,6 +31,9 @@ int main(void)
 
     // Game logic
     setupGameLogic(gameState);
+
+    // Load first level
+    loadLevel(gameState, 0);
 
     engine.run();
 
