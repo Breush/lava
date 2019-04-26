@@ -19,6 +19,28 @@ namespace lava::sill {
         GameEngine& engine() { return m_engine; }
         const GameEngine& engine() const { return m_engine; }
 
+        /**
+         * @name Hierarchy
+         */
+        /// @{
+        /**
+         * Parent of the entity.
+         *
+         * @note Setting the parent WON'T add itself as a child on it.
+         */
+        GameEntity* parent();
+        const GameEntity* parent() const;
+        void parent(GameEntity& parent);
+        void parent(GameEntity* parent);
+
+        /// Sets an entity to be our child, and link us as their parent.
+        void addChild(GameEntity& child);
+        /// @}
+
+        /**
+         * @name Components
+         */
+        /// @{
         /// Check if the specified component exists within the entity.
         template <class ComponentClass>
         bool has() const;
@@ -47,6 +69,7 @@ namespace lava::sill {
         template <class ComponentClass>
         void remove();
         void removeComponent(const std::string& hrid);
+        /// @}
 
     public:
         class Impl;

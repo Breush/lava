@@ -3,8 +3,9 @@
 using namespace lava::chamber;
 using namespace lava::sill;
 
-GameEntity::Impl::Impl(GameEngine& engine)
-    : m_engine(engine.impl())
+GameEntity::Impl::Impl(GameEntity& entity, GameEngine& engine)
+    : m_entity(entity)
+    , m_engine(engine.impl())
 {
 }
 
@@ -15,7 +16,6 @@ void GameEntity::Impl::update(float dt)
     // Add all new components
     for (auto& component : m_pendingAddedComponents) {
         m_components.emplace(std::move(component));
-        // m_components.emplace(component.first, std::move(component.second));
     }
     m_pendingAddedComponents.clear();
 
@@ -26,6 +26,24 @@ void GameEntity::Impl::update(float dt)
 
     // @todo Remove components asynchronously too
 }
+
+// ----- GameEntity hierarchy
+
+void GameEntity::Impl::parent(GameEntity* parent)
+{
+    // @todo We should remove ourselves from parent's children
+    // list if m_parent was previously not-null.
+
+    m_parent = parent;
+}
+
+void GameEntity::Impl::addChild(GameEntity& child)
+{
+    m_children.emplace_back(&child);
+    child.parent(entity());
+}
+
+// ----- GameEntity components
 
 bool GameEntity::Impl::hasComponent(const std::string& hrid) const
 {

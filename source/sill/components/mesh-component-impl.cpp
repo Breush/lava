@@ -27,10 +27,10 @@ MeshComponent::Impl::Impl(GameEntity& entity)
     : ComponentImpl(entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
-    m_transformComponent.onTransformChanged([this]() { onTransformChanged(); });
+    m_transformComponent.onWorldTransformChanged([this]() { onWorldTransformChanged(); });
 
     // Init correctly on first creation
-    onTransformChanged();
+    onWorldTransformChanged();
 }
 
 // ----- MeshComponent
@@ -51,12 +51,12 @@ void MeshComponent::Impl::nodes(std::vector<MeshNode>&& nodes)
     }
 
     // Update all meshes transform
-    onTransformChanged();
+    onWorldTransformChanged();
 }
 
 // ----- Internal
 
-void MeshComponent::Impl::onTransformChanged()
+void MeshComponent::Impl::onWorldTransformChanged()
 {
     // @todo We can be more clever than this and dirtify the transforms,
     // waiting for the next update cycle to effectively update.

@@ -10,7 +10,7 @@ namespace lava::sill {
         Impl(GameEntity& entity);
 
         // IComponent
-        void update(float /* dt */) override final {}
+        void update(float dt) final;
 
         // TransformComponent local transform
         glm::vec3 translation() const { return m_transform[3]; }
@@ -25,14 +25,17 @@ namespace lava::sill {
         void scale(float factor, ChangeReasonFlag changeReasonFlag);
 
         // TransformComponent world transform
-        const glm::mat4& worldTransform() const { return m_transform; } // @todo Concept of nodes/worldTransform
+        const glm::mat4& worldTransform() const { return m_worldTransform; } // @todo Concept of nodes/worldTransform
         void worldTransform(const glm::mat4& transform, ChangeReasonFlag changeReasonFlag);
 
         // TransformComponent callbacks
-        void onTransformChanged(std::function<void()> transformChangedCallback, ChangeReasonFlags changeReasonFlags);
+        void onTransformChanged(std::function<void()> callback, ChangeReasonFlags changeReasonFlags);
+        void onWorldTransformChanged(std::function<void()> callback, ChangeReasonFlags changeReasonFlags);
 
     protected:
+        void updateWorldTransform(ChangeReasonFlag changeReasonFlag);
         void callTransformChanged(ChangeReasonFlag changeReasonFlag) const;
+        void callWorldTransformChanged(ChangeReasonFlag changeReasonFlag) const;
 
     protected:
         struct TransformChangedCallbackInfo {
@@ -43,8 +46,10 @@ namespace lava::sill {
     private:
         // Data
         glm::mat4 m_transform = glm::mat4(1.f);
+        glm::mat4 m_worldTransform = glm::mat4(1.f);
 
         // Callbacks
         std::vector<TransformChangedCallbackInfo> m_transformChangedCallbacks;
+        std::vector<TransformChangedCallbackInfo> m_worldTransformChangedCallbacks;
     };
 }

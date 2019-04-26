@@ -19,11 +19,12 @@ namespace lava::sill {
 
         // MeshComponent
         MeshNode& node(uint32_t index) { return m_nodes[index]; }
+        std::vector<MeshNode>& nodes() { return m_nodes; }
         const std::vector<MeshNode>& nodes() const { return m_nodes; }
         void nodes(std::vector<MeshNode>&& nodes);
 
         // Callbacks
-        void onTransformChanged();
+        void onWorldTransformChanged();
 
     private:
         // References

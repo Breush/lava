@@ -16,6 +16,7 @@ namespace lava::sill {
 
         /// A mesh node holds the geometry hierarchy.
         MeshNode& node(uint32_t index);
+        std::vector<MeshNode>& nodes();
         const std::vector<MeshNode>& nodes() const;
         void nodes(std::vector<MeshNode>&& nodes);
 

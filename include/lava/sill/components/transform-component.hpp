@@ -16,6 +16,7 @@ namespace lava::sill {
         enum ChangeReasonFlag : uint16_t {
             User = 0x0001,
             Physics = 0x0002,
+            Parent = 0x0004,
             All = 0xFFFF,
         };
 
@@ -48,8 +49,8 @@ namespace lava::sill {
         /**
          * @name World transform
          *
-         * @fixme Should be based on parent from a certain NodeComponent,
-         * or directly from entities.
+         * Updating the world transform will change the local transform
+         * accordingly, too.
          */
         /// {
         const glm::mat4& worldTransform() const;
@@ -57,8 +58,8 @@ namespace lava::sill {
         /// }
 
         // Callbacks
-        void onTransformChanged(std::function<void()> transformChangedCallback,
-                                ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onTransformChanged(std::function<void()> callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onWorldTransformChanged(std::function<void()> callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
 
     public:
         class Impl;

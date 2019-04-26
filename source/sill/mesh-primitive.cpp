@@ -21,5 +21,6 @@ $pimpl_method(MeshPrimitive, void, verticesTangents, VectorView<glm::vec4>, tang
 $pimpl_method(MeshPrimitive, void, indices, VectorView<uint16_t>, indices, bool, flipTriangles);
 
 // Material
+$pimpl_method(MeshPrimitive, Material&, material);
 $pimpl_method(MeshPrimitive, void, material, Material&, material);
 $pimpl_method(MeshPrimitive, void, translucent, bool, translucent);

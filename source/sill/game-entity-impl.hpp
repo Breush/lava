@@ -8,9 +8,19 @@
 namespace lava::sill {
     class GameEntity::Impl {
     public:
-        Impl(GameEngine& engine);
+        Impl(GameEntity& entity, GameEngine& engine);
 
-        // GameEntity
+        GameEntity& entity() { return m_entity; }
+        const GameEntity& entity() const { return m_entity; }
+
+        // GameEntity hierarchy
+        GameEntity* parent() { return m_parent; }
+        const GameEntity* parent() const { return m_parent; }
+        void parent(GameEntity& parent) { this->parent(&parent); }
+        void parent(GameEntity* parent);
+        void addChild(GameEntity& child);
+
+        // GameEntity components
         bool hasComponent(const std::string& hrid) const;
         IComponent& getComponent(const std::string& hrid);
         const IComponent& getComponent(const std::string& hrid) const;
@@ -25,9 +35,12 @@ namespace lava::sill {
 
     private:
         // References
+        GameEntity& m_entity;
         GameEngine::Impl& m_engine;
 
         // Storage
+        GameEntity* m_parent = nullptr; // Keep nullptr to be top-level.
+        std::vector<GameEntity*> m_children;
         std::unordered_map<std::string, std::unique_ptr<IComponent>> m_components;
         std::unordered_map<std::string, std::unique_ptr<IComponent>> m_pendingAddedComponents;
     };

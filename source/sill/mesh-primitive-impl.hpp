@@ -23,7 +23,12 @@ namespace lava::sill {
         void indices(VectorView<uint16_t> indices, bool flipTriangles) { m_magma->indices(indices, flipTriangles); }
 
         // Material
-        void material(Material& material) { m_magma->material(material.magma()); }
+        Material& material() { return *m_material; }
+        void material(Material& material)
+        {
+            m_material = &material;
+            m_magma->material(material.magma());
+        }
         void translucent(bool translucent) { m_magma->translucent(translucent); }
 
     private:

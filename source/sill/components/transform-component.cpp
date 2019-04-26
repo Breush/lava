@@ -26,5 +26,7 @@ $pimpl_method_const(TransformComponent, const glm::mat4&, worldTransform);
 $pimpl_method(TransformComponent, void, worldTransform, const glm::mat4&, transform, ChangeReasonFlag, changeReasonFlag);
 
 // Callbacks
-$pimpl_method(TransformComponent, void, onTransformChanged, std::function<void()>, transformChangedCallback, ChangeReasonFlags,
+$pimpl_method(TransformComponent, void, onTransformChanged, std::function<void()>, callback, ChangeReasonFlags,
+              changeReasonFlags);
+$pimpl_method(TransformComponent, void, onWorldTransformChanged, std::function<void()>, callback, ChangeReasonFlags,
               changeReasonFlags);
