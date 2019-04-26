@@ -11,6 +11,10 @@ namespace lava::sill {
         Impl(GameEntity& entity, const glm::vec3& dimensions);
         ~Impl();
 
+        // Box rigid body
+        bool enabled() const { return m_rigidBody->enabled(); }
+        void enabled(bool enabled) { m_rigidBody->enabled(enabled); }
+
         // IComponent
         void update(float dt) override final;
 

@@ -10,6 +10,10 @@ namespace lava::dike {
 
         void mass(float mass);
 
+        /// Whether the rigid body colliders should be considered.
+        virtual bool enabled() const = 0;
+        virtual void enabled(bool enabled) = 0;
+
         virtual const glm::mat4& transform() const = 0;
         virtual void transform(const glm::mat4& transform) = 0;
 

@@ -25,5 +25,9 @@ BoxColliderComponent::~BoxColliderComponent()
     delete m_impl;
 }
 
+// Box rigid body
+$pimpl_method_const(BoxColliderComponent, bool, enabled);
+$pimpl_method(BoxColliderComponent, void, enabled, bool, enabled);
+
 // IComponent
 $pimpl_method(BoxColliderComponent, void, update, float, dt);

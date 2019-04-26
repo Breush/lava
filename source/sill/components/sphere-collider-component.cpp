@@ -20,5 +20,9 @@ SphereColliderComponent::~SphereColliderComponent()
     delete m_impl;
 }
 
+// Sphere rigid body
+$pimpl_method_const(SphereColliderComponent, bool, enabled);
+$pimpl_method(SphereColliderComponent, void, enabled, bool, enabled);
+
 // IComponent
 $pimpl_method(SphereColliderComponent, void, update, float, dt);

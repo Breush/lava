@@ -10,6 +10,9 @@ namespace lava::dike {
         ~SphereRigidBody();
 
         // IRigidBody
+        bool enabled() const final;
+        void enabled(bool enabled) final;
+
         const glm::mat4& transform() const final;
         void transform(const glm::mat4& transform) final;
 

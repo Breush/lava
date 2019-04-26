@@ -18,6 +18,19 @@ SphereRigidBody::Impl::Impl(PhysicsEngine& engine, float diameter)
     m_engine.dynamicsWorld().addRigidBody(m_rigidBody.get());
 }
 
+void SphereRigidBody::Impl::enabled(bool enabled)
+{
+    if (m_enabled == enabled) return;
+    m_enabled = enabled;
+
+    if (!enabled) {
+        m_engine.dynamicsWorld().removeRigidBody(m_rigidBody.get());
+    }
+    else {
+        m_engine.dynamicsWorld().addRigidBody(m_rigidBody.get());
+    }
+}
+
 void SphereRigidBody::Impl::transform(const glm::mat4& transform)
 {
     m_transform = transform;

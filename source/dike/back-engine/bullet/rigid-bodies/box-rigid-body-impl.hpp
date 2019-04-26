@@ -11,6 +11,9 @@ namespace lava::dike {
         Impl(PhysicsEngine& engine, const glm::vec3& dimensions);
 
         // IRigidBody
+        bool enabled() const { return m_enabled; }
+        void enabled(bool enabled);
+
         const glm::mat4& transform() const { return m_transform; }
         void transform(const glm::mat4& transform);
 
@@ -20,6 +23,7 @@ namespace lava::dike {
     private:
         PhysicsEngine::Impl& m_engine;
 
+        bool m_enabled = true;
         btScalar m_mass = 1.f;
         btVector3 m_inertia{0.f, 0.f, 0.f};
 

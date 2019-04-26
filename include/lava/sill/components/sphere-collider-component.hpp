@@ -14,6 +14,10 @@ namespace lava::sill {
         SphereColliderComponent(GameEntity& entity, float diameter);
         ~SphereColliderComponent();
 
+        // Sphere rigid body
+        bool enabled() const;
+        void enabled(bool enabled);
+
         // IComponent
         static std::string hrid() { return "sphere-collider"; }
         void update(float dt) override final;

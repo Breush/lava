@@ -17,6 +17,10 @@ namespace lava::sill {
 
         ~BoxColliderComponent();
 
+        // Box rigid body
+        bool enabled() const;
+        void enabled(bool enabled);
+
         // IComponent
         static std::string hrid() { return "box-collider"; }
         void update(float dt) final;
