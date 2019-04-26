@@ -38,13 +38,15 @@ bool WindowRenderTarget::Impl::prepare()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
-    {
+    if (m_shouldWaitForFences) {
         PROFILE_BLOCK("WindowRenderTarget - waitForFences", PROFILER_COLOR_DRAW);
 
         // @fixme Are we forced to wait for fence before acquiring next image?
         static const auto MAX = std::numeric_limits<uint64_t>::max();
         m_engine.device().waitForFences(1u, &m_fence, true, MAX);
         m_engine.device().resetFences(1u, &m_fence);
+
+        m_shouldWaitForFences = false;
     }
 
     auto result = m_swapchainHolder.acquireNextImage();
@@ -65,6 +67,7 @@ bool WindowRenderTarget::Impl::prepare()
         return false;
     }
 
+    m_shouldWaitForFences = true;
     return true;
 }
 

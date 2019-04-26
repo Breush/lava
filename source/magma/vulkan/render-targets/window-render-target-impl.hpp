@@ -56,5 +56,6 @@ namespace lava::magma {
         vulkan::SurfaceKHR m_surface;
         vulkan::SwapchainHolder m_swapchainHolder;
         vk::Extent2D m_windowExtent;
+        bool m_shouldWaitForFences = true;
     };
 }
