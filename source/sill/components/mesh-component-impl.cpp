@@ -9,14 +9,14 @@ using namespace lava;
 namespace {
     void updateNodeTransforms(sill::MeshNode& node, const glm::mat4& parentTransform)
     {
-        auto transform = parentTransform * node.transform;
+        node.worldTransform = parentTransform * node.transform;
 
         if (node.mesh) {
-            node.mesh->impl().transform(transform);
+            node.mesh->impl().transform(node.worldTransform);
         }
 
         for (auto child : node.children) {
-            updateNodeTransforms(*child, transform);
+            updateNodeTransforms(*child, node.worldTransform);
         }
     }
 }

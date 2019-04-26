@@ -8,6 +8,12 @@ using namespace lava;
 
 int main(void)
 {
+    /**
+     * @todo
+     * - Some puzzle rules, and auto-check them.
+     * - Visual feedback (success, failure), grabbing brick.
+     */
+
     GameState gameState;
 
     sill::GameEngine engine;

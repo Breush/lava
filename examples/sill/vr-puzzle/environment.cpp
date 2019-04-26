@@ -1,5 +1,7 @@
 #include "./environment.hpp"
 
+#include <sstream>
+
 using namespace lava;
 
 void setupEnvironment(GameState& gameState)
@@ -20,6 +22,22 @@ void setupEnvironment(GameState& gameState)
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-table.glb")(meshComponent);
         entity.get<sill::TransformComponent>().rotate({0, 0, 1}, 3.14156);
+
+        for (const auto& node : meshComponent.nodes()) {
+            if (node.name == "table") continue;
+
+            std::stringstream nameStream;
+            nameStream << node.name << std::endl;
+            uint32_t i, j;
+            nameStream >> i;
+            nameStream >> j;
+
+            if (i + 1 > gameState.tableBindingNodes.size()) gameState.tableBindingNodes.resize(i + 1);
+            auto& tableBindingNodes = gameState.tableBindingNodes[i];
+
+            if (j + 1 > tableBindingNodes.size()) tableBindingNodes.resize(j + 1);
+            tableBindingNodes[j] = &node;
+        }
     }
 
     // Puzzle bricks
