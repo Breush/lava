@@ -17,6 +17,7 @@ namespace lava::sill {
             User = 0x0001,
             Physics = 0x0002,
             Parent = 0x0004,
+            Animation = 0x0008,
             All = 0xFFFF,
         };
 

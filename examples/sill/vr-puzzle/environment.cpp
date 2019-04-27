@@ -79,7 +79,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks.emplace_back(&entity);
     }
 
-    constexpr const glm::vec3 brickExtent = {0.22f, 0.22f, 0.125f};
+    constexpr const glm::vec3 brickExtent = {0.22f, 0.22f, 0.0625f};
 
     // L3 brick
     {
@@ -97,7 +97,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[1]->get<sill::TransformComponent>().translate({brickExtent.x, 0, 0});
         bricks[2]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
-        gameState.draggableEntities.emplace_back(&entity);
+        gameState.bricks.emplace_back(&entity);
     }
 
     // T4 brick
@@ -116,7 +116,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[5]->get<sill::TransformComponent>().translate({brickExtent.x, 0, 0});
         bricks[6]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
-        gameState.draggableEntities.emplace_back(&entity);
+        gameState.bricks.emplace_back(&entity);
     }
 
     // I2 brick
@@ -131,6 +131,6 @@ void loadLevel(GameState& gameState, uint32_t levelId)
 
         bricks[8]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
-        gameState.draggableEntities.emplace_back(&entity);
+        gameState.bricks.emplace_back(&entity);
     }
 }

@@ -10,7 +10,6 @@ int main(void)
 {
     /**
      * @todo
-     * - Rotation of the brick modules.
      * - Some puzzle rules, and auto-check them.
      * - Visual feedback (success, failure), grabbing brick.
      */
@@ -25,6 +24,7 @@ int main(void)
 
     // VR control
     engine.input().bindAction("trigger", VrButton::Trigger, VrDeviceType::RightHand);
+    engine.input().bindAction("touchpad", VrButton::Touchpad, VrDeviceType::RightHand);
 
     // Environment
     setupEnvironment(gameState);

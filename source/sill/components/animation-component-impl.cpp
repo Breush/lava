@@ -50,7 +50,7 @@ void AnimationComponent::Impl::target(AnimationFlag flag, const glm::mat4& targe
     }
 
     if (flag == AnimationFlag::WorldTransform) {
-        m_entity.get<TransformComponent>().worldTransform(value);
+        m_entity.get<TransformComponent>().worldTransform(value, TransformComponent::ChangeReasonFlag::Animation);
     }
     else {
         logger.warning("sill.animation-component") << "Target glm::mat4 is not valid for specified flag." << std::endl;
