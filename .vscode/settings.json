@@ -92,6 +92,7 @@
         "valarray": "cpp",
         "deque": "cpp",
         "forward_list": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "csignal": "cpp"
     }
 }

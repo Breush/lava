@@ -10,8 +10,9 @@ int main(void)
 {
     /**
      * @todo
-     * - Some puzzle rules, and auto-check them.
-     * - Visual feedback (success, failure), grabbing brick.
+     * - Some more puzzle rules.
+     * - Visual feedback (success, failure), grabbed brick identification.
+     * - Raycast to pick pointed brick.
      */
 
     GameState gameState;

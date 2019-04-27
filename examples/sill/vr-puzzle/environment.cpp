@@ -39,11 +39,10 @@ void setupEnvironment(GameState& gameState)
             nameStream >> i;
             nameStream >> j;
 
-            if (i + 1 > gameState.tableBindingNodes.size()) gameState.tableBindingNodes.resize(i + 1);
-            auto& tableBindingNodes = gameState.tableBindingNodes[i];
-
-            if (j + 1 > tableBindingNodes.size()) tableBindingNodes.resize(j + 1);
-            tableBindingNodes[j] = &node;
+            if (i + 1 > gameState.tableBindingPoints.size()) gameState.tableBindingPoints.resize(i + 1);
+            if (j + 1 > gameState.tableBindingPoints[i].size()) gameState.tableBindingPoints[i].resize(j + 1);
+            gameState.tableBindingPoints[i][j].node = &node;
+            gameState.tableBindingPoints[i][j].coordinates = {i, j};
         }
     }
 }
@@ -98,6 +97,9 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[2]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
         gameState.bricks.emplace_back(&entity);
+        gameState.bricks.back().blocks.emplace_back(0, 0);
+        gameState.bricks.back().blocks.emplace_back(1, 0);
+        gameState.bricks.back().blocks.emplace_back(0, 1);
     }
 
     // T4 brick
@@ -117,6 +119,10 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[6]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
         gameState.bricks.emplace_back(&entity);
+        gameState.bricks.back().blocks.emplace_back(0, 0);
+        gameState.bricks.back().blocks.emplace_back(-1, 0);
+        gameState.bricks.back().blocks.emplace_back(1, 0);
+        gameState.bricks.back().blocks.emplace_back(0, 1);
     }
 
     // I2 brick
@@ -132,5 +138,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[8]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
         gameState.bricks.emplace_back(&entity);
+        gameState.bricks.back().blocks.emplace_back(0, 0);
+        gameState.bricks.back().blocks.emplace_back(0, 1);
     }
 }
