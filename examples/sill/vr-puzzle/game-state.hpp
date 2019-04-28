@@ -37,6 +37,8 @@ struct GameState {
     std::vector<Brick> bricks; // Bricks and such
 
     // Infos about the current table
+    lava::sill::GameEntity* tableEntity = nullptr;
+    lava::sill::Material* tableMaterial = nullptr;
     lava::sill::Material* tablePanelMaterial = nullptr;
     std::vector<std::vector<BindingPoint>> tableBindingPoints;
 };

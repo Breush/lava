@@ -22,9 +22,14 @@ void setupEnvironment(GameState& gameState)
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-table.glb")(meshComponent);
         entity.get<sill::TransformComponent>().rotate({0, 0, 1}, 3.14156);
+        entity.make<sill::AnimationComponent>();
+        gameState.tableEntity = &entity;
 
         for (auto& node : meshComponent.nodes()) {
-            if (node.name == "table") continue;
+            if (node.name == "table") {
+                gameState.tableMaterial = &node.mesh->primitive(0).material();
+                continue;
+            }
 
             // Getting link to panel material
             if (node.name == "panel") {

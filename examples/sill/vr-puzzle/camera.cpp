@@ -21,8 +21,8 @@ void setupCamera(GameState& gameState)
     auto& entity = engine.make<sill::GameEntity>();
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     auto& cameraComponent = entity.make<sill::CameraComponent>();
-    cameraComponent.translation({-2.f, 3.f, 2.f});
-    cameraComponent.target({0.f, 0.f, 0.f});
+    cameraComponent.translation({-2.f, 0.f, 2.f});
+    cameraComponent.target({0.f, 0.f, 1.f});
 
     // Behavior for user control
     behaviorComponent.onUpdate([&input, &cameraComponent]() {

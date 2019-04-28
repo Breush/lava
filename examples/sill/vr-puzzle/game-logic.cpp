@@ -75,6 +75,8 @@ namespace {
     /// Checks whether the current panel has been solved or not.
     bool checkPanelSolveStatus(GameState& gameState)
     {
+        auto& tableAnimation = gameState.tableEntity->get<sill::AnimationComponent>();
+
         // Reset info about table binding points filling.
         for (auto i = 0u; i < gameState.tableBindingPoints.size(); ++i) {
             for (auto j = 0u; j < gameState.tableBindingPoints[i].size(); ++j) {
@@ -102,9 +104,20 @@ namespace {
         // Check that the panel is filled.
         for (auto i = 0u; i < gameState.tableBindingPoints.size(); ++i) {
             for (auto j = 0u; j < gameState.tableBindingPoints[i].size(); ++j) {
-                if (!gameState.tableBindingPoints[i][j].filled) return false;
+                if (!gameState.tableBindingPoints[i][j].filled) {
+                    // Visual feedback: unsolved panels are white.
+                    tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
+                    tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
+                                          glm::vec4{1.f, 1.f, 1.f, 1.f});
+                    return false;
+                }
             }
         }
+
+        // Visual feedback: solved panels turn green.
+        tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.5f);
+        tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
+                              glm::vec4{0.46, 0.86, 0.46, 1.f});
 
         // All bricks where fine, panel is filled.
         return true;
@@ -159,7 +172,6 @@ namespace {
             // Checking if the panel is solved.
             if (checkPanelSolveStatus(gameState)) {
                 // @todo Should load next level.
-                std::cout << "SUCCESS!" << std::endl;
             }
 
             grabbedBrick = nullptr;
