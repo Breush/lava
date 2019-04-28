@@ -21,6 +21,7 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
         auto& attribute = m_attributes[uniformDefinition.name];
         attribute.type = uniformDefinition.type;
         attribute.fallback = uniformDefinition.fallback;
+        attribute.value = uniformDefinition.fallback;
 
         switch (attribute.type) {
         case UniformType::Texture: {
@@ -76,6 +77,7 @@ void Material::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout 
 void Material::Impl::set(const std::string& uniformName, float value)
 {
     auto& attribute = findAttribute(uniformName);
+    attribute.value.floatValue = value;
     auto offset = attribute.offset;
     reinterpret_cast<float&>(m_ubo.data[offset]) = value;
     updateBindings();
@@ -84,6 +86,7 @@ void Material::Impl::set(const std::string& uniformName, float value)
 void Material::Impl::set(const std::string& uniformName, const glm::vec4& value)
 {
     auto& attribute = findAttribute(uniformName);
+    attribute.value.vec4Value = value;
     auto offset = attribute.offset;
     reinterpret_cast<glm::vec4&>(m_ubo.data[offset]) = value;
     updateBindings();
@@ -96,9 +99,24 @@ void Material::Impl::set(const std::string& uniformName, const Texture& texture)
     updateBindings();
 }
 
+const glm::vec4& Material::Impl::get_vec4(const std::string& uniformName) const
+{
+    auto& attribute = findAttribute(uniformName);
+    return attribute.value.vec4Value;
+}
+
 //----- Private
 
 Material::Impl::Attribute& Material::Impl::findAttribute(const std::string& uniformName)
+{
+    auto pAttribute = m_attributes.find(uniformName);
+    if (pAttribute == m_attributes.end()) {
+        logger.error("magma.vulkan.material") << "Attribute '" << uniformName << "' has not been defined." << std::endl;
+    }
+    return pAttribute->second;
+}
+
+const Material::Impl::Attribute& Material::Impl::findAttribute(const std::string& uniformName) const
 {
     auto pAttribute = m_attributes.find(uniformName);
     if (pAttribute == m_attributes.end()) {

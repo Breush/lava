@@ -29,6 +29,9 @@ namespace lava::sill {
         void set(const std::string& uniformName, const glm::vec4& value);
         void set(const std::string& uniformName, const Texture& texture);
 
+        /// Uniform getters
+        const glm::vec4& get_vec4(const std::string& uniformName) const;
+
     private:
         GameEngine& m_engine;
         magma::Material* m_magma = nullptr;

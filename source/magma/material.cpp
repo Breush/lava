@@ -21,3 +21,6 @@ Material::~Material()
 $pimpl_method(Material, void, set, const std::string&, uniformName, float, value);
 $pimpl_method(Material, void, set, const std::string&, uniformName, const glm::vec4&, value);
 $pimpl_method(Material, void, set, const std::string&, uniformName, const Texture&, texture);
+
+// Uniform getters
+$pimpl_method_const(Material, const glm::vec4&, get_vec4, const std::string&, uniformName);

@@ -32,3 +32,8 @@ void Material::set(const std::string& uniformName, const Texture& texture)
 {
     m_magma->set(uniformName, texture.magma());
 }
+
+const glm::vec4& Material::get_vec4(const std::string& uniformName) const
+{
+    return m_magma->get_vec4(uniformName);
+}

@@ -24,6 +24,9 @@ namespace lava::magma {
         void set(const std::string& uniformName, const glm::vec4& value);
         void set(const std::string& uniformName, const Texture& texture);
 
+        /// Uniform getters
+        const glm::vec4& get_vec4(const std::string& uniformName) const;
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

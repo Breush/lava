@@ -8,6 +8,10 @@
 #include <string>
 
 namespace lava::sill {
+    class Material;
+}
+
+namespace lava::sill {
     /**
      * Allows interpolation between two states.
      */
@@ -24,10 +28,15 @@ namespace lava::sill {
 
         /**
          * Controls animation over the specified flags.
+         *
+         * @fixme We might want a auto-stop when animation ends.
+         * Calling target afterwards would be illegal.
          */
         void start(AnimationFlags flags, float time);
+        void start(AnimationFlags flags, Material& material, const std::string& uniformName, float time);
         void stop(AnimationFlags flags);
         void target(AnimationFlag flag, const glm::mat4& target);
+        void target(AnimationFlag flag, Material& material, const std::string& uniformName, const glm::vec4& target);
 
     public:
         class Impl;

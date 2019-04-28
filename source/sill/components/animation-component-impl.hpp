@@ -14,17 +14,37 @@ namespace lava::sill {
 
         // AnimationComponent
         void start(AnimationFlags flags, float time);
+        void start(AnimationFlags flags, Material& material, const std::string& uniformName, float time);
         void stop(AnimationFlags flags);
         void target(AnimationFlag flag, const glm::mat4& target);
+        void target(AnimationFlag flag, Material& material, const std::string& uniformName, const glm::vec4& target);
 
     protected:
-        struct AnimationInfo {
-            float timeSpent = 0.f;
-            float totalTime = 0.f;
-            std::variant<glm::mat4> startValue;
+        enum class UniformType {
+            Unknown,
+            Float,
+            Vec4,
         };
 
+        struct AnimationInfo {
+            bool needUpdate = true; // When timeSpent < totalTime or if target or time has changed since last update.
+            float timeSpent = 0.f;
+            float totalTime = 0.f;
+            std::variant<glm::mat4, glm::vec4> startValue;
+            std::variant<glm::mat4, glm::vec4> targetValue;
+
+            // For AnimationFlag::MaterialUniform
+            Material* material;
+            std::string uniformName;
+            UniformType uniformType;
+        };
+
+    protected:
+        AnimationInfo& findOrCreateAnimationInfo(AnimationFlag flag);
+        AnimationInfo& findOrCreateAnimationInfo(AnimationFlag flag, Material& material, const std::string& uniformName);
+        void updateInterpolation(AnimationFlag flag, AnimationInfo& animationInfo);
+
     private:
-        std::unordered_map<AnimationFlag, AnimationInfo> m_animationsInfos;
+        std::unordered_map<AnimationFlag, std::vector<AnimationInfo>> m_animationsInfos;
     };
 }

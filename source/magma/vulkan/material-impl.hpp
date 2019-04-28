@@ -18,7 +18,8 @@ namespace lava::magma {
     private:
         struct Attribute {
             UniformType type = UniformType::Unknown;
-            UniformFallback fallback;
+            UniformFallback fallback; // Value to use if user does not change it.
+            UniformFallback value;    // Last known value.
             uint32_t offset = -1u;
             const Texture::Impl* texture = nullptr;
         };
@@ -32,12 +33,15 @@ namespace lava::magma {
         void set(const std::string& uniformName, const glm::vec4& value);
         void set(const std::string& uniformName, const Texture& texture);
 
+        const glm::vec4& get_vec4(const std::string& uniformName) const;
+
         // Internal interface
         void init();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex);
 
     protected:
         Attribute& findAttribute(const std::string& uniformName);
+        const Attribute& findAttribute(const std::string& uniformName) const;
         void updateBindings();
 
     private:
