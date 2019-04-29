@@ -4,6 +4,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <iostream>
 
+#include "./environment.hpp"
+
 using namespace lava;
 
 namespace {
@@ -31,15 +33,11 @@ namespace {
      */
     bool isBindingPointValid(GameState& gameState, const Brick& brick, const BindingPoint& bindingPoint)
     {
+        // @fixme This could be moved to Panel, like tableBindingPoints.filled
+
         for (const auto& block : brick.blocks) {
-            auto blockX = block.first;
-            auto blockY = block.second;
-            for (auto k = 0u; k < brick.rotationLevel; ++k) {
-                std::swap(blockX, blockY);
-                blockX = -blockX;
-            }
-            auto i = bindingPoint.coordinates.first + blockX;
-            auto j = bindingPoint.coordinates.second + blockY;
+            auto i = bindingPoint.coordinates.x + block.x;
+            auto j = bindingPoint.coordinates.y + block.y;
 
             // Check that the block coordinates are valid.
             if (i >= gameState.tableBindingPoints.size()) return false;
@@ -50,6 +48,20 @@ namespace {
         }
 
         return true;
+    }
+
+    /// Should be called each time rotationLevel is changed.
+    void updateBrickBlocks(Brick& brick)
+    {
+        brick.blocks = brick.nonRotatedBlocks;
+
+        for (auto& block : brick.blocks) {
+            // X <= -Y and Y <=  X is a 90° clockwise rotation
+            for (auto k = 0u; k < brick.rotationLevel; ++k) {
+                std::swap(block.x, block.y);
+                block.x = -block.x;
+            }
+        }
     }
 
     /// Find the closest MeshNode for the table binding points.
@@ -77,41 +89,13 @@ namespace {
     {
         auto& tableAnimation = gameState.tableEntity->get<sill::AnimationComponent>();
 
-        // Reset info about table binding points filling.
-        for (auto i = 0u; i < gameState.tableBindingPoints.size(); ++i) {
-            for (auto j = 0u; j < gameState.tableBindingPoints[i].size(); ++j) {
-                gameState.tableBindingPoints[i][j].filled = false;
-            }
-        }
-
-        // Check that all bricks are fine
-        for (auto& brick : gameState.bricks) {
-            if (!brick.snapped) continue;
-
-            for (const auto& block : brick.blocks) {
-                auto blockX = block.first;
-                auto blockY = block.second;
-                for (auto k = 0u; k < brick.rotationLevel; ++k) {
-                    std::swap(blockX, blockY);
-                    blockX = -blockX;
-                }
-                auto i = brick.snapCoordinates.first + blockX;
-                auto j = brick.snapCoordinates.second + blockY;
-                gameState.tableBindingPoints[i][j].filled = true;
-            }
-        }
-
-        // Check that the panel is filled.
-        for (auto i = 0u; i < gameState.tableBindingPoints.size(); ++i) {
-            for (auto j = 0u; j < gameState.tableBindingPoints[i].size(); ++j) {
-                if (!gameState.tableBindingPoints[i][j].filled) {
-                    // Visual feedback: unsolved panels are white.
-                    tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
-                    tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
-                                          glm::vec4{1.f, 1.f, 1.f, 1.f});
-                    return false;
-                }
-            }
+        // Check that the panel is all right.
+        if (!gameState.panel.checkSolveStatus(gameState)) {
+            // Visual feedback: unsolved panels are white.
+            tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
+            tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
+                                  glm::vec4{1.f, 1.f, 1.f, 1.f});
+            return false;
         }
 
         // Visual feedback: solved panels turn green.
@@ -171,7 +155,7 @@ namespace {
 
             // Checking if the panel is solved.
             if (checkPanelSolveStatus(gameState)) {
-                // @todo Should load next level.
+                loadLevel(gameState, gameState.levelId + 1);
             }
 
             grabbedBrick = nullptr;
@@ -187,7 +171,11 @@ namespace {
 
             // The user might be trying to turn is wrist instead of pushing the turning button.
             auto handRotationLevel = computeHandRotationLevel(handTransform);
-            grabbedBrick->rotationLevel = (grabbedBrick->buttonRotationLevel + handRotationLevel) % 4;
+            auto rotationLevel = (grabbedBrick->buttonRotationLevel + handRotationLevel) % 4;
+            if (rotationLevel != grabbedBrick->rotationLevel) {
+                grabbedBrick->rotationLevel = rotationLevel;
+                updateBrickBlocks(*grabbedBrick);
+            }
 
             // Offsetting from hand transform a little bit.
             auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});

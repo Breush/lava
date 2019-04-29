@@ -21,6 +21,8 @@ int main(void)
     sill::GameEngine engine;
     gameState.engine = &engine;
 
+    engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/panel-material.shmag");
+
     // Camera (for companion window)
     setupCamera(gameState);
 

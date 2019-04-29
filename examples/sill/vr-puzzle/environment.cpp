@@ -1,6 +1,9 @@
 #include "./environment.hpp"
 
+#include <iostream>
 #include <sstream>
+
+#include "./symbols.hpp"
 
 using namespace lava;
 
@@ -18,6 +21,10 @@ void setupEnvironment(GameState& gameState)
 
     // Puzzle table
     {
+        // Set up panel material
+        gameState.panelMaterial = &engine.make<sill::Material>("panel");
+
+        // Load and get table info
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-table.glb")(meshComponent);
@@ -33,7 +40,7 @@ void setupEnvironment(GameState& gameState)
 
             // Getting link to panel material
             if (node.name == "panel") {
-                gameState.tablePanelMaterial = &node.mesh->primitive(0).material();
+                node.mesh->primitive(0).material(*gameState.panelMaterial);
                 continue;
             }
 
@@ -54,7 +61,47 @@ void setupEnvironment(GameState& gameState)
 
 void loadLevel(GameState& gameState, uint32_t levelId)
 {
-    if (levelId != 0) return;
+    gameState.levelId = levelId;
+
+    std::cout << "Loading level " << levelId << std::endl;
+
+    if (levelId == 1) {
+        // @todo Currently a new level is just about updating the panel,
+        // there is nothing more to load.
+
+        // Setting up level 1
+        gameState.panel.addLink({0, 0}, {0, 1});
+        gameState.panel.addLink({1, 1}, {2, 1});
+
+        gameState.panelMaterial->set("symbols", gameState.panel.uniformData().data(), gameState.panel.uniformData().size());
+
+        // @todo This following behavior should be done in game-logic because it's meant to be done there.
+        // @fixme Add a timer before dropping everything!
+
+        // Dropping all bricks
+        for (auto& brick : gameState.bricks) {
+            brick.snapped = false;
+            brick.entity->get<sill::BoxColliderComponent>().enabled(true);
+        }
+
+        // Setting table to unsolved status.
+        auto& tableAnimation = gameState.tableEntity->get<sill::AnimationComponent>();
+        tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
+        tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
+                              glm::vec4{1.f, 1.f, 1.f, 1.f});
+
+        // Reset info about table binding points filling.
+        for (auto i = 0u; i < gameState.tableBindingPoints.size(); ++i) {
+            for (auto j = 0u; j < gameState.tableBindingPoints[i].size(); ++j) {
+                gameState.tableBindingPoints[i][j].filled = false;
+            }
+        }
+
+        return;
+    }
+    else if (levelId != 0) {
+        return;
+    }
 
     auto& engine = *gameState.engine;
 
@@ -70,7 +117,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
     {
         auto& texture = engine.make<sill::Texture>();
         texture.loadFromFile("./assets/textures/vr-puzzle/panel-3x3-base.jpg");
-        gameState.tablePanelMaterial->set("albedoMap", texture);
+        gameState.panelMaterial->set("backgroundMap", texture);
     }
 
     // Puzzle individual bricks
@@ -102,9 +149,10 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[2]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
         gameState.bricks.emplace_back(&entity);
-        gameState.bricks.back().blocks.emplace_back(0, 0);
-        gameState.bricks.back().blocks.emplace_back(1, 0);
-        gameState.bricks.back().blocks.emplace_back(0, 1);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(0, 0);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(1, 0);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(0, 1);
+        gameState.bricks.back().blocks = gameState.bricks.back().nonRotatedBlocks;
     }
 
     // T4 brick
@@ -124,10 +172,11 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[6]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
         gameState.bricks.emplace_back(&entity);
-        gameState.bricks.back().blocks.emplace_back(0, 0);
-        gameState.bricks.back().blocks.emplace_back(-1, 0);
-        gameState.bricks.back().blocks.emplace_back(1, 0);
-        gameState.bricks.back().blocks.emplace_back(0, 1);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(0, 0);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(-1, 0);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(1, 0);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(0, 1);
+        gameState.bricks.back().blocks = gameState.bricks.back().nonRotatedBlocks;
     }
 
     // I2 brick
@@ -143,7 +192,8 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         bricks[8]->get<sill::TransformComponent>().translate({0, brickExtent.y, 0});
 
         gameState.bricks.emplace_back(&entity);
-        gameState.bricks.back().blocks.emplace_back(0, 0);
-        gameState.bricks.back().blocks.emplace_back(0, 1);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(0, 0);
+        gameState.bricks.back().nonRotatedBlocks.emplace_back(0, 1);
+        gameState.bricks.back().blocks = gameState.bricks.back().nonRotatedBlocks;
     }
 }

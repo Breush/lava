@@ -1,5 +1,7 @@
 #pragma once
 
+#include "./panel.hpp"
+
 #include <lava/sill.hpp>
 #include <unordered_map>
 
@@ -13,12 +15,13 @@ struct Brick {
 
     // Whether the entity is snapped to binding point and its coordinates if it is.
     bool snapped = false;
-    std::pair<uint32_t, uint32_t> snapCoordinates;
+    glm::uvec2 snapCoordinates;
 
     // The pairs of all blocks making this brick,
     // 0,0 should always be present. The pairs are expressed
     // in relative X,Y coordinates at rotationLevel 0.
-    std::vector<std::pair<int32_t, int32_t>> blocks;
+    std::vector<glm::ivec2> blocks; // These are updated each time the rotationLevel is changed.
+    std::vector<glm::ivec2> nonRotatedBlocks;
 
     Brick(lava::sill::GameEntity* inEntity)
         : entity(inEntity)
@@ -28,17 +31,21 @@ struct Brick {
 
 struct BindingPoint {
     const lava::sill::MeshNode* node = nullptr;
-    std::pair<uint32_t, uint32_t> coordinates;
+    glm::uvec2 coordinates;
     bool filled = false;
 };
 
 struct GameState {
     lava::sill::GameEngine* engine = nullptr;
+    uint32_t levelId = 0u;
+
     std::vector<Brick> bricks; // Bricks and such
 
     // Infos about the current table
     lava::sill::GameEntity* tableEntity = nullptr;
     lava::sill::Material* tableMaterial = nullptr;
-    lava::sill::Material* tablePanelMaterial = nullptr;
     std::vector<std::vector<BindingPoint>> tableBindingPoints;
+
+    Panel panel = Panel(3, 3);
+    lava::sill::Material* panelMaterial = nullptr;
 };
