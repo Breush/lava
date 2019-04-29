@@ -119,6 +119,11 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
     m_textures.emplace_back(std::move(texture));
 }
 
+void GameEngine::Impl::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath)
+{
+    m_renderEngine->registerMaterialFromFile(hrid, shaderPath);
+}
+
 //----- Internals
 
 void GameEngine::Impl::updateInput()
@@ -178,18 +183,10 @@ void GameEngine::Impl::registerMaterials()
     PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
 
     // Font material (used in TextMeshComponent)
-    m_renderEngine->registerMaterialFromFile("font", "./data/shaders/materials/font-material.shmag");
+    registerMaterialFromFile("font", "./data/shaders/materials/font-material.shmag");
 
-    // Roughness-metallic material (used in GLB loader)
-    m_renderEngine->registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
-
-    // @fixme Can be moved to ashe, since there is no need to know magma uniform thingy.
-
-    // Sky material
-    m_renderEngine->registerMaterialFromFile("sky", "./data/shaders/materials/sky-material.shmag");
-
-    // Matcap material
-    m_renderEngine->registerMaterialFromFile("matcap", "./data/shaders/materials/matcap-material.shmag");
+    // PBR roughness-metallic material (used in GLB loader)
+    registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
 }
 
 void GameEngine::Impl::handleEvent(WsEvent& event)

@@ -83,13 +83,15 @@ AnimationComponent::Impl::AnimationInfo& AnimationComponent::Impl::findOrCreateA
         animationInfos.resize(1);
         return animationInfos[0];
     }
+
+    return m_animationsInfos[AnimationFlag::None][0];
 }
 
 AnimationComponent::Impl::AnimationInfo& AnimationComponent::Impl::findOrCreateAnimationInfo(AnimationFlag flag,
                                                                                              Material& material,
                                                                                              const std::string& uniformName)
 {
-    auto& animationInfos = m_animationsInfos[AnimationFlag::MaterialUniform];
+    auto& animationInfos = m_animationsInfos[flag];
     for (auto& animationInfo : animationInfos) {
         if (animationInfo.material == &material && animationInfo.uniformName == uniformName) {
             return animationInfo;

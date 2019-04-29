@@ -7,6 +7,11 @@ namespace lava::ashe {
     public:
         Application()
         {
+            //----- Initializing materials
+
+            m_engine.registerMaterialFromFile("sky", "./data/shaders/materials/sky-material.shmag");
+            m_engine.registerMaterialFromFile("matcap", "./data/shaders/materials/matcap-material.shmag");
+
             //----- Initializing inputs
 
             auto& input = m_engine.input();

@@ -29,6 +29,9 @@ void GameEngine::add(std::unique_ptr<Texture>&& texture)
     m_impl->add(std::move(texture));
 }
 
+// ----- Materials
+$pimpl_method(GameEngine, void, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
+
 // ----- VR
 $pimpl_method_const(GameEngine, bool, vrEnabled);
 $pimpl_method_const(GameEngine, bool, vrDeviceValid, VrDeviceType, deviceType);

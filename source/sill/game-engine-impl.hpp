@@ -33,6 +33,9 @@ namespace lava::sill {
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
 
+        // Materials
+        void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
+
         // VR
         bool vrEnabled() const { return m_renderEngine->vrEnabled(); }
         bool vrDeviceValid(VrDeviceType deviceType) const { return m_renderEngine->vrDeviceValid(deviceType); }

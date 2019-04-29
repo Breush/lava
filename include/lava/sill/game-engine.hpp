@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/mat4x4.hpp>
+#include <lava/core/filesystem.hpp>
 #include <lava/core/vr-device-type.hpp>
 #include <memory>
 
@@ -60,6 +61,13 @@ namespace lava::sill {
         void add(std::unique_ptr<GameEntity>&& gameEntity);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
+        /// @}
+
+        /**
+         * @name Materials
+         */
+        /// @{
+        void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
         /// @}
 
         /**
