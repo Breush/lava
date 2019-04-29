@@ -41,13 +41,14 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId)
 
 vk::ShaderModule ShadersManager::module(const std::string& shaderId, const ModuleOptions& options)
 {
-    auto iModule = m_modules.find(shaderId);
+    auto iModuleInfo = m_modulesInfos.find(shaderId);
     auto isModuleDirty = m_dirtyModules.find(shaderId) != m_dirtyModules.end();
 
     vk::ShaderModule shaderModule = nullptr;
+    std::set<std::string> implsDependencies;
 
     // Load the file if it does not exists or if it is dirty
-    if (iModule == m_modules.end() || isModuleDirty) {
+    if (iModuleInfo == m_modulesInfos.end() || isModuleDirty) {
         auto textCode = adaptGlslFile(shaderId, options.defines);
         auto resolvedShader = resolveShader(textCode);
 
@@ -56,8 +57,10 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const Modul
 
         auto code = vulkan::spvFromGlsl(shaderId, resolvedShader.textCode);
         if (code.empty()) {
-            if (iModule != m_modules.end()) {
-                return iModule->second.vk();
+            // We were not able to compule GLSL file, we try to use previously existing shader
+            // if possible.
+            if (iModuleInfo != m_modulesInfos.end()) {
+                return iModuleInfo->second.module->vk();
             }
             else {
                 logger.error("magma.vulkan.shaders-manager") << "No valid shader for " << shaderId << "." << std::endl;
@@ -66,30 +69,37 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const Modul
         }
 
         // Destroy previous module if any
-        if (isModuleDirty && iModule != m_modules.end()) {
-            m_modules.erase(iModule);
+        if (isModuleDirty && iModuleInfo != m_modulesInfos.end()) {
+            m_modulesInfos.erase(iModuleInfo);
         }
 
-        auto module = vulkan::createShaderModule(m_device, code);
-        shaderModule = module;
-
-        // Adding the callback to all of his dependencies
-        for (const auto& category : resolvedShader.implsDependencies) {
-            if (options.updateCallback != nullptr) {
-                m_impls[category].updateCallbacks.emplace_back(options.updateCallback);
-            }
-            m_impls[category].dirtyShaderIds.emplace(shaderId);
-        }
+        shaderModule = vulkan::createShaderModule(m_device, code);
+        implsDependencies = resolvedShader.implsDependencies;
 
         // Adding the module
-        auto result = m_modules.emplace(shaderId, m_device);
-        if (result.second) result.first->second = module;
+        auto& newModuleInfo = m_modulesInfos[shaderId];
+        newModuleInfo.module = std::make_unique<vulkan::ShaderModule>(m_device);
+        *newModuleInfo.module = shaderModule;
+        newModuleInfo.implsDependencies = implsDependencies;
 
         m_dirtyModules.erase(shaderId);
     }
     // Or just get it
     else {
-        shaderModule = iModule->second.vk();
+        shaderModule = iModuleInfo->second.module->vk();
+        implsDependencies = iModuleInfo->second.implsDependencies;
+
+        if (!shaderModule) {
+            std::cout << "WHAT ?" << shaderId << std::endl;
+        }
+    }
+
+    // Adding the callback to all of his dependencies
+    for (const auto& category : implsDependencies) {
+        if (options.updateCallback != nullptr) {
+            m_impls[category].updateCallbacks.emplace_back(options.updateCallback);
+        }
+        m_impls[category].dirtyShaderIds.emplace(shaderId);
     }
 
     return shaderModule;

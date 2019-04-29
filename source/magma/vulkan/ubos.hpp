@@ -2,6 +2,11 @@
 
 #include "../light-type.hpp"
 
+namespace lava::magma {
+    constexpr const auto MATERIAL_DATA_SIZE = 16u;
+    constexpr const auto MATERIAL_SAMPLERS_SIZE = 8u;
+}
+
 // @fixme UBO definitions should not be in 'vulkan' namespace...
 namespace lava::magma::vulkan {
     struct CameraUbo {
@@ -22,7 +27,7 @@ namespace lava::magma::vulkan {
 
     struct MaterialUbo {
         MaterialUboHeader header;
-        glm::uvec4 data[8];
+        glm::uvec4 data[MATERIAL_DATA_SIZE];
 
         MaterialUbo() {}
     };

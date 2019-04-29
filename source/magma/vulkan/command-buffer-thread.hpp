@@ -23,7 +23,7 @@ namespace lava::magma::vulkan {
             auto& commandBuffer = m_commandBuffers[m_bufferIndex];
 
             job([&] {
-                vk::CommandBufferBeginInfo beginInfo;
+                vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eSimultaneousUse};
                 beginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
 
                 commandBuffer.begin(&beginInfo);

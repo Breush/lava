@@ -140,8 +140,7 @@ void Material::Impl::updateBindings()
     auto imageView = engine.dummyImageView();
 
     // Force all samplers to white image view by default.
-    // @note This 8u comes from number of samples in ./data/deep-deferred-material.set
-    for (auto i = 0u; i < 8u; ++i) {
+    for (auto i = 0u; i < MATERIAL_SAMPLERS_SIZE; ++i) {
         vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, binding, i);
     }
 

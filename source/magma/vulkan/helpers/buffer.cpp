@@ -45,8 +45,7 @@ void vulkan::copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool comm
     device.allocateCommandBuffers(&allocInfo, &commandBuffer);
 
     // Record
-    vk::CommandBufferBeginInfo beginInfo;
-    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+    vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
 
     commandBuffer.begin(&beginInfo);
 

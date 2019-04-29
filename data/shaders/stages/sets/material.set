@@ -1,8 +1,10 @@
 #softdefine MATERIAL_DESCRIPTOR_SET_INDEX
+#softdefine MATERIAL_DATA_SIZE
+#softdefine MATERIAL_SAMPLERS_SIZE
 
 layout(std140, set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 0) uniform MaterialUbo {
     uint id;
-    uvec4 data[8];
+    uvec4 data[MATERIAL_DATA_SIZE];
 } material;
 
-layout(set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 1) uniform sampler2D samplers[8];
+layout(set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 1) uniform sampler2D samplers[MATERIAL_SAMPLERS_SIZE];

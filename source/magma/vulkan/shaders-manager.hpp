@@ -48,6 +48,11 @@ namespace lava::magma {
             std::set<std::string> implsDependencies;
         };
 
+        struct ModuleInfo {
+            std::unique_ptr<vulkan::ShaderModule> module;
+            std::set<std::string> implsDependencies;
+        };
+
     protected:
         /// All the concerned modules will be warned.
         void dirtifyImpl(const std::string& category);
@@ -75,6 +80,6 @@ namespace lava::magma {
         std::set<std::string> m_dirtyModules;
         std::unordered_map<std::string, Impl> m_impls;
         std::unordered_map<std::string, ImplGroup> m_implGroups;
-        std::unordered_map<std::string, vulkan::ShaderModule> m_modules;
+        std::unordered_map<std::string, ModuleInfo> m_modulesInfos;
     };
 }
