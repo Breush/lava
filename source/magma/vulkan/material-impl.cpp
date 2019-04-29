@@ -28,9 +28,31 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
             attribute.offset = textureUniformCount++;
             break;
         }
+        case UniformType::Uint: {
+            if (uniformDefinition.arraySize == 0u) {
+                attribute.offset = basicUniformCount++;
+                set(uniformDefinition.name, uniformDefinition.fallback.uintValue);
+            }
+            else {
+                attribute.offset = basicUniformCount;
+                basicUniformCount += std::ceil(uniformDefinition.arraySize / 4.f);
+                set(uniformDefinition.name, uniformDefinition.fallback.uintArrayValue, uniformDefinition.arraySize);
+            }
+            break;
+        }
         case UniformType::Float: {
             attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.floatValue);
+            break;
+        }
+        case UniformType::Vec2: {
+            attribute.offset = basicUniformCount++;
+            set(uniformDefinition.name, uniformDefinition.fallback.vec2Value);
+            break;
+        }
+        case UniformType::Vec3: {
+            attribute.offset = basicUniformCount++;
+            set(uniformDefinition.name, uniformDefinition.fallback.vec3Value);
             break;
         }
         case UniformType::Vec4: {
@@ -74,12 +96,39 @@ void Material::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout 
 
 //----- Material
 
+void Material::Impl::set(const std::string& uniformName, uint32_t value)
+{
+    auto& attribute = findAttribute(uniformName);
+    attribute.value.uintValue = value;
+    auto offset = attribute.offset;
+    m_ubo.data[offset][0] = value;
+    updateBindings();
+}
+
 void Material::Impl::set(const std::string& uniformName, float value)
 {
     auto& attribute = findAttribute(uniformName);
     attribute.value.floatValue = value;
     auto offset = attribute.offset;
     reinterpret_cast<float&>(m_ubo.data[offset]) = value;
+    updateBindings();
+}
+
+void Material::Impl::set(const std::string& uniformName, const glm::vec2& value)
+{
+    auto& attribute = findAttribute(uniformName);
+    attribute.value.vec2Value = value;
+    auto offset = attribute.offset;
+    reinterpret_cast<glm::vec2&>(m_ubo.data[offset]) = value;
+    updateBindings();
+}
+
+void Material::Impl::set(const std::string& uniformName, const glm::vec3& value)
+{
+    auto& attribute = findAttribute(uniformName);
+    attribute.value.vec3Value = value;
+    auto offset = attribute.offset;
+    reinterpret_cast<glm::vec3&>(m_ubo.data[offset]) = value;
     updateBindings();
 }
 
@@ -96,6 +145,21 @@ void Material::Impl::set(const std::string& uniformName, const Texture& texture)
 {
     auto& attribute = findAttribute(uniformName);
     attribute.texture = &texture.impl();
+    updateBindings();
+}
+
+void Material::Impl::set(const std::string& uniformName, const uint32_t* values, uint32_t size)
+{
+    auto& attribute = findAttribute(uniformName);
+    attribute.value = UniformFallback(values, size);
+    auto offset = attribute.offset;
+    for (auto i = 0u; i < size; i += 4u) {
+        auto& data = m_ubo.data[offset + i / 4u];
+        data[0] = values[i];
+        if (i + 1 < size) data[1] = values[i + 1];
+        if (i + 2 < size) data[2] = values[i + 2];
+        if (i + 3 < size) data[3] = values[i + 3];
+    }
     updateBindings();
 }
 

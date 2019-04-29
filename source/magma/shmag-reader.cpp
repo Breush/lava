@@ -167,6 +167,15 @@ UniformDefinition ShmagReader::parseGeometryUniformDefinition()
     if (type == "float") {
         uniformDefinition.type = UniformType::Float;
     }
+    else if (type == "uint") {
+        uniformDefinition.type = UniformType::Uint;
+    }
+    else if (type == "vec2") {
+        uniformDefinition.type = UniformType::Vec2;
+    }
+    else if (type == "vec3") {
+        uniformDefinition.type = UniformType::Vec3;
+    }
     else if (type == "vec4") {
         uniformDefinition.type = UniformType::Vec4;
     }
@@ -174,46 +183,51 @@ UniformDefinition ShmagReader::parseGeometryUniformDefinition()
         uniformDefinition.type = UniformType::Texture;
     }
     else {
-        errorExpected("type: float, vec4, texture2d");
+        errorExpected("type: uint, float, vec2, vec3, vec4, texture2d");
     }
 
     // Name
     uniformDefinition.name = parseIdentifier();
+    uniformDefinition.arraySize = parseArraySize();
 
     // Default value
-    parseToken(chamber::TokenType::Equal);
+    if (m_lexer->currentToken()->type == chamber::TokenType::Equal) {
+        switch (uniformDefinition.type) {
+        case UniformType::Float: uniformDefinition.fallback.floatValue = parseFloat(); break;
+        case UniformType::Uint: uniformDefinition.fallback.uintValue = parseUint(); break;
+        case UniformType::Vec2: uniformDefinition.fallback.vec2Value = parseVec2(); break;
+        case UniformType::Vec3: uniformDefinition.fallback.vec3Value = parseVec3(); break;
+        case UniformType::Vec4: uniformDefinition.fallback.vec4Value = parseVec4(); break;
+        case UniformType::Texture: {
+            auto textureType = parseString();
 
-    switch (uniformDefinition.type) {
-    case UniformType::Float: {
-        uniformDefinition.fallback.floatValue = parseFloat();
-        break;
-    }
-    case UniformType::Vec4: {
-        uniformDefinition.fallback.vec4Value = parseVec4();
-        break;
-    }
-    case UniformType::Texture: {
-        auto textureType = parseString();
+            if (textureType == "white") {
+                uniformDefinition.fallback.textureTypeValue = UniformTextureType::White;
+            }
+            else if (textureType == "normal") {
+                uniformDefinition.fallback.textureTypeValue = UniformTextureType::Normal;
+            }
+            else if (textureType == "invisible") {
+                uniformDefinition.fallback.textureTypeValue = UniformTextureType::Invisible;
+            }
+            else {
+                errorExpected("texture type: \"white\", \"normal\", \"invisible\"");
+            }
+            break;
+        }
+        default: break;
+        }
 
-        if (textureType == "white") {
-            uniformDefinition.fallback.textureTypeValue = UniformTextureType::White;
-        }
-        else if (textureType == "normal") {
-            uniformDefinition.fallback.textureTypeValue = UniformTextureType::Normal;
-        }
-        else if (textureType == "invisible") {
-            uniformDefinition.fallback.textureTypeValue = UniformTextureType::Invisible;
-        }
-        else {
-            errorExpected("texture type: \"white\", \"normal\", \"invisible\"");
-        }
-        break;
+        // Semicolon
+        parseToken(chamber::TokenType::Semicolon);
     }
-    default: break;
+    else if (m_lexer->currentToken()->type == chamber::TokenType::Semicolon) {
+        // We clean the biggest member, so that everything is defaulted to 0
+        memset(&uniformDefinition.fallback.uintArrayValue, 0, sizeof(UniformFallback));
     }
-
-    // Semicolon
-    parseToken(chamber::TokenType::Semicolon);
+    else {
+        errorExpected(chamber::TokenType::Semicolon);
+    }
 
     return uniformDefinition;
 }
@@ -241,6 +255,7 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
 
     adaptedCode << "// [shmag-reader] Remapped original geometry code." << std::endl;
     auto bracesCount = 1u;
+    auto tokensCountBeforeEndl = 0u;
     while (auto token = m_lexer->nextToken()) {
         auto tokenString = token->string;
         if (token->type == chamber::TokenType::Identifier) {
@@ -251,8 +266,19 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
             else if (token->string == "return")
                 injectGeometryGBufferDataInsertion(adaptedCode);
         }
+        else if (token->type == chamber::TokenType::Sharp) {
+            // So that "#define name value" is followed by std::endl
+            tokensCountBeforeEndl = 4;
+        }
 
         adaptedCode << tokenString << " ";
+
+        if (tokensCountBeforeEndl > 0u) {
+            tokensCountBeforeEndl -= 1u;
+            if (tokensCountBeforeEndl == 0u) {
+                adaptedCode << std::endl;
+            }
+        }
 
         // @todo Make a better pretty print? (Using it in shader-manager too.)
         if (token->type == chamber::TokenType::Semicolon) {
@@ -278,27 +304,56 @@ void ShmagReader::injectGeometryUniformDefinitions(std::stringstream& adaptedCod
     adaptedCode << "// [shmag-reader] Injected uniform definitions." << std::endl;
     uint16_t dataOffset = 0u;
     for (auto& uniformDefinition : m_uniformDefinitions) {
+        const auto& name = uniformDefinition.name;
+
         if (uniformDefinition.type == UniformType::Texture) {
             auto sampler = "samplers[" + std::to_string(m_samplersMap.size()) + "]";
-            adaptedCode << "// sampler2D " << uniformDefinition.name << " = " << sampler << ";" << std::endl;
-            m_samplersMap[uniformDefinition.name] = sampler;
+            adaptedCode << "// sampler2D " << name << " = " << sampler << ";" << std::endl;
+            m_samplersMap[name] = sampler;
+        }
+        else if (uniformDefinition.type == UniformType::Vec2) {
+            adaptedCode << "vec2 " << name << ";" << std::endl;
+            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << dataOffset << "][1]);" << std::endl;
+            dataOffset += 1u;
+        }
+        else if (uniformDefinition.type == UniformType::Vec3) {
+            adaptedCode << "vec3 " << name << ";" << std::endl;
+            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << dataOffset << "][1]);" << std::endl;
+            adaptedCode << name << "[2] = uintBitsToFloat(material.data[" << dataOffset << "][2]);" << std::endl;
+            dataOffset += 1u;
         }
         else if (uniformDefinition.type == UniformType::Vec4) {
-            adaptedCode << "vec4 " << uniformDefinition.name << ";" << std::endl;
-            adaptedCode << uniformDefinition.name << "[0] = uintBitsToFloat(material.data[" << dataOffset << "][0]);"
-                        << std::endl;
-            adaptedCode << uniformDefinition.name << "[1] = uintBitsToFloat(material.data[" << dataOffset << "][1]);"
-                        << std::endl;
-            adaptedCode << uniformDefinition.name << "[2] = uintBitsToFloat(material.data[" << dataOffset << "][2]);"
-                        << std::endl;
-            adaptedCode << uniformDefinition.name << "[3] = uintBitsToFloat(material.data[" << dataOffset << "][3]);"
-                        << std::endl;
+            adaptedCode << "vec4 " << name << ";" << std::endl;
+            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << dataOffset << "][1]);" << std::endl;
+            adaptedCode << name << "[2] = uintBitsToFloat(material.data[" << dataOffset << "][2]);" << std::endl;
+            adaptedCode << name << "[3] = uintBitsToFloat(material.data[" << dataOffset << "][3]);" << std::endl;
             dataOffset += 1u;
         }
         else if (uniformDefinition.type == UniformType::Float) {
-            adaptedCode << "float " << uniformDefinition.name << " = uintBitsToFloat(material.data[" << dataOffset << "][0]);"
-                        << std::endl;
+            adaptedCode << "float " << name << " = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
             dataOffset += 1u;
+        }
+        else if (uniformDefinition.type == UniformType::Uint) {
+            if (uniformDefinition.arraySize == 0u) {
+                adaptedCode << "uint " << name << " = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
+                dataOffset += 1u;
+            }
+            else {
+                adaptedCode << "uint " << name << "[" << uniformDefinition.arraySize << "];" << std::endl;
+                for (auto i = 0u; i < uniformDefinition.arraySize; i += 4u) {
+                    adaptedCode << name << "[" << i << "] = material.data[" << dataOffset << "][0];" << std::endl;
+                    if (i + 1 < uniformDefinition.arraySize)
+                        adaptedCode << name << "[" << i + 1 << "]  = material.data[" << dataOffset << "][1];" << std::endl;
+                    if (i + 2 < uniformDefinition.arraySize)
+                        adaptedCode << name << "[" << i + 2 << "]  = material.data[" << dataOffset << "][2];" << std::endl;
+                    if (i + 3 < uniformDefinition.arraySize)
+                        adaptedCode << name << "[" << i + 3 << "]  = material.data[" << dataOffset << "][3];" << std::endl;
+                    dataOffset += 1u;
+                }
+            }
         }
         else {
             logger.error("magma.shmag-reader") << "Unhandled uniform type." << std::endl;
@@ -547,6 +602,30 @@ std::string ShmagReader::parseIdentifier()
     return parseCurrentIdentifier();
 }
 
+uint32_t ShmagReader::parseArraySize()
+{
+    auto token = m_lexer->nextToken();
+    if (token->type != chamber::TokenType::LeftBracket) {
+        return 0u;
+    }
+
+    auto number = parseUint();
+
+    parseToken(chamber::TokenType::RightBracket);
+
+    token = m_lexer->nextToken();
+    return number;
+}
+
+uint32_t ShmagReader::parseUint()
+{
+    auto token = m_lexer->nextToken();
+    if (token->type != chamber::TokenType::Number) {
+        errorExpected(chamber::TokenType::Number);
+    }
+    return static_cast<uint32_t>(token->number);
+}
+
 float ShmagReader::parseFloat()
 {
     auto token = m_lexer->nextToken();
@@ -563,6 +642,40 @@ std::string ShmagReader::parseString()
         errorExpected(chamber::TokenType::String);
     }
     return token->string;
+}
+
+glm::vec2 ShmagReader::parseVec2()
+{
+    glm::vec2 vector;
+
+    parseIdentifier("vec2");
+    parseToken(chamber::TokenType::LeftParenthesis);
+
+    vector[0u] = parseFloat();
+    parseToken(chamber::TokenType::Comma);
+    vector[1u] = parseFloat();
+
+    parseToken(chamber::TokenType::RightParenthesis);
+
+    return vector;
+}
+
+glm::vec3 ShmagReader::parseVec3()
+{
+    glm::vec3 vector;
+
+    parseIdentifier("vec3");
+    parseToken(chamber::TokenType::LeftParenthesis);
+
+    for (auto i = 0u; i < 2u; ++i) {
+        vector[i] = parseFloat();
+        parseToken(chamber::TokenType::Comma);
+    }
+    vector[3u] = parseFloat();
+
+    parseToken(chamber::TokenType::RightParenthesis);
+
+    return vector;
 }
 
 glm::vec4 ShmagReader::parseVec4()

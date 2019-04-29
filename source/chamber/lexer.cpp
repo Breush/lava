@@ -83,6 +83,16 @@ std::optional<Lexer::Token> Lexer::nextToken()
         m_token.string = "/=";
         break;
     }
+    case CLEX_andand: {
+        m_token.type = TokenType::AndAnd;
+        m_token.string = "&&";
+        break;
+    }
+    case CLEX_oror: {
+        m_token.type = TokenType::OrOr;
+        m_token.string = "||";
+        break;
+    }
     default: {
         if (m_lexer.token < 0) {
             m_token.string = "Error";
@@ -109,6 +119,9 @@ std::optional<Lexer::Token> Lexer::nextToken()
             case '!': m_token.type = TokenType::Not; break;
             case '<': m_token.type = TokenType::Less; break;
             case '>': m_token.type = TokenType::Greater; break;
+            case '&': m_token.type = TokenType::BitwiseAnd; break;
+            case '|': m_token.type = TokenType::BitwiseOr; break;
+            case '#': m_token.type = TokenType::Sharp; break;
             default: logger.warning("chamber.lexer") << "Unhandled single character token '" << character << "'." << std::endl;
             }
         }

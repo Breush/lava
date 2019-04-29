@@ -70,8 +70,12 @@ namespace lava::magma {
         void parseToken(chamber::TokenType tokenType);
         void parseIdentifier(const std::string& expectedIdentifier);
         std::string parseIdentifier();
+        uint32_t parseArraySize();
+        uint32_t parseUint();
         float parseFloat();
         std::string parseString();
+        glm::vec2 parseVec2();
+        glm::vec3 parseVec3();
         glm::vec4 parseVec4();
 
         std::string parseCurrentIdentifier();

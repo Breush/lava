@@ -18,7 +18,22 @@ Material::~Material()
 
 //----- Material
 
+void Material::set(const std::string& uniformName, uint32_t value)
+{
+    m_magma->set(uniformName, value);
+}
+
 void Material::set(const std::string& uniformName, float value)
+{
+    m_magma->set(uniformName, value);
+}
+
+void Material::set(const std::string& uniformName, const glm::vec2& value)
+{
+    m_magma->set(uniformName, value);
+}
+
+void Material::set(const std::string& uniformName, const glm::vec3& value)
 {
     m_magma->set(uniformName, value);
 }
@@ -31,6 +46,11 @@ void Material::set(const std::string& uniformName, const glm::vec4& value)
 void Material::set(const std::string& uniformName, const Texture& texture)
 {
     m_magma->set(uniformName, texture.magma());
+}
+
+void Material::set(const std::string& uniformName, const uint32_t* values, uint32_t size)
+{
+    m_magma->set(uniformName, values, size);
 }
 
 const glm::vec4& Material::get_vec4(const std::string& uniformName) const
