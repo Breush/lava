@@ -8,20 +8,20 @@ namespace lava::sill {
 
 namespace lava::sill {
     enum class SphereSiding {
-        OUT,
-        IN,
+        Out,
+        In,
     };
 
     enum class SphereCoordinatesSystem {
-        UNKNOWN,
-        PANORAMA_SPHERICAL,
+        Unknown,
+        PanoramaSpherical,
     };
 }
 
 namespace lava::sill::makers {
     struct SphereMeshOptions {
-        SphereSiding siding = SphereSiding::OUT;
-        SphereCoordinatesSystem coordinatesSystem = SphereCoordinatesSystem::UNKNOWN;
+        SphereSiding siding = SphereSiding::Out;
+        SphereCoordinatesSystem coordinatesSystem = SphereCoordinatesSystem::Unknown;
     };
 
     std::function<void(MeshComponent&)> sphereMeshMaker(uint32_t tessellation, float diameter,

@@ -25,7 +25,7 @@ int main(void)
         auto cubeSize = (2 + rand() % 20) / 40.f;
         auto& cubeEntity = engine.make<sill::GameEntity>();
         auto& cubeMeshComponent = cubeEntity.make<sill::MeshComponent>();
-        sill::makers::cubeMeshMaker(cubeSize)(cubeMeshComponent);
+        sill::makers::boxMeshMaker(cubeSize)(cubeMeshComponent);
         cubeEntity.get<sill::TransformComponent>().translate({(rand() % 5) / 10.f - 0.2f, // X
                                                               (rand() % 5) / 10.f - 0.2f, // Y
                                                               0.3f + (rand() % 20) / 10.f});

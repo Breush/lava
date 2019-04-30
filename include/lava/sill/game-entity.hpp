@@ -35,6 +35,7 @@ namespace lava::sill {
 
         /// Sets an entity to be our child, and link us as their parent.
         void addChild(GameEntity& child);
+        const std::vector<GameEntity*>& children() const;
         /// @}
 
         /**

@@ -19,6 +19,7 @@ namespace lava::sill {
         void parent(GameEntity& parent) { this->parent(&parent); }
         void parent(GameEntity* parent);
         void addChild(GameEntity& child);
+        const std::vector<GameEntity*>& children() const { return m_children; }
 
         // GameEntity components
         bool hasComponent(const std::string& hrid) const;

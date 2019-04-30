@@ -33,7 +33,7 @@ int main(void)
     {
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
-        sill::makers::cubeMeshMaker(1.f)(meshComponent);
+        sill::makers::boxMeshMaker(1.f)(meshComponent);
         entity.get<sill::TransformComponent>().translate({0.f, -1.2f, 0.f});
     }
 

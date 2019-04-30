@@ -20,6 +20,7 @@ $pimpl_method_const(GameEntity, const GameEntity*, parent);
 $pimpl_method(GameEntity, void, parent, GameEntity&, parent);
 $pimpl_method(GameEntity, void, parent, GameEntity*, parent);
 $pimpl_method(GameEntity, void, addChild, GameEntity&, child);
+$pimpl_method_const(GameEntity, const std::vector<GameEntity*>&, children);
 
 // Components
 $pimpl_method_const(GameEntity, bool, hasComponent, const std::string&, hrid);

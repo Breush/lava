@@ -131,7 +131,7 @@ std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellatio
         }
         tangents.emplace_back(1.f, 0.f, 0.f, 1.f);
 
-        if (options.siding == SphereSiding::IN) {
+        if (options.siding == SphereSiding::In) {
             for (auto i = 0u; i < indices.size(); i += 3u) {
                 std::swap(indices[i], indices[i + 1]);
             }

@@ -25,8 +25,8 @@ int main(void)
     auto& skyboxMeshComponent = skyboxEntity.make<sill::MeshComponent>();
 
     sill::makers::SphereMeshOptions sphereMeshOptions;
-    sphereMeshOptions.siding = sill::SphereSiding::IN;
-    sphereMeshOptions.coordinatesSystem = sill::SphereCoordinatesSystem::PANORAMA_SPHERICAL;
+    sphereMeshOptions.siding = sill::SphereSiding::In;
+    sphereMeshOptions.coordinatesSystem = sill::SphereCoordinatesSystem::PanoramaSpherical;
     sill::makers::sphereMeshMaker(64u, 100.f, sphereMeshOptions)(skyboxMeshComponent);
     skyboxMeshComponent.node(0u).mesh->primitive(0u).material(skyboxMaterial);
 
