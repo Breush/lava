@@ -9,20 +9,6 @@
 using namespace lava;
 
 namespace {
-    /// Should be called each time rotationLevel is changed.
-    void updateBrickBlocks(Brick& brick)
-    {
-        brick.blocks = brick.nonRotatedBlocks;
-
-        for (auto& block : brick.blocks) {
-            // X <= -Y and Y <=  X is a 90° clockwise rotation
-            for (auto k = 0u; k < brick.rotationLevel; ++k) {
-                std::swap(block.x, block.y);
-                block.x = -block.x;
-            }
-        }
-    }
-
     /// Checks whether the current panel has been solved or not.
     bool checkPanelSolveStatus(GameState& gameState)
     {
@@ -76,26 +62,36 @@ namespace {
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
         if (engine.input().justDown("trigger") && gameState.pointedBrick != nullptr) {
             grabbedBrick = gameState.pointedBrick;
-            grabbedBrick->snapped = false;
+            grabbedBrick->unsnap();
             rayPickingEnabled(gameState, false);
 
             // Update the panel filling information.
             checkPanelSolveStatus(gameState);
 
             // We will animate the world transform over 300ms.
-            grabbedBrick->entity->get<sill::AnimationComponent>().start(sill::AnimationFlag::WorldTransform, 0.2f);
+            grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.2f);
         }
         else if (engine.input().justUp("trigger") && grabbedBrick != nullptr) {
-            grabbedBrick->entity->get<sill::AnimationComponent>().stop(sill::AnimationFlag::WorldTransform);
-            grabbedBrick->buttonRotationLevel = grabbedBrick->rotationLevel;
-
-            // If the user let go the brick while it is snapped to a binding point,
-            // we disable physics.
-            grabbedBrick->entity->get<sill::BoxColliderComponent>().enabled(!grabbedBrick->snapped);
+            grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
+            grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());
+            grabbedBrick->extraRotationLevel(0u);
 
             // Checking if the panel is solved.
             if (checkPanelSolveStatus(gameState)) {
+                // Dropping all bricks
+                // @fixme Add a timer before dropping everything!
+                for (auto& brick : gameState.bricks) {
+                    brick.unsnap();
+                }
+                gameState.panel.checkSolveStatus(gameState);
+
                 loadLevel(gameState, gameState.levelId + 1);
+
+                // Setting table to unsolved status.
+                auto& tableAnimation = gameState.tableEntity->get<sill::AnimationComponent>();
+                tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
+                tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
+                                      glm::vec4{1.f, 1.f, 1.f, 1.f});
             }
 
             grabbedBrick = nullptr;
@@ -106,35 +102,32 @@ namespace {
         if (grabbedBrick != nullptr) {
             // Rotate the entity when touchpad is pressed
             if (engine.input().justDown("touchpad")) {
-                grabbedBrick->buttonRotationLevel = (grabbedBrick->buttonRotationLevel + 1) % 4;
-                grabbedBrick->entity->get<sill::AnimationComponent>().start(sill::AnimationFlag::WorldTransform, 0.1f);
+                grabbedBrick->incrementBaseRotationLevel();
+                grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.1f);
             }
 
             // The user might be trying to turn is wrist instead of pushing the turning button.
             auto handRotationLevel = computeHandRotationLevel(handTransform);
-            auto rotationLevel = (grabbedBrick->buttonRotationLevel + handRotationLevel) % 4;
-            if (rotationLevel != grabbedBrick->rotationLevel) {
-                grabbedBrick->rotationLevel = rotationLevel;
-                updateBrickBlocks(*grabbedBrick);
-            }
+            grabbedBrick->extraRotationLevel(handRotationLevel);
 
             // Offsetting from hand transform a little bit.
             auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});
             targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
-            targetTransform = glm::rotate(targetTransform, grabbedBrick->buttonRotationLevel * 3.14156f * 0.5f, {0, 0, 1});
+            targetTransform = glm::rotate(targetTransform, grabbedBrick->baseRotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
 
             // If the hand is close to a binding point, we snap to it.
-            grabbedBrick->snapped = false;
             if (auto bindingPoint = gameState.panel.closestBindingPoint(*grabbedBrick, targetTransform[3])) {
                 targetTransform = bindingPoint->worldTransform;
-                targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel * 3.14156f * 0.5f, {0, 0, 1});
+                targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
 
                 // Set the coordinates of snapped binding point.
-                grabbedBrick->snapped = true;
-                grabbedBrick->snapCoordinates = bindingPoint->coordinates;
+                grabbedBrick->snap(bindingPoint->coordinates);
+            }
+            else {
+                grabbedBrick->unsnap();
             }
 
-            grabbedBrick->entity->get<sill::AnimationComponent>().target(sill::AnimationFlag::WorldTransform, targetTransform);
+            grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);
         }
     }
 }

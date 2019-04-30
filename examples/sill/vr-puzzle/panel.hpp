@@ -27,13 +27,13 @@ public:
     void addLink(const glm::uvec2& from, const glm::uvec2& to);
 
     bool checkSolveStatus(GameState& gameState);
-    void updateFromSnappedBricks(GameState& gameState);
 
     /// Find the closest MeshNode for the table binding points.
     BindingPoint* closestBindingPoint(const Brick& brick, const glm::vec3& position, float minDistance = 0.1f);
 
 protected:
     void updateUniformData();
+    void updateFromSnappedBricks(GameState& gameState);
 
     bool isBindingPointValid(const Brick& brick, const BindingPoint& bindingPoint);
 

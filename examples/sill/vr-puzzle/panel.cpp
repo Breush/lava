@@ -60,7 +60,7 @@ void Panel::extent(const glm::uvec2& extent)
     originTransform[3] = {0, 0, 1.205f, 1}; // @note Panel height, as defined within model
     originTransform = glm::rotate(originTransform, 3.14156f * 0.5f, {0, 0, 1});
     originTransform = glm::rotate(originTransform, 3.14156f * 0.375f, {1, 0, 0});
-    originTransform = glm::translate(originTransform, fextent * brickExtent / 2.f);
+    originTransform = glm::translate(originTransform, fextent * blockExtent / 2.f);
 
     m_bindingPoints.resize(extent.x);
     for (auto i = 0u; i < extent.x; ++i) {
@@ -68,7 +68,7 @@ void Panel::extent(const glm::uvec2& extent)
         for (auto j = 0u; j < extent.y; ++j) {
             m_bindingPoints[i][j].worldTransform =
                 m_entity->get<sill::TransformComponent>().worldTransform()
-                * glm::translate(originTransform, glm::vec3(i * brickExtent.x, j * brickExtent.y, 0.f));
+                * glm::translate(originTransform, glm::vec3(i * blockExtent.x, j * blockExtent.y, 0.f));
             m_bindingPoints[i][j].coordinates = {i, j};
             m_bindingPoints[i][j].hasBrickSnapped = false;
         }
@@ -127,8 +127,9 @@ bool Panel::checkSolveStatus(GameState& gameState)
         // Find the brick that has 'from'.
         const Brick* fromBrick = nullptr;
         for (const auto& brick : gameState.bricks) {
-            for (const auto& block : brick.blocks) {
-                if (brick.snapCoordinates.x + block.x == from.x && brick.snapCoordinates.y + block.y == from.y) {
+            for (const auto& block : brick.blocks()) {
+                if (brick.snapCoordinates().x + block.coordinates.x == from.x
+                    && brick.snapCoordinates().y + block.coordinates.y == from.y) {
                     fromBrick = &brick;
                     break;
                 }
@@ -137,8 +138,9 @@ bool Panel::checkSolveStatus(GameState& gameState)
 
         // Check that it also has 'to'.
         bool foundTo = false;
-        for (const auto& block : fromBrick->blocks) {
-            if (fromBrick->snapCoordinates.x + block.x == to.x && fromBrick->snapCoordinates.y + block.y == to.y) {
+        for (const auto& block : fromBrick->blocks()) {
+            if (fromBrick->snapCoordinates().x + block.coordinates.x == to.x
+                && fromBrick->snapCoordinates().y + block.coordinates.y == to.y) {
                 foundTo = true;
                 break;
             }
@@ -163,11 +165,11 @@ void Panel::updateFromSnappedBricks(GameState& gameState)
     }
 
     for (auto& brick : gameState.bricks) {
-        if (!brick.snapped) continue;
+        if (!brick.snapped()) continue;
 
-        for (const auto& block : brick.blocks) {
-            auto i = brick.snapCoordinates.x + block.x;
-            auto j = brick.snapCoordinates.y + block.y;
+        for (const auto& block : brick.blocks()) {
+            auto i = brick.snapCoordinates().x + block.coordinates.x;
+            auto j = brick.snapCoordinates().y + block.coordinates.y;
             m_bindingPoints[i][j].hasBrickSnapped = true;
         }
     }
@@ -219,9 +221,9 @@ void Panel::updateUniformData()
 
 bool Panel::isBindingPointValid(const Brick& brick, const BindingPoint& bindingPoint)
 {
-    for (const auto& block : brick.blocks) {
-        auto i = bindingPoint.coordinates.x + block.x;
-        auto j = bindingPoint.coordinates.y + block.y;
+    for (const auto& block : brick.blocks()) {
+        auto i = bindingPoint.coordinates.x + block.coordinates.x;
+        auto j = bindingPoint.coordinates.y + block.coordinates.y;
 
         // Check that the block coordinates are valid.
         if (i >= m_extent.x) return false;
