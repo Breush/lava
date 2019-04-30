@@ -25,6 +25,8 @@ BoxColliderComponent::~BoxColliderComponent()
     delete m_impl;
 }
 
+$pimpl_method(BoxColliderComponent, void, dimensions, const glm::vec3&, dimensions);
+
 // Box rigid body
 $pimpl_method_const(BoxColliderComponent, bool, enabled);
 $pimpl_method(BoxColliderComponent, void, enabled, bool, enabled);

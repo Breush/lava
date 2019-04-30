@@ -23,6 +23,11 @@ BoxColliderComponent::Impl::~Impl()
     // @fixme Remove from dike
 }
 
+void BoxColliderComponent::Impl::dimensions(const glm::vec3& dimensions)
+{
+    m_rigidBody->dimensions(dimensions);
+}
+
 //----- IComponent
 
 void BoxColliderComponent::Impl::update(float /* dt */)

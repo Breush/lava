@@ -10,6 +10,8 @@ namespace lava::dike {
     public:
         Impl(PhysicsEngine& engine, const glm::vec3& dimensions);
 
+        void dimensions(const glm::vec3& dimensions);
+
         // IRigidBody
         bool enabled() const { return m_enabled; }
         void enabled(bool enabled);

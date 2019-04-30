@@ -9,6 +9,9 @@ namespace lava::dike {
         BoxRigidBody(PhysicsEngine& engine, const glm::vec3& dimensions);
         ~BoxRigidBody();
 
+        // Update dimensions after creation.
+        void dimensions(const glm::vec3& dimensions);
+
         // IRigidBody
         bool enabled() const final;
         void enabled(bool enabled) final;

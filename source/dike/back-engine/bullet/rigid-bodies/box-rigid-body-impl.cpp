@@ -6,8 +6,20 @@ using namespace lava::dike;
 
 BoxRigidBody::Impl::Impl(PhysicsEngine& engine, const glm::vec3& dimensions)
     : m_engine(engine.impl())
-    , m_shape(btVector3{dimensions.x / 2, dimensions.y / 2, dimensions.z / 2}) // @note btBoxShape takes halfExtent
+    , m_shape({0, 0, 0})
 {
+    this->dimensions(dimensions);
+}
+
+void BoxRigidBody::Impl::dimensions(const glm::vec3& dimensions)
+{
+    if (m_rigidBody != nullptr) {
+        m_engine.dynamicsWorld().removeRigidBody(m_rigidBody.get());
+    }
+
+    // @note btBoxShape takes halfExtent
+    m_shape = btBoxShape(btVector3{dimensions.x / 2, dimensions.y / 2, dimensions.z / 2});
+
     if (m_mass > 0.f) {
         m_shape.calculateLocalInertia(m_mass, m_inertia);
     }
@@ -15,6 +27,7 @@ BoxRigidBody::Impl::Impl(PhysicsEngine& engine, const glm::vec3& dimensions)
     btRigidBody::btRigidBodyConstructionInfo constructionInfo(m_mass, &m_motionState, &m_shape, m_inertia);
     constructionInfo.m_restitution = 0.5f;
     m_rigidBody = std::make_unique<btRigidBody>(constructionInfo);
+
     m_engine.dynamicsWorld().addRigidBody(m_rigidBody.get());
 }
 

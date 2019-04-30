@@ -6,6 +6,8 @@ using namespace lava::dike;
 
 $pimpl_class(BoxRigidBody, PhysicsEngine&, engine, const glm::vec3&, dimensions);
 
+$pimpl_method(BoxRigidBody, void, dimensions, const glm::vec3&, dimensions);
+
 $pimpl_method_const(BoxRigidBody, bool, enabled);
 $pimpl_method(BoxRigidBody, void, enabled, bool, enabled);
 

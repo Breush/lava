@@ -17,6 +17,8 @@ namespace lava::sill {
 
         ~BoxColliderComponent();
 
+        void dimensions(const glm::vec3& dimensions);
+
         // Box rigid body
         bool enabled() const;
         void enabled(bool enabled);
