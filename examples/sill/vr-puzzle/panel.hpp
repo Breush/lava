@@ -2,30 +2,52 @@
 
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <lava/sill.hpp>
 #include <vector>
 
+class Brick;
 class GameState;
 
 class Panel {
 public:
-    Panel(uint32_t width, uint32_t height);
+    struct BindingPoint {
+        glm::mat4 worldTransform = glm::mat4(1.f);
+        glm::uvec2 coordinates = glm::uvec2(-1u, -1u);
+        bool hasBrickSnapped = false;
+    };
 
-    // The panel rules as taken as input by the panel's material.
-    const std::vector<uint32_t>& uniformData() const { return m_uniformData; }
+public:
+    /// Load meshes and materials. Should be called before extent().
+    void init(GameState& gameState);
 
-    // from and to should be at distance 1
+    /// Update extent and associated materials visuals. This also resets all rules.
+    void extent(const glm::uvec2& extent);
+
+    /// 'from' and 'to' should be at distance 1.
     void addLink(const glm::uvec2& from, const glm::uvec2& to);
 
     bool checkSolveStatus(GameState& gameState);
+    void updateFromSnappedBricks(GameState& gameState);
+
+    /// Find the closest MeshNode for the table binding points.
+    BindingPoint* closestBindingPoint(const Brick& brick, const glm::vec3& position, float minDistance = 0.1f);
 
 protected:
-    void updateFillingInfo(GameState& gameState);
     void updateUniformData();
 
-private:
-    uint32_t m_width = 0u;
-    uint32_t m_height = 0u;
+    bool isBindingPointValid(const Brick& brick, const BindingPoint& bindingPoint);
 
-    std::vector<uint32_t> m_uniformData;
+private:
+    // Configuration
+    glm::uvec2 m_extent = {0u, 0u};
     std::vector<std::pair<glm::uvec2, glm::uvec2>> m_links;
+
+    // Data
+    std::vector<uint32_t> m_uniformData;
+    std::vector<std::vector<BindingPoint>> m_bindingPoints;
+
+    // Mesh
+    lava::sill::GameEntity* m_entity = nullptr;
+    lava::sill::MeshNode* m_meshNode = nullptr;
+    lava::sill::Material* m_material = nullptr;
 };

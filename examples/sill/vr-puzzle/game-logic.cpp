@@ -26,30 +26,6 @@ namespace {
         return closestBrick;
     }
 
-    /**
-     * Checks whether the binding point is valid for the brick.
-     *
-     * Valid: no overlapping with other bricks, completely within the panel dimensions.
-     */
-    bool isBindingPointValid(GameState& gameState, const Brick& brick, const BindingPoint& bindingPoint)
-    {
-        // @fixme This could be moved to Panel, like tableBindingPoints.filled
-
-        for (const auto& block : brick.blocks) {
-            auto i = bindingPoint.coordinates.x + block.x;
-            auto j = bindingPoint.coordinates.y + block.y;
-
-            // Check that the block coordinates are valid.
-            if (i >= gameState.tableBindingPoints.size()) return false;
-            if (j >= gameState.tableBindingPoints[i].size()) return false;
-
-            // Check that the block coordinates are empty.
-            if (gameState.tableBindingPoints[i][j].filled) return false;
-        }
-
-        return true;
-    }
-
     /// Should be called each time rotationLevel is changed.
     void updateBrickBlocks(Brick& brick)
     {
@@ -64,26 +40,6 @@ namespace {
         }
     }
 
-    /// Find the closest MeshNode for the table binding points.
-    BindingPoint* findClosestTableBindingPoint(GameState& gameState, const Brick& brick, const glm::vec3& position,
-                                               float minDistance = 0.1f)
-    {
-        BindingPoint* closestBindingPoint = nullptr;
-
-        for (auto& tableBindingPoints : gameState.tableBindingPoints) {
-            for (auto& bindingPoint : tableBindingPoints) {
-                auto distance = glm::distance(glm::vec3(bindingPoint.node->worldTransform[3]), position);
-                if (distance < minDistance) {
-                    if (!isBindingPointValid(gameState, brick, bindingPoint)) continue;
-                    minDistance = distance;
-                    closestBindingPoint = &bindingPoint;
-                }
-            }
-        }
-
-        return closestBindingPoint;
-    }
-
     /// Checks whether the current panel has been solved or not.
     bool checkPanelSolveStatus(GameState& gameState)
     {
@@ -92,14 +48,14 @@ namespace {
         // Check that the panel is all right.
         if (!gameState.panel.checkSolveStatus(gameState)) {
             // Visual feedback: unsolved panels are white.
-            tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
+            tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.5f);
             tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
                                   glm::vec4{1.f, 1.f, 1.f, 1.f});
             return false;
         }
 
         // Visual feedback: solved panels turn green.
-        tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.5f);
+        tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
         tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
                               glm::vec4{0.46, 0.86, 0.46, 1.f});
 
@@ -184,10 +140,9 @@ namespace {
 
             // If the hand is close to a binding point, we snap to it.
             grabbedBrick->snapped = false;
-            if (auto bindingPoint = findClosestTableBindingPoint(gameState, *grabbedBrick, targetTransform[3])) {
-                targetTransform = bindingPoint->node->worldTransform;
-                targetTransform = glm::rotate(targetTransform, -3.14156f * 0.125f, {1, 0, 0});
-                targetTransform = glm::rotate(targetTransform, grabbedBrick->rotationLevel * 3.14156f * 0.5f, {0, 0, 1});
+            if (auto bindingPoint = gameState.panel.closestBindingPoint(*grabbedBrick, targetTransform[3])) {
+                targetTransform = bindingPoint->worldTransform;
+                targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel * 3.14156f * 0.5f, {0, 0, 1});
 
                 // Set the coordinates of snapped binding point.
                 grabbedBrick->snapped = true;

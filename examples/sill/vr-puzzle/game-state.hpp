@@ -29,23 +29,15 @@ struct Brick {
     }
 };
 
-struct BindingPoint {
-    const lava::sill::MeshNode* node = nullptr;
-    glm::uvec2 coordinates;
-    bool filled = false;
-};
-
 struct GameState {
     lava::sill::GameEngine* engine = nullptr;
     uint32_t levelId = 0u;
 
-    std::vector<Brick> bricks; // Bricks and such
+    // Bricks
+    std::vector<Brick> bricks;
 
-    // Infos about the current table
+    // Current table
+    Panel panel;
     lava::sill::GameEntity* tableEntity = nullptr;
     lava::sill::Material* tableMaterial = nullptr;
-    std::vector<std::vector<BindingPoint>> tableBindingPoints;
-
-    Panel panel = Panel(3, 3);
-    lava::sill::Material* panelMaterial = nullptr;
 };

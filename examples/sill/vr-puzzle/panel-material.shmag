@@ -26,10 +26,10 @@ geometry {
 
         // @fixme Somehow uv.x is reversed in mesh model,
         // we should fix that upstream to prevent this fix.
-        vec2 pixel = vec2(1 - uv.x, uv.y);
+        vec2 panelUv = vec2(1 - uv.x, uv.y);
 
-        uvec2 square = uvec2(floor(extent * pixel));
-        vec2 squareUv = extent * pixel - square;
+        uvec2 square = uvec2(floor(extent * panelUv));
+        vec2 squareUv = extent * panelUv - square;
 
         uint symbol = symbols[uint(extent.y) * square.x + square.y];
 
@@ -56,6 +56,11 @@ geometry {
             if ((symbol & LINK_SOUTH_FLAG) != 0 && squareUv.x > 0.45 && squareUv.x < 0.55 && squareUv.y < 0.5) {
                 backgroundColor = vec4(0, 0, 0, 1);
             }
+        }
+
+        // Overall grid
+        if (squareUv.x < 0.01 || squareUv.x > 0.99 || squareUv.y < 0.01 || squareUv.y > 0.99) {
+            backgroundColor = vec4(0, 0, 0, 1);
         }
 
         gBuffer.color = backgroundMapColor * backgroundColor;
