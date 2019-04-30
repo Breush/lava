@@ -43,6 +43,9 @@ namespace lava::dike {
         /// @{
         void add(std::unique_ptr<IStaticRigidBody>&& rigidBody);
         void add(std::unique_ptr<IRigidBody>&& rigidBody);
+
+        void remove(const IStaticRigidBody& rigidBody);
+        void remove(const IRigidBody& rigidBody);
         /// @}
 
     public:

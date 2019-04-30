@@ -18,7 +18,10 @@ SphereColliderComponent::Impl::Impl(GameEntity& entity, float diameter)
     onTransformChanged();
 }
 
-SphereColliderComponent::Impl::~Impl() {}
+SphereColliderComponent::Impl::~Impl()
+{
+    m_physicsEngine.remove(*m_rigidBody);
+}
 
 //----- IComponent
 

@@ -20,7 +20,7 @@ BoxColliderComponent::Impl::Impl(GameEntity& entity, const glm::vec3& dimensions
 
 BoxColliderComponent::Impl::~Impl()
 {
-    // @fixme Remove from dike
+    m_physicsEngine.remove(*m_rigidBody);
 }
 
 void BoxColliderComponent::Impl::dimensions(const glm::vec3& dimensions)

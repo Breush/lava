@@ -9,6 +9,7 @@ namespace lava::dike {
     class SphereRigidBody::Impl {
     public:
         Impl(PhysicsEngine& engine, float diameter);
+        ~Impl();
 
         // IRigidBody
         bool enabled() const { return m_enabled; }

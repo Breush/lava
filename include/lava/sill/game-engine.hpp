@@ -61,6 +61,8 @@ namespace lava::sill {
         void add(std::unique_ptr<GameEntity>&& gameEntity);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
+
+        void remove(const GameEntity& gameEntity);
         /// @}
 
         /**

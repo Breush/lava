@@ -11,6 +11,13 @@ BoxRigidBody::Impl::Impl(PhysicsEngine& engine, const glm::vec3& dimensions)
     this->dimensions(dimensions);
 }
 
+BoxRigidBody::Impl::~Impl()
+{
+    if (m_enabled) {
+        m_engine.dynamicsWorld().removeRigidBody(m_rigidBody.get());
+    }
+}
+
 void BoxRigidBody::Impl::dimensions(const glm::vec3& dimensions)
 {
     if (m_rigidBody != nullptr) {

@@ -20,4 +20,7 @@ PlaneColliderComponent::Impl::Impl(GameEntity& entity, const glm::vec3& normal)
     // as the collider might be offseted
 }
 
-PlaneColliderComponent::Impl::~Impl() {}
+PlaneColliderComponent::Impl::~Impl()
+{
+    m_physicsEngine.remove(*m_staticRigidBody);
+}

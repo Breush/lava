@@ -29,6 +29,8 @@ void GameEngine::add(std::unique_ptr<Texture>&& texture)
     m_impl->add(std::move(texture));
 }
 
+$pimpl_method(GameEngine, void, remove, const GameEntity&, entity);
+
 // ----- Materials
 $pimpl_method(GameEngine, void, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 

@@ -25,3 +25,23 @@ void PhysicsEngine::Impl::add(std::unique_ptr<IRigidBody>&& rigidBody)
 {
     m_rigidBodies.emplace_back(std::move(rigidBody));
 }
+
+void PhysicsEngine::Impl::remove(const IStaticRigidBody& rigidBody)
+{
+    for (auto iRigidBody = m_staticRigidBodies.begin(); iRigidBody != m_staticRigidBodies.end(); iRigidBody++) {
+        if (iRigidBody->get() == &rigidBody) {
+            m_staticRigidBodies.erase(iRigidBody);
+            break;
+        }
+    }
+}
+
+void PhysicsEngine::Impl::remove(const IRigidBody& rigidBody)
+{
+    for (auto iRigidBody = m_rigidBodies.begin(); iRigidBody != m_rigidBodies.end(); iRigidBody++) {
+        if (iRigidBody->get() == &rigidBody) {
+            m_rigidBodies.erase(iRigidBody);
+            break;
+        }
+    }
+}

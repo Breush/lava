@@ -9,6 +9,7 @@ namespace lava::dike {
     class BoxRigidBody::Impl {
     public:
         Impl(PhysicsEngine& engine, const glm::vec3& dimensions);
+        ~Impl();
 
         void dimensions(const glm::vec3& dimensions);
 

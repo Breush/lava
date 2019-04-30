@@ -32,6 +32,7 @@ namespace lava::sill {
         void add(std::unique_ptr<GameEntity>&& gameEntity);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
+        void remove(const GameEntity& gameEntity);
 
         // Materials
         void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
@@ -97,6 +98,7 @@ namespace lava::sill {
         // Entities
         std::vector<std::unique_ptr<GameEntity>> m_entities;
         std::vector<std::unique_ptr<GameEntity>> m_pendingAddedEntities;
+        std::vector<const GameEntity*> m_pendingRemovedEntities;
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
 

@@ -9,6 +9,8 @@ namespace lava::dike {
         ~Impl();
 
     private:
+        PhysicsEngine& m_engine;
+
         btStaticPlaneShape m_shape;
         btRigidBody::btRigidBodyConstructionInfo m_constructionInfo;
         std::unique_ptr<btRigidBody> m_rigidBody;

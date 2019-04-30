@@ -5,7 +5,8 @@
 using namespace lava::dike;
 
 PlaneStaticRigidBody::Impl::Impl(PhysicsEngine& engine, const glm::vec3& normal)
-    : m_shape(btVector3(normal.x, normal.y, normal.z), 0)
+    : m_engine(engine)
+    , m_shape(btVector3(normal.x, normal.y, normal.z), 0)
     , m_constructionInfo(0.f, nullptr, &m_shape)
 {
     m_constructionInfo.m_restitution = 0.5f;
@@ -16,5 +17,5 @@ PlaneStaticRigidBody::Impl::Impl(PhysicsEngine& engine, const glm::vec3& normal)
 
 PlaneStaticRigidBody::Impl::~Impl()
 {
-    // @todo Delete rigid body!
+    m_engine.impl().dynamicsWorld().removeRigidBody(m_rigidBody.get());
 }

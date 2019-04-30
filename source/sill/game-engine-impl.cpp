@@ -119,6 +119,13 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
     m_textures.emplace_back(std::move(texture));
 }
 
+void GameEngine::Impl::remove(const GameEntity& gameEntity)
+{
+    m_pendingRemovedEntities.emplace_back(&gameEntity);
+}
+
+//----- Materials
+
 void GameEngine::Impl::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath)
 {
     m_renderEngine->registerMaterialFromFile(hrid, shaderPath);
@@ -164,7 +171,7 @@ void GameEngine::Impl::updateEntities(float dt)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    // Add all new components
+    // Add all new entities
     for (auto& entity : m_pendingAddedEntities) {
         m_entities.emplace_back(std::move(entity));
     }
@@ -175,7 +182,17 @@ void GameEngine::Impl::updateEntities(float dt)
         entity->impl().update(dt);
     }
 
-    // @todo Remove pending removed entities
+    // Remove pending entities
+    for (auto pEntity : m_pendingRemovedEntities) {
+        for (auto iEntity = m_entities.begin(); iEntity != m_entities.end();) {
+            if (iEntity->get() == pEntity) {
+                iEntity = m_entities.erase(iEntity);
+                continue;
+            }
+            iEntity++;
+        }
+    }
+    m_pendingRemovedEntities.clear();
 }
 
 void GameEngine::Impl::registerMaterials()
