@@ -11,8 +11,7 @@ int main(void)
     /**
      * @todo
      * - Some more puzzle rules.
-     * - Visual feedback (panel failure, explain why), grabbed brick identification.
-     * - Raycast to pick pointed brick.
+     * - Visual feedback (panel failure, explain why), better grabbed brick identification.
      * - Mesh instances so that bricks are not duplicated.
      */
 

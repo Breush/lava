@@ -23,6 +23,8 @@ struct Brick {
     std::vector<glm::ivec2> blocks; // These are updated each time the rotationLevel is changed.
     std::vector<glm::ivec2> nonRotatedBlocks;
 
+    glm::vec3 color = {1, 1, 1};
+
     Brick(lava::sill::GameEntity* inEntity)
         : entity(inEntity)
     {
@@ -33,8 +35,11 @@ struct GameState {
     lava::sill::GameEngine* engine = nullptr;
     uint32_t levelId = 0u;
 
+    lava::sill::GameEntity* rayPickingEntity = nullptr;
+
     // Bricks
     std::vector<Brick> bricks;
+    Brick* pointedBrick = nullptr;
 
     // Current table
     Panel panel;

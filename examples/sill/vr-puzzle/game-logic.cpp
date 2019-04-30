@@ -9,23 +9,6 @@
 using namespace lava;
 
 namespace {
-    /// Find the closest brick according the specified position.
-    Brick* findClosestBrick(GameState& gameState, const glm::vec3& position, float minDistance = 1000.f)
-    {
-        Brick* closestBrick = nullptr;
-
-        for (auto& brick : gameState.bricks) {
-            auto brickTranslation = brick.entity->get<sill::TransformComponent>().translation();
-            auto distance = glm::distance(brickTranslation, position);
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestBrick = &brick;
-            }
-        }
-
-        return closestBrick;
-    }
-
     /// Should be called each time rotationLevel is changed.
     void updateBrickBlocks(Brick& brick)
     {
@@ -91,9 +74,10 @@ namespace {
         auto handTransform = engine.vrDeviceTransform(VrDeviceType::RightHand);
 
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
-        if (engine.input().justDown("trigger")) {
-            grabbedBrick = findClosestBrick(gameState, handTransform[3]);
+        if (engine.input().justDown("trigger") && gameState.pointedBrick != nullptr) {
+            grabbedBrick = gameState.pointedBrick;
             grabbedBrick->snapped = false;
+            rayPickingEnabled(gameState, false);
 
             // Update the panel filling information.
             checkPanelSolveStatus(gameState);
@@ -101,7 +85,7 @@ namespace {
             // We will animate the world transform over 300ms.
             grabbedBrick->entity->get<sill::AnimationComponent>().start(sill::AnimationFlag::WorldTransform, 0.2f);
         }
-        else if (engine.input().justUp("trigger")) {
+        else if (engine.input().justUp("trigger") && grabbedBrick != nullptr) {
             grabbedBrick->entity->get<sill::AnimationComponent>().stop(sill::AnimationFlag::WorldTransform);
             grabbedBrick->buttonRotationLevel = grabbedBrick->rotationLevel;
 
@@ -115,6 +99,7 @@ namespace {
             }
 
             grabbedBrick = nullptr;
+            rayPickingEnabled(gameState, true);
         }
 
         // Update entity to us whenever it is in grabbing state.
