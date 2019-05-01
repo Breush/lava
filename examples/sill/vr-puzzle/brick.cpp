@@ -1,5 +1,7 @@
 #include "./brick.hpp"
 
+#include <iostream>
+
 #include "./game-state.hpp"
 
 using namespace lava;
@@ -7,10 +9,19 @@ using namespace lava;
 Brick::Brick(GameState& gameState)
     : m_gameState(gameState)
 {
-    m_entity = &m_gameState.engine->make<sill::GameEntity>();
+    m_entity = &gameState.engine->make<sill::GameEntity>();
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::AnimationComponent>();
     m_entity->make<sill::BoxColliderComponent>();
+}
+
+Brick::~Brick()
+{
+    m_gameState.engine->remove(*m_entity);
+
+    for (auto& block : m_blocks) {
+        m_gameState.engine->remove(*block.entity);
+    }
 }
 
 void Brick::blocks(std::vector<glm::ivec2> blocks)
@@ -51,6 +62,10 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
                                                                      blockExtent.z});
 
     // Update blocks
+    m_baseRotationLevel = 0u;
+    m_extraRotationLevel = 0u;
+
+    updateBlocksColor();
     updateBlocksFromRotationLevel();
 }
 
@@ -58,26 +73,30 @@ void Brick::color(const glm::vec3& color)
 {
     m_color = color;
 
-    for (auto& block : m_blocks) {
-        block.entity->get<sill::MeshComponent>().node(1).mesh->primitive(0).material().set("albedoColor", {0, 1, 1});
-    }
+    updateBlocksColor();
 }
 
 void Brick::unsnap()
 {
-    if (!m_snapped) return;
+    if (m_snapPanel == nullptr) return;
 
-    m_snapped = false;
+    m_snapPanel = nullptr;
     m_entity->get<sill::BoxColliderComponent>().enabled(true);
 }
 
-void Brick::snap(const glm::uvec2& snapCoordinates)
+void Brick::snap(const Panel& panel, const glm::uvec2& snapCoordinates)
 {
-    if (m_snapped && m_snapCoordinates == snapCoordinates) return;
+    if (m_snapPanel == &panel && m_snapCoordinates == snapCoordinates) return;
 
-    m_snapped = true;
+    m_snapPanel = &panel;
     m_snapCoordinates = snapCoordinates;
     m_entity->get<sill::BoxColliderComponent>().enabled(false);
+}
+
+uint32_t Brick::incrementBaseRotationLevel()
+{
+    baseRotationLevel((m_baseRotationLevel + 1u) % 4u);
+    return m_baseRotationLevel;
 }
 
 void Brick::baseRotationLevel(uint32_t baseRotationLevel)
@@ -97,6 +116,13 @@ void Brick::extraRotationLevel(uint32_t extraRotationLevel)
 }
 
 // Internal
+
+void Brick::updateBlocksColor()
+{
+    for (auto& block : m_blocks) {
+        block.entity->get<sill::MeshComponent>().node(1).mesh->primitive(0).material().set("albedoColor", m_color);
+    }
+}
 
 void Brick::updateBlocksFromRotationLevel()
 {

@@ -13,11 +13,7 @@ struct GameState {
     lava::sill::GameEntity* rayPickingEntity = nullptr;
 
     // Bricks
-    std::vector<Brick> bricks;
+    std::vector<std::unique_ptr<Panel>> panels;
+    std::vector<std::unique_ptr<Brick>> bricks;
     Brick* pointedBrick = nullptr;
-
-    // Current table
-    Panel panel;
-    lava::sill::GameEntity* tableEntity = nullptr;
-    lava::sill::Material* tableMaterial = nullptr;
 };

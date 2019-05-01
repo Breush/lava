@@ -85,7 +85,7 @@ void InputManager::Impl::update(WsEvent& event)
     else if (event.type == WsEventType::MouseButtonReleased) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
-            if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end()) {
+            if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end() && action.activeness != 0u) {
                 action.activeness -= 1u;
             }
         }
@@ -103,7 +103,7 @@ void InputManager::Impl::update(WsEvent& event)
     else if (event.type == WsEventType::KeyReleased) {
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
-            if (action.keys.find(event.key.which) != action.keys.end()) {
+            if (action.keys.find(event.key.which) != action.keys.end() && action.activeness != 0u) {
                 action.activeness -= 1u;
             }
         }

@@ -10,7 +10,8 @@
 
 using namespace lava;
 
-void Panel::init(GameState& gameState)
+Panel::Panel(GameState& gameState)
+    : m_gameState(gameState)
 {
     auto& engine = *gameState.engine;
 
@@ -21,20 +22,17 @@ void Panel::init(GameState& gameState)
     m_material = &engine.make<sill::Material>("panel");
 
     // Load and get table info
-    auto& entity = engine.make<sill::GameEntity>();
-    auto& meshComponent = entity.make<sill::MeshComponent>();
+    m_entity = &engine.make<sill::GameEntity>();
+    auto& meshComponent = m_entity->make<sill::MeshComponent>();
     sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-table.glb")(meshComponent);
-    entity.get<sill::TransformComponent>().rotate({0, 0, 1}, 3.14156f);
-    entity.make<sill::AnimationComponent>();
-    // @todo As said above, tableEntity should be of our concern in the end.
-    gameState.tableEntity = &entity;
-    m_entity = &entity;
+    m_entity->make<sill::AnimationComponent>();
+    m_entity->get<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
 
     for (auto& node : meshComponent.nodes()) {
         if (node.name == "table") {
             // @todo As said above, we don't hold table stand material
             // because it should not even be our job creating it.
-            gameState.tableMaterial = &node.mesh->primitive(0).material();
+            m_tableMaterial = &node.mesh->primitive(0).material();
             continue;
         }
 
@@ -47,73 +45,65 @@ void Panel::init(GameState& gameState)
     }
 }
 
+Panel::~Panel()
+{
+    m_gameState.engine->remove(*m_entity);
+}
+
 void Panel::extent(const glm::uvec2& extent)
 {
     m_extent = extent;
     m_material->set("extent", extent);
 
-    // Update bindingPoints
-    glm::vec3 fextent(1.f - glm::vec2(extent), 0.f);
-
-    // Setting local transform for the brick to snap nicely
-    glm::mat4 originTransform = glm::mat4(1.f);
-    originTransform[3] = {0, 0, 1.205f, 1}; // @note Panel height, as defined within model
-    originTransform = glm::rotate(originTransform, 3.14156f * 0.5f, {0, 0, 1});
-    originTransform = glm::rotate(originTransform, 3.14156f * 0.375f, {1, 0, 0});
-    originTransform = glm::translate(originTransform, fextent * blockExtent / 2.f);
-
-    m_bindingPoints.resize(extent.x);
-    for (auto i = 0u; i < extent.x; ++i) {
-        m_bindingPoints[i].resize(extent.y);
-        for (auto j = 0u; j < extent.y; ++j) {
-            m_bindingPoints[i][j].worldTransform =
-                m_entity->get<sill::TransformComponent>().worldTransform()
-                * glm::translate(originTransform, glm::vec3(i * blockExtent.x, j * blockExtent.y, 0.f));
-            m_bindingPoints[i][j].coordinates = {i, j};
-            m_bindingPoints[i][j].hasBrickSnapped = false;
-        }
-    }
-
     // Reset rules
+    m_lastKnownSolveStatus = true;
     m_links.clear();
 
     m_uniformData.resize(extent.x * extent.y);
     updateUniformData();
+
+    updateSnappingPoints();
+    updateFromSnappedBricks();
 }
 
 void Panel::addLink(const glm::uvec2& from, const glm::uvec2& to)
 {
+    m_lastKnownSolveStatus = true;
     m_links.emplace_back(from, to);
     updateUniformData();
 }
 
-/// Find the closest MeshNode for the table binding points.
-Panel::BindingPoint* Panel::closestBindingPoint(const Brick& brick, const glm::vec3& position, float minDistance)
+/// Find the closest MeshNode for the table snapping points.
+Panel::SnappingPoint* Panel::closestSnappingPoint(const Brick& brick, const glm::vec3& position, float minDistance)
 {
-    BindingPoint* closestBindingPoint = nullptr;
+    updateFromSnappedBricks();
 
-    for (auto& bindingPoints : m_bindingPoints) {
-        for (auto& bindingPoint : bindingPoints) {
-            auto distance = glm::distance(glm::vec3(bindingPoint.worldTransform[3]), position);
+    SnappingPoint* closestSnappingPoint = nullptr;
+
+    for (auto& snappingPoints : m_snappingPoints) {
+        for (auto& snappingPoint : snappingPoints) {
+            auto distance = glm::distance(glm::vec3(snappingPoint.worldTransform[3]), position);
             if (distance < minDistance) {
-                if (!isBindingPointValid(brick, bindingPoint)) continue;
+                if (!isSnappingPointValid(brick, snappingPoint)) continue;
                 minDistance = distance;
-                closestBindingPoint = &bindingPoint;
+                closestSnappingPoint = &snappingPoint;
             }
         }
     }
 
-    return closestBindingPoint;
+    return closestSnappingPoint;
 }
 
-bool Panel::checkSolveStatus(GameState& gameState)
+bool Panel::checkSolveStatus(bool* solveStatusChanged)
 {
-    updateFromSnappedBricks(gameState);
+    updateFromSnappedBricks();
 
     // Check that the panel is filled.
     for (auto i = 0u; i < m_extent.x; ++i) {
         for (auto j = 0u; j < m_extent.y; ++j) {
-            if (!m_bindingPoints[i][j].hasBrickSnapped) {
+            if (!m_snappingPoints[i][j].hasBrickSnapped) {
+                if (solveStatusChanged) *solveStatusChanged = (m_lastKnownSolveStatus != false);
+                m_lastKnownSolveStatus = false;
                 return false;
             }
         }
@@ -126,11 +116,11 @@ bool Panel::checkSolveStatus(GameState& gameState)
 
         // Find the brick that has 'from'.
         const Brick* fromBrick = nullptr;
-        for (const auto& brick : gameState.bricks) {
-            for (const auto& block : brick.blocks()) {
-                if (brick.snapCoordinates().x + block.coordinates.x == from.x
-                    && brick.snapCoordinates().y + block.coordinates.y == from.y) {
-                    fromBrick = &brick;
+        for (const auto& brick : m_gameState.bricks) {
+            for (const auto& block : brick->blocks()) {
+                if (brick->snapCoordinates().x + block.coordinates.x == from.x
+                    && brick->snapCoordinates().y + block.coordinates.y == from.y) {
+                    fromBrick = brick.get();
                     break;
                 }
             }
@@ -148,34 +138,66 @@ bool Panel::checkSolveStatus(GameState& gameState)
 
         if (!foundTo) {
             // @fixme Add visual feedback, explaining why this has failed
+            if (solveStatusChanged) *solveStatusChanged = (m_lastKnownSolveStatus != false);
+            m_lastKnownSolveStatus = false;
             return false;
         }
     }
 
+    if (solveStatusChanged) *solveStatusChanged = (m_lastKnownSolveStatus != true);
+    m_lastKnownSolveStatus = true;
     return true;
 }
 
-void Panel::updateFromSnappedBricks(GameState& gameState)
+void Panel::updateFromSnappedBricks()
 {
-    // Reset info about table binding points filling.
+    // Reset info about table snapping points filling.
     for (auto i = 0u; i < m_extent.x; ++i) {
         for (auto j = 0u; j < m_extent.y; ++j) {
-            m_bindingPoints[i][j].hasBrickSnapped = false;
+            m_snappingPoints[i][j].hasBrickSnapped = false;
         }
     }
 
-    for (auto& brick : gameState.bricks) {
-        if (!brick.snapped()) continue;
+    for (auto& brick : m_gameState.bricks) {
+        if (!brick->snapped()) continue;
+        if (&brick->snapPanel() != this) continue;
 
-        for (const auto& block : brick.blocks()) {
-            auto i = brick.snapCoordinates().x + block.coordinates.x;
-            auto j = brick.snapCoordinates().y + block.coordinates.y;
-            m_bindingPoints[i][j].hasBrickSnapped = true;
+        for (const auto& block : brick->blocks()) {
+            auto i = brick->snapCoordinates().x + block.coordinates.x;
+            auto j = brick->snapCoordinates().y + block.coordinates.y;
+            m_snappingPoints[i][j].hasBrickSnapped = true;
         }
     }
 }
 
 // Internal
+
+void Panel::updateSnappingPoints()
+{
+    if (m_extent.x == 0 || m_extent.y == 0) return;
+
+    // Update snappingPoints
+    glm::vec3 fextent(1.f - glm::vec2(m_extent), 0.f);
+
+    // Setting local transform for the brick to snap nicely
+    glm::mat4 originTransform = glm::mat4(1.f);
+    originTransform[3] = {0, 0, 1.205f, 1}; // @note Panel height, as defined within model
+    originTransform = glm::rotate(originTransform, 3.14156f * 0.5f, {0, 0, 1});
+    originTransform = glm::rotate(originTransform, 3.14156f * 0.375f, {1, 0, 0});
+    originTransform = glm::translate(originTransform, fextent * blockExtent / 2.f);
+
+    m_snappingPoints.resize(m_extent.x);
+    for (auto i = 0u; i < m_extent.x; ++i) {
+        m_snappingPoints[i].resize(m_extent.y);
+        for (auto j = 0u; j < m_extent.y; ++j) {
+            m_snappingPoints[i][j].worldTransform =
+                m_entity->get<sill::TransformComponent>().worldTransform()
+                * glm::translate(originTransform, glm::vec3(i * blockExtent.x, j * blockExtent.y, 0.f));
+            m_snappingPoints[i][j].coordinates = {i, j};
+            m_snappingPoints[i][j].hasBrickSnapped = false;
+        }
+    }
+}
 
 void Panel::updateUniformData()
 {
@@ -219,18 +241,18 @@ void Panel::updateUniformData()
     m_material->set("symbols", m_uniformData.data(), m_uniformData.size());
 }
 
-bool Panel::isBindingPointValid(const Brick& brick, const BindingPoint& bindingPoint)
+bool Panel::isSnappingPointValid(const Brick& brick, const SnappingPoint& snappingPoint)
 {
     for (const auto& block : brick.blocks()) {
-        auto i = bindingPoint.coordinates.x + block.coordinates.x;
-        auto j = bindingPoint.coordinates.y + block.coordinates.y;
+        auto i = snappingPoint.coordinates.x + block.coordinates.x;
+        auto j = snappingPoint.coordinates.y + block.coordinates.y;
 
         // Check that the block coordinates are valid.
         if (i >= m_extent.x) return false;
         if (j >= m_extent.y) return false;
 
         // Check that the block coordinates have nothing yet.
-        if (m_bindingPoints[i][j].hasBrickSnapped) return false;
+        if (m_snappingPoints[i][j].hasBrickSnapped) return false;
     }
 
     return true;

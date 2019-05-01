@@ -9,27 +9,31 @@
 using namespace lava;
 
 namespace {
-    /// Checks whether the current panel has been solved or not.
-    bool checkPanelSolveStatus(GameState& gameState)
+    /// Checks whether the current level has been solved or not.
+    bool checkLevelSolveStatus(GameState& gameState)
     {
-        auto& tableAnimation = gameState.tableEntity->get<sill::AnimationComponent>();
+        bool allPanelsSolved = true;
+        for (auto& panel : gameState.panels) {
+            bool panelSolveStatusChanged = false;
+            bool panelSolved = panel->checkSolveStatus(&panelSolveStatusChanged);
+            allPanelsSolved = allPanelsSolved && panelSolved;
 
-        // Check that the panel is all right.
-        if (!gameState.panel.checkSolveStatus(gameState)) {
-            // Visual feedback: unsolved panels are white.
-            tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.5f);
-            tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
-                                  glm::vec4{1.f, 1.f, 1.f, 1.f});
-            return false;
+            // Visual feedback: unsolved panels are white, and solved panels green.
+            if (panelSolveStatusChanged) {
+                if (!panelSolved) {
+                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor", 0.5f);
+                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor",
+                                              glm::vec4{1.f, 1.f, 1.f, 1.f});
+                }
+                else {
+                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor", 0.1f);
+                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor",
+                                              glm::vec4{0.46, 0.95, 0.46, 1.f});
+                }
+            }
         }
 
-        // Visual feedback: solved panels turn green.
-        tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
-        tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
-                              glm::vec4{0.46, 0.86, 0.46, 1.f});
-
-        // All bricks where fine, panel is filled.
-        return true;
+        return allPanelsSolved;
     }
 
     /// Extract the rotation level of a transform.
@@ -66,32 +70,28 @@ namespace {
             rayPickingEnabled(gameState, false);
 
             // Update the panel filling information.
-            checkPanelSolveStatus(gameState);
+            checkLevelSolveStatus(gameState);
 
             // We will animate the world transform over 300ms.
             grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.2f);
         }
         else if (engine.input().justUp("trigger") && grabbedBrick != nullptr) {
             grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
-            grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());
-            grabbedBrick->extraRotationLevel(0u);
+
+            if (grabbedBrick->snapped()) {
+                grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());
+                grabbedBrick->extraRotationLevel(0u);
+            }
 
             // Checking if the panel is solved.
-            if (checkPanelSolveStatus(gameState)) {
+            if (checkLevelSolveStatus(gameState)) {
                 // Dropping all bricks
                 // @fixme Add a timer before dropping everything!
                 for (auto& brick : gameState.bricks) {
-                    brick.unsnap();
+                    brick->unsnap();
                 }
-                gameState.panel.checkSolveStatus(gameState);
 
                 loadLevel(gameState, gameState.levelId + 1);
-
-                // Setting table to unsolved status.
-                auto& tableAnimation = gameState.tableEntity->get<sill::AnimationComponent>();
-                tableAnimation.start(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor", 0.1f);
-                tableAnimation.target(sill::AnimationFlag::MaterialUniform, *gameState.tableMaterial, "albedoColor",
-                                      glm::vec4{1.f, 1.f, 1.f, 1.f});
             }
 
             grabbedBrick = nullptr;
@@ -115,16 +115,17 @@ namespace {
             targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
             targetTransform = glm::rotate(targetTransform, grabbedBrick->baseRotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
 
-            // If the hand is close to a binding point, we snap to it.
-            if (auto bindingPoint = gameState.panel.closestBindingPoint(*grabbedBrick, targetTransform[3])) {
-                targetTransform = bindingPoint->worldTransform;
-                targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+            // If the hand is close to a snapping point, we snap to it.
+            grabbedBrick->unsnap();
+            for (auto& panel : gameState.panels) {
+                if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform[3])) {
+                    targetTransform = snappingPoint->worldTransform;
+                    targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
 
-                // Set the coordinates of snapped binding point.
-                grabbedBrick->snap(bindingPoint->coordinates);
-            }
-            else {
-                grabbedBrick->unsnap();
+                    // Set the coordinates of snapped snapping point.
+                    grabbedBrick->snap(*panel, snappingPoint->coordinates);
+                    break;
+                }
             }
 
             grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);

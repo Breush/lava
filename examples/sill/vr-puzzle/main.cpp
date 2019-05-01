@@ -12,12 +12,12 @@ int main(void)
      * @todo
      * - Some more puzzle rules.
      * - Visual feedback (panel failure, explain why), better grabbed brick identification.
-     * - Mesh instances so that bricks are not duplicated.
+     * - Mesh instances so that bricks are not duplicated. Block's material can be shared per brick.
      */
 
-    GameState gameState;
-
     sill::GameEngine engine;
+
+    GameState gameState;
     gameState.engine = &engine;
 
     engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/panel-material.shmag");

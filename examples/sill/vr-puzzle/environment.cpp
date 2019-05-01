@@ -27,9 +27,6 @@ void setupEnvironment(GameState& gameState)
         entity.make<sill::PlaneColliderComponent>();
     }
 
-    // Panel
-    gameState.panel.init(gameState);
-
     // Raycast
     {
         auto& rayPickingEntity = engine.make<sill::GameEntity>();
@@ -57,11 +54,11 @@ void setupEnvironment(GameState& gameState)
             gameState.pointedBrick = nullptr;
             float minDistance = 50.f;
             for (auto& brick : gameState.bricks) {
-                for (auto& block : brick.blocks()) {
+                for (auto& block : brick->blocks()) {
                     // Reset color
                     // @todo This color override should go through Brick class API.
                     block.entity->get<sill::MeshComponent>().node(1).mesh->primitive(0).material().set("albedoColor",
-                                                                                                       brick.color());
+                                                                                                       brick->color());
 
                     // @todo For now, this is just a arbitrary ray-sphere detection,
                     // we could do ray-box intersection.
@@ -73,7 +70,7 @@ void setupEnvironment(GameState& gameState)
                         if (std::abs(bsCenterProjectionDistance) < minDistance) {
                             if (glm::length(bsCenter - bsCenterProjection) < bsRadius) {
                                 minDistance = std::abs(bsCenterProjectionDistance);
-                                gameState.pointedBrick = &brick;
+                                gameState.pointedBrick = brick.get();
                             }
                         }
                     }
@@ -111,51 +108,114 @@ void loadLevel(GameState& gameState, uint32_t levelId)
 
     std::cout << "Loading level " << levelId << std::endl;
 
-    if (levelId == 1) {
+    if (levelId == 0) {
         /**
-         * Level 0 is composed of:
-         *  - 3x3 panel with two links
-         *  - 1 L3 brick
-         *  - 1 T4 brick
-         *  - 1 I2 brick
-         */
-
-        gameState.panel.extent({3, 3});
-        gameState.panel.addLink({0, 0}, {0, 1});
-        gameState.panel.addLink({1, 1}, {2, 1});
-        return;
-    }
-    else if (levelId == 0) {
-        /**
-         * Level 0 is composed of:
          *  - 3x3 void panel
-         *  - 1 L3 brick
-         *  - 1 T4 brick
-         *  - 1 I2 brick
+         *      - 1 L3 brick
+         *      - 1 T4 brick
+         *      - 1 I2 brick
          */
+        gameState.panels.resize(1);
 
-        // Load default look for the table panel
-        gameState.panel.extent({3, 3});
+        gameState.panels[0] = std::make_unique<Panel>(gameState);
+        gameState.panels[0]->transform().worldTransform(glm::rotate(glm::mat4(1.f), 3.14156f, {0, 0, 1}));
+        gameState.panels[0]->extent({3, 3});
+
+        gameState.bricks.clear();
 
         // L3 brick
         {
-            auto& brick = gameState.bricks.emplace_back(gameState);
-            brick.blocks({{0, 0}, {1, 0}, {0, 1}});
-            brick.color({0, 1, 1});
+            auto brick = std::make_unique<Brick>(gameState);
+            brick->blocks({{0, 0}, {1, 0}, {0, 1}});
+            brick->color({0, 1, 1});
+            gameState.bricks.emplace_back(std::move(brick));
         }
 
         // T4 brick
         {
-            auto& brick = gameState.bricks.emplace_back(gameState);
-            brick.blocks({{0, 0}, {-1, 0}, {1, 0}, {0, 1}});
-            brick.color({1, 1, 0});
+            auto brick = std::make_unique<Brick>(gameState);
+            brick->blocks({{0, 0}, {-1, 0}, {1, 0}, {0, 1}});
+            brick->color({1, 1, 0});
+            gameState.bricks.emplace_back(std::move(brick));
         }
 
         // I2 brick
         {
-            auto& brick = gameState.bricks.emplace_back(gameState);
-            brick.blocks({{0, 0}, {1, 0}});
-            brick.color({0, 0, 1});
+            auto brick = std::make_unique<Brick>(gameState);
+            brick->blocks({{0, 0}, {0, 1}});
+            brick->color({0, 0, 1});
+            gameState.bricks.emplace_back(std::move(brick));
+        }
+    }
+    else if (levelId == 1) {
+        /**
+         *  - 3x3 panel with two links
+         *      - 1 L3 brick
+         *      - 1 T4 brick
+         *      - 1 I2 brick
+         */
+        gameState.panels.resize(1);
+
+        gameState.panels[0] = std::make_unique<Panel>(gameState);
+        gameState.panels[0]->transform().worldTransform(glm::rotate(glm::mat4(1.f), 3.14156f, {0, 0, 1}));
+        gameState.panels[0]->extent({3, 3});
+        gameState.panels[0]->addLink({0, 0}, {0, 1});
+        gameState.panels[0]->addLink({1, 1}, {2, 1});
+    }
+    else if (levelId == 2) {
+        /**
+         *  - 3x3 void panel
+         *      - 1 I3 brick
+         *      - 3 I2 bricks
+         *  - 3x3 void panel
+         *      - 3 L3 bricks
+         *
+         * @note The second panel is unsolvable by itself,
+         * and it will be the only panel the user see at first sight.
+         * The other one being behind him.
+         */
+        gameState.panels.resize(2);
+
+        gameState.panels[0] = std::make_unique<Panel>(gameState);
+        glm::mat4 transform = glm::mat4(1.f);
+        transform = glm::translate(transform, {1.f, 0.f, 0.f});
+        transform = glm::rotate(transform, 3.14156f, {0, 0, 1});
+        gameState.panels[0]->transform().worldTransform(glm::rotate(glm::mat4(1.f), 3.14156f, {0, 0, 1}));
+        gameState.panels[0]->animation().start(sill::AnimationFlag::WorldTransform, 2.f);
+        gameState.panels[0]->animation().target(sill::AnimationFlag::WorldTransform, transform);
+        gameState.panels[0]->extent({3, 3});
+
+        gameState.panels[1] = std::make_unique<Panel>(gameState);
+        gameState.panels[1]->transform().worldTransform(glm::translate(glm::mat4(1.f), {-1.f, 0.f, 0.f}));
+        gameState.panels[1]->extent({3, 3});
+
+        gameState.bricks.clear();
+
+        // I2 bricks
+        for (auto i = 0u; i <= 2u; ++i) {
+            auto brick = std::make_unique<Brick>(gameState);
+            brick->blocks({{0, 0}, {0, 1}});
+            brick->color({0, 0, 1});
+            brick->transform().translate({-0.8f, 0.f, 0.f});
+            gameState.bricks.emplace_back(std::move(brick));
+        }
+
+        // I3 brick
+        {
+            auto brick = std::make_unique<Brick>(gameState);
+            brick->blocks({{0, 0}, {0, 1}, {0, 2}});
+            brick->color({0, 1, 1});
+            brick->transform().translate({-0.8f, 0.f, 0.f});
+            gameState.bricks.emplace_back(std::move(brick));
+        }
+
+        // L3 bricks
+        for (auto i = 0u; i <= 2u; ++i) {
+            auto brick = std::make_unique<Brick>(gameState);
+            brick->blocks({{0, 0}, {1, 0}, {0, 1}});
+            brick->color({1, 1, 0});
+            brick->transform().translate({0.8f, 0.f, 0.f});
+            gameState.bricks.emplace_back(std::move(brick));
         }
     }
 }
