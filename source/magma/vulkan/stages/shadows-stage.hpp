@@ -22,6 +22,7 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer);
 
         RenderImage renderImage() const;
+        vk::RenderPass renderPass() const { return m_renderPassHolder.renderPass(); }
 
     protected:
         void initPass();

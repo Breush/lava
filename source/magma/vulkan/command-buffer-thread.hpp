@@ -22,9 +22,14 @@ namespace lava::magma::vulkan {
             m_bufferIndex = (m_bufferIndex + 1) % m_commandBuffers.size();
             auto& commandBuffer = m_commandBuffers[m_bufferIndex];
 
-            job([&] {
-                vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eSimultaneousUse};
+            job([&, bufferIndex = m_bufferIndex] {
+                vk::CommandBufferInheritanceInfo inheritanceInfo;
+                inheritanceInfo.renderPass = stage.renderPass();
+                inheritanceInfo.subpass = 0u;
+
+                vk::CommandBufferBeginInfo beginInfo;
                 beginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+                beginInfo.pInheritanceInfo = &inheritanceInfo;
 
                 commandBuffer.begin(&beginInfo);
                 // @fixme We should rename render -> record

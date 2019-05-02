@@ -75,7 +75,7 @@ function useVulkanSdk()
 
     linkoptions("-pthread")
 
-    filter { "configurations:debug" }
+    filter { not "configurations:release" }
         linkoptions("-Wl,-rpath," .. externalPath .. "/lib")
 
     filter {}

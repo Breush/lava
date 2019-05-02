@@ -49,6 +49,7 @@ namespace lava::magma {
 
         RenderImage renderImage() const final;
         RenderImage depthRenderImage() const final;
+        vk::RenderPass renderPass() const final { return m_renderPassHolder.renderPass(); }
 
         void changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) final;
 
