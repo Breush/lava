@@ -9,8 +9,6 @@ TransformComponent::Impl::Impl(GameEntity& entity)
 
 void TransformComponent::Impl::update(float /*dt*/)
 {
-    // @fixme We should get some dirty flags going on to not update each frame
-    updateWorldTransform(ChangeReasonFlag::Parent);
 }
 
 //----- Local transform
@@ -113,6 +111,11 @@ void TransformComponent::Impl::updateWorldTransform(ChangeReasonFlag changeReaso
     }
 
     callWorldTransformChanged(changeReasonFlag);
+
+    // Update children
+    for (auto& child : m_entity.children()) {
+        child->get<TransformComponent>().impl().updateWorldTransform(ChangeReasonFlag::Parent);
+    }
 }
 
 void TransformComponent::Impl::callTransformChanged(ChangeReasonFlag changeReasonFlag) const
