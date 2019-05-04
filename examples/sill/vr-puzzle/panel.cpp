@@ -73,7 +73,6 @@ void Panel::addLink(const glm::uvec2& from, const glm::uvec2& to)
     updateUniformData();
 }
 
-/// Find the closest MeshNode for the table snapping points.
 Panel::SnappingPoint* Panel::closestSnappingPoint(const Brick& brick, const glm::vec3& position, float minDistance)
 {
     updateFromSnappedBricks();
@@ -92,6 +91,34 @@ Panel::SnappingPoint* Panel::closestSnappingPoint(const Brick& brick, const glm:
     }
 
     return closestSnappingPoint;
+}
+
+Panel::SnappingInfo Panel::rayHitSnappingPoint(const Brick& brick, const lava::Ray& ray)
+{
+    const auto bsRadius = std::sqrt(blockExtent.x * blockExtent.x + blockExtent.y * blockExtent.y) / 2.f;
+
+    SnappingInfo snappingInfo;
+    snappingInfo.point = nullptr;
+
+    float minDistance = 1000.f;
+    for (auto& snappingPoints : m_snappingPoints) {
+        for (auto& snappingPoint : snappingPoints) {
+            glm::vec3 bsCenter = snappingPoint.worldTransform[3];
+            auto rayOriginToBsCenter = bsCenter - ray.origin;
+            auto bsCenterProjectionDistance = glm::dot(ray.direction, rayOriginToBsCenter);
+            if (bsCenterProjectionDistance < 0.f) continue;
+
+            if (std::abs(bsCenterProjectionDistance) > minDistance) continue;
+            auto bsCenterProjection = ray.origin + ray.direction * bsCenterProjectionDistance;
+            if (glm::length(bsCenter - bsCenterProjection) > bsRadius) continue;
+
+            minDistance = bsCenterProjectionDistance;
+            snappingInfo.point = &snappingPoint;
+            snappingInfo.validForBrick = isSnappingPointValid(brick, snappingPoint);
+        }
+    }
+
+    return snappingInfo;
 }
 
 bool Panel::checkSolveStatus(bool* solveStatusChanged)

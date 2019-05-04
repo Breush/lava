@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <lava/core/ray.hpp>
 #include <lava/sill.hpp>
 #include <vector>
 
@@ -14,6 +15,11 @@ public:
         glm::mat4 worldTransform = glm::mat4(1.f);
         glm::uvec2 coordinates = glm::uvec2(-1u, -1u);
         bool hasBrickSnapped = false;
+    };
+
+    struct SnappingInfo {
+        SnappingPoint* point = nullptr;
+        bool validForBrick = false;
     };
 
 public:
@@ -29,8 +35,11 @@ public:
     /// 'from' and 'to' should be at distance 1.
     void addLink(const glm::uvec2& from, const glm::uvec2& to);
 
-    /// Find the closest MeshNode for the table snapping points.
+    /// Find the closest snapping point to is valid for the brick.
     SnappingPoint* closestSnappingPoint(const Brick& brick, const glm::vec3& position, float minDistance = 0.1f);
+
+    /// Find the closest snapping point.
+    SnappingInfo rayHitSnappingPoint(const Brick& brick, const lava::Ray& ray);
 
     /// Check and update if panel is completely solved.
     bool checkSolveStatus(bool* solveStatusChanged);

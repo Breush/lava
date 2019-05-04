@@ -3,6 +3,7 @@
 #include "./camera.hpp"
 #include "./environment.hpp"
 #include "./game-logic.hpp"
+#include "./ray-picking.hpp"
 
 using namespace lava;
 
@@ -31,6 +32,7 @@ int main(void)
 
     // Environment
     setupEnvironment(gameState);
+    setupRayPicking(gameState);
 
     // Game logic
     setupGameLogic(gameState);

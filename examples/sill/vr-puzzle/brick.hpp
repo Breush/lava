@@ -36,6 +36,7 @@ public:
 
     const glm::vec3& color() const { return m_color; }
     void color(const glm::vec3& color);
+    void apparentColor(const glm::vec3& color);
 
     // Whether the entity is snapped to snapping point and its coordinates if it is.
     bool snapped() const { return m_snapPanel != nullptr; }
@@ -62,7 +63,8 @@ private:
     lava::sill::GameEntity* m_entity = nullptr;
 
     std::vector<Block> m_blocks;
-    glm::vec3 m_color = {1, 1, 1};
+    glm::vec3 m_color = {1, 1, 1};         //!< Saved color.
+    glm::vec3 m_apparentColor = {1, 1, 1}; //!< Currently displayed color.
 
     const Panel* m_snapPanel = nullptr;
     glm::uvec2 m_snapCoordinates = {0, 0};

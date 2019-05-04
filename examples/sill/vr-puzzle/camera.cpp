@@ -23,6 +23,7 @@ void setupCamera(GameState& gameState)
     auto& cameraComponent = entity.make<sill::CameraComponent>();
     cameraComponent.translation({-2.f, 0.f, 2.f});
     cameraComponent.target({0.f, 0.f, 1.f});
+    gameState.camera = &cameraComponent;
 
     // Behavior for user control
     behaviorComponent.onUpdate([&input, &cameraComponent]() {

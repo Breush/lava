@@ -72,6 +72,15 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
 void Brick::color(const glm::vec3& color)
 {
     m_color = color;
+    m_apparentColor = color;
+
+    updateBlocksColor();
+}
+
+void Brick::apparentColor(const glm::vec3& color)
+{
+    if (m_apparentColor == color) return;
+    m_apparentColor = color;
 
     updateBlocksColor();
 }
@@ -120,7 +129,7 @@ void Brick::extraRotationLevel(uint32_t extraRotationLevel)
 void Brick::updateBlocksColor()
 {
     for (auto& block : m_blocks) {
-        block.entity->get<sill::MeshComponent>().node(1).mesh->primitive(0).material().set("albedoColor", m_color);
+        block.entity->get<sill::MeshComponent>().node(1).mesh->primitive(0).material().set("albedoColor", m_apparentColor);
     }
 }
 

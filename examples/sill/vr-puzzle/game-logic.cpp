@@ -2,13 +2,17 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <iostream>
 
 #include "./environment.hpp"
+#include "./ray-picking.hpp"
 
 using namespace lava;
 
 namespace {
+    static Brick* grabbedBrick = nullptr;
+
     /// Checks whether the current level has been solved or not.
     bool checkLevelSolveStatus(GameState& gameState)
     {
@@ -54,10 +58,58 @@ namespace {
         return (4 + handRotationLevel) % 4;
     }
 
-    void onUpdate(GameState& gameState)
+    void grabBrick(GameState& gameState, Brick* brick)
     {
-        static Brick* grabbedBrick = nullptr;
+        grabbedBrick = brick;
+        grabbedBrick->unsnap();
+        rayPickingEnabled(gameState, false);
 
+        // Update the panel filling information.
+        checkLevelSolveStatus(gameState);
+
+        // We will animate the world transform over 300ms.
+        grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.2f);
+    }
+
+    void ungrabBrick(GameState& gameState)
+    {
+        grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
+
+        if (grabbedBrick->snapped()) {
+            grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());
+            grabbedBrick->extraRotationLevel(0u);
+        }
+
+        // Checking if the level is solved.
+        if (checkLevelSolveStatus(gameState)) {
+            // Dropping all bricks
+            // @fixme Add a timer before dropping everything!
+            for (auto& brick : gameState.bricks) {
+                brick->unsnap();
+            }
+
+            loadLevel(gameState, gameState.levelId + 1);
+        }
+
+        grabbedBrick = nullptr;
+        rayPickingEnabled(gameState, true);
+    }
+
+    void rotateGrabbedBrick()
+    {
+        grabbedBrick->incrementBaseRotationLevel();
+        grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.1f);
+    }
+
+    glm::mat4 baseRotationLevelMatrix()
+    {
+        return glm::rotate(glm::mat4(1.f), grabbedBrick->baseRotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+    }
+
+    // Gameplay with VR controllers,
+    // should not be mixed with mouse gameplay.
+    void onUpdateVr(GameState& gameState)
+    {
         auto& engine = *gameState.engine;
         if (!engine.vrDeviceValid(VrDeviceType::RightHand)) return;
 
@@ -65,45 +117,16 @@ namespace {
 
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
         if (engine.input().justDown("trigger") && gameState.pointedBrick != nullptr) {
-            grabbedBrick = gameState.pointedBrick;
-            grabbedBrick->unsnap();
-            rayPickingEnabled(gameState, false);
-
-            // Update the panel filling information.
-            checkLevelSolveStatus(gameState);
-
-            // We will animate the world transform over 300ms.
-            grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.2f);
+            grabBrick(gameState, gameState.pointedBrick);
         }
         else if (engine.input().justUp("trigger") && grabbedBrick != nullptr) {
-            grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
-
-            if (grabbedBrick->snapped()) {
-                grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());
-                grabbedBrick->extraRotationLevel(0u);
-            }
-
-            // Checking if the panel is solved.
-            if (checkLevelSolveStatus(gameState)) {
-                // Dropping all bricks
-                // @fixme Add a timer before dropping everything!
-                for (auto& brick : gameState.bricks) {
-                    brick->unsnap();
-                }
-
-                loadLevel(gameState, gameState.levelId + 1);
-            }
-
-            grabbedBrick = nullptr;
-            rayPickingEnabled(gameState, true);
+            ungrabBrick(gameState);
         }
 
         // Update entity to us whenever it is in grabbing state.
         if (grabbedBrick != nullptr) {
-            // Rotate the entity when touchpad is pressed
             if (engine.input().justDown("touchpad")) {
-                grabbedBrick->incrementBaseRotationLevel();
-                grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.1f);
+                rotateGrabbedBrick();
             }
 
             // The user might be trying to turn is wrist instead of pushing the turning button.
@@ -113,7 +136,7 @@ namespace {
             // Offsetting from hand transform a little bit.
             auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});
             targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
-            targetTransform = glm::rotate(targetTransform, grabbedBrick->baseRotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+            targetTransform = baseRotationLevelMatrix();
 
             // If the hand is close to a snapping point, we snap to it.
             grabbedBrick->unsnap();
@@ -131,11 +154,84 @@ namespace {
             grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);
         }
     }
+
+    void onUpdateMouse(GameState& gameState)
+    {
+        auto& engine = *gameState.engine;
+
+        // For mouse, the user uses click to grab then click to drop.
+        if (engine.input().justDown("left-fire")) {
+            if (grabbedBrick == nullptr && gameState.pointedBrick != nullptr) {
+                grabBrick(gameState, gameState.pointedBrick);
+            }
+            else if (grabbedBrick != nullptr) {
+                ungrabBrick(gameState);
+            }
+        }
+
+        // Update entity to us whenever it is in grabbing state.
+        if (grabbedBrick != nullptr) {
+            if (engine.input().justDown("right-fire")) {
+                rotateGrabbedBrick();
+            }
+
+            auto targetTransform = glm::mat4(1.f);
+
+            // If the cursor is over a snapping point, we snap to it.
+            bool brickLooksSnapped = false;
+            grabbedBrick->unsnap();
+            for (auto& panel : gameState.panels) {
+                // @todo We should find out which panel is the closest!
+                Panel::SnappingInfo snappingInfo = panel->rayHitSnappingPoint(*grabbedBrick, gameState.pickingRay);
+                if (snappingInfo.point != nullptr) {
+                    brickLooksSnapped = true;
+                    targetTransform = snappingInfo.point->worldTransform;
+                    targetTransform *= baseRotationLevelMatrix();
+
+                    // Set the coordinates of snapped snapping point.
+                    if (snappingInfo.validForBrick) {
+                        grabbedBrick->apparentColor({0, 0.8, 0});
+                        grabbedBrick->snap(*panel, snappingInfo.point->coordinates);
+                    }
+                    else {
+                        grabbedBrick->apparentColor({1, 0, 0});
+                    }
+
+                    break;
+                }
+            }
+
+            // If the brick is not snapped, we move the brick to the lower right corner of the screen.
+            if (!brickLooksSnapped) {
+                grabbedBrick->apparentColor(grabbedBrick->color());
+
+                const auto& extent = gameState.camera->extent();
+                auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};
+                targetTransform = gameState.camera->transformAtCoordinates(coordinates, 0.5f);
+
+                auto screenMatrix = glm::mat4(1.f);
+                screenMatrix = glm::scale(screenMatrix, {0.05f, 0.05f, 0.05f});
+                screenMatrix = glm::rotate(screenMatrix, 3.14156f * 0.5f, {1, 0, 0});
+                screenMatrix = glm::rotate(screenMatrix, -3.14156f * 0.5f, {0, 1, 0});
+
+                targetTransform *= screenMatrix * baseRotationLevelMatrix();
+            }
+
+            grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);
+        }
+    }
 }
 
 void setupGameLogic(GameState& gameState)
 {
     auto& entity = gameState.engine->make<sill::GameEntity>();
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-    behaviorComponent.onUpdate([&]() { onUpdate(gameState); });
+    behaviorComponent.onUpdate([&]() {
+        if (gameState.engine->vrEnabled()) {
+            onUpdateVr(gameState);
+        }
+        else {
+            onUpdateMouse(gameState);
+        }
+    });
 }
