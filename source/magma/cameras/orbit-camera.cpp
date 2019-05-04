@@ -12,6 +12,8 @@ $pimpl_property_v(OrbitCamera, lava::Extent2d, extent);
 $pimpl_method_const(OrbitCamera, RenderImage, renderImage);
 $pimpl_method_const(OrbitCamera, RenderImage, depthRenderImage);
 $pimpl_property_v(OrbitCamera, PolygonMode, polygonMode);
+$pimpl_method_const(OrbitCamera, const glm::mat4&, viewTransform);
+$pimpl_method_const(OrbitCamera, const glm::mat4&, projectionTransform);
 
 ICamera::Impl& OrbitCamera::interfaceImpl()
 {

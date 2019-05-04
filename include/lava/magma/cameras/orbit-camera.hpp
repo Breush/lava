@@ -24,6 +24,8 @@ namespace lava::magma {
         RenderImage depthRenderImage() const override final;
         PolygonMode polygonMode() const override final;
         void polygonMode(PolygonMode polygonMode) override final;
+        const glm::mat4& viewTransform() const;
+        const glm::mat4& projectionTransform() const;
 
         ICamera::Impl& interfaceImpl();
 

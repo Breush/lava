@@ -30,6 +30,9 @@ namespace lava::sill {
         /// Get the value of a registered axis.
         float axis(const std::string& axisName) const;
 
+        /// Mouse position in window, from (0, 0) top-left to (windowWidth, windowHeight) bottom-right.
+        const glm::vec2& mouseCoordinates() const;
+
         /**
          * @name Binding
          */

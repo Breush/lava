@@ -12,6 +12,7 @@ $pimpl_method_const(InputManager, bool, justDown, const std::string&, actionName
 $pimpl_method_const(InputManager, bool, justUp, const std::string&, actionName);
 $pimpl_method_const(InputManager, bool, axisChanged, const std::string&, axisName);
 $pimpl_method_const(InputManager, float, axis, const std::string&, axisName);
+$pimpl_method_const(InputManager, const glm::vec2&, mouseCoordinates);
 
 $pimpl_method(InputManager, void, bindAction, const std::string&, actionName, MouseButton, mouseButton);
 $pimpl_method(InputManager, void, bindAction, const std::string&, actionName, VrButton, vrButton, VrDeviceType, hand);

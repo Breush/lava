@@ -24,6 +24,8 @@ namespace lava::magma {
         RenderImage depthRenderImage() const;
         PolygonMode polygonMode() const { return m_polygonMode; }
         void polygonMode(PolygonMode polygonMode);
+        const glm::mat4& viewTransform() const final { return m_viewTransform; }
+        const glm::mat4& projectionTransform() const final { return m_projectionTransform; }
 
         // ICamera::Impl
         bool vrAimed() const final { return false; }
@@ -32,8 +34,6 @@ namespace lava::magma {
                     uint32_t descriptorSetIndex) const override final;
         vk::Extent2D renderExtent() const override final { return m_extent; }
         const glm::vec3& translation() const override final { return m_translation; }
-        const glm::mat4& viewTransform() const override final { return m_viewTransform; }
-        const glm::mat4& projectionTransform() const override final { return m_projectionTransform; }
         bool useFrustumCulling() const override final { return true; }
         const Frustum& frustum() const override final { return m_frustum; }
 

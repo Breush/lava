@@ -3,6 +3,8 @@
 #include <lava/sill/components/i-component.hpp>
 
 #include <glm/vec3.hpp>
+#include <lava/core/extent.hpp>
+#include <lava/core/ray.hpp>
 #include <string>
 
 namespace lava::sill {
@@ -16,6 +18,8 @@ namespace lava::sill {
         void update(float dt) override final;
 
         // Public API
+        const Extent2d& extent() const;
+
         const glm::vec3& translation() const;
         void translation(const glm::vec3& translation);
 
@@ -28,6 +32,18 @@ namespace lava::sill {
         void strafe(float x, float y);
         void radiusAdd(float radiusDistance);
         void orbitAdd(float longitudeAngle, float latitudeAngle);
+
+        const glm::mat4& viewTransform() const;
+        const glm::mat4& projectionTransform() const;
+
+        /// Transform the render target position into a ray going forward.
+        Ray coordinatesToRay(const glm::vec2& coordinates) const;
+
+        /// Transform screen-space coordinates to a 3D position.
+        glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
+
+        /// Get the transform to front-looking show a 3D element at coordinates.
+        glm::mat4 transformAtCoordinates(const glm::vec2& coordinates, float depth = 0.f) const;
 
     public:
         class Impl;

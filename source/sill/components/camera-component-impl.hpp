@@ -14,6 +14,8 @@ namespace lava::sill {
         void update(float dt) override final;
 
         // CameraComponent
+        const Extent2d& extent() const { return m_extent; }
+
         const glm::vec3& translation() const { return m_camera->translation(); }
         void translation(const glm::vec3& translation) { m_camera->translation(translation); }
 
@@ -26,6 +28,12 @@ namespace lava::sill {
         void strafe(float x, float y) { m_camera->strafe(x, y); }
         void radiusAdd(float radiusDistance) { m_camera->radiusAdd(radiusDistance); }
         void orbitAdd(float longitudeAngle, float latitudeAngle) { m_camera->orbitAdd(longitudeAngle, latitudeAngle); }
+
+        const glm::mat4& viewTransform() const { return m_camera->viewTransform(); }
+        const glm::mat4& projectionTransform() const { return m_camera->projectionTransform(); }
+
+        Ray coordinatesToRay(const glm::vec2& coordinates) const;
+        glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
 
     private:
         magma::OrbitCamera* m_camera = nullptr;

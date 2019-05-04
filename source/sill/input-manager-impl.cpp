@@ -114,8 +114,8 @@ void InputManager::Impl::update(WsEvent& event)
         // @note To prevent big deltas when moving
         // the mouse the first time, we use this flag.
         if (m_initializingMousePosition) {
-            m_mousePosition.x = event.mouseMove.x;
-            m_mousePosition.y = event.mouseMove.y;
+            m_mouseCoordinates.x = event.mouseMove.x;
+            m_mouseCoordinates.y = event.mouseMove.y;
             m_initializingMousePosition = false;
             return;
         }
@@ -123,15 +123,15 @@ void InputManager::Impl::update(WsEvent& event)
         for (auto& iAxis : m_axes) {
             auto& axis = iAxis.second;
             if (axis.inputAxes.find(InputAxis::MouseX) != axis.inputAxes.end()) {
-                axis.value += event.mouseMove.x - m_mousePosition.x;
+                axis.value += event.mouseMove.x - m_mouseCoordinates.x;
             }
             if (axis.inputAxes.find(InputAxis::MouseY) != axis.inputAxes.end()) {
-                axis.value += event.mouseMove.y - m_mousePosition.y;
+                axis.value += event.mouseMove.y - m_mouseCoordinates.y;
             }
         }
 
-        m_mousePosition.x = event.mouseMove.x;
-        m_mousePosition.y = event.mouseMove.y;
+        m_mouseCoordinates.x = event.mouseMove.x;
+        m_mouseCoordinates.y = event.mouseMove.y;
     }
 
     // Mouse wheel
