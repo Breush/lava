@@ -35,6 +35,8 @@ Node::Node(const typename nlohmann::json::basic_json& json)
         transform[3u][3u] = json["matrix"][15u];
     }
     else {
+        // @note Transform = T * R * S
+
         if (json.find("translation") != json.end()) {
             glm::vec3 translation;
             translation.x = json["translation"][0u];
@@ -49,7 +51,7 @@ Node::Node(const typename nlohmann::json::basic_json& json)
             rotation.y = json["rotation"][1u];
             rotation.z = json["rotation"][2u];
             rotation.w = json["rotation"][3u];
-            transform = glm::mat4(rotation) * transform;
+            transform *= glm::mat4(rotation);
         }
 
         if (json.find("scale") != json.end()) {
