@@ -4,8 +4,41 @@
 #include "./render-scenes/render-scene-impl.hpp"
 #include "./ubos.hpp"
 
+using namespace lava;
 using namespace lava::chamber;
 using namespace lava::magma;
+
+namespace {
+    template <class UInt>
+    inline void setIndices(std::vector<uint16_t>& targetIndices, const VectorView<UInt>& indices, bool flipTriangles,
+                           uint32_t verticesCount)
+    {
+        auto length = indices.size();
+        targetIndices.resize(length);
+
+        // Fast coherency check
+        if (indices[0] >= verticesCount || indices[length / 2] >= verticesCount) {
+            logger.warning("magma.vulkan.mesh") << "Vertices count: " << verticesCount << std::endl;
+            logger.warning("magma.vulkan.mesh")
+                << "Wrong vertex index: " << static_cast<uint16_t>(std::max(indices[0], indices[length / 2])) << std::endl;
+            logger.error("magma.vulkan.mesh")
+                << "Some indices are referencing indices bigger than the vertices count." << std::endl;
+        }
+
+        if (flipTriangles) {
+            for (auto i = 0u; i < length; i += 3) {
+                targetIndices[i] = indices[i + 2];
+                targetIndices[i + 1] = indices[i + 1];
+                targetIndices[i + 2] = indices[i];
+            }
+        }
+        else {
+            for (auto i = 0u; i < length; ++i) {
+                targetIndices[i] = indices[i];
+            }
+        }
+    }
+}
 
 Mesh::Impl::Impl(RenderScene& scene)
     : m_scene(scene.impl())
@@ -135,26 +168,14 @@ void Mesh::Impl::verticesTangents(VectorView<glm::vec4> tangents)
 
 void Mesh::Impl::indices(VectorView<uint16_t> indices, bool flipTriangles)
 {
-    auto length = indices.size();
-    m_indices.resize(length);
-
-    if (flipTriangles) {
-        for (auto i = 0u; i < length; i += 3) {
-            m_indices[i] = indices[i + 2];
-            m_indices[i + 1] = indices[i + 1];
-            m_indices[i + 2] = indices[i];
-        }
-    }
-    else {
-        for (auto i = 0u; i < length; ++i) {
-            m_indices[i] = indices[i];
-        }
-    }
-
+    setIndices(m_indices, indices, flipTriangles, m_vertices.size());
     createIndexBuffer();
+}
 
-    // @todo The scene should update the main command buffer every frame
-    // while we update our secondary command buffer right here
+void Mesh::Impl::indices(VectorView<uint8_t> indices, bool flipTriangles)
+{
+    setIndices(m_indices, indices, flipTriangles, m_vertices.size());
+    createIndexBuffer();
 }
 
 // ----- Material

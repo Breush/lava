@@ -32,6 +32,7 @@ $pimpl_method(Mesh, void, verticesUvs, VectorView<glm::vec2>, uvs);
 $pimpl_method(Mesh, void, verticesNormals, VectorView<glm::vec3>, normals);
 $pimpl_method(Mesh, void, verticesTangents, VectorView<glm::vec4>, tangents);
 $pimpl_method(Mesh, void, indices, VectorView<uint16_t>, indices, bool, flipTriangles);
+$pimpl_method(Mesh, void, indices, VectorView<uint8_t>, indices, bool, flipTriangles);
 
 $pimpl_method_const(Mesh, bool, canCastShadows);
 $pimpl_method(Mesh, void, canCastShadows, bool, canCastShadows);

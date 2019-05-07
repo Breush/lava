@@ -18,17 +18,19 @@
  */
 
 using namespace lava;
+using namespace lava::chamber;
+using namespace lava::sill;
 
 namespace {
     struct CacheData {
-        std::unordered_map<uint32_t, sill::Texture*> textures;
-        std::unordered_map<uint32_t, sill::Material*> materials;
+        std::unordered_map<uint32_t, Texture*> textures;
+        std::unordered_map<uint32_t, Material*> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
     };
 
     using PixelsCallback = std::function<void(uint8_t*, uint32_t, uint32_t)>;
 
-    void setTexture(sill::GameEngine& engine, sill::Material& material, const std::string& uniformName, uint32_t textureIndex,
+    void setTexture(GameEngine& engine, Material& material, const std::string& uniformName, uint32_t textureIndex,
                     const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData,
                     PixelsCallback pixelsCallback = nullptr)
     {
@@ -51,7 +53,7 @@ namespace {
                                                 STBI_rgb_alpha);
             if (pixelsCallback) pixelsCallback(pixels, texWidth, texHeight);
 
-            auto& rmTexture = engine.make<sill::Texture>();
+            auto& rmTexture = engine.make<Texture>();
             rmTexture.loadFromMemory(pixels, texWidth, texHeight, 4u);
             material.set(uniformName, rmTexture);
 
@@ -60,7 +62,7 @@ namespace {
         }
     }
 
-    void setOrmTexture(sill::GameEngine& engine, sill::Material& material, uint32_t occlusionTextureIndex,
+    void setOrmTexture(GameEngine& engine, Material& material, uint32_t occlusionTextureIndex,
                        uint32_t metallicRoughnessTextureIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
                        CacheData& cacheData)
     {
@@ -73,9 +75,9 @@ namespace {
         // Both exist
         if (occlusionTextureIndex != -1u && metallicRoughnessTextureIndex != -1u) {
             // @todo Implement by merging the two. Be careful if the two sizes differ.
-            chamber::logger.warning("sill.makers.glb-mesh")
+            logger.warning("sill.makers.glb-mesh")
                 << "Occlusion and metallic-roughness do not match the same texture." << std::endl;
-            chamber::logger.error("sill.makers.glb-mesh") << "This is currently not handled by the GLB importer." << std::endl;
+            logger.error("sill.makers.glb-mesh") << "This is currently not handled by the GLB importer." << std::endl;
             return;
         }
 
@@ -93,15 +95,14 @@ namespace {
 
         // Roughness-metallic missing
         if (metallicRoughnessTextureIndex == -1u) {
-            chamber::logger.warning("sill.makers.glb-mesh")
-                << "Metallic-roughness does not exist but occlusion does." << std::endl;
-            chamber::logger.error("sill.makers.glb-mesh") << "This is currently not handled by the GLB importer." << std::endl;
+            logger.warning("sill.makers.glb-mesh") << "Metallic-roughness does not exist but occlusion does." << std::endl;
+            logger.error("sill.makers.glb-mesh") << "This is currently not handled by the GLB importer." << std::endl;
             return;
         }
     }
 
-    std::unique_ptr<sill::Mesh> loadMesh(sill::GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk,
-                                         const nlohmann::json& json, CacheData& cacheData, bool flipTriangles)
+    std::unique_ptr<Mesh> loadMesh(GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
+                                   CacheData& cacheData, bool flipTriangles)
     {
         PROFILE_FUNCTION();
 
@@ -112,7 +113,7 @@ namespace {
         const auto& bufferViews = json["bufferViews"];
         const auto& materials = json.find("materials");
 
-        auto meshData = std::make_unique<sill::Mesh>();
+        auto meshData = std::make_unique<Mesh>();
         meshData->name(mesh.name);
 
         // Each primitive will consist in one magma::Mesh
@@ -121,15 +122,15 @@ namespace {
 
             // Check mode TRIANGLES validity
             if (primitive.mode != 4u) {
-                chamber::logger.error("sill.makers.glb-mesh") << "Invalid mode " << primitive.mode << " for primitive."
-                                                              << " Only 4 (TRIANGLES) is supported." << std::endl;
+                logger.error("sill.makers.glb-mesh") << "Invalid mode " << primitive.mode << " for primitive."
+                                                     << " Only 4 (TRIANGLES) is supported." << std::endl;
             }
 
-            // Mandatory elements
+            // Positions
             auto positions =
                 glb::Accessor(accessors[primitive.positionsAccessorIndex]).get<glm::vec3>(bufferViews, binChunk.data);
-            auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint16_t>(bufferViews, binChunk.data);
 
+            // UVs
             VectorView<glm::vec2> uv1s;
             if (primitive.uv1sAccessorIndex != -1u) {
                 uv1s = glb::Accessor(accessors[primitive.uv1sAccessorIndex]).get<glm::vec2>(bufferViews, binChunk.data);
@@ -142,7 +143,7 @@ namespace {
             }
             else {
                 // @todo Compute flat normals.
-                chamber::logger.error("sill.makers.glb-mesh")
+                logger.error("sill.makers.glb-mesh")
                     << "No normals found in mesh " << meshIndex << ", primitive " << primitiveIndex << "." << std::endl
                     << "Currently not generating flat normals." << std::endl;
             }
@@ -154,21 +155,21 @@ namespace {
             }
             else {
                 // @todo Otherwise, auto compute tangents nicely.
-                chamber::logger.warning("sill.makers.glb-mesh")
+                logger.warning("sill.makers.glb-mesh")
                     << "No tangents found in mesh " << meshIndex << ", primitive " << primitiveIndex << "." << std::endl
                     << "Some materials might not render correctly." << std::endl;
             }
 
             // Material
             bool translucent = false;
-            sill::Material* rmMaterial = nullptr;
+            Material* rmMaterial = nullptr;
             if (cacheData.materials.find(primitive.materialIndex) != cacheData.materials.end()) {
                 rmMaterial = cacheData.materials.at(primitive.materialIndex);
                 translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
             }
             else if (materials != json.end()) {
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
-                rmMaterial = &engine.make<sill::Material>("roughness-metallic");
+                rmMaterial = &engine.make<Material>("roughness-metallic");
                 translucent = material.translucent;
 
                 // Material textures
@@ -186,22 +187,42 @@ namespace {
             // Apply the geometry
             auto& meshPrimitive = meshData->addPrimitive(entity.engine());
             meshPrimitive.verticesCount(positions.size());
-            meshPrimitive.indices(indices, flipTriangles);
             meshPrimitive.verticesPositions(positions);
             meshPrimitive.verticesNormals(normals);
             meshPrimitive.verticesTangents(tangents);
             meshPrimitive.verticesUvs(uv1s);
             if (rmMaterial != nullptr) meshPrimitive.material(*rmMaterial);
             meshPrimitive.translucent(translucent);
+
+            // Indices
+            auto indicesComponentType = accessors[primitive.indicesAccessorIndex]["componentType"];
+            if (indicesComponentType == 5122) {
+                auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint16_t>(bufferViews, binChunk.data);
+                meshPrimitive.indices(indices, flipTriangles);
+            }
+            else if (indicesComponentType == 5121) {
+                auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint8_t>(bufferViews, binChunk.data);
+                meshPrimitive.indices(indices, flipTriangles);
+            }
+            else {
+                logger.warning("sill.makers.glb-mesh")
+                    << "Indices component type " << indicesComponentType << " not handled." << std::endl;
+            }
         }
 
         return std::move(meshData);
     }
 
-    sill::MeshNode& loadNode(sill::GameEntity& entity, uint32_t nodeIndex, std::vector<sill::MeshNode>& meshNodes,
-                             const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData)
+    MeshNode* loadNode(GameEntity& entity, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
+                       const nlohmann::json& json, CacheData& cacheData)
     {
         glb::Node node(json["nodes"][nodeIndex]);
+
+        if (node.children.empty() && node.meshIndex == -1u) {
+            logger.warning("sill.makers.glb-maker")
+                << "Node '" << node.name << "' is empty and has no children, so it has been removed." << std::endl;
+            return nullptr;
+        }
 
         // @note We have one MeshNode per glb::Node,
         // and one for each primitive within its mesh (if any).
@@ -224,16 +245,15 @@ namespace {
 
         // Recurse over children
         for (auto child : node.children) {
-            auto childNode = &loadNode(entity, child, meshNodes, binChunk, json, cacheData);
-            meshNode.children.emplace_back(childNode);
+            auto childNode = loadNode(entity, child, meshNodes, binChunk, json, cacheData);
+            if (childNode != nullptr) {
+                meshNode.children.emplace_back(childNode);
+            }
         }
 
-        return meshNode;
+        return &meshNode;
     }
 }
-
-using namespace lava::chamber;
-using namespace lava::sill;
 
 std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& fileName)
 {
@@ -276,8 +296,10 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
         rootNode.name = fileName;
 
         for (uint32_t nodeIndex : nodes) {
-            auto& node = loadNode(meshComponent.entity(), nodeIndex, meshNodes, binChunk, json, cacheData);
-            rootNode.children.emplace_back(&node);
+            auto node = loadNode(meshComponent.entity(), nodeIndex, meshNodes, binChunk, json, cacheData);
+            if (node != nullptr) {
+                rootNode.children.emplace_back(node);
+            }
         }
 
         // ----- Fixing convention of glTF (right-handed, front is +X, left is +Z)
@@ -285,5 +307,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
         rootNode.transform = rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY);
 
         meshComponent.nodes(std::move(meshNodes));
+
+        logger.info("sill.makers.glb-mesh") << "Generated mesh component for " << fileName << std::endl;
     };
 }

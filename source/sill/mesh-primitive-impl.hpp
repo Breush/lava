@@ -21,6 +21,7 @@ namespace lava::sill {
         void verticesNormals(VectorView<glm::vec3> normals) { m_magma->verticesNormals(normals); }
         void verticesTangents(VectorView<glm::vec4> tangents) { m_magma->verticesTangents(tangents); }
         void indices(VectorView<uint16_t> indices, bool flipTriangles) { m_magma->indices(indices, flipTriangles); }
+        void indices(VectorView<uint8_t> indices, bool flipTriangles) { m_magma->indices(indices, flipTriangles); }
 
         // Material
         Material& material() { return *m_material; }
