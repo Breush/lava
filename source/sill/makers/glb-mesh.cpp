@@ -67,24 +67,9 @@ namespace {
                        uint32_t metallicRoughnessTextureIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
                        CacheData& cacheData)
     {
-        // Both exist and are the same or both do not exist
-        if (occlusionTextureIndex == metallicRoughnessTextureIndex) {
-            setTexture(engine, material, "ormMap", metallicRoughnessTextureIndex, binChunk, json, cacheData);
-            return;
-        }
-
-        // Both exist
-        if (occlusionTextureIndex != -1u && metallicRoughnessTextureIndex != -1u) {
-            // @todo Implement by merging the two. Be careful if the two sizes differ.
-            logger.warning("sill.makers.glb-mesh")
-                << "Occlusion and metallic-roughness do not match the same texture." << std::endl;
-            logger.error("sill.makers.glb-mesh") << "This is currently not handled by the GLB importer." << std::endl;
-            return;
-        }
-
         // Occlusion missing, forcing it to 255u.
-        if (occlusionTextureIndex == -1u) {
-            setTexture(engine, material, "ormMap", metallicRoughnessTextureIndex, binChunk, json, cacheData,
+        if (occlusionTextureIndex == -1u && metallicRoughnessTextureIndex != -1u) {
+            setTexture(engine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData,
                        [](uint8_t* pixels, uint32_t width, uint32_t height) {
                            auto length = 4u * width * height;
                            for (auto i = 0u; i < length; i += 4u) {
@@ -94,12 +79,9 @@ namespace {
             return;
         }
 
-        // Roughness-metallic missing
-        if (metallicRoughnessTextureIndex == -1u) {
-            logger.warning("sill.makers.glb-mesh") << "Metallic-roughness does not exist but occlusion does." << std::endl;
-            logger.error("sill.makers.glb-mesh") << "This is currently not handled by the GLB importer." << std::endl;
-            return;
-        }
+        // Every other case is valid.
+        setTexture(engine, material, "occlusionMap", occlusionTextureIndex, binChunk, json, cacheData);
+        setTexture(engine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData);
     }
 
     std::unique_ptr<Mesh> loadMesh(GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,

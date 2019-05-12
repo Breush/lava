@@ -29,12 +29,13 @@ geometry {
         float metallicFactor = 1;
         texture2d normalMap = "normal";
         texture2d albedoMap = "white";
-        texture2d ormMap = "white";
+        texture2d occlusionMap = "white";           // Red channel.
+        texture2d roughnessMetallicMap = "white";   // Green and blue channels.
         texture2d emissiveMap = "invisible";
     };
 
     // In the geometry main, our role is to fill the G-Buffer
-    // with the useful data for lighting computation. 
+    // with the useful data for lighting computation.
     bool main() {
         vec4 albedo = texture(albedoMap, uv);
         if (albedo.a == 0) discard;
@@ -42,15 +43,16 @@ geometry {
 
         vec3 emissive = srgbToLinearFast(texture(emissiveMap, uv).rgb);
         vec3 normal = 2 * texture(normalMap, uv).rgb - 1;
-        vec4 orm = texture(ormMap, uv);
+        float occlusion = texture(occlusionMap, uv).r;
+        vec4 roughnessMetallic = texture(roughnessMetallicMap, uv);
 
         gBuffer.opacity = albedo.a;
         gBuffer.albedo = albedo.rgb;
         gBuffer.normal = normalize(tbn * normal);
         gBuffer.emissive = emissive;
-        gBuffer.occlusion = orm.r;
-        gBuffer.roughness = clamp(roughnessFactor * orm.g, 0.04, 1);
-        gBuffer.metallic = clamp(metallicFactor * orm.b, 0, 1);
+        gBuffer.occlusion = occlusion;
+        gBuffer.roughness = clamp(roughnessFactor * roughnessMetallic.g, 0.04, 1);
+        gBuffer.metallic = clamp(metallicFactor * roughnessMetallic.b, 0, 1);
 
         // Returns whether the fragment is considered translucent.
         return albedo.a < 1.0;
