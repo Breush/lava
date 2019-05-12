@@ -2,6 +2,7 @@
 
 #include <lava/sill/components/i-component.hpp>
 
+#include <lava/sill/mesh-animation.hpp>
 #include <lava/sill/mesh-node.hpp>
 
 namespace lava::sill {
@@ -19,6 +20,9 @@ namespace lava::sill {
         std::vector<MeshNode>& nodes();
         const std::vector<MeshNode>& nodes() const;
         void nodes(std::vector<MeshNode>&& nodes);
+
+        /// Animations
+        void add(const MeshAnimation& animation);
 
     public:
         class Impl;

@@ -116,6 +116,7 @@ void AnimationComponent::Impl::updateInterpolation(AnimationFlag flag, Animation
         const auto& targetValue = std::get<glm::mat4>(animationInfo.targetValue);
 
         glm::mat4 value = targetValue;
+        // @fixme Matrix interpolation should be added to chamber/interpolation-tools.hpp
         if (animationInfo.needUpdate) value = glm::interpolate(startValue, targetValue, timeRatio);
         m_entity.get<TransformComponent>().worldTransform(value, TransformComponent::ChangeReasonFlag::Animation);
     }

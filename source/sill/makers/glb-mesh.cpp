@@ -26,6 +26,7 @@ namespace {
         std::unordered_map<uint32_t, Texture*> textures;
         std::unordered_map<uint32_t, Material*> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
+        std::unordered_map<uint32_t, uint32_t> nodeIndices;
     };
 
     using PixelsCallback = std::function<void(uint8_t*, uint32_t, uint32_t)>;
@@ -196,7 +197,7 @@ namespace {
 
             // Indices
             auto indicesComponentType = accessors[primitive.indicesAccessorIndex]["componentType"];
-            if (indicesComponentType == 5122) {
+            if (indicesComponentType == 5123) {
                 auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint16_t>(bufferViews, binChunk.data);
                 meshPrimitive.indices(indices, flipTriangles);
             }
@@ -226,17 +227,18 @@ namespace {
 
         // @note We have one MeshNode per glb::Node,
         // and one for each primitive within its mesh (if any).
+        cacheData.nodeIndices[nodeIndex] = meshNodes.size();
         meshNodes.emplace_back();
         auto& meshNode = meshNodes.back();
 
         meshNode.name = node.name;
-        meshNode.transform = node.transform;
+        meshNode.transform(node.transform);
 
         // @note From https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#transformations
         // > If the determinant of the transform is a negative value,
         // > the winding order of the mesh triangle faces should be reversed.
         // > This supports negative scales for mirroring geometry.
-        bool flipTriangles = (glm::determinant(meshNode.transform) < 0);
+        bool flipTriangles = (glm::determinant(node.transform) < 0);
 
         // Load geometry if any
         if (node.meshIndex != -1u) {
@@ -252,6 +254,69 @@ namespace {
         }
 
         return &meshNode;
+    }
+}
+
+void loadAnimations(MeshComponent& meshComponent, const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData)
+{
+    if (json.find("animations") == json.end()) return;
+
+    const auto& accessors = json["accessors"];
+    const auto& bufferViews = json["bufferViews"];
+
+    for (auto& animation : json["animations"]) {
+        MeshAnimation meshAnimation;
+
+        for (auto& channel : animation["channels"]) {
+            uint32_t samplerIndex = channel["sampler"];
+            uint32_t nodeIndex = channel["target"]["node"];
+            auto& meshChannel = meshAnimation[cacheData.nodeIndices[nodeIndex]].emplace_back();
+
+            uint32_t inputAccessorIndex = animation["samplers"][samplerIndex]["input"];
+            uint32_t outputAccessorIndex = animation["samplers"][samplerIndex]["output"];
+
+            // @todo We currently handle just animations expressed in float
+            assert(accessors[inputAccessorIndex]["componentType"] == 5126);
+            assert(accessors[outputAccessorIndex]["componentType"] == 5126);
+
+            auto input = glb::Accessor(accessors[inputAccessorIndex]).get<float>(bufferViews, binChunk.data);
+            input.fill(meshChannel.timeSteps);
+
+            // Path
+            const auto& path = channel["target"]["path"];
+            if (path == "translation") {
+                auto output = glb::Accessor(accessors[outputAccessorIndex]).get<glm::vec3>(bufferViews, binChunk.data);
+                output.fill(meshChannel.translation);
+                meshChannel.path = MeshAnimationPath::Translation;
+            }
+            else if (path == "rotation") {
+                auto output = glb::Accessor(accessors[outputAccessorIndex]).get<glm::quat>(bufferViews, binChunk.data);
+                output.fill(meshChannel.rotation);
+                meshChannel.path = MeshAnimationPath::Rotation;
+            }
+            else if (path == "scale") {
+                auto output = glb::Accessor(accessors[outputAccessorIndex]).get<glm::vec3>(bufferViews, binChunk.data);
+                output.fill(meshChannel.scaling);
+                meshChannel.path = MeshAnimationPath::Scaling;
+            }
+            else {
+                logger.warning("sill.makers.glb-mesh") << "Unhandled animation path: " << path << "." << std::endl;
+            }
+
+            // Interpolation
+            const auto& interpolation = animation["samplers"][samplerIndex]["interpolation"];
+            if (interpolation == "STEP") {
+                meshChannel.interpolationType = InterpolationType::Step;
+            }
+            else if (interpolation == "LINEAR") {
+                meshChannel.interpolationType = InterpolationType::Linear;
+            }
+            else if (interpolation == "CUBICSPLINE") {
+                meshChannel.interpolationType = InterpolationType::CubicSpline;
+            }
+        }
+
+        meshComponent.add(meshAnimation);
     }
 }
 
@@ -302,9 +367,13 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
             }
         }
 
+        // ----- Animations
+
+        loadAnimations(meshComponent, binChunk, json, cacheData);
+
         // ----- Fixing convention of glTF (right-handed, front is +X, left is +Z)
 
-        rootNode.transform = rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY);
+        rootNode.transform(rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY));
 
         meshComponent.nodes(std::move(meshNodes));
 

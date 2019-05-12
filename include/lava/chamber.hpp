@@ -4,6 +4,7 @@
 #include <lava/chamber/buffer.hpp>
 #include <lava/chamber/call-stack.hpp>
 #include <lava/chamber/file-watcher.hpp>
+#include <lava/chamber/interpolation-tools.hpp>
 #include <lava/chamber/lexer.hpp>
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/math.hpp>

@@ -50,6 +50,21 @@ namespace lava {
         const T* begin() const { return &operator[](0u); }
         const T* end() const { return &operator[](m_size); }
 
+        /// Quick cast to a vector.
+        void fill(std::vector<T>& v) const
+        {
+            v.resize(m_size);
+
+            if (m_stride == 0u) {
+                memcpy(v.data(), m_data, m_size * sizeof(T));
+            }
+            else {
+                for (auto i = 0u; i < m_size; ++i) {
+                    v[i] = operator[](i);
+                }
+            }
+        }
+
     private:
         const uint8_t* m_data = nullptr;
         uint32_t m_size = 0u;
