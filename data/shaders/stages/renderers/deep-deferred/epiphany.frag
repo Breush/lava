@@ -25,7 +25,7 @@ layout(location = 0) out vec3 outColor;
 void main()
 {
     // @todo Allow clear color to be configurable
-    vec3 color = vec3(0.2, 0.6, 0.4);
+    vec3 color = vec3(1.1 - length(gl_FragCoord.xy / camera.extent - vec2(0.5)));
 
     //----- Opaque materials
 
