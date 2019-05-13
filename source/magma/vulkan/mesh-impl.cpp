@@ -1,5 +1,7 @@
 #include "./mesh-impl.hpp"
 
+#include <lava/chamber/mikktspace.hpp>
+
 #include "./material-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"
 #include "./ubos.hpp"
@@ -63,6 +65,74 @@ void Mesh::Impl::init()
 
     m_initialized = true;
     updateBindings();
+}
+
+void Mesh::Impl::computeFlatNormals()
+{
+    for (auto i = 0u; i < m_indices.size(); i += 3u) {
+        auto i0 = m_indices[i];
+        auto i1 = m_indices[i + 1];
+        auto i2 = m_indices[i + 2];
+        auto& v0 = m_vertices[i0];
+        auto& v1 = m_vertices[i1];
+        auto& v2 = m_vertices[i2];
+        v0.normal = glm::normalize(glm::cross(v1.pos - v2.pos, v1.pos - v0.pos));
+        v1.normal = v0.normal;
+        v2.normal = v0.normal;
+    }
+
+    createVertexBuffer();
+}
+
+void Mesh::Impl::computeTangents()
+{
+    SMikkTSpaceInterface tsInterface;
+    tsInterface.m_getNumFaces = [](const SMikkTSpaceContext* pContext) -> int {
+        const auto& self = *reinterpret_cast<const Mesh::Impl*>(pContext->m_pUserData);
+        return self.m_indices.size() / 3;
+    };
+    tsInterface.m_getNumVerticesOfFace = [](const SMikkTSpaceContext* /* pContext */, const int /* iFace */) -> int { return 3; };
+    tsInterface.m_getPosition = [](const SMikkTSpaceContext* pContext, float fvPosOut[], const int iFace, const int iVert) {
+        const auto& self = *reinterpret_cast<const Mesh::Impl*>(pContext->m_pUserData);
+        auto vertexIndex = self.m_indices[3 * iFace + iVert];
+        fvPosOut[0] = self.m_vertices[vertexIndex].pos[0];
+        fvPosOut[1] = self.m_vertices[vertexIndex].pos[1];
+        fvPosOut[2] = self.m_vertices[vertexIndex].pos[2];
+    };
+    tsInterface.m_getNormal = [](const SMikkTSpaceContext* pContext, float fvNormOut[], const int iFace, const int iVert) {
+        const auto& self = *reinterpret_cast<const Mesh::Impl*>(pContext->m_pUserData);
+        auto vertexIndex = self.m_indices[3 * iFace + iVert];
+        fvNormOut[0] = self.m_vertices[vertexIndex].normal[0];
+        fvNormOut[1] = self.m_vertices[vertexIndex].normal[1];
+        fvNormOut[2] = self.m_vertices[vertexIndex].normal[2];
+    };
+    tsInterface.m_getTexCoord = [](const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert) {
+        const auto& self = *reinterpret_cast<const Mesh::Impl*>(pContext->m_pUserData);
+        auto vertexIndex = self.m_indices[3 * iFace + iVert];
+        fvTexcOut[0] = self.m_vertices[vertexIndex].uv[0];
+        fvTexcOut[1] = self.m_vertices[vertexIndex].uv[1];
+    };
+
+    tsInterface.m_setTSpaceBasic = [](const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign,
+                                      const int iFace, const int iVert) {
+        auto& self = *reinterpret_cast<Mesh::Impl*>(pContext->m_pUserData);
+        auto vertexIndex = self.m_indices[3 * iFace + iVert];
+        self.m_vertices[vertexIndex].tangent[0] = fvTangent[0];
+        self.m_vertices[vertexIndex].tangent[1] = fvTangent[1];
+        self.m_vertices[vertexIndex].tangent[2] = fvTangent[2];
+        self.m_vertices[vertexIndex].tangent[3] = fSign;
+    };
+    tsInterface.m_setTSpace = nullptr;
+
+    SMikkTSpaceContext tsContext;
+    tsContext.m_pUserData = this;
+    tsContext.m_pInterface = &tsInterface;
+
+    if (!genTangSpaceDefault(&tsContext)) {
+        logger.warning("magma.vulkan.mesh") << "Could not generate tangents." << std::endl;
+    }
+
+    createVertexBuffer();
 }
 
 // ----- Transform

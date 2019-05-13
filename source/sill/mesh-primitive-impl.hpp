@@ -14,6 +14,9 @@ namespace lava::sill {
         magma::Mesh* magma() { return m_magma; }
         const magma::Mesh* magma() const { return m_magma; }
 
+        void computeFlatNormals() { m_magma->computeFlatNormals(); }
+        void computeTangents() { m_magma->computeTangents(); }
+
         // Geometry
         void verticesCount(const uint32_t count) { m_magma->verticesCount(count); }
         void verticesPositions(VectorView<glm::vec3> positions) { m_magma->verticesPositions(positions); }

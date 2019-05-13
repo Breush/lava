@@ -160,8 +160,10 @@ namespace lava::ashe {
             }
 
             mesh.verticesCount(positions.size());
-            mesh.verticesPositions(positions);
             mesh.indices(indices);
+            mesh.verticesPositions(positions);
+            mesh.computeFlatNormals();
+            mesh.computeTangents();
 
             return mesh;
         }
@@ -171,7 +173,6 @@ namespace lava::ashe {
             auto& mesh = m_scene->make<magma::Mesh>();
 
             std::vector<glm::vec3> positions(4);
-            std::vector<glm::vec3> normals(4, {0.f, 0.f, 1.f});
             std::vector<uint16_t> indices = {0u, 1u, 2u, 2u, 3u, 0u};
 
             const auto halfWidth = dimensions.x / 2.f;
@@ -187,9 +188,10 @@ namespace lava::ashe {
             positions[3].y = halfHeight;
 
             mesh.verticesCount(positions.size());
-            mesh.verticesPositions(positions);
-            mesh.verticesNormals(normals);
             mesh.indices(indices);
+            mesh.verticesPositions(positions);
+            mesh.computeFlatNormals();
+            mesh.computeTangents();
 
             return mesh;
         }
@@ -198,26 +200,33 @@ namespace lava::ashe {
         {
             auto& mesh = m_scene->make<magma::Mesh>();
 
-            std::vector<glm::vec3> positions(4);
-            std::vector<uint16_t> indices = {0u, 1u, 2u, 2u, 1u, 3u, 3u, 0u, 2u, 1u, 0u, 3u};
+            std::vector<uint16_t> indices = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u};
 
-            const auto oneOvertSqrt2 = size / sqrt(2.f);
-            positions[0].x = size;
-            positions[0].y = 0.f;
-            positions[0].z = -oneOvertSqrt2;
-            positions[1].x = -size;
-            positions[1].y = 0.f;
-            positions[1].z = -oneOvertSqrt2;
-            positions[2].x = 0.f;
-            positions[2].y = -size;
-            positions[2].z = oneOvertSqrt2;
-            positions[3].x = 0.f;
-            positions[3].y = size;
-            positions[3].z = oneOvertSqrt2;
+            const auto sizeOverSqrt2 = size / sqrt(2.f);
+            std::vector<glm::vec3> positions = {
+                // 0 2 1
+                {size, 0.f, -sizeOverSqrt2},  // 0
+                {0.f, -size, sizeOverSqrt2},  // 2
+                {-size, 0.f, -sizeOverSqrt2}, // 1
+                // 2 3 1
+                {0.f, -size, sizeOverSqrt2},  // 2
+                {0.f, size, sizeOverSqrt2},   // 3
+                {-size, 0.f, -sizeOverSqrt2}, // 1
+                // 3 2 0
+                {0.f, size, sizeOverSqrt2},  // 3
+                {0.f, -size, sizeOverSqrt2}, // 2
+                {size, 0.f, -sizeOverSqrt2}, // 0
+                // 1 3 0
+                {-size, 0.f, -sizeOverSqrt2}, // 1
+                {0.f, size, sizeOverSqrt2},   // 3
+                {size, 0.f, -sizeOverSqrt2},  // 0
+            };
 
             mesh.verticesCount(positions.size());
-            mesh.verticesPositions(positions);
             mesh.indices(indices);
+            mesh.verticesPositions(positions);
+            mesh.computeFlatNormals();
+            mesh.computeTangents();
 
             return mesh;
         }
@@ -261,40 +270,6 @@ namespace lava::ashe {
                 {-halfSideLength, -halfSideLength, halfSideLength},
             };
 
-            // Normals (flat shading)
-            std::vector<glm::vec3> normals = {
-                // Bottom
-                {0.f, 0.f, -1.f},
-                {0.f, 0.f, -1.f},
-                {0.f, 0.f, -1.f},
-                {0.f, 0.f, -1.f},
-                // Top
-                {0.f, 0.f, 1.f},
-                {0.f, 0.f, 1.f},
-                {0.f, 0.f, 1.f},
-                {0.f, 0.f, 1.f},
-                // Left
-                {0.f, 1.f, 0.f},
-                {0.f, 1.f, 0.f},
-                {0.f, 1.f, 0.f},
-                {0.f, 1.f, 0.f},
-                // Right
-                {0.f, -1.f, 0.f},
-                {0.f, -1.f, 0.f},
-                {0.f, -1.f, 0.f},
-                {0.f, -1.f, 0.f},
-                // Front
-                {1.f, 0.f, 0.f},
-                {1.f, 0.f, 0.f},
-                {1.f, 0.f, 0.f},
-                {1.f, 0.f, 0.f},
-                // Back
-                {-1.f, 0.f, 0.f},
-                {-1.f, 0.f, 0.f},
-                {-1.f, 0.f, 0.f},
-                {-1.f, 0.f, 0.f},
-            };
-
             // Indices
             std::vector<uint16_t> indices;
             indices.reserve(6u * positions.size() / 4u);
@@ -309,9 +284,10 @@ namespace lava::ashe {
 
             // Apply the geometry
             mesh.verticesCount(positions.size());
-            mesh.verticesPositions(positions);
-            mesh.verticesNormals(normals);
             mesh.indices(indices);
+            mesh.verticesPositions(positions);
+            mesh.computeFlatNormals();
+            mesh.computeTangents();
 
             return mesh;
         }

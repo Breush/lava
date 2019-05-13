@@ -47,6 +47,9 @@ namespace lava::magma {
         bool vrRenderable() const { return m_vrRenderable; }
         void vrRenderable(bool vrRenderable) { m_vrRenderable = vrRenderable; }
 
+        void computeFlatNormals();
+        void computeTangents();
+
         Material& material() { return *m_material; }
         void material(Material& material);
 

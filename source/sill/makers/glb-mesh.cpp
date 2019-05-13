@@ -124,23 +124,11 @@ namespace {
             if (primitive.normalsAccessorIndex != -1u) {
                 normals = glb::Accessor(accessors[primitive.normalsAccessorIndex]).get<glm::vec3>(bufferViews, binChunk.data);
             }
-            else {
-                // @todo Compute flat normals.
-                logger.error("sill.makers.glb-mesh")
-                    << "No normals found in mesh " << meshIndex << ", primitive " << primitiveIndex << "." << std::endl
-                    << "Currently not generating flat normals." << std::endl;
-            }
 
             // Tangents
             VectorView<glm::vec4> tangents;
             if (primitive.tangentsAccessorIndex != -1u) {
                 tangents = glb::Accessor(accessors[primitive.tangentsAccessorIndex]).get<glm::vec4>(bufferViews, binChunk.data);
-            }
-            else {
-                // @todo Otherwise, auto compute tangents nicely.
-                logger.warning("sill.makers.glb-mesh")
-                    << "No tangents found in mesh " << meshIndex << ", primitive " << primitiveIndex << "." << std::endl
-                    << "Some materials might not render correctly." << std::endl;
             }
 
             // Material
@@ -170,14 +158,7 @@ namespace {
             // Apply the geometry
             auto& meshPrimitive = meshData->addPrimitive(entity.engine());
             meshPrimitive.verticesCount(positions.size());
-            meshPrimitive.verticesPositions(positions);
-            meshPrimitive.verticesNormals(normals);
-            meshPrimitive.verticesTangents(tangents);
-            meshPrimitive.verticesUvs(uv1s);
-            if (rmMaterial != nullptr) meshPrimitive.material(*rmMaterial);
-            meshPrimitive.translucent(translucent);
 
-            // Indices
             auto indicesComponentType = accessors[primitive.indicesAccessorIndex]["componentType"];
             if (indicesComponentType == 5123) {
                 auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint16_t>(bufferViews, binChunk.data);
@@ -191,6 +172,26 @@ namespace {
                 logger.warning("sill.makers.glb-mesh")
                     << "Indices component type " << indicesComponentType << " not handled." << std::endl;
             }
+
+            meshPrimitive.verticesPositions(positions);
+            meshPrimitive.verticesUvs(uv1s);
+
+            if (normals.size() != 0) {
+                meshPrimitive.verticesNormals(normals);
+            }
+            else {
+                meshPrimitive.computeFlatNormals();
+            }
+
+            if (tangents.size() != 0) {
+                meshPrimitive.verticesTangents(tangents);
+            }
+            else {
+                meshPrimitive.computeTangents();
+            }
+
+            if (rmMaterial != nullptr) meshPrimitive.material(*rmMaterial);
+            meshPrimitive.translucent(translucent);
         }
 
         return std::move(meshData);

@@ -28,6 +28,12 @@ namespace lava::magma {
         bool vrRenderable() const;
         void vrRenderable(bool vrRenderable);
 
+        /// From current vertices positions, compute flat normals.
+        void computeFlatNormals();
+
+        /// From current vertices positions and normals, compute tangents.
+        void computeTangents();
+
         /**
          * @name Transforms
          */

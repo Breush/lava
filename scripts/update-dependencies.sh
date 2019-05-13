@@ -124,6 +124,10 @@ updateDependencyByVersion "external/glm.lua" "${LAST}"
 extractFromGithubTags "yse/easy_profiler"
 updateDependencyByVersion "external/easy-profiler.lua" "${LAST}"
 
+# MikkTSpace
+extractFromGithubLastCommit "tcoppex/ext-mikktspace"
+updateDependencyByDate "external/mikktspace.lua" "${LAST}"
+
 # Nlohmann JSON
 extractFromGithubTags "nlohmann/json"
 updateDependencyByVersion "external/nlohmann-json.lua" "${LAST}"

@@ -19,6 +19,9 @@ namespace lava::sill {
         MeshPrimitive(MeshPrimitive&& meshPrimitive);
         ~MeshPrimitive();
 
+        void computeFlatNormals();
+        void computeTangents();
+
         /**
          * @name Geometry
          */

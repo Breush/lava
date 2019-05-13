@@ -1,5 +1,6 @@
 include "bullet.lua"
 include "glm.lua"
+include "mikktspace.lua"
 include "nlohmann-json.lua"
 include "openvr.lua"
 include "stb.lua"

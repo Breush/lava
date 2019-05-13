@@ -12,6 +12,9 @@ MeshPrimitive::MeshPrimitive(MeshPrimitive&& meshPrimitive)
     meshPrimitive.m_impl = nullptr;
 }
 
+$pimpl_method(MeshPrimitive, void, computeFlatNormals);
+$pimpl_method(MeshPrimitive, void, computeTangents);
+
 // Geometry
 $pimpl_method(MeshPrimitive, void, verticesCount, const uint32_t, count);
 $pimpl_method(MeshPrimitive, void, verticesPositions, VectorView<glm::vec3>, positions);

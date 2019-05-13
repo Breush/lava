@@ -38,6 +38,7 @@ project "lava-chamber"
 
         links { "pthread" }
 
+        useMikkTSpace()
         useStb()
 
         if _OPTIONS["profile"] then
