@@ -136,7 +136,7 @@ namespace {
             // Offsetting from hand transform a little bit.
             auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});
             targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
-            targetTransform = baseRotationLevelMatrix();
+            targetTransform = targetTransform * baseRotationLevelMatrix();
 
             // If the hand is close to a snapping point, we snap to it.
             grabbedBrick->unsnap();

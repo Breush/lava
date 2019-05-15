@@ -30,6 +30,16 @@ void loadLevel(GameState& gameState, uint32_t levelId)
     std::cout << "Loading level " << levelId << std::endl;
 
     if (levelId == 0) {
+        // Waking hall
+        {
+            auto& entity = gameState.engine->make<sill::GameEntity>();
+            auto& meshComponent = entity.make<sill::MeshComponent>();
+            sill::makers::glbMeshMaker("./assets/models/vr-puzzle/waking-hall.glb")(meshComponent);
+            entity.get<sill::TransformComponent>().rotate({0, 0, 1}, 3.14156f * 0.5f);
+            entity.ensure<sill::SoundEmitterComponent>().add("open-clock", "./assets/sounds/vr-puzzle/open-clock.wav");
+            gameState.wakingHall = &entity;
+        }
+
         /**
          *  - 3x3 void panel
          *      - 1 L3 brick
@@ -41,6 +51,8 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         gameState.panels[0] = std::make_unique<Panel>(gameState);
         gameState.panels[0]->transform().worldTransform(glm::rotate(glm::mat4(1.f), 3.14156f, {0, 0, 1}));
         gameState.panels[0]->extent({3, 3});
+        gameState.panels[0]->transform().translate({-1, -0.8f, 0});
+        gameState.panels[0]->transform().rotate({0, 0, 1}, 3.14156f * 0.5f);
 
         gameState.bricks.clear();
 
@@ -82,6 +94,13 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         gameState.panels[0]->extent({3, 3});
         gameState.panels[0]->addLink({0, 0}, {0, 1});
         gameState.panels[0]->addLink({1, 1}, {2, 1});
+        gameState.panels[0]->transform().translate({-1, -0.8f, 0});
+        gameState.panels[0]->transform().rotate({0, 0, 1}, 3.14156f * 0.5f);
+
+        // Open clock
+        // @fixme Have panel logic more than level logic.
+        gameState.wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
+        gameState.wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
     }
     else if (levelId == 2) {
         /**

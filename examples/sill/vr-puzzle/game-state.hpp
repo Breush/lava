@@ -19,4 +19,6 @@ struct GameState {
     std::vector<std::unique_ptr<Panel>> panels;
     std::vector<std::unique_ptr<Brick>> bricks;
     Brick* pointedBrick = nullptr;
+
+    lava::sill::GameEntity* wakingHall = nullptr;
 };
