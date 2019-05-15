@@ -42,6 +42,10 @@ GameEngine::Impl::Impl(GameEngine& base)
     m_physicsEngine = std::make_unique<dike::PhysicsEngine>();
     m_physicsEngine->gravity({0, 0, -10});
 
+    //----- Initializing audio
+
+    m_audioEngine = std::make_unique<flow::AudioEngine>();
+
     //----- Initializing fonts
 
     m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
@@ -92,6 +96,9 @@ void GameEngine::Impl::run()
 
             // Update all entities.
             updateEntities(updateDt);
+
+            // Update audio.
+            m_audioEngine->update(); // @fixme No dt?
 
             updateTimeLag -= updateTime;
         }

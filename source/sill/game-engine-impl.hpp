@@ -24,6 +24,7 @@ namespace lava::sill {
         /// @{
         InputManager& input() { return m_inputManager; }
         dike::PhysicsEngine& physicsEngine() { return *m_physicsEngine; }
+        flow::AudioEngine& audioEngine() { return *m_audioEngine; }
 
         // Fonts
         Font& font(const std::string& hrid) { return m_fontManager.font(hrid); }
@@ -88,6 +89,9 @@ namespace lava::sill {
 
         // Physics
         std::unique_ptr<dike::PhysicsEngine> m_physicsEngine = nullptr;
+
+        // Audio
+        std::unique_ptr<flow::AudioEngine> m_audioEngine = nullptr;
 
         // Fonts
         FontManager m_fontManager;

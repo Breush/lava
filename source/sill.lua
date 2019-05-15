@@ -1,7 +1,7 @@
 project "lava-sill"
     kind "SharedLib"
     pic "on"
-    
+
     pchheader "sill/pch.hpp"
     files "sill/**"
 
@@ -9,6 +9,7 @@ project "lava-sill"
         useCrater()
         useMagma()
         useDike()
+        useFlow()
         useNlohmannJson()
     end
 
