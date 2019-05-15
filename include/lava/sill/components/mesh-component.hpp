@@ -22,7 +22,9 @@ namespace lava::sill {
         void nodes(std::vector<MeshNode>&& nodes);
 
         /// Animations
-        void add(const MeshAnimation& animation);
+        void add(const std::string& hrid, const MeshAnimation& animation);
+        /// Start an animation. Use -1u for loops to get infinite looping.
+        void startAnimation(const std::string& hrid, uint32_t loops = 1u);
 
     public:
         class Impl;

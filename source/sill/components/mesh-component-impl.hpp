@@ -22,7 +22,8 @@ namespace lava::sill {
         std::vector<MeshNode>& nodes() { return m_nodes; }
         const std::vector<MeshNode>& nodes() const { return m_nodes; }
         void nodes(std::vector<MeshNode>&& nodes);
-        void add(const MeshAnimation& animation);
+        void add(const std::string& hrid, const MeshAnimation& animation);
+        void startAnimation(const std::string& hrid, uint32_t loops);
 
         // Callbacks
         void onWorldTransformChanged();
@@ -37,7 +38,8 @@ namespace lava::sill {
         };
 
         struct AnimationInfo {
-            float time = 0.f; // Current time of the animation.
+            float time = 0.f;    // Current time of the animation.
+            uint32_t loops = 0u; // How many loops there are left to do. (-1u means infinite)
             uint32_t channelsCount = 0u;
             uint32_t pausedChannelsCount = 0u;
             std::unordered_map<uint32_t, std::vector<AnimationChannelInfo>> channelsInfos;
@@ -49,6 +51,6 @@ namespace lava::sill {
 
         // Resources
         std::vector<MeshNode> m_nodes;
-        std::vector<AnimationInfo> m_animationsInfos;
+        std::unordered_map<std::string, AnimationInfo> m_animationsInfos;
     };
 }

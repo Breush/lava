@@ -19,4 +19,5 @@ void MeshComponent::nodes(std::vector<MeshNode>&& nodes)
     m_impl->nodes(std::move(nodes));
 }
 
-$pimpl_method(MeshComponent, void, add, const MeshAnimation&, animation);
+$pimpl_method(MeshComponent, void, add, const std::string&, hrid, const MeshAnimation&, animation);
+$pimpl_method(MeshComponent, void, startAnimation, const std::string&, hrid, uint32_t, loops);

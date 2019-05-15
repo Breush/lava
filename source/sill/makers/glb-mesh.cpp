@@ -299,7 +299,13 @@ void loadAnimations(MeshComponent& meshComponent, const glb::Chunk& binChunk, co
             }
         }
 
-        meshComponent.add(meshAnimation);
+        if (animation.find("name") != animation.end()) {
+            std::string name = animation["name"];
+            meshComponent.add(name, meshAnimation);
+        }
+        else {
+            logger.warning("sill.makers.glb-mesh") << "Found animation with no name." << std::endl;
+        }
     }
 }
 

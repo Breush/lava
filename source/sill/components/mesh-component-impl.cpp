@@ -36,15 +36,21 @@ MeshComponent::Impl::Impl(GameEntity& entity)
 
 void MeshComponent::Impl::update(float dt)
 {
-    if (m_animationsInfos.size() == 0) return;
+    bool nodesAnimated = false;
 
-    for (auto& animationInfo : m_animationsInfos) {
+    for (auto& animationInfoPair : m_animationsInfos) {
+        auto& animationInfo = animationInfoPair.second;
+        if (animationInfo.loops == 0u) continue;
+        nodesAnimated = true;
+
         auto& time = animationInfo.time;
         time += dt;
 
         // If all channels are paused, we loop over
-        // @fixme Animation behavior (looping?) should be user-defined.
         if (animationInfo.pausedChannelsCount == animationInfo.channelsCount) {
+            if (animationInfo.loops != -1u) animationInfo.loops -= 1u;
+            if (animationInfo.loops == 0u) continue;
+
             time = 0.f;
             animationInfo.pausedChannelsCount = 0u;
             for (auto& channelsInfosPair : animationInfo.channelsInfos) {
@@ -109,7 +115,9 @@ void MeshComponent::Impl::update(float dt)
 
     // @todo We could bee more clever to update only the nodes
     // that need to be updated while being sure it's done only once.
-    onWorldTransformChanged();
+    if (nodesAnimated) {
+        onWorldTransformChanged();
+    }
 }
 
 // ----- MeshComponent
@@ -133,9 +141,9 @@ void MeshComponent::Impl::nodes(std::vector<MeshNode>&& nodes)
     onWorldTransformChanged();
 }
 
-void MeshComponent::Impl::add(const MeshAnimation& animation)
+void MeshComponent::Impl::add(const std::string& hrid, const MeshAnimation& animation)
 {
-    auto& animationInfo = m_animationsInfos.emplace_back();
+    auto& animationInfo = m_animationsInfos[hrid];
 
     for (auto& animationPair : animation) {
         auto& channelsInfos = animationInfo.channelsInfos[animationPair.first];
@@ -146,6 +154,13 @@ void MeshComponent::Impl::add(const MeshAnimation& animation)
             animationInfo.channelsCount += 1u;
         }
     }
+}
+
+void MeshComponent::Impl::startAnimation(const std::string& hrid, uint32_t loops)
+{
+    m_animationsInfos.at(hrid).loops = loops;
+    m_animationsInfos.at(hrid).pausedChannelsCount = 0u;
+    m_animationsInfos.at(hrid).time = 0.f;
 }
 
 // ----- Internal
