@@ -50,6 +50,7 @@ void MeshComponent::Impl::update(float dt)
             for (auto& channelsInfosPair : animationInfo.channelsInfos) {
                 for (auto& channelInfo : channelsInfosPair.second) {
                     channelInfo.paused = false;
+                    channelInfo.step = 0u;
                 }
             }
         }
@@ -68,7 +69,7 @@ void MeshComponent::Impl::update(float dt)
 
                 // Find the next step of the keyframes, and advance if neccessary
                 uint32_t nextStep;
-                float nextTime;
+                float nextTime = 0.f;
                 while (!channelInfo.paused) {
                     nextStep = step + 1u;
                     nextTime = channel.timeSteps[nextStep];
@@ -79,17 +80,14 @@ void MeshComponent::Impl::update(float dt)
 
                     // Pausing if we went too far in the animation.
                     if (step >= channel.timeSteps.size() - 1u) {
-                        step = 0u;
                         channelInfo.paused = true;
                         animationInfo.pausedChannelsCount += 1u;
                     }
                 }
 
-                if (channelInfo.paused) continue;
-
                 auto previousTime = channel.timeSteps[step];
                 if (time >= previousTime) {
-                    auto timeRange = nextTime - previousTime;
+                    auto timeRange = std::max(nextTime - previousTime, 0.001f);
                     auto t = (time - previousTime) / timeRange;
 
                     if (channel.path == MeshAnimationPath::Translation) {

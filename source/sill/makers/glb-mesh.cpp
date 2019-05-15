@@ -138,7 +138,7 @@ namespace {
                 rmMaterial = cacheData.materials.at(primitive.materialIndex);
                 translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
             }
-            else if (materials != json.end()) {
+            else if (materials != json.end() && primitive.materialIndex != -1u) {
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
                 rmMaterial = &engine.make<Material>("roughness-metallic");
                 translucent = material.translucent;
