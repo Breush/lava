@@ -13,6 +13,9 @@ Brick::Brick(GameState& gameState)
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::AnimationComponent>();
     m_entity->make<sill::BoxColliderComponent>();
+
+    // @fixme Debug colliders should be user-controlled
+    m_entity->get<sill::BoxColliderComponent>().debugEnabled(true);
 }
 
 Brick::~Brick()

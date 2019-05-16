@@ -23,6 +23,15 @@ namespace lava::sill {
         bool enabled() const;
         void enabled(bool enabled);
 
+        /**
+         * @name Debug
+         * ```
+         */
+        /// @{
+        /// A wireframe object that show the collider's shape.
+        void debugEnabled(bool debugEnabled);
+        /// @}
+
         // IComponent
         static std::string hrid() { return "box-collider"; }
         void update(float dt) final;

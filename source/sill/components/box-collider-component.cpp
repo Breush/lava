@@ -31,5 +31,8 @@ $pimpl_method(BoxColliderComponent, void, dimensions, const glm::vec3&, dimensio
 $pimpl_method_const(BoxColliderComponent, bool, enabled);
 $pimpl_method(BoxColliderComponent, void, enabled, bool, enabled);
 
+// Debug
+$pimpl_method(BoxColliderComponent, void, debugEnabled, bool, debugEnabled);
+
 // IComponent
 $pimpl_method(BoxColliderComponent, void, update, float, dt);

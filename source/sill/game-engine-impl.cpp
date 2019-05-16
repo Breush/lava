@@ -190,16 +190,21 @@ void GameEngine::Impl::updateEntities(float dt)
     }
 
     // Remove pending entities
-    for (auto pEntity : m_pendingRemovedEntities) {
-        for (auto iEntity = m_entities.begin(); iEntity != m_entities.end();) {
-            if (iEntity->get() == pEntity) {
-                iEntity = m_entities.erase(iEntity);
-                continue;
+    if (!m_pendingRemovedEntities.empty()) {
+        // Some entities might remove others, so we copy everything before-hand.
+        auto pendingRemovedEntities = m_pendingRemovedEntities;
+        m_pendingRemovedEntities.clear();
+
+        for (auto pEntity : pendingRemovedEntities) {
+            for (auto iEntity = m_entities.begin(); iEntity != m_entities.end();) {
+                if (iEntity->get() == pEntity) {
+                    iEntity = m_entities.erase(iEntity);
+                    continue;
+                }
+                iEntity++;
             }
-            iEntity++;
         }
     }
-    m_pendingRemovedEntities.clear();
 }
 
 void GameEngine::Impl::registerMaterials()

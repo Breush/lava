@@ -17,12 +17,16 @@ namespace lava::sill {
         bool enabled() const { return m_rigidBody->enabled(); }
         void enabled(bool enabled) { m_rigidBody->enabled(enabled); }
 
+        // Debug
+        void debugEnabled(bool debugEnabled);
+
         // IComponent
         void update(float dt) override final;
 
     protected:
         /// Callbacks
         void onTransformChanged();
+        void onNonPhysicsTransformChanged();
 
     private:
         // References
@@ -30,5 +34,10 @@ namespace lava::sill {
         TransformComponent& m_transformComponent;
 
         dike::BoxRigidBody* m_rigidBody = nullptr;
+        glm::vec3 m_dimensions = {1.f, 1.f, 1.f};
+
+        // Debug
+        bool m_debugEnabled = false;
+        GameEntity* m_debugEntity = nullptr;
     };
 }
