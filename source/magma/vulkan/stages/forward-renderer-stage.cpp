@@ -19,6 +19,7 @@ ForwardRendererStage::ForwardRendererStage(RenderScene::Impl& scene)
     : m_scene(scene)
     , m_renderPassHolder(m_scene.engine())
     , m_opaquePipelineHolder(m_scene.engine())
+    , m_wireframePipelineHolder(m_scene.engine())
     , m_translucentPipelineHolder(m_scene.engine())
     , m_finalImageHolder(m_scene.engine(), "magma.vulkan.stages.forward-renderer.final-image")
     , m_depthImageHolder(m_scene.engine(), "magma.vulkan.stages.forward-renderer.depth-image")
@@ -35,11 +36,13 @@ void ForwardRendererStage::init(uint32_t cameraId)
 
     updatePassShaders(true);
     initOpaquePass();
+    initWireframePass();
     initTranslucentPass();
 
     //----- Render pass
 
     m_renderPassHolder.add(m_opaquePipelineHolder);
+    m_renderPassHolder.add(m_wireframePipelineHolder);
     m_renderPassHolder.add(m_translucentPipelineHolder);
     m_renderPassHolder.init();
 
@@ -49,8 +52,10 @@ void ForwardRendererStage::init(uint32_t cameraId)
 void ForwardRendererStage::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
 {
     m_extent = extent;
+    m_polygonMode = polygonMode;
 
     m_opaquePipelineHolder.update(extent, polygonMode);
+    m_wireframePipelineHolder.update(extent, vk::PolygonMode::eLine);
     m_translucentPipelineHolder.update(extent, polygonMode);
 
     createResources();
@@ -71,7 +76,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     // during construction.
 
     // Set render pass
-    std::array<vk::ClearValue, 4> clearValues;
+    std::array<vk::ClearValue, 2> clearValues;
     // @todo Allow clear color to be configurable
     std::array<float, 4> clearColor{0.2f, 0.6f, 0.4f, 1.f};
     clearValues[0u].color = vk::ClearColorValue(clearColor);
@@ -89,7 +94,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     //----- Opaque pass
 
-    deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer.pass");
+    deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer.opaque-pass");
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_opaquePipelineHolder.pipeline());
 
@@ -105,7 +110,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
-        if (mesh->translucent() || (camera.vrAimed() && !mesh->vrRenderable())) continue;
+        if (mesh->translucent() || mesh->wireframed() || (camera.vrAimed() && !mesh->vrRenderable())) continue;
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
@@ -116,9 +121,29 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     deviceHolder.debugEndRegion(commandBuffer);
 
+    //----- Wireframe pass
+
+    deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer.wireframe-pass");
+
+    // @todo No need to bind wireframe if there is nothing to draw in it.
+    commandBuffer.nextSubpass(vk::SubpassContents::eInline);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_wireframePipelineHolder.pipeline());
+
+    // Draw all wireframed meshes
+    for (auto& mesh : m_scene.meshes()) {
+        if (!mesh->wireframed() || mesh->translucent() || (camera.vrAimed() && !mesh->vrRenderable())) continue;
+        const auto& boundingSphere = mesh->boundingSphere();
+        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+            tracker.counter("draw-calls.renderer") += 1u;
+            mesh->renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX);
+        }
+    }
+
+    deviceHolder.debugEndRegion(commandBuffer);
+
     //----- Translucent pass
 
-    deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer.pass");
+    deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer.translucent-pass");
 
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_translucentPipelineHolder.pipeline());
@@ -198,6 +223,42 @@ void ForwardRendererStage::initOpaquePass()
     m_opaquePipelineHolder.set(vertexInput);
 }
 
+void ForwardRendererStage::initWireframePass()
+{
+    //----- Descriptor set layouts
+
+    // @note Ordering is important
+    m_wireframePipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+
+    //----- Rasterization
+
+    m_wireframePipelineHolder.set(vk::CullModeFlagBits::eNone);
+
+    //----- Attachments
+
+    vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.depthWriteEnabled = false;
+    depthStencilAttachment.clear = false;
+    m_wireframePipelineHolder.set(depthStencilAttachment);
+
+    vulkan::PipelineHolder::ColorAttachment finalColorAttachment;
+    finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
+    finalColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    finalColorAttachment.blending = vulkan::PipelineHolder::ColorAttachmentBlending::AlphaBlending;
+    m_wireframePipelineHolder.add(finalColorAttachment);
+
+    //---- Vertex input
+
+    vulkan::PipelineHolder::VertexInput vertexInput;
+    vertexInput.stride = sizeof(vulkan::UnlitVertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::UnlitVertex, pos)}};
+    m_wireframePipelineHolder.set(vertexInput);
+}
+
 void ForwardRendererStage::initTranslucentPass()
 {
     // @note Translucent pass differs from opaque pass just by having
@@ -262,17 +323,28 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     auto fragmentShaderModule =
         m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/forward/geometry.frag", moduleOptions);
 
+    auto unlitVertexShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/geometry-unlit.vert", moduleOptions);
+    auto unlitFragmentShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/geometry-unlit.frag", moduleOptions);
+
     m_opaquePipelineHolder.removeShaderStages();
     m_opaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     m_opaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+
+    m_wireframePipelineHolder.removeShaderStages();
+    m_wireframePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, unlitVertexShaderModule, "main"});
+    m_wireframePipelineHolder.add(
+        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, unlitFragmentShaderModule, "main"});
 
     m_translucentPipelineHolder.removeShaderStages();
     m_translucentPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     m_translucentPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     if (!firstTime) {
-        m_opaquePipelineHolder.update(m_extent);
-        m_translucentPipelineHolder.update(m_extent);
+        m_opaquePipelineHolder.update(m_extent, m_polygonMode);
+        m_wireframePipelineHolder.update(m_extent, vk::PolygonMode::eLine);
+        m_translucentPipelineHolder.update(m_extent, m_polygonMode);
     }
 }
 
@@ -291,6 +363,8 @@ void ForwardRendererStage::createFramebuffers()
 {
     // Attachments
     std::vector<vk::ImageView> attachments;
+    attachments.emplace_back(m_finalImageHolder.view());
+    attachments.emplace_back(m_depthImageHolder.view());
     attachments.emplace_back(m_finalImageHolder.view());
     attachments.emplace_back(m_depthImageHolder.view());
     attachments.emplace_back(m_finalImageHolder.view());

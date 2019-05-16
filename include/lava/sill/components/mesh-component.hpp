@@ -26,6 +26,10 @@ namespace lava::sill {
         /// Start an animation. Use -1u for loops to get infinite looping.
         void startAnimation(const std::string& hrid, uint32_t loops = 1u);
 
+        /// Debug
+        bool wireframed() const;
+        void wireframed(bool wireframed);
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

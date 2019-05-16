@@ -44,6 +44,14 @@ namespace lava::sill {
         void translucent(bool translucent);
         /// @}
 
+        /**
+         * @name Debug
+         */
+        /// @{
+        bool wireframed() const;
+        void wireframed(bool wireframed);
+        /// @}
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

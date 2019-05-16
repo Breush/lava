@@ -24,6 +24,8 @@ namespace lava::sill {
         void nodes(std::vector<MeshNode>&& nodes);
         void add(const std::string& hrid, const MeshAnimation& animation);
         void startAnimation(const std::string& hrid, uint32_t loops);
+        bool wireframed() const { return m_wireframed; }
+        void wireframed(bool wireframed);
 
         // Callbacks
         void onWorldTransformChanged();
@@ -52,5 +54,8 @@ namespace lava::sill {
         // Resources
         std::vector<MeshNode> m_nodes;
         std::unordered_map<std::string, AnimationInfo> m_animationsInfos;
+
+        // Debug
+        bool m_wireframed = false;
     };
 }

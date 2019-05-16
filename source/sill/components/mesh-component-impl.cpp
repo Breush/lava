@@ -163,6 +163,22 @@ void MeshComponent::Impl::startAnimation(const std::string& hrid, uint32_t loops
     m_animationsInfos.at(hrid).time = 0.f;
 }
 
+// ----- Debug
+
+void MeshComponent::Impl::wireframed(bool wireframed)
+{
+    if (m_wireframed == wireframed) return;
+    m_wireframed = wireframed;
+
+    for (auto& node : m_nodes) {
+        if (node.mesh != nullptr) {
+            for (auto& primitive : node.mesh->primitives()) {
+                primitive.wireframed(wireframed);
+            }
+        }
+    }
+}
+
 // ----- Internal
 
 void MeshComponent::Impl::onWorldTransformChanged()

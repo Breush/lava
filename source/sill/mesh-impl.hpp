@@ -14,6 +14,7 @@ namespace lava::sill {
         // Mesh primitives
         MeshPrimitive& primitive(uint32_t index) { return m_primitives[index]; }
         const std::vector<MeshPrimitive>& primitives() const { return m_primitives; }
+        std::vector<MeshPrimitive>& primitives() { return m_primitives; }
         void primitives(std::vector<MeshPrimitive>&& primitives);
         MeshPrimitive& addPrimitive(GameEngine& engine);
 

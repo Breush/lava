@@ -35,6 +35,10 @@ namespace lava::sill {
         }
         void translucent(bool translucent) { m_magma->translucent(translucent); }
 
+        // Debug
+        bool wireframed() const { return m_magma->wireframed(); }
+        void wireframed(bool wireframed) { m_magma->wireframed(wireframed); }
+
     private:
         // References
         GameEngine::Impl& m_engine;

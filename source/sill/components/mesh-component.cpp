@@ -21,3 +21,5 @@ void MeshComponent::nodes(std::vector<MeshNode>&& nodes)
 
 $pimpl_method(MeshComponent, void, add, const std::string&, hrid, const MeshAnimation&, animation);
 $pimpl_method(MeshComponent, void, startAnimation, const std::string&, hrid, uint32_t, loops);
+
+$pimpl_property_v(MeshComponent, bool, wireframed);

@@ -139,7 +139,7 @@ void ShadowsStage::initPass()
 
     vulkan::PipelineHolder::VertexInput vertexInput;
     vertexInput.stride = sizeof(vulkan::UnlitVertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)}};
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::UnlitVertex, pos)}};
     m_pipelineHolder.set(vertexInput);
 }
 

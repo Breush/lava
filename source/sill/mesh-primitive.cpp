@@ -28,3 +28,6 @@ $pimpl_method(MeshPrimitive, void, indices, VectorView<uint8_t>, indices, bool, 
 $pimpl_method(MeshPrimitive, Material&, material);
 $pimpl_method(MeshPrimitive, void, material, Material&, material);
 $pimpl_method(MeshPrimitive, void, translucent, bool, translucent);
+
+// Debug
+$pimpl_property_v(MeshPrimitive, bool, wireframed);

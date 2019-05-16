@@ -37,6 +37,7 @@ namespace lava::magma {
 
     protected:
         void initOpaquePass();
+        void initWireframePass();
         void initTranslucentPass();
 
         void updatePassShaders(bool firstTime);
@@ -49,10 +50,12 @@ namespace lava::magma {
         RenderScene::Impl& m_scene;
         uint32_t m_cameraId = -1u;
         vk::Extent2D m_extent;
+        vk::PolygonMode m_polygonMode = vk::PolygonMode::eFill;
 
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;
         vulkan::PipelineHolder m_opaquePipelineHolder;
+        vulkan::PipelineHolder m_wireframePipelineHolder;
         vulkan::PipelineHolder m_translucentPipelineHolder;
 
         // Resources
