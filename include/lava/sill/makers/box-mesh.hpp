@@ -29,6 +29,7 @@ namespace lava::sill::makers {
         BoxOrigin origin = BoxOrigin::Center;
         BoxSiding siding = BoxSiding::Out;
         BoxCoordinatesSystem coordinatesSystem = BoxCoordinatesSystem::Unknown;
+        glm::vec3 offset = {0.f, 0.f, 0.f};
     };
 
     std::function<void(MeshComponent&)> boxMeshMaker(float sidesLength, BoxMeshOptions options = BoxMeshOptions());

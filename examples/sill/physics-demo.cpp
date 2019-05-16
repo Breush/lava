@@ -16,10 +16,9 @@ int main(void)
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::planeMeshMaker({10, 10})(meshComponent);
-        entity.make<sill::PlaneColliderComponent>();
-
-        // @fixme How to say that this is static?
-        // We might want a PhysicsComponent holding general data
+        entity.make<sill::ColliderComponent>();
+        entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
+        entity.get<sill::PhysicsComponent>().dynamic(false);
     }
 
     // Generator entity
@@ -35,8 +34,9 @@ int main(void)
                 sill::makers::sphereMeshMaker(32u, sphereDiameter)(meshComponent);
                 auto xOffset = (rand() % 100) / 500.f;
                 auto yOffset = (rand() % 100) / 500.f;
+                entity.make<sill::ColliderComponent>();
+                entity.get<sill::ColliderComponent>().addSphereShape({0.f, 0.f, 0.f}, sphereDiameter);
                 entity.get<sill::TransformComponent>().translate({xOffset, yOffset, 3});
-                entity.make<sill::SphereColliderComponent>(sphereDiameter);
             }
         });
 

@@ -12,10 +12,10 @@ Brick::Brick(GameState& gameState)
     m_entity = &gameState.engine->make<sill::GameEntity>();
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::AnimationComponent>();
-    m_entity->make<sill::BoxColliderComponent>();
+    m_entity->make<sill::ColliderComponent>();
 
     // @fixme Debug colliders should be user-controlled
-    m_entity->get<sill::BoxColliderComponent>().debugEnabled(true);
+    m_entity->get<sill::ColliderComponent>().debugEnabled(true);
 }
 
 Brick::~Brick()
@@ -29,40 +29,30 @@ Brick::~Brick()
 
 void Brick::blocks(std::vector<glm::ivec2> blocks)
 {
-    // @fixme We should delete old meshes...
+    // Clean old enities...
+    for (auto& block : m_blocks) {
+        m_gameState.engine->remove(*block.entity);
+    }
     m_blocks.resize(blocks.size());
+    m_entity->get<sill::ColliderComponent>().clearShapes();
 
     // Create blocks
     auto brickMaker = sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-brick.glb");
     for (auto i = 0u; i < blocks.size(); ++i) {
         m_blocks[i].nonRotatedCoordinates = blocks[i];
 
-        // Allocate block if needed
-        if (m_blocks[i].entity == nullptr) {
-            auto& entity = m_gameState.engine->make<sill::GameEntity>();
-            auto& meshComponent = entity.make<sill::MeshComponent>();
-            brickMaker(meshComponent);
-            entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});
+        // Allocate block
+        auto& entity = m_gameState.engine->make<sill::GameEntity>();
+        auto& meshComponent = entity.make<sill::MeshComponent>();
+        brickMaker(meshComponent);
+        entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});
 
-            m_blocks[i].entity = &entity;
-            m_entity->addChild(entity);
-        }
+        m_blocks[i].entity = &entity;
+        m_entity->addChild(entity);
+        m_entity->get<sill::ColliderComponent>().addBoxShape(
+            {blocks[i].x * blockExtent.x, blocks[i].y * blockExtent.y, 0.5f * blockExtent.z},
+            {blockExtent.x, blockExtent.y, blockExtent.z});
     }
-
-    // Update colliders
-    glm::ivec2 minCoordinates = {100, 100};
-    glm::ivec2 maxCoordinates = {-100, -100};
-    for (auto i = 0u; i < blocks.size(); ++i) {
-        if (blocks[i].x < minCoordinates.x) minCoordinates.x = blocks[i].x;
-        if (blocks[i].y < minCoordinates.y) minCoordinates.y = blocks[i].y;
-        if (blocks[i].x > maxCoordinates.x) maxCoordinates.x = blocks[i].x;
-        if (blocks[i].y > maxCoordinates.y) maxCoordinates.y = blocks[i].y;
-    }
-    // @fixme Make better colliders with some sort of PhysicsComponent allowing multiple colliders at once.
-    // Moreover, we can't offset this yet. Too bad.
-    m_entity->get<sill::BoxColliderComponent>().dimensions(glm::vec3{(1.f + maxCoordinates.x - minCoordinates.x) * blockExtent.x,
-                                                                     (1.f + maxCoordinates.y - minCoordinates.y) * blockExtent.y,
-                                                                     blockExtent.z});
 
     // Update blocks
     m_baseRotationLevel = 0u;
@@ -93,7 +83,7 @@ void Brick::unsnap()
     if (m_snapPanel == nullptr) return;
 
     m_snapPanel = nullptr;
-    m_entity->get<sill::BoxColliderComponent>().enabled(true);
+    m_entity->get<sill::PhysicsComponent>().enabled(true);
 }
 
 void Brick::snap(const Panel& panel, const glm::uvec2& snapCoordinates)
@@ -102,7 +92,7 @@ void Brick::snap(const Panel& panel, const glm::uvec2& snapCoordinates)
 
     m_snapPanel = &panel;
     m_snapCoordinates = snapCoordinates;
-    m_entity->get<sill::BoxColliderComponent>().enabled(false);
+    m_entity->get<sill::PhysicsComponent>().enabled(false);
 }
 
 uint32_t Brick::incrementBaseRotationLevel()

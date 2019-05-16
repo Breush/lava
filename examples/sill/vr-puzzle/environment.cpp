@@ -19,7 +19,9 @@ void setupEnvironment(GameState& gameState)
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::planeMeshMaker({10, 10})(meshComponent);
-        entity.make<sill::PlaneColliderComponent>();
+        entity.make<sill::ColliderComponent>();
+        entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
+        entity.get<sill::PhysicsComponent>().dynamic(false);
     }
 }
 

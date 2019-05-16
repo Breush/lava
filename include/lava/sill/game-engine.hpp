@@ -74,7 +74,6 @@ namespace lava::sill {
 
         /**
          * @name VR
-         * ```
          */
         /// @{
         /// Whether a VR system can be used (initialization worked).

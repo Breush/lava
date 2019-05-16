@@ -84,7 +84,6 @@ namespace lava::magma {
 
         /**
          * @name VR
-         * ```
          */
         /// @{
         /// Poll VR event.

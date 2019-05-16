@@ -15,7 +15,7 @@ std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent
     const auto halfExtent = extent / 2.f;
 
     // Offset for vertices base on requested origin
-    glm::vec3 verticesOffset = glm::vec3{0, 0, 0};
+    glm::vec3 verticesOffset = options.offset;
     if (options.origin == BoxOrigin::Bottom) {
         verticesOffset -= glm::vec3(0, 0, extent.z / 2.f);
     }

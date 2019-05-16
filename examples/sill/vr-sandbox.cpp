@@ -16,7 +16,9 @@ int main(void)
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::planeMeshMaker({10, 10})(meshComponent);
-        entity.make<sill::PlaneColliderComponent>();
+        entity.make<sill::ColliderComponent>();
+        entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
+        entity.get<sill::PhysicsComponent>().dynamic(false);
     }
 
     // Spawning random cubes
@@ -29,7 +31,8 @@ int main(void)
         cubeEntity.get<sill::TransformComponent>().translate({(rand() % 5) / 10.f - 0.2f, // X
                                                               (rand() % 5) / 10.f - 0.2f, // Y
                                                               0.3f + (rand() % 20) / 10.f});
-        cubeEntity.make<sill::BoxColliderComponent>(cubeSize);
+        cubeEntity.make<sill::ColliderComponent>();
+        cubeEntity.get<sill::ColliderComponent>().addBoxShape({0.f, 0.f, 0.f}, cubeSize);
         cubeEntity.make<sill::AnimationComponent>();
         cubes.emplace_back(&cubeEntity);
     }

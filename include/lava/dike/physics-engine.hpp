@@ -1,10 +1,11 @@
 #pragma once
 
-#include <lava/dike/rigid-bodies/i-rigid-body.hpp>
-#include <lava/dike/static-rigid-bodies/i-static-rigid-body.hpp>
-
 #include <glm/vec3.hpp>
 #include <memory>
+
+namespace lava::dike {
+    class RigidBody;
+}
 
 namespace lava::dike {
     class PhysicsEngine {
@@ -24,7 +25,7 @@ namespace lava::dike {
          * Any resource that match an adder (see below) can be made.
          *
          * ```
-         * auto& rigidBody = engine.make<SphereRigidBody>(); // Its lifetime is now managed by the engine.
+         * auto& rigidBody = engine.make<RigidBody>(); // Its lifetime is now managed by the engine.
          * ```
          */
         /// @{
@@ -41,11 +42,9 @@ namespace lava::dike {
          * For convenience, you usually want to use makers (see above).
          */
         /// @{
-        void add(std::unique_ptr<IStaticRigidBody>&& rigidBody);
-        void add(std::unique_ptr<IRigidBody>&& rigidBody);
+        void add(std::unique_ptr<RigidBody>&& rigidBody);
 
-        void remove(const IStaticRigidBody& rigidBody);
-        void remove(const IRigidBody& rigidBody);
+        void remove(const RigidBody& rigidBody);
         /// @}
 
     public:

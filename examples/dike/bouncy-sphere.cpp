@@ -5,6 +5,7 @@
 #include <lava/dike.hpp>
 
 #include <cmath>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 using namespace lava;
@@ -15,16 +16,18 @@ int main(void)
     engine.gravity({0, 0, -10});
 
     // Ground
-    engine.make<dike::PlaneStaticRigidBody>(glm::vec3{0, 0, 1});
+    auto& plane = engine.make<dike::RigidBody>();
+    plane.addInfinitePlaneShape();
+    plane.dynamic(false);
 
     // Falling sphere
-    auto& sphere = engine.make<dike::SphereRigidBody>(0.1f);
-    sphere.mass(1);
-    sphere.translate({0, 0, 1.f});
+    auto& sphere = engine.make<dike::RigidBody>();
+    sphere.addSphereShape({0.f, 0.f, 0.f}, 0.1f);
+    sphere.transform(glm::translate(glm::mat4(1.f), {0, 0, 1.f}));
 
     // Simulating the world
     for (auto i = 0u; i < 45u; i++) {
-        uint32_t distance = std::round(sphere.translation().z * 80);
+        uint32_t distance = std::round(sphere.transform()[3].z * 80);
         for (auto j = 1u; j < distance; ++j) {
             std::cout << ' ';
         }
