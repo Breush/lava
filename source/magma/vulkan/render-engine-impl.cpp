@@ -35,6 +35,10 @@ void RenderEngine::Impl::update()
 
     updateVr();
     updateShaders();
+
+    for (auto& scene : m_renderScenes) {
+        scene->impl().update();
+    }
 }
 
 void RenderEngine::Impl::draw()

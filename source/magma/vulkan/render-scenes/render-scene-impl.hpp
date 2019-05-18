@@ -30,6 +30,7 @@ namespace lava::magma {
 
         // Internal interface
         void init(uint32_t id);
+        void update();
         void record();
         void waitRecord();
         const std::vector<vk::CommandBuffer>& commandBuffers() const { return m_commandBuffers; }
@@ -149,6 +150,8 @@ namespace lava::magma {
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<std::unique_ptr<Mesh>> m_meshes;
+
+        std::vector<const Mesh*> m_pendingRemovedMeshes;
 
         // Data references
         std::vector<Mesh::Impl*> m_meshesImpls;

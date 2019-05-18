@@ -38,18 +38,23 @@ namespace lava::magma {
          * @name Transforms
          */
         /// @{
-        /// The transform combines scaling, rotation and translation.
+        /// The transform is `translation * rotation * scaling`.
         const glm::mat4& transform() const;
         void transform(const glm::mat4& transform);
 
-        glm::vec3 translation() const;
+        const glm::vec3& translation() const;
         void translation(const glm::vec3& translation);
         void translate(const glm::vec3& delta);
 
-        // @todo Return rotation, as a glm::quat
+        const glm::quat& rotation() const;
+        void rotation(const glm::quat& rotation);
         void rotate(const glm::vec3& axis, float angleDelta);
 
-        void scale(float factor);
+        const glm::vec3& scaling() const;
+        void scaling(const glm::vec3& scaling);
+        void scaling(float scaling);
+        void scale(const glm::vec3& scaling);
+        void scale(float scaling);
         /// @}
 
         /**
@@ -87,6 +92,10 @@ namespace lava::magma {
         /// @{
         bool wireframed() const;
         void wireframed(bool wireframed);
+
+        /// Add a wireframed mesh to show the bounding sphere.
+        bool boundingSphereVisible() const;
+        void boundingSphereVisible(bool boundingSphereVisible);
         /// @}
 
     public:

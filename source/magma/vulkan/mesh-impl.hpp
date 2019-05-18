@@ -29,9 +29,17 @@ namespace lava::magma {
         // Mesh
         const glm::mat4& transform() const { return m_transform; }
         void transform(const glm::mat4& transform);
-        void translate(const glm::vec3& delta);
+        const glm::vec3& translation() const { return m_translation; }
+        void translation(const glm::vec3& translation);
+        void translate(const glm::vec3& delta) { translation(m_translation + delta); }
+        const glm::quat& rotation() const { return m_rotation; }
+        void rotation(const glm::quat& rotation);
         void rotate(const glm::vec3& axis, float angleDelta);
-        void scale(float factor);
+        const glm::vec3& scaling() const { return m_scaling; }
+        void scaling(const glm::vec3& scaling);
+        void scaling(float factor) { scaling({factor, factor, factor}); }
+        void scale(const glm::vec3& factor) { scaling(m_scaling * factor); }
+        void scale(float factor) { scaling(m_scaling * factor); }
 
         void verticesCount(const uint32_t count);
         void verticesPositions(VectorView<glm::vec3> positions);
@@ -59,6 +67,9 @@ namespace lava::magma {
         bool wireframed() const { return m_wireframed; }
         void wireframed(bool wireframed) { m_wireframed = wireframed; }
 
+        bool boundingSphereVisible() const { return m_boundingSphereVisible; }
+        void boundingSphereVisible(bool boundingSphereVisible);
+
     private:
         void updateTransform();
         void updateBoundingSphere();
@@ -68,6 +79,7 @@ namespace lava::magma {
 
     private:
         // References
+        RenderScene& m_baseScene;
         RenderScene::Impl& m_scene;
         bool m_initialized = false;
 
@@ -80,10 +92,16 @@ namespace lava::magma {
         bool m_vrRenderable = true;
         bool m_translucent = false;
         bool m_wireframed = false;
+        bool m_boundingSphereVisible = false;
 
         // Computed
         BoundingSphere m_boundingSphereLocal;
         BoundingSphere m_boundingSphere;
+        // Local bounding box dimenstion which is centered at m_boundingSphereLocal.center.
+        glm::vec3 m_boundingBoxExtentLocal;
+
+        // Debug
+        Mesh* m_boundingSphereMesh = nullptr;
 
         // Node
         glm::mat4 m_transform = glm::mat4(1.f);

@@ -30,6 +30,9 @@ namespace lava::sill {
         bool wireframed() const;
         void wireframed(bool wireframed);
 
+        bool boundingSpheresVisible() const;
+        void boundingSpheresVisible(bool boundingSpheresVisible);
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

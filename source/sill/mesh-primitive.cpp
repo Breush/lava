@@ -31,3 +31,4 @@ $pimpl_method(MeshPrimitive, void, translucent, bool, translucent);
 
 // Debug
 $pimpl_property_v(MeshPrimitive, bool, wireframed);
+$pimpl_property_v(MeshPrimitive, bool, boundingSphereVisible);

@@ -39,6 +39,9 @@ namespace lava::sill {
         bool wireframed() const { return m_magma->wireframed(); }
         void wireframed(bool wireframed) { m_magma->wireframed(wireframed); }
 
+        bool boundingSphereVisible() const { return m_magma->boundingSphereVisible(); }
+        void boundingSphereVisible(bool boundingSphereVisible) { m_magma->boundingSphereVisible(boundingSphereVisible); }
+
     private:
         // References
         GameEngine::Impl& m_engine;

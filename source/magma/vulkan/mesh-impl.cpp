@@ -2,6 +2,7 @@
 
 #include <lava/chamber/mikktspace.hpp>
 
+#include "../meshes/mesh-tools.hpp"
 #include "./material-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"
 #include "./ubos.hpp"
@@ -43,7 +44,8 @@ namespace {
 }
 
 Mesh::Impl::Impl(RenderScene& scene)
-    : m_scene(scene.impl())
+    : m_baseScene(scene)
+    , m_scene(scene.impl())
     , m_uboHolder(m_scene.engine())
     , m_unlitVertexBufferHolder(m_scene.engine())
     , m_vertexBufferHolder(m_scene.engine())
@@ -55,6 +57,10 @@ Mesh::Impl::~Impl()
 {
     if (m_initialized) {
         m_scene.meshDescriptorHolder().freeSet(m_descriptorSet);
+    }
+
+    if (m_boundingSphereVisible) {
+        boundingSphereVisible(false);
     }
 }
 
@@ -140,14 +146,28 @@ void Mesh::Impl::computeTangents()
 void Mesh::Impl::transform(const glm::mat4& transform)
 {
     m_transform = transform;
-    // @todo Should decompose translation/rotation/scaling
+
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(m_transform, m_scaling, m_rotation, m_translation, skew, perspective);
+
     updateBoundingSphere();
     updateBindings();
 }
 
-void Mesh::Impl::translate(const glm::vec3& delta)
+void Mesh::Impl::translation(const glm::vec3& translation)
 {
-    m_translation += delta;
+    m_translation = translation;
+
+    updateTransform();
+    updateBoundingSphere();
+    updateBindings();
+}
+
+void Mesh::Impl::rotation(const glm::quat& rotation)
+{
+    m_rotation = rotation;
+
     updateTransform();
     updateBoundingSphere();
     updateBindings();
@@ -155,15 +175,13 @@ void Mesh::Impl::translate(const glm::vec3& delta)
 
 void Mesh::Impl::rotate(const glm::vec3& axis, float angleDelta)
 {
-    m_rotation = glm::rotate(m_rotation, angleDelta, axis);
-    updateTransform();
-    updateBoundingSphere();
-    updateBindings();
+    rotation(glm::rotate(m_rotation, angleDelta, axis));
 }
 
-void Mesh::Impl::scale(float factor)
+void Mesh::Impl::scaling(const glm::vec3& scaling)
 {
-    m_scaling *= factor;
+    m_scaling = scaling;
+
     updateTransform();
     updateBoundingSphere();
     updateBindings();
@@ -179,13 +197,20 @@ void Mesh::Impl::verticesCount(const uint32_t count)
 
 void Mesh::Impl::verticesPositions(VectorView<glm::vec3> positions)
 {
-    // @note We compute the center of the bounding sphere as the average
-    // of all vertices. That is surely not perfect, but that's some heuristic so far.
-    m_boundingSphereLocal.center = glm::vec3(0.f);
+    // @note We compute the center of the bounding sphere
+    // as the middle of each axis range.
+    glm::vec3 minRange = positions[0];
+    glm::vec3 maxRange = minRange;
     for (const auto& position : positions) {
-        m_boundingSphereLocal.center += position;
+        if (position.x > maxRange.x) maxRange.x = position.x;
+        if (position.x < minRange.x) minRange.x = position.x;
+        if (position.y > maxRange.y) maxRange.y = position.y;
+        if (position.y < minRange.y) minRange.y = position.y;
+        if (position.z > maxRange.z) maxRange.z = position.z;
+        if (position.z < minRange.z) minRange.z = position.z;
     }
-    m_boundingSphereLocal.center /= positions.size();
+    m_boundingSphereLocal.center = (minRange + maxRange) / 2.f;
+    m_boundingBoxExtentLocal = maxRange - minRange;
 
     auto maxDistanceSquared = 0.f;
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), positions.size());
@@ -255,6 +280,27 @@ void Mesh::Impl::material(Material& material)
     m_material = &material;
 }
 
+// ----- Debug
+
+void Mesh::Impl::boundingSphereVisible(bool boundingSphereVisible)
+{
+    if (m_boundingSphereVisible == boundingSphereVisible) return;
+    m_boundingSphereVisible = boundingSphereVisible;
+
+    if (m_boundingSphereVisible) {
+        m_boundingSphereMesh = &m_baseScene.make<Mesh>();
+        m_boundingSphereMesh->wireframed(true);
+
+        buildSphereMesh(*m_boundingSphereMesh);
+
+        updateBoundingSphere();
+    }
+    else {
+        m_baseScene.remove(*m_boundingSphereMesh);
+        m_boundingSphereMesh = nullptr;
+    }
+}
+
 // ----- Internal
 
 void Mesh::Impl::updateTransform()
@@ -272,17 +318,19 @@ void Mesh::Impl::updateBoundingSphere()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    // @note The bounding radius can be overestimated if
-    // the three scaling components are not the same,
-    // but this is way faster than reevaluating from all transformed
-    // vertices.
-    // auto scalingX = glm::length(m_transform[0]);
-    // auto scalingY = glm::length(m_transform[1]);
-    // auto scalingZ = glm::length(m_transform[2]);
-    auto maxScaling = std::max(std::max(m_scaling[0], m_scaling[1]), m_scaling[2]);
+    // @note The world-space bounding sphere is less
+    // precise than the local because it is based on the bounding box
+    // and not the exact vertices.
+    auto boundingBoxExtent = m_scaling * m_boundingBoxExtentLocal;
+    auto radius = glm::length(boundingBoxExtent / 2.f);
 
     m_boundingSphere.center = glm::vec3(m_transform * glm::vec4(m_boundingSphereLocal.center, 1));
-    m_boundingSphere.radius = maxScaling * m_boundingSphereLocal.radius;
+    m_boundingSphere.radius = radius;
+
+    if (m_boundingSphereVisible) {
+        m_boundingSphereMesh->translation(m_boundingSphere.center);
+        m_boundingSphereMesh->scaling(m_boundingSphere.radius);
+    }
 }
 
 void Mesh::Impl::updateBindings()

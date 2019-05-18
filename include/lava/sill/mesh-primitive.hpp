@@ -50,6 +50,9 @@ namespace lava::sill {
         /// @{
         bool wireframed() const;
         void wireframed(bool wireframed);
+
+        bool boundingSphereVisible() const;
+        void boundingSphereVisible(bool boundingSphereVisible);
         /// @}
 
     public:

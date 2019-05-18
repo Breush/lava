@@ -179,6 +179,20 @@ void MeshComponent::Impl::wireframed(bool wireframed)
     }
 }
 
+void MeshComponent::Impl::boundingSpheresVisible(bool boundingSpheresVisible)
+{
+    if (m_boundingSpheresVisible == boundingSpheresVisible) return;
+    m_boundingSpheresVisible = boundingSpheresVisible;
+
+    for (auto& node : m_nodes) {
+        if (node.mesh != nullptr) {
+            for (auto& primitive : node.mesh->primitives()) {
+                primitive.boundingSphereVisible(boundingSpheresVisible);
+            }
+        }
+    }
+}
+
 // ----- Internal
 
 void MeshComponent::Impl::onWorldTransformChanged()
