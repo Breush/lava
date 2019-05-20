@@ -12,7 +12,7 @@ namespace lava::magma {
      */
     class ShadowsStage final {
         constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 0u;
-        constexpr static const uint32_t MESH_DESCRIPTOR_SET_INDEX = 1u;
+        constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = 0u;
 
     public:
         ShadowsStage(RenderScene::Impl& scene);

@@ -1,0 +1,74 @@
+#softdefine USE_CAMERA_PUSH_CONSTANT
+#softdefine USE_MESH_PUSH_CONSTANT
+
+#if USE_CAMERA_PUSH_CONSTANT || USE_MESH_PUSH_CONSTANT
+layout(std430, push_constant) uniform PushConstantUbo {
+    // Camera UBO
+    #if USE_CAMERA_PUSH_CONSTANT
+    vec4 cameraViewTransform0;
+    vec4 cameraViewTransform1;
+    vec4 cameraViewTransform2;
+    vec4 cameraProjectionFactors0;
+    vec4 cameraProjectionFactors1;
+    #endif
+
+    // Mesh UBO
+    #if USE_MESH_PUSH_CONSTANT
+    vec4 meshTransform0;
+    vec4 meshTransform1;
+    vec4 meshTransform2;
+    #endif
+} pushConstants;
+#endif
+
+//----- Camera
+
+#if USE_CAMERA_PUSH_CONSTANT
+struct CameraUbo {
+    mat4 viewTransform;
+    mat4 projectionTransform;
+    mat4 viewTransformInverse;
+    mat4 projectionTransformInverse;
+    vec4 position;
+    uvec2 extent;
+} camera;
+
+void setupCamera() {
+    camera.viewTransform = transpose(mat4(pushConstants.cameraViewTransform0,
+                                          pushConstants.cameraViewTransform1,
+                                          pushConstants.cameraViewTransform2,
+                                          vec4(0, 0, 0, 1)));
+
+    camera.projectionTransform = mat4(0);
+    camera.projectionTransform[0][0] = pushConstants.cameraProjectionFactors0[0];
+    camera.projectionTransform[1][1] = pushConstants.cameraProjectionFactors0[1];
+    camera.projectionTransform[2][2] = pushConstants.cameraProjectionFactors0[2];
+    camera.projectionTransform[3][2] = pushConstants.cameraProjectionFactors0[3];
+    camera.projectionTransform[2][0] = pushConstants.cameraProjectionFactors1[0];
+    camera.projectionTransform[2][1] = pushConstants.cameraProjectionFactors1[1];
+    camera.projectionTransform[2][3] = -1;
+
+    camera.viewTransformInverse = inverse(camera.viewTransform);
+    camera.projectionTransformInverse = inverse(camera.projectionTransform);
+
+    camera.position = camera.viewTransformInverse[3];
+    camera.extent = uvec2(pushConstants.cameraProjectionFactors1[2], pushConstants.cameraProjectionFactors1[3]);
+}
+
+#include "../helpers/camera.sfunc"
+#endif
+
+//----- Mesh
+
+#if USE_MESH_PUSH_CONSTANT
+struct MeshUbo {
+    mat4 transform;
+} mesh;
+
+void setupMesh() {
+    mesh.transform = transpose(mat4(pushConstants.meshTransform0,
+                                    pushConstants.meshTransform1,
+                                    pushConstants.meshTransform2,
+                                    vec4(0, 0, 0, 1)));
+}
+#endif

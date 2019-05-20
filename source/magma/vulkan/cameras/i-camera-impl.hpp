@@ -23,7 +23,7 @@ namespace lava::magma {
 
         /// Render the camera.
         virtual void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                            uint32_t descriptorSetIndex) const = 0;
+                            uint32_t pushConstantOffset) const = 0;
 
         /// The rendered extent.
         virtual vk::Extent2D renderExtent() const = 0;

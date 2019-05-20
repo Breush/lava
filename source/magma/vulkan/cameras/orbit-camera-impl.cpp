@@ -1,25 +1,18 @@
 #include "./orbit-camera-impl.hpp"
 
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../ubos.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
 OrbitCamera::Impl::Impl(RenderScene& scene, Extent2d extent)
     : m_scene(scene.impl())
-    , m_uboHolder(m_scene.engine())
 {
     this->extent(extent);
     updateProjectionTransform();
 }
 
-OrbitCamera::Impl::~Impl()
-{
-    if (m_initialized) {
-        m_scene.cameraDescriptorHolder().freeSet(m_descriptorSet);
-    }
-}
+OrbitCamera::Impl::~Impl() {}
 
 //----- ICamera
 
@@ -47,18 +40,16 @@ void OrbitCamera::Impl::polygonMode(PolygonMode polygonMode)
 void OrbitCamera::Impl::init(uint32_t id)
 {
     m_id = id;
-    m_descriptorSet = m_scene.cameraDescriptorHolder().allocateSet("orbit-camera." + std::to_string(id));
-    m_uboHolder.init(m_descriptorSet, m_scene.cameraDescriptorHolder().uniformBufferBindingOffset(), {sizeof(vulkan::CameraUbo)});
 
     m_initialized = true;
     updateBindings();
 }
 
 void OrbitCamera::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                               uint32_t descriptorSetIndex) const
+                               uint32_t pushConstantOffset) const
 {
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
-                                     nullptr);
+    commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+                                pushConstantOffset, sizeof(vulkan::CameraUbo), &m_ubo);
 }
 
 void OrbitCamera::Impl::extent(Extent2d extent)
@@ -171,10 +162,17 @@ void OrbitCamera::Impl::updateBindings()
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    vulkan::CameraUbo ubo;
-    ubo.view = m_viewTransform;
-    ubo.projection = m_projectionTransform;
-    ubo.wPosition = glm::vec4(m_translation, 1.f);
-    ubo.extent = glm::uvec2(m_extent.width, m_extent.height);
-    m_uboHolder.copy(0, ubo);
+    auto transposeViewTransform = glm::transpose(m_viewTransform);
+    m_ubo.viewTransform0 = transposeViewTransform[0];
+    m_ubo.viewTransform1 = transposeViewTransform[1];
+    m_ubo.viewTransform2 = transposeViewTransform[2];
+
+    m_ubo.projectionFactors0[0] = m_projectionTransform[0][0];
+    m_ubo.projectionFactors0[1] = m_projectionTransform[1][1];
+    m_ubo.projectionFactors0[2] = m_projectionTransform[2][2];
+    m_ubo.projectionFactors0[3] = m_projectionTransform[3][2];
+    m_ubo.projectionFactors1[0] = m_projectionTransform[2][0];
+    m_ubo.projectionFactors1[1] = m_projectionTransform[2][1];
+    m_ubo.projectionFactors1[2] = m_extent.width;
+    m_ubo.projectionFactors1[3] = m_extent.height;
 }

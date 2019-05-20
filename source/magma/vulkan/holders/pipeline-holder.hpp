@@ -72,6 +72,9 @@ namespace lava::magma::vulkan {
         /// Set the cull mode.
         void set(vk::CullModeFlags cullMode) { m_cullMode = cullMode; }
 
+        /// Add a push constants range.
+        void addPushConstantRange(uint32_t size);
+
         /**
          * Whether the pipeline is for a self-dependent pass.
          * This is used when then pass needs a pipeline barrier
@@ -108,6 +111,7 @@ namespace lava::magma::vulkan {
         std::vector<ColorAttachment> m_colorAttachments;
         std::unique_ptr<DepthStencilAttachment> m_depthStencilAttachment;
         std::vector<InputAttachment> m_inputAttachments;
+        vk::PushConstantRange m_pushConstantRange = {vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, 0};
         VertexInput m_vertexInput;
         vk::CullModeFlags m_cullMode;
         bool m_selfDependent = false;

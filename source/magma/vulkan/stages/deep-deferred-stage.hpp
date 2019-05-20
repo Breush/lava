@@ -10,7 +10,7 @@
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"
 #include "../holders/render-pass-holder.hpp"
-#include "../holders/ubo-holder.hpp"
+#include "../ubos.hpp"
 
 namespace lava::magma {
     /**
@@ -26,10 +26,10 @@ namespace lava::magma {
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX = 0u;
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX = 1u;
 
-        constexpr static const uint32_t CAMERA_DESCRIPTOR_SET_INDEX = 2u;
-        constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 3u;
-        constexpr static const uint32_t GEOMETRY_MESH_DESCRIPTOR_SET_INDEX = 4u;
-        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 3u;
+        constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 2u;
+        constexpr static const uint32_t EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX = 2u;
+        constexpr static const uint32_t CAMERA_PUSH_CONSTANT_OFFSET = 0u;
+        constexpr static const uint32_t GEOMETRY_MESH_PUSH_CONSTANT_OFFSET = sizeof(vulkan::CameraUbo);
 
         struct GBufferNode {
             // 26 bits can handle 8K resolution

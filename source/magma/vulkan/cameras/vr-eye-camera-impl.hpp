@@ -7,7 +7,7 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../../vr-engine.hpp"
-#include "../holders/ubo-holder.hpp"
+#include "../ubos.hpp"
 
 namespace lava::magma {
     /**
@@ -29,7 +29,7 @@ namespace lava::magma {
         // ICamera::Impl
         bool vrAimed() const final { return true; }
         void init(uint32_t id) final;
-        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const final;
         vk::Extent2D renderExtent() const final { return m_extent; }
         const glm::vec3& translation() const final { return m_translation; }
         const glm::mat4& viewTransform() const final { return m_viewTransform; }
@@ -54,8 +54,7 @@ namespace lava::magma {
         bool m_initialized = false;
 
         // Descriptor
-        vk::DescriptorSet m_descriptorSet;
-        vulkan::UboHolder m_uboHolder;
+        vulkan::CameraUbo m_ubo;
 
         // Configuration
         vk::Extent2D m_extent;

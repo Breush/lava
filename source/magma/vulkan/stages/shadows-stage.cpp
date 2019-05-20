@@ -5,6 +5,7 @@
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
+#include "../ubos.hpp"
 #include "../vertex.hpp"
 
 using namespace lava::magma;
@@ -82,7 +83,7 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer)
     for (auto& mesh : m_scene.meshes()) {
         if (!mesh->canCastShadows()) continue;
         tracker.counter("draw-calls.shadows") += 1u;
-        mesh->renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX);
+        mesh->renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
     }
 
     // Draw
@@ -109,10 +110,11 @@ void ShadowsStage::initPass()
     //----- Shaders
 
     ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "0";
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
     moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
-    moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(MESH_DESCRIPTOR_SET_INDEX);
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
     auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/shadows.vert", moduleOptions);
@@ -122,7 +124,11 @@ void ShadowsStage::initPass()
 
     // @note Ordering is important
     m_pipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
-    m_pipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_pipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_pipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
 
     //----- Attachments
 

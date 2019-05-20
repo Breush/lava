@@ -32,8 +32,8 @@ epiphany {
         vec3 n = gBuffer.normal;
 
         // General ambient
-        vec3 wPosition = wPositionFromDepth(fragmentDepth, fragmentPosition);
-        vec3 v = normalize(camera.wPosition.xyz - wPosition.xyz);
+        vec3 position = positionFromDepth(fragmentDepth, fragmentPosition);
+        vec3 v = normalize(camera.position.xyz - position.xyz);
 
         // Material-specific
         float kd = 0.8;
@@ -55,9 +55,9 @@ epiphany {
         vec3 l;
         float lightIntensity;
         float shadow = 0;
-        if (epiphanyLight(wPosition, l, lightIntensity)) {
+        if (epiphanyLight(position, l, lightIntensity)) {
             float n_l = dot(n, l);
-            shadow = max(shadow, epiphanyLightShadow(l, wPosition, n));
+            shadow = max(shadow, epiphanyLightShadow(l, position, n));
 
             if (n_l > 0) {
                 // Diffuse

@@ -154,6 +154,11 @@ void PipelineHolder::initPipelineLayout()
     pipelineLayoutInfo.setLayoutCount = m_descriptorSetLayouts.size();
     pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data();
 
+    if (m_pushConstantRange.size > 0) {
+        pipelineLayoutInfo.pushConstantRangeCount = 1;
+        pipelineLayoutInfo.pPushConstantRanges = &m_pushConstantRange;
+    }
+
     if (m_engine.device().createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace())
         != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.render-stage") << "Failed to create pipeline layout." << std::endl;
@@ -183,4 +188,9 @@ void PipelineHolder::set(const DepthStencilAttachment& depthStencilAttachment)
 void PipelineHolder::add(const InputAttachment& inputAttachment)
 {
     m_inputAttachments.emplace_back(inputAttachment);
+}
+
+void PipelineHolder::addPushConstantRange(uint32_t size)
+{
+    m_pushConstantRange.size += size;
 }

@@ -2,12 +2,12 @@
 
 // @note The lightDirection is defined as the normalized vector
 // from the fragment to the light source.
-bool epiphanyLight(vec3 wPosition, out vec3 lightDirection, out float lightIntensity) {
+bool epiphanyLight(vec3 position, out vec3 lightDirection, out float lightIntensity) {
     lightIntensity = 0;
 
     switch (light.type) {
         case LIGHT_TYPE_POINT: {
-            lightDirection = light.transform[3].xyz - wPosition;
+            lightDirection = light.transform[3].xyz - position;
             float lightDistance = length(lightDirection);
 
             float radius = uintBitsToFloat(light.data[0].x);

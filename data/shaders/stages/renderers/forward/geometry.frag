@@ -5,7 +5,7 @@
 // Early depth test, as everything is sorted.
 layout(early_fragment_tests) in;
 
-#include "../../sets/camera.set"
+#include "../../sets/push-constants.set"
 #include "../../sets/material.set"
 #include "../../sets/lights.set"
 
@@ -30,6 +30,8 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
+    setupCamera();
+
     GBufferData gBufferData;
 
     uint materialId = material.id;

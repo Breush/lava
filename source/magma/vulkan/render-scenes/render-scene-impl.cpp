@@ -17,9 +17,7 @@ RenderScene::Impl::Impl(RenderEngine& engine)
     : m_engine(engine.impl())
     , m_rendererType(RendererType::Forward)
     , m_lightsDescriptorHolder(m_engine)
-    , m_cameraDescriptorHolder(m_engine)
     , m_materialDescriptorHolder(m_engine)
-    , m_meshDescriptorHolder(m_engine)
 {
 }
 
@@ -36,15 +34,9 @@ void RenderScene::Impl::init(uint32_t id)
     m_lightsDescriptorHolder.combinedImageSamplerSizes({1});
     m_lightsDescriptorHolder.init(64, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
-    m_cameraDescriptorHolder.uniformBufferSizes({1});
-    m_cameraDescriptorHolder.init(16, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
-
     m_materialDescriptorHolder.uniformBufferSizes({1});
     m_materialDescriptorHolder.combinedImageSamplerSizes({8});
     m_materialDescriptorHolder.init(128, vk::ShaderStageFlagBits::eFragment);
-
-    m_meshDescriptorHolder.uniformBufferSizes({1});
-    m_meshDescriptorHolder.init(128, vk::ShaderStageFlagBits::eVertex);
 
     initStages();
     initResources();

@@ -71,9 +71,7 @@ namespace lava::magma {
          */
         /// @{
         const vulkan::DescriptorHolder& lightsDescriptorHolder() const { return m_lightsDescriptorHolder; }
-        const vulkan::DescriptorHolder& cameraDescriptorHolder() const { return m_cameraDescriptorHolder; }
         const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
-        const vulkan::DescriptorHolder& meshDescriptorHolder() const { return m_meshDescriptorHolder; }
         /// @}
 
         /**
@@ -136,9 +134,7 @@ namespace lava::magma {
 
         // Resources
         vulkan::DescriptorHolder m_lightsDescriptorHolder;
-        vulkan::DescriptorHolder m_cameraDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
-        vulkan::DescriptorHolder m_meshDescriptorHolder;
 
         // @note To be kept after m_materialDescriptorHolder,
         // to prevent delete order issues.

@@ -6,7 +6,7 @@
 
 #include "../bounding-sphere.hpp"
 #include "./holders/buffer-holder.hpp"
-#include "./holders/ubo-holder.hpp"
+#include "./ubos.hpp"
 #include "./vertex.hpp"
 
 namespace lava::magma {
@@ -20,9 +20,9 @@ namespace lava::magma {
 
         // Internal interface
         void init();
-        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset,
                     uint32_t materialDescriptorSetIndex);
-        void renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex);
+        void renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset);
 
         const BoundingSphere& boundingSphere() const { return m_boundingSphere; }
 
@@ -110,8 +110,7 @@ namespace lava::magma {
         glm::vec3 m_scaling = glm::vec3(1.f);
 
         // Descriptor
-        vk::DescriptorSet m_descriptorSet;
-        vulkan::UboHolder m_uboHolder;
+        vulkan::MeshUbo m_ubo;
 
         // Vertices
         vulkan::BufferHolder m_unlitVertexBufferHolder;

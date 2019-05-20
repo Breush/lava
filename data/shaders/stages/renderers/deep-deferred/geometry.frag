@@ -6,7 +6,7 @@
 // otherwise transparent objects rendering will be erroneous.
 
 #include "./g-buffer-ssbo.set"
-#include "../../sets/camera.set"
+#include "../../sets/push-constants.set"
 #include "../../sets/material.set"
 
 //----- Fragment forwarded in
@@ -25,6 +25,8 @@ layout (location = 0) out uvec4 outGBufferRenderTargets[DEEP_DEFERRED_GBUFFER_RE
 
 void main()
 {
+    setupCamera();
+
     uint materialId = material.id;
 
     // Encoding materialId and next

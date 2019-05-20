@@ -7,6 +7,7 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/ubo-holder.hpp"
+#include "../ubos.hpp"
 
 namespace lava::magma {
     /**
@@ -29,13 +30,12 @@ namespace lava::magma {
 
         // ICamera::Impl
         bool vrAimed() const final { return false; }
-        void init(uint32_t id) override final;
-        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                    uint32_t descriptorSetIndex) const override final;
-        vk::Extent2D renderExtent() const override final { return m_extent; }
-        const glm::vec3& translation() const override final { return m_translation; }
-        bool useFrustumCulling() const override final { return true; }
-        const Frustum& frustum() const override final { return m_frustum; }
+        void init(uint32_t id) final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const final;
+        vk::Extent2D renderExtent() const final { return m_extent; }
+        const glm::vec3& translation() const final { return m_translation; }
+        bool useFrustumCulling() const final { return true; }
+        const Frustum& frustum() const final { return m_frustum; }
 
         // OrbitCamera
         void translation(const glm::vec3& translation);
@@ -54,8 +54,7 @@ namespace lava::magma {
         bool m_initialized = false;
 
         // Descriptor
-        vk::DescriptorSet m_descriptorSet;
-        vulkan::UboHolder m_uboHolder;
+        vulkan::CameraUbo m_ubo;
 
         // Configuration
         vk::Extent2D m_extent;

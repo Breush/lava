@@ -9,7 +9,6 @@
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../ubos.hpp"
 #include "../vertex.hpp"
 
 using namespace lava::magma;
@@ -105,7 +104,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
-    camera.render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
+    camera.render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
     const auto& cameraFrustum = camera.frustum();
 
     // Draw all opaque meshes
@@ -114,7 +113,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
+            mesh->render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                          MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
@@ -135,7 +134,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX);
+            mesh->renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
         }
     }
 
@@ -156,7 +155,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_DESCRIPTOR_SET_INDEX,
+            mesh->render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                          MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
@@ -192,10 +191,13 @@ void ForwardRendererStage::initOpaquePass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_opaquePipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_opaquePipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_opaquePipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_opaquePipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
 
     //----- Rasterization
 
@@ -228,10 +230,13 @@ void ForwardRendererStage::initWireframePass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_wireframePipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_wireframePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_wireframePipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
     m_wireframePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_wireframePipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_wireframePipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
 
     //----- Rasterization
 
@@ -267,10 +272,13 @@ void ForwardRendererStage::initTranslucentPass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_translucentPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_translucentPipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_translucentPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_translucentPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
 
     //----- Rasterization
 
@@ -307,8 +315,8 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     // only the depth test and the color attachments differ.
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
-    moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(MESH_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));

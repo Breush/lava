@@ -5,7 +5,6 @@
 #include "../meshes/mesh-tools.hpp"
 #include "./material-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"
-#include "./ubos.hpp"
 
 using namespace lava;
 using namespace lava::chamber;
@@ -46,7 +45,6 @@ namespace {
 Mesh::Impl::Impl(RenderScene& scene)
     : m_baseScene(scene)
     , m_scene(scene.impl())
-    , m_uboHolder(m_scene.engine())
     , m_unlitVertexBufferHolder(m_scene.engine())
     , m_vertexBufferHolder(m_scene.engine())
     , m_indexBufferHolder(m_scene.engine())
@@ -55,10 +53,6 @@ Mesh::Impl::Impl(RenderScene& scene)
 
 Mesh::Impl::~Impl()
 {
-    if (m_initialized) {
-        m_scene.meshDescriptorHolder().freeSet(m_descriptorSet);
-    }
-
     if (m_boundingSphereVisible) {
         boundingSphereVisible(false);
     }
@@ -66,9 +60,6 @@ Mesh::Impl::~Impl()
 
 void Mesh::Impl::init()
 {
-    m_descriptorSet = m_scene.meshDescriptorHolder().allocateSet("mesh");
-    m_uboHolder.init(m_descriptorSet, m_scene.meshDescriptorHolder().uniformBufferBindingOffset(), {sizeof(vulkan::MeshUbo)});
-
     m_initialized = true;
     updateBindings();
 }
@@ -335,13 +326,10 @@ void Mesh::Impl::updateBoundingSphere()
 
 void Mesh::Impl::updateBindings()
 {
-    if (!m_initialized) return;
-
-    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
-
-    vulkan::MeshUbo ubo;
-    ubo.transform = m_transform;
-    m_uboHolder.copy(0, ubo);
+    auto transposeTransform = glm::transpose(m_transform);
+    m_ubo.transform0 = transposeTransform[0];
+    m_ubo.transform1 = transposeTransform[1];
+    m_ubo.transform2 = transposeTransform[2];
 }
 
 void Mesh::Impl::createVertexBuffer()
@@ -376,7 +364,7 @@ void Mesh::Impl::createIndexBuffer()
 
 // ----- Internal interface -----
 
-void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex,
+void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset,
                         uint32_t materialDescriptorSetIndex)
 {
     if (m_vertices.empty() || m_indices.empty()) return;
@@ -391,31 +379,29 @@ void Mesh::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipe
         m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
 
-    // Bind with the mesh descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
-                                     nullptr);
-
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0, 1, &m_vertexBufferHolder.buffer(), offsets);
     commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
 
+    commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+                                pushConstantOffset, sizeof(vulkan::MeshUbo), &m_ubo);
+
     // Draw
     commandBuffer.drawIndexed(m_indices.size(), 1, 0, 0, 0);
 }
 
-void Mesh::Impl::renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
+void Mesh::Impl::renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset)
 {
     if (m_unlitVertices.empty() || m_indices.empty()) return;
-
-    // Bind with the mesh descriptor set
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
-                                     nullptr);
 
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0, 1, &m_unlitVertexBufferHolder.buffer(), offsets);
     commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
+
+    commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+                                pushConstantOffset, sizeof(vulkan::MeshUbo), &m_ubo);
 
     // Draw
     commandBuffer.drawIndexed(m_indices.size(), 1, 0, 0, 0);

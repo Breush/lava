@@ -2,8 +2,7 @@
 #pragma shader_stage(vertex)
 #extension GL_ARB_separate_shader_objects : enable
 
-#include "./sets/camera.set"
-#include "./sets/mesh.set"
+#include "./sets/push-constants.set"
 
 //----- Vertex data in
 
@@ -26,6 +25,9 @@ out gl_PerVertex {
 //----- Program
 
 void main() {
+    setupCamera();
+    setupMesh();
+
     mat3 M3 = mat3(mesh.transform);
 
     vec4 vPosition = camera.viewTransform * mesh.transform * vec4(inMPosition, 1);

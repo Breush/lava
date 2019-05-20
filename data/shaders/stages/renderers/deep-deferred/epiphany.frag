@@ -4,7 +4,7 @@
 
 #include "./g-buffer-input.set"
 #include "./g-buffer-ssbo.set"
-#include "../../sets/camera.set"
+#include "../../sets/push-constants.set"
 #include "../../sets/lights.set"
 
 //----- Fragment in
@@ -24,6 +24,8 @@ layout(location = 0) out vec3 outColor;
 
 void main()
 {
+    setupCamera();
+
     // @todo Allow clear color to be configurable
     vec3 color = vec3(1.1 - length(gl_FragCoord.xy / camera.extent - vec2(0.5)));
 

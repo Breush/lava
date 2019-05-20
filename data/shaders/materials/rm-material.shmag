@@ -125,15 +125,15 @@ epiphany {
     /**
     * Contribution for a single light.
     */
-    vec3 lightContribution(vec3 wPosition, RmPbrData pbr, inout float shadow)
+    vec3 lightContribution(vec3 position, RmPbrData pbr, inout float shadow)
     {
         vec3 l;
         float lightIntensity;
-        if (!epiphanyLight(wPosition, l, lightIntensity)) {
+        if (!epiphanyLight(position, l, lightIntensity)) {
             return vec3(-1);
         }
 
-        shadow = max(shadow, epiphanyLightShadow(l, wPosition, pbr.n));
+        shadow = max(shadow, epiphanyLightShadow(l, position, pbr.n));
 
         // ----- Pre-computing
 
@@ -163,11 +163,11 @@ epiphany {
     vec4 main() {
         // ----- Common variables
 
-        vec3 wPosition = wPositionFromDepth(fragmentDepth, fragmentPosition);
+        vec3 position = positionFromDepth(fragmentDepth, fragmentPosition);
 
         RmPbrData pbr;
         pbr.n = gBuffer.normal;
-        pbr.v = normalize(camera.wPosition.xyz - wPosition);
+        pbr.v = normalize(camera.position.xyz - position);
         pbr.n_v = clamp(abs(dot(pbr.n, pbr.v)), 0.001, 1.0);
 
         // @note Convert to material roughness by squaring the perceptual roughness.
@@ -200,7 +200,7 @@ epiphany {
 
         // @todo Iterate over all lights
         float shadow = 0;
-        vec3 lightContributionColor = lightContribution(wPosition, pbr, shadow);
+        vec3 lightContributionColor = lightContribution(position, pbr, shadow);
         if (lightContributionColor.x >= 0) {
             color += lightContributionColor;
         }

@@ -8,7 +8,6 @@
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../ubos.hpp"
 #include "../vertex.hpp"
 
 using namespace lava::magma;
@@ -112,7 +111,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
-    camera.render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_DESCRIPTOR_SET_INDEX);
+    camera.render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
     const auto& cameraFrustum = camera.frustum();
 
     // Draw all meshes
@@ -121,7 +120,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_DESCRIPTOR_SET_INDEX,
+            mesh->render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                          GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
@@ -140,7 +139,8 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
 
     // Bind lights
     for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
-        m_scene.light(lightId).render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
+        m_scene.light(lightId).render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
+                                      EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
     }
 
     commandBuffer.draw(6, 1, 0, 1);
@@ -193,9 +193,12 @@ void DeepDeferredStage::initClearPass()
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
     ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
@@ -207,6 +210,11 @@ void DeepDeferredStage::initClearPass()
 
     m_clearPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_clearPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
+
+    //----- Push constants
+
+    m_clearPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_clearPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
 }
 
 void DeepDeferredStage::initGeometryPass()
@@ -220,9 +228,12 @@ void DeepDeferredStage::initGeometryPass()
     // @note Ordering is important
     m_geometryPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_geometryPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
-    m_geometryPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_geometryPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_geometryPipelineHolder.add(m_scene.meshDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_geometryPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_geometryPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
 
     //----- Rasterization
 
@@ -264,8 +275,12 @@ void DeepDeferredStage::initEpiphanyPass()
 
     m_epiphanyPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
-    m_epiphanyPipelineHolder.add(m_scene.cameraDescriptorHolder().setLayout());
     m_epiphanyPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_epiphanyPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_epiphanyPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
 
     //----- Attachments
 
@@ -288,14 +303,15 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
     m_geometryPipelineHolder.removeShaderStages();
 
     ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
-    moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
-    moduleOptions.defines["MESH_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MESH_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);
     moduleOptions.defines["MATERIAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
@@ -318,6 +334,8 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
     m_epiphanyPipelineHolder.removeShaderStages();
 
     ShadersManager::ModuleOptions moduleOptions;
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX);
@@ -325,8 +343,8 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
-    moduleOptions.defines["CAMERA_DESCRIPTOR_SET_INDEX"] = std::to_string(CAMERA_DESCRIPTOR_SET_INDEX);
-    moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
     moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);
