@@ -88,10 +88,6 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const Modul
     else {
         shaderModule = iModuleInfo->second.module->vk();
         implsDependencies = iModuleInfo->second.implsDependencies;
-
-        if (!shaderModule) {
-            std::cout << "WHAT ?" << shaderId << std::endl;
-        }
     }
 
     // Adding the callback to all of his dependencies

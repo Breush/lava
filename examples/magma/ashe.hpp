@@ -306,7 +306,7 @@ namespace lava::ashe {
             }
 
             case WsEventType::KeyPressed: {
-                glm::vec3 lightDelta;
+                glm::vec3 lightDelta(0.f);
 
                 if (event.key.which == Key::Escape) {
                     m_window->close();
