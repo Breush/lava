@@ -190,7 +190,7 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
         lightBundle.light->interfaceImpl().init(lightId);
         if (lightBundle.light->shadowsEnabled()) {
             lightBundle.shadowsStage->init(lightId);
-            lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
+            lightBundle.shadowsStage->update(vk::Extent2D{2048u, 2048u});
         }
     }
 

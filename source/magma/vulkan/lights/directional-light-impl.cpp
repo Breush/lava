@@ -96,7 +96,7 @@ void DirectionalLight::Impl::updateTransform()
     // @note This `projectionTransform[1][1] *= -1` is due to vulkan conventions
     // being different from openGL ones. The Y axis is in the other way.
 
-    auto projectionTransform = glm::ortho(-5.f, 5.f, -5.f, 5.f, 0.01f, 10.f);
+    auto projectionTransform = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.01f, 10.f);
     projectionTransform[1][1] *= -1;
 
     auto viewTransform = glm::lookAt(m_translation, m_translation + m_direction, glm::vec3(0.f, 0.f, 1.f));
