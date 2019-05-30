@@ -18,6 +18,7 @@ Material::~Material()
 }
 
 // Uniform setters
+$pimpl_method(Material, void, set, const std::string&, uniformName, bool, value);
 $pimpl_method(Material, void, set, const std::string&, uniformName, uint32_t, value);
 $pimpl_method(Material, void, set, const std::string&, uniformName, float, value);
 $pimpl_method(Material, void, set, const std::string&, uniformName, const glm::vec2&, value);

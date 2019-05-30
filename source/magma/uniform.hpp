@@ -3,12 +3,14 @@
 namespace lava::magma {
     enum class UniformType {
         Unknown,
+        Bool,
         Uint,
         Float,
         Vec2,
         Vec3,
         Vec4,
         Texture,
+        CubeTexture,
     };
 
     enum class UniformTextureType {

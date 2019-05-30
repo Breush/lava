@@ -103,7 +103,7 @@ void setupRayPicking(GameState& gameState)
     // @todo Could be cylinder, and disable shadows
     sill::makers::boxMeshMaker({0.005f, 0.005f, 50.f}, boxMeshOptions)(meshComponent);
     auto& behaviorComponent = rayPickingEntity.make<sill::BehaviorComponent>();
-    behaviorComponent.onUpdate([&]() {
+    behaviorComponent.onUpdate([&](float /* dt */) {
         const auto& mouseCoordinates = engine.input().mouseCoordinates();
         gameState.pickingRay = gameState.camera->coordinatesToRay(mouseCoordinates);
 

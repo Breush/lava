@@ -75,6 +75,9 @@ namespace lava::magma::vulkan {
         /// Add a push constants range.
         void addPushConstantRange(uint32_t size);
 
+        /// Whether the pipeline should expect the command buffer to specify the viewport at each render.
+        void dynamicViewportEnabled(bool dynamicViewportEnabled) { m_dynamicViewportEnabled = dynamicViewportEnabled; }
+
         /**
          * Whether the pipeline is for a self-dependent pass.
          * This is used when then pass needs a pipeline barrier
@@ -115,5 +118,6 @@ namespace lava::magma::vulkan {
         VertexInput m_vertexInput;
         vk::CullModeFlags m_cullMode;
         bool m_selfDependent = false;
+        bool m_dynamicViewportEnabled = false;
     };
 }

@@ -56,4 +56,18 @@ namespace lava::magma::vulkan {
         {
         }
     };
+
+    // @note The following two EnvironmentUbos are used
+    // as push constants within environment prefiltering.
+    struct EnvironmentRadianceUbo {
+        glm::mat4 mvp;
+        float roughness;
+        uint32_t samplesCount;
+    };
+
+    struct EnvironmentIrradianceUbo {
+        glm::mat4 mvp;
+        float deltaPhi;
+        float deltaTheta;
+    };
 }

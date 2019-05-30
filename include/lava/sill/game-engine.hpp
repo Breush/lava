@@ -69,6 +69,7 @@ namespace lava::sill {
          * @name Materials
          */
         /// @{
+        void environmentTexture(const fs::Path& imagesPath);
         void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
         /// @}
 

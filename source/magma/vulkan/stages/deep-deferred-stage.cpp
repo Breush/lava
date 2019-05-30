@@ -228,6 +228,7 @@ void DeepDeferredStage::initGeometryPass()
     // @note Ordering is important
     m_geometryPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_geometryPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
+    m_geometryPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_geometryPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
 
     //----- Push constants
@@ -275,6 +276,7 @@ void DeepDeferredStage::initEpiphanyPass()
 
     m_epiphanyPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
+    m_epiphanyPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_epiphanyPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
     //----- Push constants
@@ -310,6 +312,8 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
+    moduleOptions.defines["ENVIRONMENT_DESCRIPTOR_SET_INDEX"] = std::to_string(ENVIRONMENT_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT"] = std::to_string(ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);
@@ -343,6 +347,8 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
+    moduleOptions.defines["ENVIRONMENT_DESCRIPTOR_SET_INDEX"] = std::to_string(ENVIRONMENT_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT"] = std::to_string(ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));

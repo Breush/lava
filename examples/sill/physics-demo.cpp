@@ -25,7 +25,7 @@ int main(void)
     {
         auto& entity = engine.make<sill::GameEntity>();
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-        behaviorComponent.onUpdate([&engine]() {
+        behaviorComponent.onUpdate([&engine](float /* dt */) {
             // Generate a sphere on each right click
             if (engine.input().justDown("right-fire")) {
                 auto sphereDiameter = (2 + rand() % 20) / 40.f;

@@ -18,6 +18,11 @@ Material::~Material()
 
 //----- Material
 
+void Material::set(const std::string& uniformName, bool value)
+{
+    m_magma->set(uniformName, value);
+}
+
 void Material::set(const std::string& uniformName, uint32_t value)
 {
     m_magma->set(uniformName, value);

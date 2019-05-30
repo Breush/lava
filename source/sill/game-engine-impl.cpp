@@ -5,8 +5,9 @@
 using namespace lava::sill;
 using namespace lava::chamber;
 
-GameEngine::Impl::Impl(GameEngine& base)
-    : m_fontManager(base)
+GameEngine::Impl::Impl(GameEngine& engine)
+    : m_engine(engine)
+    , m_fontManager(engine)
 {
     chamber::startProfiling();
     PROFILE_FUNCTION(PROFILER_COLOR_INIT);
@@ -129,6 +130,18 @@ void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
 void GameEngine::Impl::remove(const GameEntity& gameEntity)
 {
     m_pendingRemovedEntities.emplace_back(&gameEntity);
+}
+
+void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath)
+{
+    if (m_environmentTexture != nullptr) {
+        // @todo We currently have no way to remove a texture,
+        // but we should do that here.
+    }
+
+    m_environmentTexture = &m_engine.make<sill::Texture>();
+    m_environmentTexture->loadCubeFromFiles(imagesPath);
+    m_renderScene->environmentTexture(&m_environmentTexture->magma());
 }
 
 //----- Materials

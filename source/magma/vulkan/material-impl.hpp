@@ -29,6 +29,7 @@ namespace lava::magma {
         ~Impl();
 
         // Material
+        void set(const std::string& uniformName, bool value);
         void set(const std::string& uniformName, uint32_t value);
         void set(const std::string& uniformName, float value);
         void set(const std::string& uniformName, const glm::vec2& value);

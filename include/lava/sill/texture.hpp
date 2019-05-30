@@ -25,6 +25,12 @@ namespace lava::sill {
         void loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         void loadFromFile(const std::string& imagePath);
 
+        /**
+         * The imagesPath will be concatenated to look for 6 files:
+         *  bottom.jpg top.jpg front.jpg back.jpg left.jpg right.jpg
+         */
+        void loadCubeFromFiles(const std::string& imagesPath);
+
     private:
         GameEngine& m_engine;
         magma::Texture* m_magma = nullptr;

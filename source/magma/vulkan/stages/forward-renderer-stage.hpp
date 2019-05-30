@@ -16,8 +16,9 @@ namespace lava::magma {
      * Forward renderer.
      */
     class ForwardRendererStage final : public IRendererStage {
-        constexpr static const uint32_t MATERIAL_DESCRIPTOR_SET_INDEX = 0u;
-        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 1u;
+        constexpr static const uint32_t ENVIRONMENT_DESCRIPTOR_SET_INDEX = 0u;
+        constexpr static const uint32_t MATERIAL_DESCRIPTOR_SET_INDEX = 1u;
+        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 2u;
         constexpr static const uint32_t CAMERA_PUSH_CONSTANT_OFFSET = 0u;
         constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = sizeof(vulkan::CameraUbo);
 

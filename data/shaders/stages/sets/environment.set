@@ -1,0 +1,6 @@
+#softdefine ENVIRONMENT_DESCRIPTOR_SET_INDEX
+#softdefine ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT
+
+layout(set = ENVIRONMENT_DESCRIPTOR_SET_INDEX, binding = 0) uniform samplerCube environmentRadianceMap;
+layout(set = ENVIRONMENT_DESCRIPTOR_SET_INDEX, binding = 1) uniform samplerCube environmentIrradianceMap;
+layout(set = ENVIRONMENT_DESCRIPTOR_SET_INDEX, binding = 2) uniform sampler2D brdfLut;

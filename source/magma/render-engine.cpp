@@ -9,7 +9,7 @@ using namespace lava::magma;
 
 RenderEngine::RenderEngine()
 {
-    m_impl = new RenderEngine::Impl();
+    m_impl = new RenderEngine::Impl(*this);
 
     // Register fallback material
     // @todo Should be inlined as const string somehow

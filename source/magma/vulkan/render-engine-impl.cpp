@@ -14,7 +14,8 @@
 using namespace lava::magma;
 using namespace lava::chamber;
 
-RenderEngine::Impl::Impl()
+RenderEngine::Impl::Impl(RenderEngine& engine)
+    : m_engine(engine)
 {
     // @note This VR initialisation has to be done before initVulkan, because we need
     // to get the extensions list to be enable.
@@ -295,6 +296,11 @@ void RenderEngine::Impl::createDummyTextures()
     dummyData = {0x00, 0x00, 0x00, 0x00};
     m_dummyInvisibleImageHolder.setup(dummyData, 1, 1, 4);
 
+    // Plain transparent for cube maps
+    std::vector<uint8_t> dummyCubeData = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    m_dummyCubeImageHolder.setup(dummyCubeData, 1, 1, 4, 6);
+
     // Sampler
     vk::SamplerCreateInfo samplerInfo;
     samplerInfo.magFilter = vk::Filter::eLinear;
@@ -307,6 +313,7 @@ void RenderEngine::Impl::createDummyTextures()
     samplerInfo.unnormalizedCoordinates = false;
     samplerInfo.compareEnable = false;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    samplerInfo.maxLod = 10;
 
     if (device().createSampler(&samplerInfo, nullptr, m_dummySampler.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine") << "Failed to create dummy sampler." << std::endl;

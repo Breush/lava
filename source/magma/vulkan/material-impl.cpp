@@ -28,6 +28,15 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
             attribute.offset = textureUniformCount++;
             break;
         }
+        case UniformType::CubeTexture: {
+            attribute.offset = 0u;
+            break;
+        }
+        case UniformType::Bool: {
+            attribute.offset = basicUniformCount++;
+            set(uniformDefinition.name, uniformDefinition.fallback.uintValue);
+            break;
+        }
         case UniformType::Uint: {
             if (uniformDefinition.arraySize == 0u) {
                 attribute.offset = basicUniformCount++;
@@ -95,6 +104,15 @@ void Material::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout 
 }
 
 //----- Material
+
+void Material::Impl::set(const std::string& uniformName, bool value)
+{
+    auto& attribute = findAttribute(uniformName);
+    attribute.value.uintValue = (value) ? 1 : 0;
+    auto offset = attribute.offset;
+    m_ubo.data[offset][0] = (value) ? 1 : 0;
+    updateBindings();
+}
 
 void Material::Impl::set(const std::string& uniformName, uint32_t value)
 {
@@ -224,8 +242,30 @@ void Material::Impl::updateBindings()
                 continue;
             }
 
+            // @fixme We could use that, and updateDescriptorSet should be useless
+            // m_scene.materialDescriptorHolder().updateSet(m_descriptorSet, imageView, imageLayout, )
             vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, binding,
                                         attribute.offset);
+        }
+    }
+
+    //----- Cube samplers
+
+    // Force white cube
+    auto cubeImageView = engine.dummyCubeImageView();
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, cubeImageView, sampler, imageLayout, binding + 1);
+
+    for (const auto& attributePair : m_attributes) {
+        const auto& attribute = attributePair.second;
+        if (attribute.type == UniformType::CubeTexture) {
+            if (attribute.texture) {
+                cubeImageView = attribute.texture->imageView();
+            }
+            else {
+                continue;
+            }
+
+            vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, cubeImageView, sampler, imageLayout, binding + 1);
         }
     }
 }

@@ -13,6 +13,7 @@
 
 layout(location = 0) in mat3 inTbn;
 layout(location = 3) in vec2 inUv;
+layout(location = 4) in vec3 inCubeUvw;
 
 layout (location = 0) out uvec4 outGBufferRenderTargets[DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT];
 

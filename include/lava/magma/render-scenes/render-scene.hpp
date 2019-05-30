@@ -68,6 +68,14 @@ namespace lava::magma {
         void remove(const Texture& texture);
         /// @}
 
+        /**
+         * @name Environment
+         */
+        /// @{
+        /// The global texture (cube) to be used as environment map within shaders' epiphany.
+        void environmentTexture(Texture* texture);
+        /// @}
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

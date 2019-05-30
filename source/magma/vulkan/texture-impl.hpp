@@ -17,6 +17,7 @@ namespace lava::magma {
         // Texture
         void loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         void loadFromFile(const std::string& imagePath);
+        void loadCubeFromFiles(const std::string& imagesPath);
 
         // Getters
         vk::ImageView imageView() const { return m_imageHolder.view(); }

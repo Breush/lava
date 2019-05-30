@@ -15,13 +15,15 @@ namespace lava::sill {
         using WindowExtentChangedCallback = std::function<void(Extent2d)>;
 
     public:
-        Impl(GameEngine& base);
+        Impl(GameEngine& engine);
         ~Impl();
 
         /**
          * @name GameEngine
          */
         /// @{
+        GameEngine& engine() { return m_engine; }
+        const GameEngine& engine() const { return m_engine; }
         InputManager& input() { return m_inputManager; }
         dike::PhysicsEngine& physicsEngine() { return *m_physicsEngine; }
         flow::AudioEngine& audioEngine() { return *m_audioEngine; }
@@ -36,6 +38,7 @@ namespace lava::sill {
         void remove(const GameEntity& gameEntity);
 
         // Materials
+        void environmentTexture(const fs::Path& imagesPath);
         void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
 
         // VR
@@ -74,6 +77,8 @@ namespace lava::sill {
         void handleEvent(WsEvent& event);
 
     private:
+        GameEngine& m_engine;
+
         // Rendering
         std::unique_ptr<crater::Window> m_window = nullptr;
         std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
@@ -86,6 +91,7 @@ namespace lava::sill {
         bool m_fpsCounterEnabled = false;
         std::chrono::nanoseconds m_fpsElapsedTime;
         uint32_t m_fpsCount = 0u;
+        sill::Texture* m_environmentTexture = nullptr;
 
         // Physics
         std::unique_ptr<dike::PhysicsEngine> m_physicsEngine = nullptr;

@@ -15,6 +15,7 @@ layout(location = 3) in vec4 inMTangent;
 
 layout(location = 0) out mat3 outTbn;
 layout(location = 3) out vec2 outUv;
+layout(location = 4) out vec3 outCubeUvw;
 
 //----- Out
 
@@ -41,4 +42,5 @@ void main() {
 
     outTbn = M3 * mat3(wTangent, wBitangent, wNormal);
     outUv = inUv;
+    outCubeUvw = inMPosition;
 }

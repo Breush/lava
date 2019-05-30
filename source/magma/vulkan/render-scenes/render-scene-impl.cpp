@@ -13,11 +13,14 @@
 using namespace lava::magma;
 using namespace lava::chamber;
 
-RenderScene::Impl::Impl(RenderEngine& engine)
-    : m_engine(engine.impl())
+RenderScene::Impl::Impl(RenderEngine& engine, RenderScene& scene)
+    : m_scene(scene)
+    , m_engine(engine.impl())
     , m_rendererType(RendererType::Forward)
     , m_lightsDescriptorHolder(m_engine)
     , m_materialDescriptorHolder(m_engine)
+    , m_environmentDescriptorHolder(m_engine)
+    , m_environment(*this)
 {
 }
 
@@ -35,8 +38,12 @@ void RenderScene::Impl::init(uint32_t id)
     m_lightsDescriptorHolder.init(64, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
     m_materialDescriptorHolder.uniformBufferSizes({1});
-    m_materialDescriptorHolder.combinedImageSamplerSizes({8});
+    m_materialDescriptorHolder.combinedImageSamplerSizes({8, 1}); // 8 samplers, 1 cubeSampler
     m_materialDescriptorHolder.init(128, vk::ShaderStageFlagBits::eFragment);
+
+    // environmentRadianceMap, environmentIrradianceMap, brdfLut
+    m_environmentDescriptorHolder.combinedImageSamplerSizes({1, 1, 1});
+    m_environmentDescriptorHolder.init(2, vk::ShaderStageFlagBits::eFragment);
 
     initStages();
     initResources();
@@ -353,6 +360,8 @@ void RenderScene::Impl::initResources()
         auto& lightBundle = m_lightBundles[lightId];
         lightBundle.light->interfaceImpl().init(lightId);
     }
+
+    m_environment.init();
 }
 
 void RenderScene::Impl::updateStages(uint32_t cameraId)

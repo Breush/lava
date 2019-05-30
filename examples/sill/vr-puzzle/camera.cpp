@@ -26,7 +26,7 @@ void setupCamera(GameState& gameState)
     gameState.camera = &cameraComponent;
 
     // Behavior for user control
-    behaviorComponent.onUpdate([&input, &cameraComponent]() {
+    behaviorComponent.onUpdate([&input, &cameraComponent](float /* dt */) {
         if (input.axisChanged("zoom")) {
             cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("zoom") / 10.f);
         }

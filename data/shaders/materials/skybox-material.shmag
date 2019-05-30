@@ -1,0 +1,32 @@
+/**
+ * Sky material.
+ */
+
+struct {
+    vec4 color;
+} gBuffer;
+
+geometry {
+    uniform {
+        bool useEnvironmentMap = false; // If set to false, the cube map below will be used.
+        textureCube cubeMap = "invisible";
+        uint lod = 0;
+    };
+
+    bool main() {
+        if (useEnvironmentMap) {
+            gBuffer.color = textureLod(environmentRadianceMap, fixCubeUvw(cubeUvw), lod);
+        } else {
+            gBuffer.color = textureLod(cubeMap, fixCubeUvw(cubeUvw), lod);
+        }
+
+        if (gBuffer.color.a == 0) discard;
+        return false;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        return gBuffer.color;
+    }
+}

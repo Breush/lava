@@ -8,11 +8,13 @@ layout(early_fragment_tests) in;
 #include "../../sets/push-constants.set"
 #include "../../sets/material.set"
 #include "../../sets/lights.set"
+#include "../../sets/environment.set"
 
 //----- Fragment forwarded in
 
 layout(location = 0) in mat3 inTbn;
 layout(location = 3) in vec2 inUv;
+layout(location = 4) in vec3 inCubeUvw;
 
 //----- Out data
 

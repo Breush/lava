@@ -9,7 +9,7 @@ namespace lava::ashe {
         {
             //----- Initializing materials
 
-            m_engine.registerMaterialFromFile("sky", "./data/shaders/materials/sky-material.shmag");
+            m_engine.registerMaterialFromFile("skybox", "./data/shaders/materials/skybox-material.shmag");
             m_engine.registerMaterialFromFile("matcap", "./data/shaders/materials/matcap-material.shmag");
 
             //----- Initializing inputs
@@ -28,14 +28,13 @@ namespace lava::ashe {
 
             //----- Initializing camera
 
-            auto& entity = m_engine.make<sill::GameEntity>();
-
-            auto& cameraComponent = entity.make<sill::CameraComponent>();
+            auto& cameraEntity = m_engine.make<sill::GameEntity>();
+            auto& cameraComponent = cameraEntity.make<sill::CameraComponent>();
             cameraComponent.translation({-2.f, 3.f, 2.f});
             cameraComponent.target({0.f, 0.f, 0.f});
 
-            auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-            behaviorComponent.onUpdate([&input, &cameraComponent]() {
+            auto& cameraBehaviorComponent = cameraEntity.make<sill::BehaviorComponent>();
+            cameraBehaviorComponent.onUpdate([&input, &cameraComponent](float /* dt */) {
                 if (input.axisChanged("zoom")) {
                     cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("zoom") / 10.f);
                 }
@@ -55,6 +54,34 @@ namespace lava::ashe {
                     }
                 }
             });
+
+            //----- Skybox
+
+            m_engine.environmentTexture("./assets/skies/cloudy/");
+
+            // @fixme We could draw the sky into another viewport,
+            // and compose the final image.
+            // Or have it in some pre-pass group with depth disabled.
+            auto& skyboxEntity = m_engine.make<sill::GameEntity>();
+            auto& skyboxTransformComponent = skyboxEntity.ensure<sill::TransformComponent>();
+
+            auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
+            sill::makers::BoxMeshOptions options;
+            options.siding = sill::BoxSiding::In;
+            options.coordinatesSystem = sill::BoxCoordinatesSystem::Box2x3;
+            sill::makers::boxMeshMaker(80.f, options)(skyMeshComponent);
+
+            auto& skyboxMaterial = m_engine.make<sill::Material>("skybox");
+            skyboxMaterial.set("useEnvironmentMap", true);
+            skyboxMaterial.set("lod", 1u);
+            skyMeshComponent.node(0).mesh->primitive(0).material(skyboxMaterial);
+
+            // We keep the sky centered in the camera
+            // @fixme The CameraComponent does not care about TransformComponent,
+            // meaning it does not send onWorldTransformChanged.
+            auto& skyboxBehaviorComponent = skyboxEntity.make<sill::BehaviorComponent>();
+            skyboxBehaviorComponent.onUpdate(
+                [&](float /* dt */) { skyboxTransformComponent.translation(cameraComponent.translation()); });
         }
 
         sill::GameEngine& engine() { return m_engine; }

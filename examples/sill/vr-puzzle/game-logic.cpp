@@ -226,7 +226,7 @@ void setupGameLogic(GameState& gameState)
 {
     auto& entity = gameState.engine->make<sill::GameEntity>();
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-    behaviorComponent.onUpdate([&]() {
+    behaviorComponent.onUpdate([&](float /* dt */) {
         if (gameState.engine->vrEnabled()) {
             onUpdateVr(gameState);
         }

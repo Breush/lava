@@ -24,7 +24,7 @@ namespace lava::magma {
      */
     class RenderEngine::Impl {
     public:
-        Impl();
+        Impl(RenderEngine& engine);
         ~Impl();
 
         // Main interface
@@ -65,6 +65,9 @@ namespace lava::magma {
          * @name Getters
          */
         /// @{
+        RenderEngine& engine() { return m_engine; }
+        const RenderEngine& engine() const { return m_engine; }
+
         const vulkan::DeviceHolder& deviceHolder() const { return m_deviceHolder; }
         const vk::Instance& instance() const { return m_instanceHolder.instance(); }
         const vk::Device& device() const { return m_deviceHolder.device(); }
@@ -84,6 +87,7 @@ namespace lava::magma {
         vk::ImageView dummyImageView() const { return m_dummyImageHolder.view(); }
         vk::ImageView dummyNormalImageView() const { return m_dummyNormalImageHolder.view(); }
         vk::ImageView dummyInvisibleImageView() const { return m_dummyInvisibleImageHolder.view(); }
+        vk::ImageView dummyCubeImageView() const { return m_dummyCubeImageHolder.view(); }
         /// @}
 
         /**
@@ -133,6 +137,7 @@ namespace lava::magma {
         };
 
     private:
+        RenderEngine& m_engine;
         bool m_logTracking = false;
 
         vulkan::InstanceHolder m_instanceHolder;
@@ -162,6 +167,9 @@ namespace lava::magma {
 
         /// Dummy texture for black-invisible. 1x1 pixel of rgba(0, 0, 0, 0)
         vulkan::ImageHolder m_dummyInvisibleImageHolder{*this, "magma.vulkan.render-engine.dummy-invisible-image"};
+
+        /// Dummy texture for cube maps. 1x1 pixel of rgba(255, 255, 255, 255)
+        vulkan::ImageHolder m_dummyCubeImageHolder{*this, "magma.vulkan.render-engine.dummy-cube-image"};
 
         /// Dummy texture sampler.
         $attribute(vulkan::Sampler, dummySampler, {device()});

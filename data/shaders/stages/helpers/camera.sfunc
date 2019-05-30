@@ -4,3 +4,9 @@ vec3 positionFromDepth(float depth, vec2 coord) {
     vPosition /= vPosition.w;
     return (camera.viewTransformInverse * vPosition).xyz;
 }
+
+vec3 fixCubeUvw(vec3 uvw) {
+    // @note As the cube coordinates are in OpenGL convention,
+    // we fix that by changing the handness and the up axis.
+    return vec3(-uvw.x, uvw.z, uvw.y);
+}

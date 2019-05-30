@@ -25,6 +25,7 @@ namespace lava::sill {
         const magma::Material& magma() const { return *m_magma; }
 
         /// Uniform setters
+        void set(const std::string& uniformName, bool value);
         void set(const std::string& uniformName, uint32_t value);
         void set(const std::string& uniformName, float value);
         void set(const std::string& uniformName, const glm::vec2& value);

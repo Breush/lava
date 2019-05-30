@@ -8,6 +8,7 @@
 #include <lava/magma/texture.hpp>
 
 #include "../command-buffer-thread.hpp"
+#include "../environment.hpp"
 #include "../holders/descriptor-holder.hpp"
 
 namespace lava::magma {
@@ -21,7 +22,7 @@ namespace lava::magma {
      */
     class RenderScene::Impl {
     public:
-        Impl(RenderEngine& engine);
+        Impl(RenderEngine& engine, RenderScene& scene);
         ~Impl();
 
         /// Get the engine implementation.
@@ -44,6 +45,13 @@ namespace lava::magma {
         /// @{
         chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
         chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
+        /// @}
+
+        /**
+         * @name Environment
+         */
+        /// @{
+        void environmentTexture(Texture* texture) { m_environment.set(texture->impl()); }
         /// @}
 
         /**
@@ -70,8 +78,12 @@ namespace lava::magma {
          * @name Getters
          */
         /// @{
+        RenderScene& scene() { return m_scene; }
+        const RenderScene& scene() const { return m_scene; }
+
         const vulkan::DescriptorHolder& lightsDescriptorHolder() const { return m_lightsDescriptorHolder; }
         const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
+        const vulkan::DescriptorHolder& environmentDescriptorHolder() const { return m_environmentDescriptorHolder; }
         /// @}
 
         /**
@@ -87,6 +99,8 @@ namespace lava::magma {
         const Material::Impl& material(uint32_t index) const { return m_materials[index]->impl(); }
         const Mesh::Impl& mesh(uint32_t index) const { return *m_meshesImpls[index]; }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
+
+        const Environment& environment() const { return m_environment; }
 
         const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
@@ -122,6 +136,7 @@ namespace lava::magma {
         };
 
     private:
+        RenderScene& m_scene;
         RenderEngine::Impl& m_engine;
         bool m_initialized = false;
         uint32_t m_id = -1u;
@@ -135,10 +150,12 @@ namespace lava::magma {
         // Resources
         vulkan::DescriptorHolder m_lightsDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
+        vulkan::DescriptorHolder m_environmentDescriptorHolder;
 
         // @note To be kept after m_materialDescriptorHolder,
         // to prevent delete order issues.
         std::unique_ptr<Material> m_fallbackMaterial;
+        Environment m_environment;
 
         // Data
         std::vector<CameraBundle> m_cameraBundles;

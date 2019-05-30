@@ -3,6 +3,7 @@
 #include "../../g-buffer-data.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../cameras/i-camera-impl.hpp"
+#include "../environment.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../mesh-impl.hpp"
@@ -107,6 +108,9 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     camera.render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
     const auto& cameraFrustum = camera.frustum();
 
+    // Set the environment
+    m_scene.environment().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), ENVIRONMENT_DESCRIPTOR_SET_INDEX);
+
     // Draw all opaque meshes
     for (auto& mesh : m_scene.meshes()) {
         if (mesh->translucent() || mesh->wireframed() || (camera.vrAimed() && !mesh->vrRenderable())) continue;
@@ -191,6 +195,7 @@ void ForwardRendererStage::initOpaquePass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
+    m_opaquePipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
@@ -230,7 +235,9 @@ void ForwardRendererStage::initWireframePass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
+    m_wireframePipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_wireframePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
+    // @note Useful, so that the pipelines are all compatible
     m_wireframePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
     //----- Push constants
@@ -272,6 +279,7 @@ void ForwardRendererStage::initTranslucentPass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
+    m_translucentPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
@@ -319,6 +327,8 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["ENVIRONMENT_DESCRIPTOR_SET_INDEX"] = std::to_string(ENVIRONMENT_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT"] = std::to_string(ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
     moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
     moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);

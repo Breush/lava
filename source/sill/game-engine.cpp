@@ -32,6 +32,7 @@ void GameEngine::add(std::unique_ptr<Texture>&& texture)
 $pimpl_method(GameEngine, void, remove, const GameEntity&, entity);
 
 // ----- Materials
+$pimpl_method(GameEngine, void, environmentTexture, const fs::Path&, imagesPath);
 $pimpl_method(GameEngine, void, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 
 // ----- VR

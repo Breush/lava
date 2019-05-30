@@ -73,6 +73,15 @@ void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
     viewportState.viewportCount = 1;
     viewportState.pViewports = &viewport;
 
+    std::vector<vk::DynamicState> dynamicStates;
+    if (m_dynamicViewportEnabled) {
+        dynamicStates.emplace_back(vk::DynamicState::eViewport);
+    }
+
+    vk::PipelineDynamicStateCreateInfo dynamicState;
+    dynamicState.dynamicStateCount = dynamicStates.size();
+    dynamicState.pDynamicStates = dynamicStates.data();
+
     //--- Rasterization state
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
@@ -138,6 +147,7 @@ void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
     pipelineInfo.pMultisampleState = &multisampleState;
     pipelineInfo.pDepthStencilState = &depthStencilState;
     pipelineInfo.pColorBlendState = &colorBlendState;
+    pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = m_pipelineLayout;
     pipelineInfo.renderPass = *m_renderPass;
     pipelineInfo.subpass = m_subpassIndex;

@@ -44,7 +44,7 @@ int main(void)
     {
         auto& entity = engine.make<sill::GameEntity>();
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-        behaviorComponent.onUpdate([&]() {
+        behaviorComponent.onUpdate([&](float /* dt */) {
             static sill::GameEntity* grabbedCube = nullptr;
             if (!engine.vrDeviceValid(VrDeviceType::RightHand)) return;
 

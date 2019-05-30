@@ -33,3 +33,8 @@ void Texture::loadFromFile(const std::string& imagePath)
 {
     m_magma->loadFromFile(imagePath);
 }
+
+void Texture::loadCubeFromFiles(const std::string& imagesPath)
+{
+    m_magma->loadCubeFromFiles(imagesPath);
+}

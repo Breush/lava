@@ -8,7 +8,7 @@ using namespace lava::magma;
 
 RenderScene::RenderScene(RenderEngine& engine)
 {
-    m_impl = new Impl(engine);
+    m_impl = new Impl(engine, *this);
 
     // Fallback material
     auto fallbackMaterial = std::make_unique<Material>(*this, "fallback");
@@ -52,3 +52,6 @@ void RenderScene::add(std::unique_ptr<ILight>&& light)
 $pimpl_method(RenderScene, void, remove, const Mesh&, mesh);
 $pimpl_method(RenderScene, void, remove, const Material&, material);
 $pimpl_method(RenderScene, void, remove, const Texture&, texture);
+
+// Environment
+$pimpl_method(RenderScene, void, environmentTexture, Texture*, texture);

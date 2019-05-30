@@ -71,6 +71,7 @@ namespace lava::magma {
         void parseIdentifier(const std::string& expectedIdentifier);
         std::string parseIdentifier();
         uint32_t parseArraySize();
+        uint32_t parseBool(); // Returns 0 or 1
         uint32_t parseUint();
         float parseFloat();
         std::string parseString();
@@ -95,6 +96,7 @@ namespace lava::magma {
         std::unique_ptr<chamber::Lexer> m_lexer;
         GBufferDeclarations m_gBufferDeclarations;
         std::unordered_map<std::string, std::string> m_samplersMap;
+        std::string m_samplerCubeName = "";
 
         uint32_t m_errorsCount = 0u;
     };
