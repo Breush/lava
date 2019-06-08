@@ -1,5 +1,7 @@
 #include "./shadows-stage.hpp"
 
+#include "../cameras/i-camera-impl.hpp"
+#include "../lights/directional-light-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
@@ -15,8 +17,6 @@ ShadowsStage::ShadowsStage(RenderScene::Impl& scene)
     : m_scene(scene)
     , m_renderPassHolder(m_scene.engine())
     , m_pipelineHolder(m_scene.engine())
-    , m_depthImageHolder(scene.engine(), "magma.vulkan.stages.shadows-stage.depth-image")
-    , m_framebuffer(m_scene.engine().device())
 {
 }
 
@@ -44,63 +44,77 @@ void ShadowsStage::update(vk::Extent2D extent)
     m_pipelineHolder.update(extent);
 
     createResources();
-    createFramebuffers();
 }
 
-void ShadowsStage::render(vk::CommandBuffer commandBuffer)
+void ShadowsStage::updateFromCamerasCount()
+{
+    createResources();
+}
+
+void ShadowsStage::render(vk::CommandBuffer commandBuffer, uint32_t cameraId)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
+    auto& cascades = m_cascades.at(cameraId);
+    const auto& shadows = m_scene.shadows(m_lightId, cameraId);
     const auto& deviceHolder = m_scene.engine().deviceHolder();
-    deviceHolder.debugBeginRegion(commandBuffer, "shadows");
 
-    //----- Prologue
+    for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
+        deviceHolder.debugBeginRegion(commandBuffer, "shadows");
 
-    // Set render pass
-    std::array<vk::ClearValue, 1> clearValues;
-    clearValues[0].depthStencil = vk::ClearDepthStencilValue{2e23, 0u};
+        //----- Prologue
 
-    vk::RenderPassBeginInfo renderPassInfo;
-    renderPassInfo.renderPass = m_renderPassHolder.renderPass();
-    renderPassInfo.framebuffer = m_framebuffer;
-    renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
-    renderPassInfo.renderArea.extent = m_extent;
-    renderPassInfo.clearValueCount = clearValues.size();
-    renderPassInfo.pClearValues = clearValues.data();
+        // Set render pass
+        std::array<vk::ClearValue, 1> clearValues;
+        clearValues[0].depthStencil = vk::ClearDepthStencilValue{2e23, 0u};
 
-    commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
+        vk::RenderPassBeginInfo renderPassInfo;
+        renderPassInfo.renderPass = m_renderPassHolder.renderPass();
+        renderPassInfo.framebuffer = cascades[i].framebuffer;
+        renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
+        renderPassInfo.renderArea.extent = m_extent;
+        renderPassInfo.clearValueCount = clearValues.size();
+        renderPassInfo.pClearValues = clearValues.data();
 
-    //----- Pass
+        commandBuffer.beginRenderPass(&renderPassInfo, vk::SubpassContents::eInline);
 
-    deviceHolder.debugBeginRegion(commandBuffer, "shadows.pass");
+        //----- Pass
 
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
+        deviceHolder.debugBeginRegion(commandBuffer, "shadows.pass");
 
-    auto& light = m_scene.light(m_lightId);
-    light.render(commandBuffer, m_pipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
+        commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
 
-    // Draw all meshes
-    for (auto& mesh : m_scene.meshes()) {
-        if (!mesh->canCastShadows()) continue;
-        tracker.counter("draw-calls.shadows") += 1u;
-        mesh->renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
+        cascades[i].ubo.cascadeTransform = shadows.cascadeTransform(i);
+        commandBuffer.pushConstants(m_pipelineHolder.pipelineLayout(),
+                                    vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+                                    SHADOW_MAP_PUSH_CONSTANT_OFFSET, sizeof(vulkan::ShadowMapUbo), &cascades[i].ubo);
+
+        // @fixme We could frustrum cull out of light's frustrum
+        // Draw all meshes
+        for (auto& mesh : m_scene.meshes()) {
+            if (!mesh->canCastShadows()) continue;
+            tracker.counter("draw-calls.shadows") += 1u;
+            mesh->renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
+        }
+
+        // Draw
+        commandBuffer.draw(6, 1, 0, 0);
+
+        deviceHolder.debugEndRegion(commandBuffer);
+
+        //----- Epilogue
+
+        commandBuffer.endRenderPass();
+
+        deviceHolder.debugEndRegion(commandBuffer);
     }
-
-    // Draw
-    commandBuffer.draw(6, 1, 0, 0);
-
-    deviceHolder.debugEndRegion(commandBuffer);
-
-    //----- Epilogue
-
-    commandBuffer.endRenderPass();
-
-    deviceHolder.debugEndRegion(commandBuffer);
 }
 
-RenderImage ShadowsStage::renderImage() const
+RenderImage ShadowsStage::renderImage(uint32_t cameraId, uint32_t cascadeIndex) const
 {
-    return m_depthImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_LIGHT_SHADOW_MAP + m_lightId);
+    return m_cascades.at(cameraId)
+        .at(cascadeIndex)
+        .imageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_LIGHT_SHADOW_MAP + m_lightId);
 }
 
 //----- Internal
@@ -112,18 +126,12 @@ void ShadowsStage::initPass()
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
-    moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
-    moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["SHADOWS_CASCADES_COUNT"] = std::to_string(SHADOWS_CASCADES_COUNT);
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
     auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/shadows.vert", moduleOptions);
     m_pipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
-
-    //----- Descriptor set layouts
-
-    // @note Ordering is important
-    m_pipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -151,25 +159,39 @@ void ShadowsStage::initPass()
 
 void ShadowsStage::createResources()
 {
-    // Depth
-    auto depthFormat = vk::Format::eD16Unorm;
-    m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
+    for (auto cameraId = 0u; cameraId < m_scene.camerasCount(); ++cameraId) {
+        ensureResourcesForCamera(cameraId);
+    }
 }
 
-void ShadowsStage::createFramebuffers()
+void ShadowsStage::ensureResourcesForCamera(uint32_t cameraId)
 {
+    if (m_cascades.find(cameraId) != m_cascades.end()) return;
+
+    m_cascades.emplace(cameraId, std::vector<Cascade>(SHADOWS_CASCADES_COUNT, m_scene.engine()));
+    auto& cascades = m_cascades.at(cameraId);
+
+    // Image
+    for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
+        auto depthFormat = vk::Format::eD16Unorm;
+        cascades[i].imageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
+    }
+
     // Framebuffer
-    std::array<vk::ImageView, 1> attachments = {m_depthImageHolder.view()};
+    for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
+        std::array<vk::ImageView, 1> attachments = {cascades[i].imageHolder.view()};
 
-    vk::FramebufferCreateInfo framebufferInfo;
-    framebufferInfo.renderPass = m_renderPassHolder.renderPass();
-    framebufferInfo.attachmentCount = attachments.size();
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = m_extent.width;
-    framebufferInfo.height = m_extent.height;
-    framebufferInfo.layers = 1;
+        vk::FramebufferCreateInfo framebufferInfo;
+        framebufferInfo.renderPass = m_renderPassHolder.renderPass();
+        framebufferInfo.attachmentCount = attachments.size();
+        framebufferInfo.pAttachments = attachments.data();
+        framebufferInfo.width = m_extent.width;
+        framebufferInfo.height = m_extent.height;
+        framebufferInfo.layers = 1;
 
-    if (m_scene.engine().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.shadows-stage") << "Failed to create framebuffers." << std::endl;
+        if (m_scene.engine().device().createFramebuffer(&framebufferInfo, nullptr, cascades[i].framebuffer.replace())
+            != vk::Result::eSuccess) {
+            logger.error("magma.vulkan.stages.shadows-stage") << "Failed to create framebuffers." << std::endl;
+        }
     }
 }

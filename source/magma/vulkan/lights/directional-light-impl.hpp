@@ -21,19 +21,16 @@ namespace lava::magma {
         RenderImage shadowsRenderImage() const;
 
         // ILight::Impl
-        void init(uint32_t id) override final;
-        LightType type() const override final { return LightType::Directional; };
+        void init(uint32_t id) final;
+        LightType type() const final { return LightType::Directional; };
 
-        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                    uint32_t descriptorSetIndex) const override final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const final;
 
         // DirectionalLight
-        void translation(const glm::vec3& translation);
         void direction(const glm::vec3& direction);
 
     protected:
         void updateBindings();
-        void updateTransform();
 
     private:
         // References
@@ -46,10 +43,6 @@ namespace lava::magma {
         vulkan::UboHolder m_uboHolder;
 
         // DirectionalLight
-        $attribute(glm::vec3, translation);
         $attribute(glm::vec3, direction);
-
-        // Attributes
-        glm::mat4 m_transform = glm::mat4(1.f);
     };
 }

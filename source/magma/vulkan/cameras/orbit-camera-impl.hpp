@@ -36,6 +36,10 @@ namespace lava::magma {
         const glm::vec3& translation() const final { return m_translation; }
         bool useFrustumCulling() const final { return true; }
         const Frustum& frustum() const final { return m_frustum; }
+        float nearClip() const final { return m_nearClip; };
+        void nearClip(float nearClip) final { m_nearClip = nearClip; };
+        float farClip() const final { return m_farClip; };
+        void farClip(float farClip) final { m_farClip = farClip; };
 
         // OrbitCamera
         void translation(const glm::vec3& translation);
@@ -60,6 +64,8 @@ namespace lava::magma {
         vk::Extent2D m_extent;
         $attribute(glm::vec3, target);
         PolygonMode m_polygonMode = PolygonMode::Fill;
+        float m_nearClip = 0.5f;
+        float m_farClip = 100.f;
 
         // Attributes
         glm::vec3 m_translation;

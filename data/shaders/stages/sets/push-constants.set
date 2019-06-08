@@ -1,7 +1,8 @@
 #softdefine USE_CAMERA_PUSH_CONSTANT
 #softdefine USE_MESH_PUSH_CONSTANT
+#softdefine USE_SHADOW_MAP_PUSH_CONSTANT
 
-#if USE_CAMERA_PUSH_CONSTANT || USE_MESH_PUSH_CONSTANT
+#if USE_CAMERA_PUSH_CONSTANT || USE_MESH_PUSH_CONSTANT || USE_SHADOW_MAP_PUSH_CONSTANT
 layout(std430, push_constant) uniform PushConstantUbo {
     // Camera UBO
     #if USE_CAMERA_PUSH_CONSTANT
@@ -17,6 +18,11 @@ layout(std430, push_constant) uniform PushConstantUbo {
     vec4 meshTransform0;
     vec4 meshTransform1;
     vec4 meshTransform2;
+    #endif
+
+    // Shadow map UBO
+    #if USE_SHADOW_MAP_PUSH_CONSTANT
+    mat4 cascadeTransform;
     #endif
 } pushConstants;
 #endif

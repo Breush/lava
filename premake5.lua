@@ -17,25 +17,37 @@ workspace "lava-renderer"
     -- Configurations
 
     configurations { "debug", "fast-compile", "profile", "release" }
-
     includedirs "include"
+
+    if os.getenv("CXX") ~= nil and string.sub(os.getenv("CXX"), 1, 7)  == "clang++" then
+        toolset "clang"
+    end
+
+    -- Warnings
+
+    warnings "Extra"
+
+    filter { "toolset:gcc" }
+        buildoptions { "-fmax-errors=3" }
+
+    filter { "toolset:clang"}
+        buildoptions { "-ferror-limit=3" }
+
+    -- Configurations
 
     filter { "configurations:debug" }
         symbols "on"
         optimize "off"
-        buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
         -- vulkan.hpp was not ready for that
         -- buildoptions { "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
 
     filter { "configurations:fast-compile" }
         symbols "off"
         optimize "debug"
-        buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
 
     filter { "configurations:profile" }
         symbols "off"
         optimize "debug"
-        buildoptions { "-fmax-errors=3", "-Wall", "-Wextra" }
 
     filter { "configurations:release" }
         symbols "off"

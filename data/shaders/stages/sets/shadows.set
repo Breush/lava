@@ -1,0 +1,14 @@
+#softdefine SHADOWS_DESCRIPTOR_SET_INDEX
+#softdefine SHADOWS_CASCADES_COUNT
+
+layout(set = SHADOWS_DESCRIPTOR_SET_INDEX, binding = 0) uniform ShadowsUbo {
+    // @note We make splits as vec4 to expose the GLSL forced alignment,
+    // but we only care about the first element of each cascadesSplits.
+    // See https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159
+    mat4 cascadesTransforms[SHADOWS_CASCADES_COUNT];
+    vec4 cascadesSplits[SHADOWS_CASCADES_COUNT];
+} shadows;
+
+layout(set = SHADOWS_DESCRIPTOR_SET_INDEX, binding = 1) uniform sampler2D shadowsCascadesSamplers[SHADOWS_CASCADES_COUNT];
+
+#include "../helpers/shadows.sfunc"

@@ -36,6 +36,10 @@ namespace lava::magma {
         const glm::mat4& projectionTransform() const final { return m_projectionTransform; }
         bool useFrustumCulling() const final { return false; } // @fixme Can't get that working
         const Frustum& frustum() const final { return m_frustum; }
+        float nearClip() const final { return m_nearClip; };
+        void nearClip(float nearClip) final { m_nearClip = nearClip; };
+        float farClip() const final { return m_farClip; };
+        void farClip(float farClip) final { m_farClip = farClip; };
 
         // Internal interface
         void update(VrEngine::Eye eye);
@@ -65,5 +69,7 @@ namespace lava::magma {
         glm::mat4 m_viewTransform = glm::mat4(1.f);
         glm::mat4 m_projectionTransform = glm::mat4(1.f);
         Frustum m_frustum;
+        float m_nearClip = 0.5f;
+        float m_farClip = 100.f;
     };
 }

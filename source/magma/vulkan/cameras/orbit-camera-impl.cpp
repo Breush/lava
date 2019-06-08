@@ -102,11 +102,9 @@ void OrbitCamera::Impl::updateProjectionTransform()
     const auto aspectRatio = static_cast<float>(m_extent.width) / static_cast<float>(m_extent.height);
 
     // @todo FOV and clippings configurable?
-    const auto n = 0.1f;
-    const auto f = 100.f;
     const auto FOVy = glm::radians(45.f);
 
-    m_projectionTransform = glm::perspectiveRH(FOVy, aspectRatio, n, f);
+    m_projectionTransform = glm::perspectiveRH(FOVy, aspectRatio, m_nearClip, m_farClip);
     m_projectionTransform[1][1] *= -1;
 
     updateFrustum();
@@ -147,13 +145,11 @@ void OrbitCamera::Impl::updateFrustum()
     m_frustum.topDistance = glm::dot(m_translation, m_frustum.topNormal);
 
     // Forward
-    const auto n = 0.1f;
-    const auto f = 100.f;
     auto forwardNormal = glm::normalize(m_target - m_translation);
     auto cameraDistance = glm::dot(m_translation, forwardNormal);
     m_frustum.forward = forwardNormal;
-    m_frustum.near = cameraDistance + n;
-    m_frustum.far = cameraDistance + f;
+    m_frustum.near = cameraDistance + m_nearClip;
+    m_frustum.far = cameraDistance + m_farClip;
 }
 
 void OrbitCamera::Impl::updateBindings()

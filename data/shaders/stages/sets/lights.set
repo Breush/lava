@@ -9,6 +9,4 @@ layout(set = LIGHTS_DESCRIPTOR_SET_INDEX, binding = 0) uniform LightUbo {
     uvec4 data[2];
 } light;
 
-layout(set = LIGHTS_DESCRIPTOR_SET_INDEX, binding = 1) uniform sampler2D lightShadowsSampler;
-
 #include "../helpers/lights.sfunc"

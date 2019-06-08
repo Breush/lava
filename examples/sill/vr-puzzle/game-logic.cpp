@@ -210,7 +210,7 @@ namespace {
                 targetTransform = gameState.camera->transformAtCoordinates(coordinates, 0.5f);
 
                 auto screenMatrix = glm::mat4(1.f);
-                screenMatrix = glm::scale(screenMatrix, {0.05f, 0.05f, 0.05f});
+                screenMatrix = glm::scale(screenMatrix, {0.2f, 0.2f, 0.2f});
                 screenMatrix = glm::rotate(screenMatrix, 3.14156f * 0.5f, {1, 0, 0});
                 screenMatrix = glm::rotate(screenMatrix, -3.14156f * 0.5f, {0, 1, 0});
 

@@ -1,0 +1,77 @@
+// ----- Shadows
+
+// @note Shadow mapping is perspective CSM. See following links.
+// https://github.com/SaschaWillems/Vulkan/blob/master/examples/shadowmappingcascade/shadowmappingcascade.cpp
+// https://johanmedestrom.wordpress.com/2016/03/18/opengl-cascaded-shadow-maps/
+// http://the-witness.net/news/2010/03/graphics-tech-shadow-maps-part-1/
+// http://the-witness.net/news/2010/04/graphics-tech-shadow-maps-part-2-save-25-texture-memory-and-possibly-much-more/
+
+float shadowValue(vec4 shadowUv, vec2 offset, uint cascadeIndex, float bias)
+{
+	if (shadowUv.z > -1.0 && shadowUv.z < 1.0 ) {
+		float shadowDepth = texture(shadowsCascadesSamplers[cascadeIndex], shadowUv.xy + offset).r;
+        if (shadowDepth > 0 && shadowDepth + bias < shadowUv.z) {
+            return 0.5;
+        }
+	}
+
+	return 0.0;
+
+}
+
+float shadowPcfFilteredValue(vec4 shadowUv, uint cascadeIndex, float bias)
+{
+	ivec2 texDim = textureSize(shadowsCascadesSamplers[cascadeIndex], 0).xy;
+	float scale = 0.75;
+	float dx = scale * 1.0 / float(texDim.x);
+	float dy = scale * 1.0 / float(texDim.y);
+
+	float shadowFactor = 0.0;
+	int count = 0;
+	int range = 1;
+
+	for (int x = -range; x <= range; x++) {
+		for (int y = -range; y <= range; y++) {
+			shadowFactor += shadowValue(shadowUv, vec2(dx * x, dy * y), cascadeIndex, bias);
+			count += 1;
+		}
+	}
+	return shadowFactor / count;
+}
+
+// ----- Epiphany shadows
+
+uint epiphayShadowCascadeIndex(vec3 position)
+{
+    float depth = -(camera.viewTransform * vec4(position, 1)).z;
+
+    for (uint i = 0; i < SHADOWS_CASCADES_COUNT - 1; ++i) {
+        if (depth < shadows.cascadesSplits[i][0]) {
+            return i;
+        }
+    }
+
+    return SHADOWS_CASCADES_COUNT - 1;
+}
+
+// position and normal are world space
+float epiphanyShadow(vec3 lightDirection, vec3 position, vec3 normal)
+{
+    const mat4 biasMatrix = mat4(0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 1.0, 0.0,
+                                 0.5, 0.5, 0.0, 1.0);
+
+    // @note Does this means that the shadows needs to know the light?
+    if (light.type == LIGHT_TYPE_DIRECTIONAL) {
+        uint cascadeIndex = epiphayShadowCascadeIndex(position);
+	    vec4 shadowUv = (biasMatrix * shadows.cascadesTransforms[cascadeIndex]) * vec4(position, 1);
+
+        float n_l = dot(normal, lightDirection);
+        float bias = clamp(0.0001 * tan(acos(n_l)), 0.0, 0.01);
+
+        return shadowPcfFilteredValue(shadowUv, cascadeIndex, bias);
+    }
+
+    return 0.0;
+}

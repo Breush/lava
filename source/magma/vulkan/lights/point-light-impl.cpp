@@ -23,7 +23,7 @@ PointLight::Impl::~Impl()
 
 RenderImage PointLight::Impl::shadowsRenderImage() const
 {
-    return m_scene.lightShadowsRenderImage(m_id);
+    return m_scene.shadowsCascadeRenderImage(m_id);
 }
 
 //----- ILight::Impl
@@ -68,7 +68,7 @@ void PointLight::Impl::updateBindings()
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     vulkan::LightUbo ubo(type());
-    ubo.transform = glm::translate(glm::mat4(1.f), m_translation);
+    ubo.transform = glm::translate(glm::mat4(1.f), m_translation); // @fixme Could be useless, just store that in data
     ubo.data[0].x = reinterpret_cast<const uint32_t&>(m_radius);
     m_uboHolder.copy(0, ubo);
 

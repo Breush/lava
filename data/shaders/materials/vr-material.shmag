@@ -57,7 +57,7 @@ epiphany {
         float shadow = 0;
         if (epiphanyLight(position, l, lightIntensity)) {
             float n_l = dot(n, l);
-            shadow = max(shadow, epiphanyLightShadow(l, position, n));
+            shadow = max(shadow, epiphanyShadow(l, position, n));
 
             if (n_l > 0) {
                 // Diffuse

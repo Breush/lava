@@ -320,8 +320,8 @@ void RenderEngine::Impl::createDummyTextures()
     }
 
     // Shadows sampler
-    samplerInfo.magFilter = vk::Filter::eNearest;
-    samplerInfo.minFilter = vk::Filter::eNearest;
+    samplerInfo.magFilter = vk::Filter::eLinear;
+    samplerInfo.minFilter = vk::Filter::eLinear;
     samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
     samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
     samplerInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;

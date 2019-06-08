@@ -3,12 +3,19 @@
 #include "../light-type.hpp"
 
 namespace lava::magma {
-    constexpr const auto MATERIAL_DATA_SIZE = 16u;
-    constexpr const auto MATERIAL_SAMPLERS_SIZE = 8u;
+    constexpr const uint32_t MATERIAL_DATA_SIZE = 16u;
+    constexpr const uint32_t MATERIAL_SAMPLERS_SIZE = 8u;
+
+    constexpr const uint32_t SHADOWS_CASCADES_COUNT = 4u;
 }
 
 // @fixme UBO definitions should not be in 'vulkan' namespace...
 namespace lava::magma::vulkan {
+    // To be used as push-constants.
+    struct ShadowMapUbo { // 64 bytes
+        glm::mat4 cascadeTransform;
+    };
+
     struct CameraUbo {                // 80 bytes
         glm::vec4 viewTransform0;     // 16 transpose(viewTransform)[0]
         glm::vec4 viewTransform1;     // 16 transpose(viewTransform)[1]
@@ -55,6 +62,11 @@ namespace lava::magma::vulkan {
             : type(static_cast<uint32_t>(lightType))
         {
         }
+    };
+
+    struct ShadowsUbo {
+        glm::mat4 cascadesTransforms[SHADOWS_CASCADES_COUNT];
+        glm::vec4 cascadesSplits[SHADOWS_CASCADES_COUNT];
     };
 
     // @note The following two EnvironmentUbos are used

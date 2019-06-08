@@ -36,26 +36,3 @@ bool epiphanyLight(vec3 position, out vec3 lightDirection, out float lightIntens
     lightDirection = normalize(lightDirection);
     return true;
 }
-
-// position and normal are the fragment's attributes.
-float epiphanyLightShadow(vec3 lightDirection, vec3 position, vec3 normal)
-{
-    if (light.type == LIGHT_TYPE_DIRECTIONAL) {
-        // Unproject the current fragment world-position
-        // to find the corresponding pixel to pick in the shadow map
-        vec4 nodeLightSpacePosition = light.transform * vec4(position, 1);
-        vec2 lightUv = (nodeLightSpacePosition.xy + 1) / 2;
-
-        // Bias
-        float n_l = dot(normal, lightDirection);
-        float bias = clamp(0.005 * tan(acos(n_l)), 0.0, 0.01);
-
-        float shadowsDepth = texture(lightShadowsSampler, lightUv).r;
-        float fragmentLightSpaceDepth = nodeLightSpacePosition.z;
-        if (shadowsDepth > 0 && shadowsDepth + bias < fragmentLightSpaceDepth) {
-            return 0.5;
-        }
-    }
-
-    return 0.0;
-}

@@ -40,7 +40,7 @@ namespace lava::magma {
         Extent2d renderTargetExtent();
 
         /// Get camera projection transform for an eye.
-        glm::mat4 eyeProjectionTransform(Eye eye);
+        glm::mat4 eyeProjectionTransform(Eye eye, float nearClip, float farClip);
 
         /// Get camera view transform for an eye from the head.
         glm::mat4 eyeToHeadTransform(Eye eye);

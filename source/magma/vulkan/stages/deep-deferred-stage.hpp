@@ -29,6 +29,7 @@ namespace lava::magma {
         constexpr static const uint32_t ENVIRONMENT_DESCRIPTOR_SET_INDEX = 2u;
         constexpr static const uint32_t GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX = 3u;
         constexpr static const uint32_t EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX = 3u;
+        constexpr static const uint32_t EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX = 4u;
         constexpr static const uint32_t CAMERA_PUSH_CONSTANT_OFFSET = 0u;
         constexpr static const uint32_t GEOMETRY_MESH_PUSH_CONSTANT_OFFSET = sizeof(vulkan::CameraUbo);
 

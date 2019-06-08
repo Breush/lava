@@ -24,8 +24,13 @@ namespace lava::magma {
         RenderImage depthRenderImage() const final;
         PolygonMode polygonMode() const final;
         void polygonMode(PolygonMode polygonMode) final;
+        float nearClip() const final;
+        void nearClip(float nearClip) final;
+        float farClip() const final;
+        void farClip(float farClip) final;
 
-        ICamera::Impl& interfaceImpl();
+        ICamera::Impl& interfaceImpl() final;
+        const ICamera::Impl& interfaceImpl() const final;
 
         // @note There is no control, as this camera is expected to be used
         // only in internal code. However, one can still configure it.

@@ -32,11 +32,21 @@ int main(void)
         mesh.rotate({random01(), random01(), random01()}, 3.14f / 4.f * random01());
     }
 
-    // Camera
-    app.camera().translation({2.f, 2.f, 2.f});
-    app.camera().target({0.f, 0.f, 0.f});
+    // Movable camera
+    app.camera().translation({-1.5f, 3.1f, 3.f});
+    app.camera().target({-0.8f, -0.2f, 0.2f});
 
-    app.run();
+    // A second camera to test multiple views with shadow maps
+    auto camera = app.scene().make<magma::OrbitCamera>(app.window().extent());
+    camera.translation({-1.5f, 3.1f, 3.f});
+    camera.target({-0.8f, -0.2f, 0.2f});
+    app.engine().addView(camera, app.windowRenderTarget(), Viewport{0.5, 0, 0.5, 0.5});
+
+    auto t = 0.f;
+    app.run([&](float dt) {
+        t += dt;
+        app.light().direction({std::cos(t), std::sin(t), -0.5f});
+    });
 
     return EXIT_SUCCESS;
 }

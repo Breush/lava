@@ -16,13 +16,14 @@ namespace lava::magma::vulkan {
         CommandBufferThread(RenderEngine::Impl& engine, const char* threadName = "");
 
         // @note We can't take a IRendererStage because of ShadowsStage not being one.
-        template <class Stage>
-        void record(Stage& stage)
+        template <class Stage, class... Args>
+        void record(Stage& stage, Args&... args)
         {
             m_bufferIndex = (m_bufferIndex + 1) % m_commandBuffers.size();
             auto& commandBuffer = m_commandBuffers[m_bufferIndex];
 
-            job([&, bufferIndex = m_bufferIndex] {
+            // @note We pass args by copy, ensuring that it does not rely on dead reference
+            job([=, &stage, &commandBuffer] {
                 vk::CommandBufferInheritanceInfo inheritanceInfo;
                 inheritanceInfo.renderPass = stage.renderPass();
                 inheritanceInfo.subpass = 0u;
@@ -33,7 +34,7 @@ namespace lava::magma::vulkan {
 
                 commandBuffer.begin(&beginInfo);
                 // @fixme We should rename render -> record
-                stage.render(commandBuffer);
+                stage.render(commandBuffer, args...);
                 commandBuffer.end();
             });
         }

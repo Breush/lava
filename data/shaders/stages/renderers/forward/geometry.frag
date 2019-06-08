@@ -8,6 +8,7 @@ layout(early_fragment_tests) in;
 #include "../../sets/push-constants.set"
 #include "../../sets/material.set"
 #include "../../sets/lights.set"
+#include "../../sets/shadows.set"
 #include "../../sets/environment.set"
 
 //----- Fragment forwarded in

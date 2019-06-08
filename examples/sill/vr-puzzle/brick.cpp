@@ -13,9 +13,6 @@ Brick::Brick(GameState& gameState)
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::AnimationComponent>();
     m_entity->make<sill::ColliderComponent>();
-
-    // @fixme Debug colliders should be user-controlled
-    m_entity->get<sill::ColliderComponent>().debugEnabled(true);
 }
 
 Brick::~Brick()
@@ -46,7 +43,6 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
         auto& meshComponent = entity.make<sill::MeshComponent>();
         brickMaker(meshComponent);
         entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});
-        meshComponent.boundingSpheresVisible(true);
 
         m_blocks[i].entity = &entity;
         m_entity->addChild(entity);

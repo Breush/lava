@@ -10,6 +10,7 @@
 #include "../command-buffer-thread.hpp"
 #include "../environment.hpp"
 #include "../holders/descriptor-holder.hpp"
+#include "../shadows.hpp"
 
 namespace lava::magma {
     class IRendererStage;
@@ -82,6 +83,7 @@ namespace lava::magma {
         const RenderScene& scene() const { return m_scene; }
 
         const vulkan::DescriptorHolder& lightsDescriptorHolder() const { return m_lightsDescriptorHolder; }
+        const vulkan::DescriptorHolder& shadowsDescriptorHolder() const { return m_shadowsDescriptorHolder; }
         const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
         const vulkan::DescriptorHolder& environmentDescriptorHolder() const { return m_environmentDescriptorHolder; }
         /// @}
@@ -99,6 +101,11 @@ namespace lava::magma {
         const Material::Impl& material(uint32_t index) const { return m_materials[index]->impl(); }
         const Mesh::Impl& mesh(uint32_t index) const { return *m_meshesImpls[index]; }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
+        ILight::Impl& light(uint32_t index) { return m_lightBundles[index].light->interfaceImpl(); }
+        const Shadows& shadows(uint32_t lightIndex, uint32_t cameraIndex) const
+        {
+            return *m_lightBundles[lightIndex].shadows[cameraIndex];
+        }
 
         const Environment& environment() const { return m_environment; }
 
@@ -106,11 +113,14 @@ namespace lava::magma {
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
         const std::vector<Mesh::Impl*>& meshes() const { return m_meshesImpls; }
 
+        uint32_t camerasCount() const { return m_cameraBundles.size(); }
         uint32_t lightsCount() const { return m_lightBundles.size(); }
 
         RenderImage cameraRenderImage(uint32_t cameraIndex) const;
         RenderImage cameraDepthRenderImage(uint32_t cameraIndex) const;
-        RenderImage lightShadowsRenderImage(uint32_t lightIndex) const;
+        RenderImage shadowsCascadeRenderImage(uint32_t lightIndex, uint32_t cameraIndex = 0u, uint32_t cascadeIndex = 0u) const;
+        float shadowsCascadeSplitDepth(uint32_t lightIndex, uint32_t cameraIndex, uint32_t cascadeIndex) const;
+        const glm::mat4& shadowsCascadeTransform(uint32_t lightIndex, uint32_t cameraIndex, uint32_t cascadeIndex) const;
 
         void changeCameraRenderImageLayout(uint32_t cameraIndex, vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
         /// @}
@@ -126,7 +136,10 @@ namespace lava::magma {
         struct LightBundle {
             std::unique_ptr<ILight> light;
             std::unique_ptr<ShadowsStage> shadowsStage;
-            std::unique_ptr<vulkan::CommandBufferThread> shadowsThread;
+            std::vector<std::unique_ptr<Shadows>> shadows;
+
+            // :ShadowsLightCameraPair There will be one thread per combinaison of light/camera.
+            std::vector<std::unique_ptr<vulkan::CommandBufferThread>> shadowsThreads;
         };
 
         struct CameraBundle {
@@ -149,6 +162,7 @@ namespace lava::magma {
 
         // Resources
         vulkan::DescriptorHolder m_lightsDescriptorHolder;
+        vulkan::DescriptorHolder m_shadowsDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
         vulkan::DescriptorHolder m_environmentDescriptorHolder;
 

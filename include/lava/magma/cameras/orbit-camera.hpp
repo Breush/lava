@@ -18,16 +18,21 @@ namespace lava::magma {
         ~OrbitCamera();
 
         // ICamera
-        Extent2d extent() const override final;
-        void extent(Extent2d extent) override final;
-        RenderImage renderImage() const override final;
-        RenderImage depthRenderImage() const override final;
-        PolygonMode polygonMode() const override final;
-        void polygonMode(PolygonMode polygonMode) override final;
+        Extent2d extent() const final;
+        void extent(Extent2d extent) final;
+        RenderImage renderImage() const final;
+        RenderImage depthRenderImage() const final;
+        PolygonMode polygonMode() const final;
+        void polygonMode(PolygonMode polygonMode) final;
+        float nearClip() const final;
+        void nearClip(float nearClip) final;
+        float farClip() const final;
+        void farClip(float farClip) final;
         const glm::mat4& viewTransform() const;
         const glm::mat4& projectionTransform() const;
 
-        ICamera::Impl& interfaceImpl();
+        ICamera::Impl& interfaceImpl() final;
+        const ICamera::Impl& interfaceImpl() const final;
 
         // Attributes
         const glm::vec3& translation() const;

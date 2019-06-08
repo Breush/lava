@@ -25,7 +25,14 @@ namespace lava::magma {
         virtual PolygonMode polygonMode() const = 0;
         virtual void polygonMode(PolygonMode polygonMode) = 0;
 
+        // Rendering range
+        virtual float nearClip() const = 0;
+        virtual void nearClip(float nearClip) = 0;
+        virtual float farClip() const = 0;
+        virtual void farClip(float farClip) = 0;
+
         class Impl;
         virtual Impl& interfaceImpl() = 0;
+        virtual const Impl& interfaceImpl() const = 0;
     };
 }

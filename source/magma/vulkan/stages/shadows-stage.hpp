@@ -1,34 +1,54 @@
 #pragma once
 
+#include <lava/magma/lights/i-light.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"
 #include "../holders/render-pass-holder.hpp"
+#include "../render-engine-impl.hpp"
+#include "../ubos.hpp"
 
 namespace lava::magma {
+    // @todo Currently fixed extent for shadow maps, might need dynamic ones
+    constexpr const uint32_t SHADOW_MAP_SIZE = 2048u;
+
     /**
      * Creating a shadows maps for the lights.
      */
     class ShadowsStage final {
-        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 0u;
         constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = 0u;
+        constexpr static const uint32_t SHADOW_MAP_PUSH_CONSTANT_OFFSET = sizeof(vulkan::MeshUbo);
 
     public:
         ShadowsStage(RenderScene::Impl& scene);
 
         void init(uint32_t lightId);
         void update(vk::Extent2D extent);
-        void render(vk::CommandBuffer commandBuffer);
+        void updateFromCamerasCount();
+        void render(vk::CommandBuffer commandBuffer, uint32_t cameraId);
 
-        RenderImage renderImage() const;
+        RenderImage renderImage(uint32_t cameraId = 0u, uint32_t cascadeIndex = 0u) const;
         vk::RenderPass renderPass() const { return m_renderPassHolder.renderPass(); }
 
     protected:
         void initPass();
 
         void createResources();
-        void createFramebuffers();
+        void ensureResourcesForCamera(uint32_t cameraId);
+
+    protected:
+        struct Cascade {
+            vulkan::ImageHolder imageHolder;
+            vulkan::Framebuffer framebuffer;
+            vulkan::ShadowMapUbo ubo;
+
+            Cascade(RenderEngine::Impl& engine)
+                : imageHolder(engine, "magma.vulkan.shadows-stage.cascade.image")
+                , framebuffer(engine.device())
+            {
+            }
+        };
 
     private:
         // References
@@ -40,8 +60,8 @@ namespace lava::magma {
         vulkan::RenderPassHolder m_renderPassHolder;
         vulkan::PipelineHolder m_pipelineHolder;
 
-        // Resources
-        vulkan::ImageHolder m_depthImageHolder;
-        vulkan::Framebuffer m_framebuffer;
+        // Cascade shadow maps
+        // @todo For clarity, we might want a using CameraId = uint32_t somewhere.
+        std::unordered_map<uint32_t, std::vector<Cascade>> m_cascades; // Stored per cameraId
     };
 }

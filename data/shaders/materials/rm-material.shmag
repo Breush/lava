@@ -172,7 +172,7 @@ epiphany {
             return vec3(0);
         }
 
-        shadow = max(shadow, epiphanyLightShadow(l, position, pbr.n));
+        shadow = max(shadow, epiphanyShadow(l, position, pbr.n));
 
         // ----- Pre-computing
 

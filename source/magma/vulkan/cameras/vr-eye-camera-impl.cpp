@@ -75,7 +75,7 @@ void VrEyeCamera::Impl::update(VrEngine::Eye eye)
 
     auto& vrEngine = m_scene.engine().vrEngine();
 
-    auto projectionTransform = vrEngine.eyeProjectionTransform(eye);
+    auto projectionTransform = vrEngine.eyeProjectionTransform(eye, m_nearClip, m_farClip);
     forceProjectionTransform(projectionTransform);
 
     auto viewTransform = vrEngine.eyeViewTransform(eye);

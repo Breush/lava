@@ -49,5 +49,10 @@ namespace lava::magma {
 
         /// Its frustum.
         virtual const Frustum& frustum() const = 0;
+
+        virtual float nearClip() const = 0;
+        virtual void nearClip(float nearClip) = 0;
+        virtual float farClip() const = 0;
+        virtual void farClip(float farClip) = 0;
     };
 }

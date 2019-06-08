@@ -53,6 +53,10 @@ void CallStack::Impl::refresh(uint32_t discardCount)
         auto reference = message.substr(leftParenthesisPos + 1, plusPos - leftParenthesisPos - 1);
         auto relativeOffset = message.substr(plusPos + 1, rightParenthesisPos - plusPos - 1);
 
+        if (relativeOffset == "") {
+            continue;
+        }
+
         // Find lib offset
         std::string libOffset("0x0");
         if (reference.size() > 0 && reference != "__libc_start_main") {
@@ -88,11 +92,11 @@ void CallStack::Impl::refresh(uint32_t discardCount)
         // Create entry
         Entry entry;
         entry.file = fileInfo;
-        entry.file = entry.file.substr(entry.file.rfind("/") + 1);
-        entry.file = entry.file.substr(0, entry.file.find(":"));
         if (entry.file[0] == '?' && dlinfo.dli_fname) {
             entry.file = dlinfo.dli_fname;
         }
+        entry.file = entry.file.substr(entry.file.rfind("/") + 1);
+        entry.file = entry.file.substr(0, entry.file.find(":"));
         entry.line = atoi(fileInfo.substr(fileInfo.find(":") + 1).c_str());
         entry.function = functionName;
         m_entries.emplace_back(std::move(entry));

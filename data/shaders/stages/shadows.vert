@@ -3,7 +3,6 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #include "./sets/push-constants.set"
-#include "./sets/lights.set"
 
 //----- Vertex data in
 
@@ -20,8 +19,5 @@ out gl_PerVertex {
 void main() {
     setupMesh();
 
-    // @note This light will become lights[0] one day, when we handle
-    // multiple runtime lights.
-
-    gl_Position = light.transform * mesh.transform * vec4(inMPosition, 1);
+    gl_Position = pushConstants.cascadeTransform * mesh.transform * vec4(inMPosition, 1);
 }

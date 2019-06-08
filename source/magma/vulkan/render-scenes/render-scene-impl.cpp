@@ -18,6 +18,7 @@ RenderScene::Impl::Impl(RenderEngine& engine, RenderScene& scene)
     , m_engine(engine.impl())
     , m_rendererType(RendererType::Forward)
     , m_lightsDescriptorHolder(m_engine)
+    , m_shadowsDescriptorHolder(m_engine)
     , m_materialDescriptorHolder(m_engine)
     , m_environmentDescriptorHolder(m_engine)
     , m_environment(*this)
@@ -34,8 +35,11 @@ void RenderScene::Impl::init(uint32_t id)
     m_initialized = true;
 
     m_lightsDescriptorHolder.uniformBufferSizes({1});
-    m_lightsDescriptorHolder.combinedImageSamplerSizes({1});
     m_lightsDescriptorHolder.init(64, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
+
+    m_shadowsDescriptorHolder.uniformBufferSizes({1});
+    m_shadowsDescriptorHolder.combinedImageSamplerSizes({SHADOWS_CASCADES_COUNT});
+    m_shadowsDescriptorHolder.init(256, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
     m_materialDescriptorHolder.uniformBufferSizes({1});
     m_materialDescriptorHolder.combinedImageSamplerSizes({8, 1}); // 8 samplers, 1 cubeSampler
@@ -75,6 +79,15 @@ void RenderScene::Impl::update()
             }
         }
     }
+
+    // @todo Some light or cameras might be inactive,
+    // we should add this concept.
+    // We should also be sure this is not done to many times.
+    for (auto& lightBundle : m_lightBundles) {
+        for (auto& shadows : lightBundle.shadows) {
+            shadows->update();
+        }
+    }
 }
 
 void RenderScene::Impl::record()
@@ -84,16 +97,24 @@ void RenderScene::Impl::record()
 
     m_commandBuffers.resize(0);
 
-    // Threading rendering
+    // @note :ShadowsLightCameraPair The order here is important, because it is how everything
+    // is going to be rendered. So the pre-pass of constructing shadow maps
+    // based on the camera has to be done first.
+    // They all use the very same shadows stage to update,
+    // but that does not matter as long as the command buffers within the threads
+    // are all different and as long as the shadows stage does not keep local state for
+    // rendering.
 
-    for (auto& lightBundle : m_lightBundles) {
-        if (lightBundle.light->shadowsEnabled()) {
-            lightBundle.shadowsThread->record(*lightBundle.shadowsStage);
-            m_commandBuffers.emplace_back(lightBundle.shadowsThread->commandBuffer());
+    // @todo Don't have notion of "active" cameras yet, so we update them all
+    for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+        for (auto& lightBundle : m_lightBundles) {
+            if (lightBundle.light->shadowsEnabled()) {
+                lightBundle.shadowsThreads[cameraId]->record(*lightBundle.shadowsStage, cameraId);
+                m_commandBuffers.emplace_back(lightBundle.shadowsThreads[cameraId]->commandBuffer());
+            }
         }
-    }
 
-    for (const auto& cameraBundle : m_cameraBundles) {
+        const auto& cameraBundle = m_cameraBundles[cameraId];
         cameraBundle.rendererThread->record(*cameraBundle.rendererStage);
         m_commandBuffers.emplace_back(cameraBundle.rendererThread->commandBuffer());
     }
@@ -101,13 +122,14 @@ void RenderScene::Impl::record()
 
 void RenderScene::Impl::waitRecord()
 {
-    for (auto& lightBundle : m_lightBundles) {
-        if (lightBundle.light->shadowsEnabled()) {
-            lightBundle.shadowsThread->wait();
+    for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+        for (auto& lightBundle : m_lightBundles) {
+            if (lightBundle.light->shadowsEnabled()) {
+                lightBundle.shadowsThreads[cameraId]->wait();
+            }
         }
-    }
 
-    for (const auto& cameraBundle : m_cameraBundles) {
+        const auto& cameraBundle = m_cameraBundles[cameraId];
         cameraBundle.rendererThread->wait();
     }
 }
@@ -135,6 +157,23 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
         cameraBundle.camera->interfaceImpl().init(cameraId);
         cameraBundle.rendererStage->init(cameraId);
         updateStages(cameraId);
+    }
+
+    // :ShadowsLightCameraPair We neeed to resize the number of threads for shadow map generation
+    for (auto lightId = 0u; lightId < m_lightBundles.size(); ++lightId) {
+        auto& lightBundle = m_lightBundles[lightId];
+        lightBundle.shadowsStage->updateFromCamerasCount();
+        lightBundle.shadows.resize(m_cameraBundles.size());
+        lightBundle.shadowsThreads.resize(m_cameraBundles.size());
+        for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+            if (lightBundle.shadows[cameraId] == nullptr) {
+                lightBundle.shadows[cameraId] = std::make_unique<Shadows>(*this);
+                lightBundle.shadows[cameraId]->init(lightId, cameraId);
+            }
+            if (lightBundle.shadowsThreads[cameraId] == nullptr) {
+                lightBundle.shadowsThreads[cameraId] = std::make_unique<vulkan::CommandBufferThread>(m_engine, "light.shadows");
+            }
+        }
     }
 
     logger.log().tab(-1);
@@ -182,15 +221,22 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
     // Setting shadows
     if (lightBundle.light->shadowsEnabled()) {
         lightBundle.shadowsStage = std::make_unique<ShadowsStage>(*this);
-        lightBundle.shadowsThread = std::make_unique<vulkan::CommandBufferThread>(m_engine, "light.shadows");
+        lightBundle.shadows.resize(m_cameraBundles.size());
+        lightBundle.shadowsThreads.resize(m_cameraBundles.size());
+        for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+            lightBundle.shadows[cameraId] = std::make_unique<Shadows>(*this);
+            lightBundle.shadowsThreads[cameraId] = std::make_unique<vulkan::CommandBufferThread>(m_engine, "light.shadows");
+        }
     }
 
     if (m_initialized) {
-        // @todo Currently fixed extent for shadow maps, might need dynamic ones
         lightBundle.light->interfaceImpl().init(lightId);
         if (lightBundle.light->shadowsEnabled()) {
             lightBundle.shadowsStage->init(lightId);
-            lightBundle.shadowsStage->update(vk::Extent2D{2048u, 2048u});
+            lightBundle.shadowsStage->update(vk::Extent2D{SHADOW_MAP_SIZE, SHADOW_MAP_SIZE});
+            for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+                lightBundle.shadows[cameraId]->init(lightId, cameraId);
+            }
         }
     }
 
@@ -288,7 +334,7 @@ RenderImage RenderScene::Impl::cameraDepthRenderImage(uint32_t cameraIndex) cons
     return m_cameraBundles[cameraIndex].rendererStage->depthRenderImage();
 }
 
-RenderImage RenderScene::Impl::lightShadowsRenderImage(uint32_t lightIndex) const
+RenderImage RenderScene::Impl::shadowsCascadeRenderImage(uint32_t lightIndex, uint32_t cameraId, uint32_t cascadeIndex) const
 {
     if (!m_initialized) {
         logger.warning("magma.vulkan.render-scenes.render-scene")
@@ -303,7 +349,18 @@ RenderImage RenderScene::Impl::lightShadowsRenderImage(uint32_t lightIndex) cons
         return RenderImage();
     }
 
-    return m_lightBundles[lightIndex].shadowsStage->renderImage();
+    return m_lightBundles[lightIndex].shadowsStage->renderImage(cameraId, cascadeIndex);
+}
+
+float RenderScene::Impl::shadowsCascadeSplitDepth(uint32_t lightIndex, uint32_t cameraIndex, uint32_t cascadeIndex) const
+{
+    return m_lightBundles[lightIndex].shadows[cameraIndex]->cascadeSplitDepth(cascadeIndex);
+}
+
+const glm::mat4& RenderScene::Impl::shadowsCascadeTransform(uint32_t lightIndex, uint32_t cameraIndex,
+                                                            uint32_t cascadeIndex) const
+{
+    return m_lightBundles[lightIndex].shadows[cameraIndex]->cascadeTransform(cascadeIndex);
 }
 
 void RenderScene::Impl::changeCameraRenderImageLayout(uint32_t cameraIndex, vk::ImageLayout imageLayout,
@@ -331,6 +388,9 @@ void RenderScene::Impl::initStages()
         if (lightBundle.light->shadowsEnabled()) {
             lightBundle.shadowsStage->init(lightId);
             lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
+            for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+                lightBundle.shadows[cameraId]->init(lightId, cameraId);
+            }
         }
     }
 

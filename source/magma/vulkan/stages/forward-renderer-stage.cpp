@@ -101,6 +101,8 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     // Bind lights
     for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
         m_scene.light(lightId).render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
+        m_scene.shadows(lightId, m_cameraId)
+            .render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), SHADOWS_DESCRIPTOR_SET_INDEX);
     }
 
     // Set the camera
@@ -198,6 +200,7 @@ void ForwardRendererStage::initOpaquePass()
     m_opaquePipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+    m_opaquePipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -239,6 +242,7 @@ void ForwardRendererStage::initWireframePass()
     m_wireframePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     // @note Useful, so that the pipelines are all compatible
     m_wireframePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -282,6 +286,7 @@ void ForwardRendererStage::initTranslucentPass()
     m_translucentPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+    m_translucentPipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -325,10 +330,13 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["ENVIRONMENT_DESCRIPTOR_SET_INDEX"] = std::to_string(ENVIRONMENT_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT"] = std::to_string(ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
+    moduleOptions.defines["SHADOWS_DESCRIPTOR_SET_INDEX"] = std::to_string(SHADOWS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["SHADOWS_CASCADES_COUNT"] = std::to_string(SHADOWS_CASCADES_COUNT);
     moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
     moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);

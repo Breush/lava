@@ -4,6 +4,8 @@
 #include <lava/crater.hpp>
 #include <lava/magma.hpp>
 
+#include <glm/gtx/string_cast.hpp>
+
 namespace lava::ashe {
     class Application {
     public:
@@ -55,17 +57,7 @@ namespace lava::ashe {
 
             // A light.
             m_light = &m_scene->make<magma::DirectionalLight>();
-            m_light->translation({0.8f, 0.7f, 0.4f});
-            m_light->direction(-m_light->translation());
-
-            // Showing lights.
-            m_bigLightMesh = &makeTetrahedron(0.05f);
-            m_bigLightMesh->translate(m_light->translation());
-            m_bigLightMesh->canCastShadows(false);
-
-            m_smallLightMesh = &makeTetrahedron(0.01f);
-            m_smallLightMesh->translate(m_light->translation() + m_light->direction() * 0.1f);
-            m_smallLightMesh->canCastShadows(false);
+            m_light->direction({-0.8f, -0.7f, -0.4f});
 
             // We decide to show the scene's camera "0" at a certain translation in the window.
             m_engine->addView(*m_camera, *m_windowTarget, Viewport{0, 0, 1, 1});
@@ -82,9 +74,17 @@ namespace lava::ashe {
             run([](const WsEvent& /*event*/) {});
         }
 
-        /// Running with a custom event handler.
-        inline void run(std::function<void(const WsEvent&)> eventHandler)
+        inline void run(std::function<void(float)> updateCallback)
         {
+            run([](const WsEvent& /*event*/) {}, updateCallback);
+        }
+
+        /// Running with a custom event handler.
+        inline void run(std::function<void(const WsEvent&)> eventHandler,
+                        std::function<void(float)> updateCallback = [](float) {})
+        {
+            static auto currentTime = std::chrono::high_resolution_clock::now();
+
             // Keep running while the window is open.
             while (m_window->opened()) {
                 // Treat all events since last frame.
@@ -92,6 +92,10 @@ namespace lava::ashe {
                     eventHandler(*event);
                     handleEvent(*event);
                 }
+
+                auto elapsedTime = std::chrono::high_resolution_clock::now() - currentTime;
+                currentTime += elapsedTime;
+                updateCallback(std::chrono::duration<float>(elapsedTime).count());
 
                 // Render the scene.
                 m_engine->update();
@@ -306,8 +310,6 @@ namespace lava::ashe {
             }
 
             case WsEventType::KeyPressed: {
-                glm::vec3 lightDelta(0.f);
-
                 if (event.key.which == Key::Escape) {
                     m_window->close();
                 }
@@ -315,6 +317,8 @@ namespace lava::ashe {
                 else if (event.key.which == Key::C) {
                     if (depthViewId == -1u) {
                         depthViewId = m_engine->addView(m_camera->depthRenderImage(), *m_windowTarget, Viewport{0, 0, 1, 1});
+                        std::cout << "camera.translation: " << glm::to_string(m_camera->translation()) << std::endl;
+                        std::cout << "camera.target: " << glm::to_string(m_camera->target()) << std::endl;
                     }
                     else {
                         m_engine->removeView(depthViewId);
@@ -341,23 +345,6 @@ namespace lava::ashe {
                     m_camera->polygonMode((m_camera->polygonMode() == magma::PolygonMode::Line) ? magma::PolygonMode::Fill
                                                                                                 : magma::PolygonMode::Line);
                 }
-                // @todo Write better controls for the light
-                else if (event.key.which == Key::Right) {
-                    lightDelta = {-0.1f, 0.f, 0.f};
-                }
-                else if (event.key.which == Key::Left) {
-                    lightDelta = {0.1f, 0.f, 0.f};
-                }
-                else if (event.key.which == Key::Up) {
-                    lightDelta = {0.f, -0.1f, 0.f};
-                }
-                else if (event.key.which == Key::Down) {
-                    lightDelta = {0.f, 0.1f, 0.f};
-                }
-
-                m_light->translation(m_light->translation() + lightDelta);
-                m_bigLightMesh->translate(lightDelta);
-                m_smallLightMesh->translate(lightDelta);
                 break;
             }
 
@@ -415,7 +402,5 @@ namespace lava::ashe {
         magma::RenderScene* m_scene = nullptr;
         magma::OrbitCamera* m_camera = nullptr;
         magma::DirectionalLight* m_light = nullptr;
-        magma::Mesh* m_bigLightMesh = nullptr;
-        magma::Mesh* m_smallLightMesh = nullptr;
     };
 }

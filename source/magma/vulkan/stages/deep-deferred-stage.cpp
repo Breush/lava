@@ -137,10 +137,13 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
                                      DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0,
                                      nullptr);
 
-    // Bind lights
+    // Bind lights and shadows
     for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
         m_scene.light(lightId).render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
                                       EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
+
+        m_scene.shadows(lightId, m_cameraId)
+            .render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);
     }
 
     commandBuffer.draw(6, 1, 0, 1);
@@ -195,6 +198,7 @@ void DeepDeferredStage::initClearPass()
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
@@ -278,6 +282,7 @@ void DeepDeferredStage::initEpiphanyPass()
     m_epiphanyPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
     m_epiphanyPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
+    m_epiphanyPipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -307,6 +312,7 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
@@ -340,6 +346,7 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX);
@@ -349,8 +356,10 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["ENVIRONMENT_DESCRIPTOR_SET_INDEX"] = std::to_string(ENVIRONMENT_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT"] = std::to_string(ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
-    moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
+    moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["SHADOWS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["SHADOWS_CASCADES_COUNT"] = std::to_string(SHADOWS_CASCADES_COUNT);
     moduleOptions.defines["LIGHT_TYPE_POINT"] = std::to_string(static_cast<uint32_t>(LightType::Point));
     moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);

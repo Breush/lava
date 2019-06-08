@@ -24,10 +24,6 @@ namespace lava::magma {
         // @note Shadows are currently forced.
         bool shadowsEnabled() const override final { return true; }
 
-        // In order to cast shadows, the light needs a translation
-        const glm::vec3& translation() const;
-        void translation(const glm::vec3& translation);
-
         const glm::vec3& direction() const;
         void direction(const glm::vec3& direction);
 

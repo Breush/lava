@@ -21,11 +21,10 @@ namespace lava::magma {
         RenderImage shadowsRenderImage() const;
 
         // ILight::Impl
-        void init(uint32_t id) override final;
-        LightType type() const override final { return LightType::Point; };
+        void init(uint32_t id) final;
+        LightType type() const final { return LightType::Point; };
 
-        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
-                    uint32_t descriptorSetIndex) const override final;
+        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const final;
 
         // PointLight
         void translation(const glm::vec3& translation);
