@@ -71,6 +71,8 @@ void VrEngine::update()
 {
     if (!m_enabled) return;
 
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     // Update all known devices...
     auto error = vr::VRCompositor()->WaitGetPoses(m_devicesPoses.data(), vr::k_unMaxTrackedDeviceCount, nullptr, 0);
     if (error != 0) return;

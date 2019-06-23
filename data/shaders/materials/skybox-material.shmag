@@ -3,7 +3,8 @@
  */
 
 struct {
-    vec4 color;
+    vec4 colorOrEnvironmentMapUvwLod;
+    float useEnvironmentMap; // Used as boolean.
 } gBuffer;
 
 geometry {
@@ -15,18 +16,32 @@ geometry {
 
     bool main() {
         if (useEnvironmentMap) {
-            gBuffer.color = textureLod(environmentRadianceMap, fixCubeUvw(cubeUvw), lod);
+            gBuffer.useEnvironmentMap = 1.;
+            gBuffer.colorOrEnvironmentMapUvwLod.xyz = fixCubeUvw(cubeUvw);
+            gBuffer.colorOrEnvironmentMapUvwLod.w = float(lod);
         } else {
-            gBuffer.color = textureLod(cubeMap, fixCubeUvw(cubeUvw), lod);
+            gBuffer.useEnvironmentMap = 0.;
+            gBuffer.colorOrEnvironmentMapUvwLod = textureLod(cubeMap, fixCubeUvw(cubeUvw), lod);
+            if (gBuffer.colorOrEnvironmentMapUvwLod.a == 0) discard;
         }
 
-        if (gBuffer.color.a == 0) discard;
         return false;
     }
 }
 
 epiphany {
     vec4 main() {
-        return gBuffer.color;
+        vec4 color;
+
+        if (gBuffer.useEnvironmentMap == 1.) {
+            uint lod = uint(gBuffer.colorOrEnvironmentMapUvwLod.w);
+            vec3 cubeUvw = gBuffer.colorOrEnvironmentMapUvwLod.xyz;
+            color = textureLod(environmentRadianceMap, fixCubeUvw(cubeUvw), lod);
+        }
+        else {
+            color = gBuffer.colorOrEnvironmentMapUvwLod;
+        }
+
+        return color;
     }
 }

@@ -475,6 +475,8 @@ void RenderEngine::Impl::updateVr()
 
 void RenderEngine::Impl::updateShaders()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     while (auto event = m_shadersWatcher.pollEvent()) {
         if (event->type == chamber::FileWatchEvent::Type::Modified) {
             auto materialPath = event->path;

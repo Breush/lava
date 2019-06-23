@@ -28,8 +28,11 @@ namespace lava::magma::vulkan {
                 inheritanceInfo.renderPass = stage.renderPass();
                 inheritanceInfo.subpass = 0u;
 
+                // @note SimultaneousUse is needed because the same
+                // camera can be used to render into different windows.
                 vk::CommandBufferBeginInfo beginInfo;
-                beginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+                beginInfo.flags =
+                    vk::CommandBufferUsageFlagBits::eRenderPassContinue | vk::CommandBufferUsageFlagBits::eSimultaneousUse;
                 beginInfo.pInheritanceInfo = &inheritanceInfo;
 
                 commandBuffer.begin(&beginInfo);

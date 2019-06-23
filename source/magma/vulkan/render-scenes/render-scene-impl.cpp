@@ -55,6 +55,8 @@ void RenderScene::Impl::init(uint32_t id)
 
 void RenderScene::Impl::update()
 {
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     if (!m_pendingRemovedMeshes.empty()) {
         // @note This is necessary because we are no waiting for device on each update.
         m_engine.device().waitIdle();

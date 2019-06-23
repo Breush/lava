@@ -69,7 +69,7 @@ namespace lava::magma {
         glm::mat4 m_viewTransform = glm::mat4(1.f);
         glm::mat4 m_projectionTransform = glm::mat4(1.f);
         Frustum m_frustum;
-        float m_nearClip = 0.5f;
+        float m_nearClip = 0.05f;
         float m_farClip = 100.f;
     };
 }

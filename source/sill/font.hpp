@@ -12,8 +12,8 @@ namespace lava::sill {
     class Font {
     public:
         struct GlyphInfo {
-            glm::vec2 minUv;
-            glm::vec2 maxUv;
+            glm::vec2 minUv = glm::vec2(0.f);
+            glm::vec2 maxUv = glm::vec2(0.f);
             float advance = 0.f;
         };
 

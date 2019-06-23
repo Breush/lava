@@ -40,6 +40,8 @@ void Shadows::update()
 {
     if (!m_initialized) return;
 
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
     auto& light = m_scene.light(m_lightId);
     auto& camera = m_scene.camera(m_cameraId);
 

@@ -58,7 +58,8 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
 
         // Push the glyphInfo to the list
         auto glyphInfo = pGlyphInfo->second;
-        glyphInfo.advance += stbtt_GetCodepointKernAdvance(&m_stbFont, c, nextC) * m_glyphsScale;
+        // @fixme Somehow wrong in latest releases!
+        // glyphInfo.advance += stbtt_GetCodepointKernAdvance(&m_stbFont, c, nextC) * m_glyphsScale;
         glyphsInfos.emplace_back(glyphInfo);
 
         c = nextC;
