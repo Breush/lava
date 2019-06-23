@@ -23,7 +23,7 @@ int main(void)
 
     // Spawning random cubes
     std::vector<sill::GameEntity*> cubes;
-    for (auto i = 0u; i < 20u; ++i) {
+    for (auto i = 0u; i < 5u; ++i) {
         auto cubeSize = (2 + rand() % 20) / 40.f;
         auto& cubeEntity = engine.make<sill::GameEntity>();
         auto& cubeMeshComponent = cubeEntity.make<sill::MeshComponent>();

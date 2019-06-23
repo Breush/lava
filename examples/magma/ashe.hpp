@@ -7,6 +7,135 @@
 #include <glm/gtx/string_cast.hpp>
 
 namespace lava::ashe {
+    magma::Mesh& makeCube(magma::RenderScene& scene, float sideLength)
+    {
+        auto& mesh = scene.make<magma::Mesh>();
+        const auto halfSideLength = sideLength / 2.f;
+
+        // Positions
+        std::vector<glm::vec3> positions = {
+            // Bottom
+            {halfSideLength, -halfSideLength, -halfSideLength},
+            {-halfSideLength, -halfSideLength, -halfSideLength},
+            {-halfSideLength, halfSideLength, -halfSideLength},
+            {halfSideLength, halfSideLength, -halfSideLength},
+            // Top
+            {halfSideLength, -halfSideLength, halfSideLength},
+            {halfSideLength, halfSideLength, halfSideLength},
+            {-halfSideLength, halfSideLength, halfSideLength},
+            {-halfSideLength, -halfSideLength, halfSideLength},
+            // Left
+            {halfSideLength, halfSideLength, halfSideLength},
+            {halfSideLength, halfSideLength, -halfSideLength},
+            {-halfSideLength, halfSideLength, -halfSideLength},
+            {-halfSideLength, halfSideLength, halfSideLength},
+            // Right
+            {-halfSideLength, -halfSideLength, halfSideLength},
+            {-halfSideLength, -halfSideLength, -halfSideLength},
+            {halfSideLength, -halfSideLength, -halfSideLength},
+            {halfSideLength, -halfSideLength, halfSideLength},
+            // Front
+            {halfSideLength, -halfSideLength, halfSideLength},
+            {halfSideLength, -halfSideLength, -halfSideLength},
+            {halfSideLength, halfSideLength, -halfSideLength},
+            {halfSideLength, halfSideLength, halfSideLength},
+            // Back
+            {-halfSideLength, halfSideLength, halfSideLength},
+            {-halfSideLength, halfSideLength, -halfSideLength},
+            {-halfSideLength, -halfSideLength, -halfSideLength},
+            {-halfSideLength, -halfSideLength, halfSideLength},
+        };
+
+        // Normals (flat shading)
+        std::vector<glm::vec3> normals = {
+            // Bottom
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            // Top
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            // Left
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            // Right
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            // Front
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            // Back
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+        };
+
+        // Indices
+        std::vector<uint16_t> indices;
+        indices.reserve(6u * positions.size() / 4u);
+        for (auto i = 0u; i < positions.size(); i += 4u) {
+            indices.emplace_back(i);
+            indices.emplace_back(i + 1u);
+            indices.emplace_back(i + 2u);
+            indices.emplace_back(i + 2u);
+            indices.emplace_back(i + 3u);
+            indices.emplace_back(i);
+        }
+
+        // Apply the geometry
+        mesh.verticesCount(positions.size());
+        mesh.verticesPositions(positions);
+        mesh.verticesNormals(normals);
+        mesh.indices(indices);
+
+        return mesh;
+    }
+
+    magma::Mesh& makeTetrahedron(magma::RenderScene& scene, float size)
+    {
+        auto& mesh = scene.make<magma::Mesh>();
+
+        std::vector<uint16_t> indices = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u};
+
+        const auto sizeOverSqrt2 = size / sqrt(2.f);
+        std::vector<glm::vec3> positions = {
+            // 0 2 1
+            {size, 0.f, -sizeOverSqrt2},  // 0
+            {0.f, -size, sizeOverSqrt2},  // 2
+            {-size, 0.f, -sizeOverSqrt2}, // 1
+            // 2 3 1
+            {0.f, -size, sizeOverSqrt2},  // 2
+            {0.f, size, sizeOverSqrt2},   // 3
+            {-size, 0.f, -sizeOverSqrt2}, // 1
+            // 3 2 0
+            {0.f, size, sizeOverSqrt2},  // 3
+            {0.f, -size, sizeOverSqrt2}, // 2
+            {size, 0.f, -sizeOverSqrt2}, // 0
+            // 1 3 0
+            {-size, 0.f, -sizeOverSqrt2}, // 1
+            {0.f, size, sizeOverSqrt2},   // 3
+            {size, 0.f, -sizeOverSqrt2},  // 0
+        };
+
+        mesh.verticesCount(positions.size());
+        mesh.indices(indices);
+        mesh.verticesPositions(positions);
+        mesh.computeFlatNormals();
+        mesh.computeTangents();
+
+        return mesh;
+    }
+
     class Application {
     public:
         enum class Axis {
@@ -200,101 +329,9 @@ namespace lava::ashe {
             return mesh;
         }
 
-        magma::Mesh& makeTetrahedron(float size)
-        {
-            auto& mesh = m_scene->make<magma::Mesh>();
+        magma::Mesh& makeTetrahedron(float size) { return lava::ashe::makeTetrahedron(*m_scene, size); }
 
-            std::vector<uint16_t> indices = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u};
-
-            const auto sizeOverSqrt2 = size / sqrt(2.f);
-            std::vector<glm::vec3> positions = {
-                // 0 2 1
-                {size, 0.f, -sizeOverSqrt2},  // 0
-                {0.f, -size, sizeOverSqrt2},  // 2
-                {-size, 0.f, -sizeOverSqrt2}, // 1
-                // 2 3 1
-                {0.f, -size, sizeOverSqrt2},  // 2
-                {0.f, size, sizeOverSqrt2},   // 3
-                {-size, 0.f, -sizeOverSqrt2}, // 1
-                // 3 2 0
-                {0.f, size, sizeOverSqrt2},  // 3
-                {0.f, -size, sizeOverSqrt2}, // 2
-                {size, 0.f, -sizeOverSqrt2}, // 0
-                // 1 3 0
-                {-size, 0.f, -sizeOverSqrt2}, // 1
-                {0.f, size, sizeOverSqrt2},   // 3
-                {size, 0.f, -sizeOverSqrt2},  // 0
-            };
-
-            mesh.verticesCount(positions.size());
-            mesh.indices(indices);
-            mesh.verticesPositions(positions);
-            mesh.computeFlatNormals();
-            mesh.computeTangents();
-
-            return mesh;
-        }
-
-        magma::Mesh& makeCube(float sideLength)
-        {
-            auto& mesh = m_scene->make<magma::Mesh>();
-            const auto halfSideLength = sideLength / 2.f;
-
-            // Positions
-            std::vector<glm::vec3> positions = {
-                // Bottom
-                {halfSideLength, -halfSideLength, -halfSideLength},
-                {-halfSideLength, -halfSideLength, -halfSideLength},
-                {-halfSideLength, halfSideLength, -halfSideLength},
-                {halfSideLength, halfSideLength, -halfSideLength},
-                // Top
-                {halfSideLength, -halfSideLength, halfSideLength},
-                {halfSideLength, halfSideLength, halfSideLength},
-                {-halfSideLength, halfSideLength, halfSideLength},
-                {-halfSideLength, -halfSideLength, halfSideLength},
-                // Left
-                {halfSideLength, halfSideLength, halfSideLength},
-                {halfSideLength, halfSideLength, -halfSideLength},
-                {-halfSideLength, halfSideLength, -halfSideLength},
-                {-halfSideLength, halfSideLength, halfSideLength},
-                // Right
-                {-halfSideLength, -halfSideLength, halfSideLength},
-                {-halfSideLength, -halfSideLength, -halfSideLength},
-                {halfSideLength, -halfSideLength, -halfSideLength},
-                {halfSideLength, -halfSideLength, halfSideLength},
-                // Front
-                {halfSideLength, -halfSideLength, halfSideLength},
-                {halfSideLength, -halfSideLength, -halfSideLength},
-                {halfSideLength, halfSideLength, -halfSideLength},
-                {halfSideLength, halfSideLength, halfSideLength},
-                // Back
-                {-halfSideLength, halfSideLength, halfSideLength},
-                {-halfSideLength, halfSideLength, -halfSideLength},
-                {-halfSideLength, -halfSideLength, -halfSideLength},
-                {-halfSideLength, -halfSideLength, halfSideLength},
-            };
-
-            // Indices
-            std::vector<uint16_t> indices;
-            indices.reserve(6u * positions.size() / 4u);
-            for (auto i = 0u; i < positions.size(); i += 4u) {
-                indices.emplace_back(i);
-                indices.emplace_back(i + 1u);
-                indices.emplace_back(i + 2u);
-                indices.emplace_back(i + 2u);
-                indices.emplace_back(i + 3u);
-                indices.emplace_back(i);
-            }
-
-            // Apply the geometry
-            mesh.verticesCount(positions.size());
-            mesh.indices(indices);
-            mesh.verticesPositions(positions);
-            mesh.computeFlatNormals();
-            mesh.computeTangents();
-
-            return mesh;
-        }
+        magma::Mesh& makeCube(float sideLength) { return lava::ashe::makeCube(*m_scene, sideLength); }
 
     protected:
         inline void handleEvent(WsEvent& event)

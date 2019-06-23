@@ -4,102 +4,9 @@
 
 #include <lava/magma.hpp>
 
+#include "./ashe.hpp"
+
 using namespace lava;
-
-// @fixme Put that into ashe:: namespace
-magma::Mesh& makeCube(magma::RenderScene& scene, float sideLength)
-{
-    auto& mesh = scene.make<magma::Mesh>();
-    const auto halfSideLength = sideLength / 2.f;
-
-    // Positions
-    std::vector<glm::vec3> positions = {
-        // Bottom
-        {halfSideLength, -halfSideLength, -halfSideLength},
-        {-halfSideLength, -halfSideLength, -halfSideLength},
-        {-halfSideLength, halfSideLength, -halfSideLength},
-        {halfSideLength, halfSideLength, -halfSideLength},
-        // Top
-        {halfSideLength, -halfSideLength, halfSideLength},
-        {halfSideLength, halfSideLength, halfSideLength},
-        {-halfSideLength, halfSideLength, halfSideLength},
-        {-halfSideLength, -halfSideLength, halfSideLength},
-        // Left
-        {halfSideLength, halfSideLength, halfSideLength},
-        {halfSideLength, halfSideLength, -halfSideLength},
-        {-halfSideLength, halfSideLength, -halfSideLength},
-        {-halfSideLength, halfSideLength, halfSideLength},
-        // Right
-        {-halfSideLength, -halfSideLength, halfSideLength},
-        {-halfSideLength, -halfSideLength, -halfSideLength},
-        {halfSideLength, -halfSideLength, -halfSideLength},
-        {halfSideLength, -halfSideLength, halfSideLength},
-        // Front
-        {halfSideLength, -halfSideLength, halfSideLength},
-        {halfSideLength, -halfSideLength, -halfSideLength},
-        {halfSideLength, halfSideLength, -halfSideLength},
-        {halfSideLength, halfSideLength, halfSideLength},
-        // Back
-        {-halfSideLength, halfSideLength, halfSideLength},
-        {-halfSideLength, halfSideLength, -halfSideLength},
-        {-halfSideLength, -halfSideLength, -halfSideLength},
-        {-halfSideLength, -halfSideLength, halfSideLength},
-    };
-
-    // Normals (flat shading)
-    std::vector<glm::vec3> normals = {
-        // Bottom
-        {0.f, 0.f, -1.f},
-        {0.f, 0.f, -1.f},
-        {0.f, 0.f, -1.f},
-        {0.f, 0.f, -1.f},
-        // Top
-        {0.f, 0.f, 1.f},
-        {0.f, 0.f, 1.f},
-        {0.f, 0.f, 1.f},
-        {0.f, 0.f, 1.f},
-        // Left
-        {0.f, 1.f, 0.f},
-        {0.f, 1.f, 0.f},
-        {0.f, 1.f, 0.f},
-        {0.f, 1.f, 0.f},
-        // Right
-        {0.f, -1.f, 0.f},
-        {0.f, -1.f, 0.f},
-        {0.f, -1.f, 0.f},
-        {0.f, -1.f, 0.f},
-        // Front
-        {1.f, 0.f, 0.f},
-        {1.f, 0.f, 0.f},
-        {1.f, 0.f, 0.f},
-        {1.f, 0.f, 0.f},
-        // Back
-        {-1.f, 0.f, 0.f},
-        {-1.f, 0.f, 0.f},
-        {-1.f, 0.f, 0.f},
-        {-1.f, 0.f, 0.f},
-    };
-
-    // Indices
-    std::vector<uint16_t> indices;
-    indices.reserve(6u * positions.size() / 4u);
-    for (auto i = 0u; i < positions.size(); i += 4u) {
-        indices.emplace_back(i);
-        indices.emplace_back(i + 1u);
-        indices.emplace_back(i + 2u);
-        indices.emplace_back(i + 2u);
-        indices.emplace_back(i + 3u);
-        indices.emplace_back(i);
-    }
-
-    // Apply the geometry
-    mesh.verticesCount(positions.size());
-    mesh.verticesPositions(positions);
-    mesh.verticesNormals(normals);
-    mesh.indices(indices);
-
-    return mesh;
-}
 
 int main(void)
 {
@@ -126,7 +33,7 @@ int main(void)
     }
 
     // Some demo mesh
-    auto& firstMesh = makeCube(scene, 0.5);
+    auto& firstMesh = ashe::makeCube(scene, 0.5);
     firstMesh.translate({0, 0, 0.5});
 
     // @fixme No way to break out while no companion window.

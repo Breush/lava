@@ -110,7 +110,7 @@ project "sill-text"
     files "sill/text.cpp"
     useSill()
 
-project "vr-sandbox"
+project "sill-vr-sandbox"
     kind "WindowedApp"
     files "sill/vr-sandbox.cpp"
     useSill()
