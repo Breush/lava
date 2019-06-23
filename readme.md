@@ -11,6 +11,30 @@ The core principles of **lava** are:
 - Keep your *APIs clean* (each project has a public interface with no more information than needed) ;
 - *Decouple* as much as you can, keeping different concepts encapsulated.
 
+## Examples
+
+| Example  | Description | Result |
+| ---- | ---- | ---- |
+| **chamber**-watcher  | How to use the file and directory watcher, getting an event each time a file is created/deleted/modified. | `FileWatcher: watched directory has file "./data/tmp/watcher.tmp" modified.` |
+| **crater**-events  | How to use the cross-platform `crater::Window` class while grabbing keyboard and mouse events. | `WsEventType::MouseMoved (x: 331, y: 67)` |
+| **dike**-bouncy-sphere | How to use the physics engine, showing the result of a sphere under gravity bouncing on a plane. This output is the sphere vertical position printed in the terminal. | ![](./doc/examples/dike-bouncy-sphere.png) |
+| **flow**-play-musics | How to play multiple (streamed OGG) musics at once using the audio engine. | `Reading './assets/musics/buddy.ogg'.` |
+| **flow**-play-sounds | How to play a (WAV) sound using the audio engine. | `Reading './assets/sounds/thunder.wav'.` |
+| **flow**-spatialization-effect | How to use 3D spatialization of sounds, having a listener positioned in a 3D world. This is a demo of a fire-truck going around you. | `Reading './assets/sounds/fire-truck.wav'.` |
+| **magma**-scenes-and-windows | How to use multiple windows and scenes with one instance of the render engine. | ![](./doc/examples/magma-scenes-and-windows.png) |
+| **magma**-shader-watcher | How to register a material to the render engine by specifiying a file. Then, this examples shows that one can edit the file and have on-the-fly updated results. | ![](./doc/examples/magma-shader-watcher.png) |
+| **magma**-shadows | How to use shadows with the render engine. The example shows that the cascaded shadow maps are updated per camera, so that they look good whatever happens. | ![](./doc/examples/magma-shadows.png) |
+| **magma**-translucency | How to use [deep deferred renderer](./doc/implementation/magma-render-engine.md) to get correct translucency rendering with intersecting meshes. | ![](./doc/examples/magma-translucency.png) |
+| **magma**-vr | How to use VR with the renderer via `magma::VrRenderTarget`. The renderer uses *OpenVR* to find the headset to draw to. | `Initializing VR.` |
+| **sill**-matcap-material | How to use a matcap material with the game engine. | ![](./doc/examples/sill-matcap-material.png) |
+| **sill**-mesh-makers | How to use makers to load *GLB* meshes or predefined shapes. | ![](./doc/examples/sill-mesh-makers.png) |
+| **sill**-physics-demo | How to use physics component. The examples expects the user to right-click to spawn bounceable spheres. | ![](./doc/examples/sill-physics-demo.png) |
+| **sill**-rm-material | How to use predefined PBR (roughness-metallic) material. The examples shows a fully metallic sphere varying its roughness over time. | ![](./doc/examples/sill-rm-material.png) |
+| **sill**-sponza | How to load a big mesh. The examples shows how it is rendered with shadows and PBR materials. | ![](./doc/examples/sill-sponza.png) |
+| **sill**-text | How to use the `sill::TextMeshComponent` to print text within a 3D scene. | ![](./doc/examples/sill-text.png) |
+| **sill**-vr-sandbox | How to use the `sill::BehaviorComponent` to react to VR events. The examples is playground with interactive cubes. It has a independently-controllable companion window which shows the same scene than what is projected into the headset. | ![](./doc/examples/sill-vr-sandbox.png) |
+| **sill**-vr-puzzle | A big project, as this is a full puzzle game made for VR. It is highly inspired by [The Witness](http://the-witness.net/) and made to be a complete experience. **Work in progress.** | ![](./doc/examples/sill-vr-puzzle.png) |
+
 ## Contributing guide
 
 **lava** uses *Premake* as build configuration system,
