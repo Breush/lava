@@ -25,7 +25,6 @@ ColliderComponent::Impl::~Impl()
     m_boxShapes.clear();
     m_sphereShapes.clear();
     m_infinitePlaneShapes.clear();
-    m_physicsComponent.impl().dike().clearShapes();
 }
 
 //----- Shapes
