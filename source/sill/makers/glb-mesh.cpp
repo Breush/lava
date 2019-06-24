@@ -145,6 +145,8 @@ namespace {
 
                 // Material textures
                 rmMaterial->set("albedoColor", material.baseColorFactor);
+                rmMaterial->set("metallicFactor", material.metallicFactor);
+                rmMaterial->set("roughnessFactor", material.roughnessFactor);
                 setTexture(engine, *rmMaterial, "albedoMap", material.baseColorTextureIndex, binChunk, json, cacheData);
                 setTexture(engine, *rmMaterial, "normalMap", material.normalTextureIndex, binChunk, json, cacheData);
                 setTexture(engine, *rmMaterial, "emissiveMap", material.emissiveTextureIndex, binChunk, json, cacheData);

@@ -81,6 +81,8 @@ namespace lava::glb {
         uint32_t baseColorTextureIndex = -1u;
         uint32_t metallicRoughnessTextureIndex = -1u;
         glm::vec4 baseColorFactor = glm::vec4(1.f, 1.f, 1.f, 1.f);
+        float metallicFactor = 1.f;
+        float roughnessFactor = 1.f;
 
         PbrMetallicRoughnessMaterial(const typename nlohmann::json::basic_json& json);
     };
