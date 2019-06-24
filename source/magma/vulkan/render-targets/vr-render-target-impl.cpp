@@ -118,6 +118,9 @@ void VrRenderTarget::Impl::bindScene(RenderScene& scene)
     // @todo Work on a stereo render pass for VR
     m_leftEyeCamera = &scene.make<magma::VrEyeCamera>(m_extent);
     m_rightEyeCamera = &scene.make<magma::VrEyeCamera>(m_extent);
+
+    // Let the right eye use the same shadow maps than the left eye
+    m_scene->shadowsFallbackCamera(*m_rightEyeCamera, *m_leftEyeCamera);
 }
 
 //----- Internal

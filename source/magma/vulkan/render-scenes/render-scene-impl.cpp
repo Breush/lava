@@ -109,14 +109,16 @@ void RenderScene::Impl::record()
 
     // @todo Don't have notion of "active" cameras yet, so we update them all
     for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
-        for (auto& lightBundle : m_lightBundles) {
-            if (lightBundle.light->shadowsEnabled()) {
-                lightBundle.shadowsThreads[cameraId]->record(*lightBundle.shadowsStage, cameraId);
-                m_commandBuffers.emplace_back(lightBundle.shadowsThreads[cameraId]->commandBuffer());
+        const auto& cameraBundle = m_cameraBundles[cameraId];
+        if (cameraBundle.shadowsFallbackCameraId == -1u) {
+            for (auto& lightBundle : m_lightBundles) {
+                if (lightBundle.light->shadowsEnabled()) {
+                    lightBundle.shadowsThreads[cameraId]->record(*lightBundle.shadowsStage, cameraId);
+                    m_commandBuffers.emplace_back(lightBundle.shadowsThreads[cameraId]->commandBuffer());
+                }
             }
         }
 
-        const auto& cameraBundle = m_cameraBundles[cameraId];
         cameraBundle.rendererThread->record(*cameraBundle.rendererStage);
         m_commandBuffers.emplace_back(cameraBundle.rendererThread->commandBuffer());
     }
@@ -300,6 +302,16 @@ void RenderScene::Impl::fallbackMaterial(std::unique_ptr<Material>&& material)
     }
 }
 
+const Shadows& RenderScene::Impl::shadows(uint32_t lightIndex, uint32_t cameraIndex) const
+{
+    auto& cameraBundle = m_cameraBundles[cameraIndex];
+    if (cameraBundle.shadowsFallbackCameraId != -1u) {
+        cameraIndex = cameraBundle.shadowsFallbackCameraId;
+    }
+
+    return *m_lightBundles[lightIndex].shadows[cameraIndex];
+}
+
 RenderImage RenderScene::Impl::cameraRenderImage(uint32_t cameraIndex) const
 {
     if (!m_initialized) {
@@ -351,6 +363,11 @@ RenderImage RenderScene::Impl::shadowsCascadeRenderImage(uint32_t lightIndex, ui
         return RenderImage();
     }
 
+    auto& cameraBundle = m_cameraBundles[cameraId];
+    if (cameraBundle.shadowsFallbackCameraId != -1u) {
+        cameraId = cameraBundle.shadowsFallbackCameraId;
+    }
+
     return m_lightBundles[lightIndex].shadowsStage->renderImage(cameraId, cascadeIndex);
 }
 
@@ -363,6 +380,22 @@ const glm::mat4& RenderScene::Impl::shadowsCascadeTransform(uint32_t lightIndex,
                                                             uint32_t cascadeIndex) const
 {
     return m_lightBundles[lightIndex].shadows[cameraIndex]->cascadeTransform(cascadeIndex);
+}
+
+void RenderScene::Impl::shadowsFallbackCamera(ICamera& camera, const ICamera& fallbackCamera)
+{
+    uint32_t cameraId = -1u;
+    uint32_t fallbackCameraId = -1u;
+    for (auto i = 0u; i < m_cameraBundles.size(); ++i) {
+        if (m_cameraBundles[i].camera.get() == &camera) {
+            cameraId = i;
+        }
+        else if (m_cameraBundles[i].camera.get() == &fallbackCamera) {
+            fallbackCameraId = i;
+        }
+    }
+
+    m_cameraBundles[cameraId].shadowsFallbackCameraId = fallbackCameraId;
 }
 
 void RenderScene::Impl::changeCameraRenderImageLayout(uint32_t cameraIndex, vk::ImageLayout imageLayout,

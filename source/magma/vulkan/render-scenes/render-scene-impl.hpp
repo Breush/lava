@@ -102,11 +102,7 @@ namespace lava::magma {
         const Mesh::Impl& mesh(uint32_t index) const { return *m_meshesImpls[index]; }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
         ILight::Impl& light(uint32_t index) { return m_lightBundles[index].light->interfaceImpl(); }
-        const Shadows& shadows(uint32_t lightIndex, uint32_t cameraIndex) const
-        {
-            return *m_lightBundles[lightIndex].shadows[cameraIndex];
-        }
-
+        const Shadows& shadows(uint32_t lightIndex, uint32_t cameraIndex) const;
         const Environment& environment() const { return m_environment; }
 
         const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
@@ -121,6 +117,7 @@ namespace lava::magma {
         RenderImage shadowsCascadeRenderImage(uint32_t lightIndex, uint32_t cameraIndex = 0u, uint32_t cascadeIndex = 0u) const;
         float shadowsCascadeSplitDepth(uint32_t lightIndex, uint32_t cameraIndex, uint32_t cascadeIndex) const;
         const glm::mat4& shadowsCascadeTransform(uint32_t lightIndex, uint32_t cameraIndex, uint32_t cascadeIndex) const;
+        void shadowsFallbackCamera(ICamera& camera, const ICamera& fallbackCamera);
 
         void changeCameraRenderImageLayout(uint32_t cameraIndex, vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
         /// @}
@@ -146,6 +143,9 @@ namespace lava::magma {
             std::unique_ptr<ICamera> camera;
             std::unique_ptr<IRendererStage> rendererStage;
             std::unique_ptr<vulkan::CommandBufferThread> rendererThread;
+            // When different of -1u, specifies which shadows to use.
+            // @note This is used by VR so that the left and right shares the same shadow maps.
+            uint32_t shadowsFallbackCameraId = -1u;
         };
 
     private:
