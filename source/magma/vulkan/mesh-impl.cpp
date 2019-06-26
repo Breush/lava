@@ -110,14 +110,20 @@ void Mesh::Impl::computeTangents()
         fvTexcOut[1] = self.m_vertices[vertexIndex].uv[1];
     };
 
+    m_temporaryVertices.clear();
+    m_temporaryVertices.reserve(m_vertices.size());
     tsInterface.m_setTSpaceBasic = [](const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign,
                                       const int iFace, const int iVert) {
         auto& self = *reinterpret_cast<Mesh::Impl*>(pContext->m_pUserData);
         auto vertexIndex = self.m_indices[3 * iFace + iVert];
-        self.m_vertices[vertexIndex].tangent[0] = fvTangent[0];
-        self.m_vertices[vertexIndex].tangent[1] = fvTangent[1];
-        self.m_vertices[vertexIndex].tangent[2] = fvTangent[2];
-        self.m_vertices[vertexIndex].tangent[3] = fSign;
+
+        vulkan::Vertex v;
+        v = self.m_vertices[vertexIndex];
+        v.tangent[0] = fvTangent[0];
+        v.tangent[1] = fvTangent[1];
+        v.tangent[2] = fvTangent[2];
+        v.tangent[3] = fSign;
+        self.m_temporaryVertices.emplace_back(std::move(v));
     };
     tsInterface.m_setTSpace = nullptr;
 
@@ -127,9 +133,23 @@ void Mesh::Impl::computeTangents()
 
     if (!genTangSpaceDefault(&tsContext)) {
         logger.warning("magma.vulkan.mesh") << "Could not generate tangents." << std::endl;
+        return;
+    }
+
+    // Regenerating indices and unlit vertices
+    m_vertices = m_temporaryVertices;
+    auto indicesCount = m_vertices.size();
+    m_indices.resize(indicesCount);
+    m_unlitVertices.resize(indicesCount);
+    for (auto i = 0u; i < indicesCount; ++i) {
+        m_indices[i] = i;
+        m_unlitVertices[i].pos = m_vertices[i].pos;
     }
 
     createVertexBuffer();
+    createIndexBuffer();
+
+    m_temporaryVertices.resize(0);
 }
 
 // ----- Transform
@@ -236,7 +256,7 @@ void Mesh::Impl::verticesNormals(VectorView<glm::vec3> normals)
 {
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), normals.size());
     for (uint32_t i = 0u; i < length; ++i) {
-        m_vertices[i].normal = normals[i];
+        m_vertices[i].normal = glm::normalize(normals[i]);
     }
 
     createVertexBuffer();
@@ -246,7 +266,7 @@ void Mesh::Impl::verticesTangents(VectorView<glm::vec4> tangents)
 {
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), tangents.size());
     for (uint32_t i = 0u; i < length; ++i) {
-        m_vertices[i].tangent = glm::vec4(glm::vec3(tangents[i]), tangents[i].w);
+        m_vertices[i].tangent = tangents[i];
     }
 
     createVertexBuffer();
@@ -300,8 +320,7 @@ void Mesh::Impl::updateTransform()
 
     m_transform = glm::mat4(1.f);
     m_transform = glm::scale(m_transform, m_scaling);
-    m_transform = glm::mat4_cast(m_rotation) * m_transform;
-    // @note glm::translate wrongly takes scaling into account
+    m_transform = glm::mat4(m_rotation) * m_transform;
     m_transform[3] = glm::vec4(m_translation, 1.f);
 }
 

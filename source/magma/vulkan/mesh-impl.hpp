@@ -86,6 +86,7 @@ namespace lava::magma {
         // Data
         std::vector<vulkan::UnlitVertex> m_unlitVertices;
         std::vector<vulkan::Vertex> m_vertices;
+        std::vector<vulkan::Vertex> m_temporaryVertices; // Only used for tangents generation.
         std::vector<uint16_t> m_indices;
         Material* m_material = nullptr;
         bool m_canCastShadows = true;

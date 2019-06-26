@@ -35,7 +35,7 @@ void main() {
     gl_Position = camera.projectionTransform * vPosition;
 
     // Tangent-space
-    vec3 wNormal = normalize(inMNormal);
+    vec3 wNormal = inMNormal;
     vec3 wTangent = normalize(inMTangent.xyz);
     wTangent = normalize(wTangent - wNormal * dot(wNormal, wTangent)); // Orthogonalization
     vec3 wBitangent = normalize(cross(wNormal, wTangent) * inMTangent.w);
@@ -43,4 +43,9 @@ void main() {
     outTbn = M3 * mat3(wTangent, wBitangent, wNormal);
     outUv = inUv;
     outCubeUvw = inMPosition;
+
+    // @fixme There is currently a bug with non-uniform scaling,
+    // as this will change the normal in an unexpected way.
+    // We should probably send T/R/S independently to the push_constants,
+    // and use the rotation matrix directly.
 }
