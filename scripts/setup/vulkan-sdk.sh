@@ -37,33 +37,21 @@ if [ `uname -o` == "Msys" ]; then
 else
     MAKE="make"
 
-    #===== Vulkan SDK
-
     cd "${ROOT_DIR}/.tmp"
     tar -zxvf vulkan-sdk_${VERSION}.tar.gz
-    FOLDER="${VERSION}/x86_64"
-    cp -R ${FOLDER}/include/vulkan ../include
-    cp -R ${FOLDER}/etc/* ../etc
-
-    # @todo We're using libs from source folder for debugging,
-    # but we should use the ones in x84_64/lib for release.
-    mkdir -p ../source/vulkan
-    FOLDER="${VERSION}/source"
-    cp -R ${FOLDER}/lib/* ../lib
-    cp -R ${FOLDER}/layers ../source/vulkan
 
     #===== shaderc
 
-    FOLDER="${VERSION}/source/shaderc"
-    cd "${ROOT_DIR}/.tmp/${FOLDER}"
-    ./update_shaderc_sources.py
-    cd src
-    mkdir -p build
-    cd build
-    CXXFLAGS=-fPIC cmake .. -DCMAKE_MAKE_PROGRAM="${MAKE}" -G"Unix Makefiles"
-    ${MAKE} -j 2 shaderc
+    cd "${ROOT_DIR}/.tmp/${VERSION}"
+    # Download all dependencies, and make install in x86_64/lib etc.
+    # Use --debug to compile in debug mode
+    ./vulkansdk shaderc
+
+    #===== Vulkan SDK - copy files
 
     cd "${ROOT_DIR}/.tmp"
-    cp -R ${FOLDER}/src/libshaderc/include/* ../include
-    cp -R `find ${FOLDER} -type f \( -name *.a ! -wholename '*CMakeFiles/*' \)` ../lib
+    FOLDER="${VERSION}/x86_64"
+    cp -R ${FOLDER}/include/* ../include
+    cp -R ${FOLDER}/etc/* ../etc
+    cp -R ${FOLDER}/lib/* ../lib
 fi

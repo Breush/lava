@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Vulkan SDK"
-local VERSION = "1.1.106.0"
+local VERSION = "1.1.108.0"
 
 -- Download
 
@@ -65,11 +65,7 @@ function useVulkanSdk()
         }
     else
         links { "vulkan" }
-        links {
-            "shaderc", "shaderc_util",
-            "glslang", "OSDependent", "OGLCompiler",
-            "SPIRV", "HLSL", "SPIRV-Tools-opt", "SPIRV-Tools",
-        }
+        links { "shaderc_shared" }
     end
 
 

@@ -13,7 +13,7 @@ fi
 
 # These are needed for Vulkan validation layers to work
 export LD_LIBRARY_PATH=`pwd`/external/lib:${LD_LIBRARY_PATH}
-export VK_LAYER_PATH=`pwd`/external/etc/explicit_layer.d
+export VK_LAYER_PATH=`pwd`/external/etc/vulkan/explicit_layer.d
 
 echo -e "\e[35mSetting up dependencies...\e[39m"
 if [ "$2" == "profile" ]; then
@@ -46,7 +46,7 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
         echo -e "\e[35mRunning ${EXECUTABLE}..."
         if [ "$2" == "debug" ]; then
             echo "... in debug mode."
-            EXECUTABLE="gdb --quiet --directory=./external/source/vulkan/layers -ex run ${EXECUTABLE}*"
+            EXECUTABLE="gdb --quiet -ex run ${EXECUTABLE}*"
         elif [ "$2" == "profile" ]; then
             echo "... in profile mode."
         fi
