@@ -57,12 +57,22 @@ void vulkan::copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool comm
 
     commandBuffer.end();
 
+    // Make a fence
+    vulkan::Fence fence(device);
+    vk::FenceCreateInfo fenceInfo;
+    auto result = device.createFence(&fenceInfo, nullptr, fence.replace());
+    if (result != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.helpers.buffer") << "Unable to create fence." << std::endl;
+    }
+
     // Execute it
     vk::SubmitInfo submitInfo;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
-    queue.submit(1, &submitInfo, nullptr);
+    queue.submit(1, &submitInfo, fence.vk());
 
-    queue.waitIdle();
+    static const auto MAX = std::numeric_limits<uint64_t>::max();
+    device.waitForFences(1u, &fence, true, MAX);
+
     device.freeCommandBuffers(commandPool, 1, &commandBuffer);
 }
