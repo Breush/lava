@@ -20,6 +20,7 @@ namespace lava::magma {
 
         // Internal interface
         void init();
+        void update();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset,
                     uint32_t materialDescriptorSetIndex);
         void renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset);
@@ -82,6 +83,8 @@ namespace lava::magma {
         RenderScene& m_baseScene;
         RenderScene::Impl& m_scene;
         bool m_initialized = false;
+
+        bool m_vertexBufferDirty = false;
 
         // Data
         std::vector<vulkan::UnlitVertex> m_unlitVertices;

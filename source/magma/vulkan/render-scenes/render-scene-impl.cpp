@@ -90,6 +90,10 @@ void RenderScene::Impl::update()
             shadows->update();
         }
     }
+
+    for (auto& mesh : m_meshesImpls) {
+        mesh->update();
+    }
 }
 
 void RenderScene::Impl::record()

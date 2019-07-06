@@ -64,6 +64,13 @@ void Mesh::Impl::init()
     updateBindings();
 }
 
+void Mesh::Impl::update()
+{
+    if (m_vertexBufferDirty) {
+        createVertexBuffer();
+    }
+}
+
 void Mesh::Impl::computeFlatNormals()
 {
     for (auto i = 0u; i < m_indices.size(); i += 3u) {
@@ -78,7 +85,7 @@ void Mesh::Impl::computeFlatNormals()
         v2.normal = v0.normal;
     }
 
-    createVertexBuffer();
+    m_vertexBufferDirty = true;
 }
 
 void Mesh::Impl::computeTangents()
@@ -146,7 +153,7 @@ void Mesh::Impl::computeTangents()
         m_unlitVertices[i].pos = m_vertices[i].pos;
     }
 
-    createVertexBuffer();
+    m_vertexBufferDirty = true;
     createIndexBuffer();
 
     m_temporaryVertices.resize(0);
@@ -239,7 +246,7 @@ void Mesh::Impl::verticesPositions(VectorView<glm::vec3> positions)
     m_boundingSphereLocal.radius = std::sqrt(maxDistanceSquared);
 
     updateBoundingSphere();
-    createVertexBuffer();
+    m_vertexBufferDirty = true;
 }
 
 void Mesh::Impl::verticesUvs(VectorView<glm::vec2> uvs)
@@ -249,7 +256,7 @@ void Mesh::Impl::verticesUvs(VectorView<glm::vec2> uvs)
         m_vertices[i].uv = uvs[i];
     }
 
-    createVertexBuffer();
+    m_vertexBufferDirty = true;
 }
 
 void Mesh::Impl::verticesNormals(VectorView<glm::vec3> normals)
@@ -259,7 +266,7 @@ void Mesh::Impl::verticesNormals(VectorView<glm::vec3> normals)
         m_vertices[i].normal = glm::normalize(normals[i]);
     }
 
-    createVertexBuffer();
+    m_vertexBufferDirty = true;
 }
 
 void Mesh::Impl::verticesTangents(VectorView<glm::vec4> tangents)
@@ -269,7 +276,7 @@ void Mesh::Impl::verticesTangents(VectorView<glm::vec4> tangents)
         m_vertices[i].tangent = tangents[i];
     }
 
-    createVertexBuffer();
+    m_vertexBufferDirty = true;
 }
 
 void Mesh::Impl::indices(VectorView<uint16_t> indices, bool flipTriangles)
@@ -364,6 +371,8 @@ void Mesh::Impl::createVertexBuffer()
     bufferSize = sizeof(vulkan::Vertex) * m_vertices.size();
     m_vertexBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
     m_vertexBufferHolder.copy(m_vertices.data(), bufferSize);
+
+    m_vertexBufferDirty = false;
 }
 
 void Mesh::Impl::createIndexBuffer()
