@@ -85,12 +85,16 @@ void VrEyeCamera::Impl::update(VrEngine::Eye eye)
 void VrEyeCamera::Impl::forceProjectionTransform(const glm::mat4& projectionTransform)
 {
     m_projectionTransform = projectionTransform;
+
+    m_inverseViewProjectionTransform = glm::inverse(m_projectionTransform * m_viewTransform);
 }
 
 void VrEyeCamera::Impl::forceViewTransform(glm::mat4 viewTransform)
 {
     m_translation = glm::vec3(viewTransform[3]);
     m_viewTransform = glm::inverse(viewTransform);
+
+    m_inverseViewProjectionTransform = glm::inverse(m_projectionTransform * m_viewTransform);
 
     updateFrustum();
     updateBindings();

@@ -50,6 +50,7 @@ void Shadows::update()
 
     float nearClip = camera.nearClip();
     float farClip = camera.farClip();
+    const auto& invCameraViewProjection = camera.inverseViewProjectionTransform();
 
     float clipRange = farClip - nearClip;
 
@@ -58,6 +59,10 @@ void Shadows::update()
 
     float range = maxZ - minZ;
     float ratio = maxZ / minZ;
+
+    // @fixme Currently handling only directional lights!
+    const auto& directionalLight = dynamic_cast<const DirectionalLight::Impl&>(light);
+    glm::vec3 lightDir = directionalLight.direction();
 
     // Calculate split depths based on view camera frustum
     // Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
@@ -81,9 +86,8 @@ void Shadows::update()
         };
 
         // Project frustum corners into world space
-        glm::mat4 invCam = glm::inverse(camera.projectionTransform() * camera.viewTransform());
         for (uint32_t i = 0; i < 8; i++) {
-            glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
+            glm::vec4 invCorner = invCameraViewProjection * glm::vec4(frustumCorners[i], 1.0f);
             frustumCorners[i] = invCorner / invCorner.w;
         }
 
@@ -109,10 +113,6 @@ void Shadows::update()
 
         glm::vec3 maxExtents = glm::vec3(radius);
         glm::vec3 minExtents = -maxExtents;
-
-        // @fixme Currently handling only directional lights!
-        const auto& directionalLight = dynamic_cast<const DirectionalLight::Impl&>(light);
-        glm::vec3 lightDir = directionalLight.direction();
 
         glm::mat4 lightViewMatrix =
             glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -157,10 +157,10 @@ void Shadows::updateImagesBindings()
 
 void Shadows::updateBindings()
 {
-    // @fixme THIS IS SLOOOOOOOOOO
-    m_scene.engine().device().waitIdle();
-
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    // // @fixme THIS IS SLOOOOOOOOOO
+    // m_scene.engine().device().waitIdle();
 
     // Bind the splits
     vulkan::ShadowsUbo ubo;

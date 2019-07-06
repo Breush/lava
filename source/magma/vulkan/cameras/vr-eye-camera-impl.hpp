@@ -34,6 +34,8 @@ namespace lava::magma {
         const glm::vec3& translation() const final { return m_translation; }
         const glm::mat4& viewTransform() const final { return m_viewTransform; }
         const glm::mat4& projectionTransform() const final { return m_projectionTransform; }
+        const glm::mat4& inverseViewProjectionTransform() const final { return m_inverseViewProjectionTransform; }
+
         bool useFrustumCulling() const final { return false; } // @fixme Can't get that working
         const Frustum& frustum() const final { return m_frustum; }
         float nearClip() const final { return m_nearClip; };
@@ -65,9 +67,10 @@ namespace lava::magma {
         PolygonMode m_polygonMode = PolygonMode::Fill;
 
         // Attributes
-        glm::vec3 m_translation;
+        glm::vec3 m_translation = glm::vec3(0.f);
         glm::mat4 m_viewTransform = glm::mat4(1.f);
         glm::mat4 m_projectionTransform = glm::mat4(1.f);
+        glm::mat4 m_inverseViewProjectionTransform = glm::mat4(1.f);
         Frustum m_frustum;
         float m_nearClip = 0.05f;
         float m_farClip = 100.f;

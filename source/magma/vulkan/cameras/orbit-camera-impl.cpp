@@ -91,6 +91,8 @@ void OrbitCamera::Impl::updateViewTransform()
     // @todo Make up vector configurable?
     m_viewTransform = glm::lookAtRH(m_translation, m_target, glm::vec3(0.f, 0.f, 1.f));
 
+    m_inverseViewProjectionTransform = glm::inverse(m_projectionTransform * m_viewTransform);
+
     updateFrustum();
     updateBindings();
 }
@@ -106,6 +108,8 @@ void OrbitCamera::Impl::updateProjectionTransform()
 
     m_projectionTransform = glm::perspectiveRH(FOVy, aspectRatio, m_nearClip, m_farClip);
     m_projectionTransform[1][1] *= -1;
+
+    m_inverseViewProjectionTransform = glm::inverse(m_projectionTransform * m_viewTransform);
 
     updateFrustum();
     updateBindings();
