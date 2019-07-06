@@ -8,6 +8,9 @@
 namespace lava::sill {
     class MeshComponent final : public IComponent {
     public:
+        using AnimationLoopStartCallback = std::function<void()>;
+
+    public:
         MeshComponent(GameEntity& entity);
         ~MeshComponent();
 
@@ -21,12 +24,14 @@ namespace lava::sill {
         const std::vector<MeshNode>& nodes() const;
         void nodes(std::vector<MeshNode>&& nodes);
 
-        /// Animations
+        // Animations
         void add(const std::string& hrid, const MeshAnimation& animation);
         /// Start an animation. Use -1u for loops to get infinite looping.
         void startAnimation(const std::string& hrid, uint32_t loops = 1u);
+        /// Be warned whenever the animation loops or starts.
+        void onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback);
 
-        /// Debug
+        // Debug
         bool wireframed() const;
         void wireframed(bool wireframed);
 

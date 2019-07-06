@@ -44,6 +44,14 @@ void MeshComponent::Impl::update(float dt)
         nodesAnimated = true;
 
         auto& time = animationInfo.time;
+
+        // Call loop start callbacks
+        if (time == 0.f) {
+            for (auto callback : animationInfo.loopStartCallbacks) {
+                callback();
+            }
+        }
+
         time += dt;
 
         // If all channels are paused, we loop over
@@ -161,6 +169,13 @@ void MeshComponent::Impl::startAnimation(const std::string& hrid, uint32_t loops
     m_animationsInfos.at(hrid).loops = loops;
     m_animationsInfos.at(hrid).pausedChannelsCount = 0u;
     m_animationsInfos.at(hrid).time = 0.f;
+}
+
+// ----- Callbacks
+
+void MeshComponent::Impl::onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback)
+{
+    m_animationsInfos.at(hrid).loopStartCallbacks.emplace_back(std::move(callback));
 }
 
 // ----- Debug

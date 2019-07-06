@@ -30,6 +30,10 @@ namespace lava::sill {
         void boundingSpheresVisible(bool boundingSpheresVisible);
 
         // Callbacks
+        void onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback);
+
+    private:
+        // Internal
         void onWorldTransformChanged();
 
     protected:
@@ -46,6 +50,7 @@ namespace lava::sill {
             uint32_t loops = 0u; // How many loops there are left to do. (-1u means infinite)
             uint32_t channelsCount = 0u;
             uint32_t pausedChannelsCount = 0u;
+            std::vector<AnimationLoopStartCallback> loopStartCallbacks;
             std::unordered_map<uint32_t, std::vector<AnimationChannelInfo>> channelsInfos;
         };
 
