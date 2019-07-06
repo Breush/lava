@@ -13,16 +13,25 @@ namespace lava::sill {
         void update(float dt) final;
 
         // TransformComponent local transform
-        glm::vec3 translation() const { return m_transform[3]; }
+        const glm::vec3& translation() const { return m_translation; }
         void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag);
-        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag);
+        void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
+        {
+            translation(m_translation + delta, changeReasonFlag);
+        }
 
-        void rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag);
+        const glm::quat& rotation() const { return m_rotation; }
+        void rotation(const glm::quat& rotation, ChangeReasonFlag changeReasonFlag);
+        void rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag)
+        {
+            rotation(glm::rotate(m_rotation, angle, axis), changeReasonFlag);
+        }
 
-        glm::vec3 scaling() const;
+        const glm::vec3& scaling() const { return m_scaling; }
         void scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag);
-        void scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag);
-        void scale(float factor, ChangeReasonFlag changeReasonFlag);
+        void scaling(float factor, ChangeReasonFlag changeReasonFlag) { scaling({factor, factor, factor}, changeReasonFlag); }
+        void scale(const glm::vec3& factor, ChangeReasonFlag changeReasonFlag) { scaling(m_scaling * factor, changeReasonFlag); }
+        void scale(float factor, ChangeReasonFlag changeReasonFlag) { scaling(m_scaling * factor, changeReasonFlag); }
 
         // TransformComponent world transform
         const glm::mat4& worldTransform() const { return m_worldTransform; } // @todo Concept of nodes/worldTransform
@@ -33,6 +42,7 @@ namespace lava::sill {
         void onWorldTransformChanged(std::function<void()> callback, ChangeReasonFlags changeReasonFlags);
 
     protected:
+        void updateTransform(ChangeReasonFlag changeReasonFlag);
         void updateWorldTransform(ChangeReasonFlag changeReasonFlag);
         void callTransformChanged(ChangeReasonFlag changeReasonFlag) const;
         void callWorldTransformChanged(ChangeReasonFlag changeReasonFlag) const;
@@ -45,6 +55,9 @@ namespace lava::sill {
 
     private:
         // Data
+        glm::vec3 m_translation = glm::vec3(0.f);
+        glm::quat m_rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+        glm::vec3 m_scaling = glm::vec3(1.f);
         glm::mat4 m_transform = glm::mat4(1.f);
         glm::mat4 m_worldTransform = glm::mat4(1.f);
 

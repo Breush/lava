@@ -7,67 +7,32 @@ TransformComponent::Impl::Impl(GameEntity& entity)
 {
 }
 
-void TransformComponent::Impl::update(float /*dt*/)
-{
-}
+void TransformComponent::Impl::update(float /*dt*/) {}
 
 //----- Local transform
 
 void TransformComponent::Impl::translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag)
 {
-    m_transform[3] = glm::vec4(translation, 1.f);
+    m_translation = translation;
+
+    updateTransform(changeReasonFlag);
     updateWorldTransform(changeReasonFlag);
-    callTransformChanged(changeReasonFlag);
 }
 
-void TransformComponent::Impl::translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::Impl::rotation(const glm::quat& rotation, ChangeReasonFlag changeReasonFlag)
 {
-    // @todo Can't we write in-place operations for all these transform modifications?
-    m_transform = glm::translate(m_transform, delta);
+    m_rotation = rotation;
+
+    updateTransform(changeReasonFlag);
     updateWorldTransform(changeReasonFlag);
-    callTransformChanged(changeReasonFlag);
-}
-
-void TransformComponent::Impl::rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag)
-{
-    m_transform = glm::rotate(m_transform, angle, axis);
-    updateWorldTransform(changeReasonFlag);
-    callTransformChanged(changeReasonFlag);
-}
-
-glm::vec3 TransformComponent::Impl::scaling() const
-{
-    // @todo Optimize: We could store the scaling and dirtify the value during onTransformChanged
-    glm::vec3 scaling;
-    glm::quat rotation;
-    glm::vec3 translation;
-    glm::vec3 skew;
-    glm::vec4 perspective;
-
-    glm::decompose(m_transform, scaling, rotation, translation, skew, perspective);
-    return scaling;
 }
 
 void TransformComponent::Impl::scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag)
 {
-    // @fixme That probably doesn't work... Thanks copy-paste!
-    m_transform = glm::translate(m_transform, scaling - this->scaling());
-    updateWorldTransform(changeReasonFlag);
-    callTransformChanged(changeReasonFlag);
-}
+    m_scaling = scaling;
 
-void TransformComponent::Impl::scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag)
-{
-    m_transform = glm::scale(m_transform, factors);
+    updateTransform(changeReasonFlag);
     updateWorldTransform(changeReasonFlag);
-    callTransformChanged(changeReasonFlag);
-}
-
-void TransformComponent::Impl::scale(float factor, ChangeReasonFlag changeReasonFlag)
-{
-    m_transform = glm::scale(m_transform, glm::vec3(factor));
-    updateWorldTransform(changeReasonFlag);
-    callTransformChanged(changeReasonFlag);
 }
 
 //----- World transform
@@ -83,8 +48,13 @@ void TransformComponent::Impl::worldTransform(const glm::mat4& transform, Change
         m_transform = m_worldTransform;
     }
 
-    updateWorldTransform(changeReasonFlag);
+    // Update TRS
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(m_transform, m_scaling, m_rotation, m_translation, skew, perspective);
+
     callTransformChanged(changeReasonFlag);
+    updateWorldTransform(changeReasonFlag);
 }
 
 //----- Callbacks
@@ -100,6 +70,15 @@ void TransformComponent::Impl::onWorldTransformChanged(std::function<void()> cal
 }
 
 //----- Internal
+
+void TransformComponent::Impl::updateTransform(ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = glm::scale(glm::mat4(1.f), m_scaling);
+    m_transform = glm::mat4(m_rotation) * m_transform;
+    m_transform[3] = glm::vec4(m_translation, 1.f);
+
+    callTransformChanged(changeReasonFlag);
+}
 
 void TransformComponent::Impl::updateWorldTransform(ChangeReasonFlag changeReasonFlag)
 {

@@ -56,5 +56,5 @@ glm::quat chamber::interpolate(const std::vector<glm::quat>& values, uint32_t st
         return glm::normalize(value);
     }
 
-    return glm::quat(0.f, 0.f, 0.f, 1.f);
+    return glm::quat(1.f, 0.f, 0.f, 0.f);
 }

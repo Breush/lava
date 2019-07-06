@@ -13,11 +13,11 @@ PhysicsComponent::Impl::Impl(GameEntity& entity)
 {
     m_rigidBody = &m_physicsEngine.make<dike::RigidBody>();
 
-    m_transformComponent.onTransformChanged([this]() { onNonPhysicsTransformChanged(); },
-                                            ~TransformComponent::ChangeReasonFlag::Physics);
+    m_transformComponent.onWorldTransformChanged([this]() { onNonPhysicsWorldTransformChanged(); },
+                                                 ~TransformComponent::ChangeReasonFlag::Physics);
 
     // Init correctly on first creation
-    onNonPhysicsTransformChanged();
+    onNonPhysicsWorldTransformChanged();
 }
 
 PhysicsComponent::Impl::~Impl()
@@ -31,6 +31,7 @@ PhysicsComponent::Impl::~Impl()
 void PhysicsComponent::Impl::update(float /* dt */)
 {
     // @fixme Have a flag in dike, so that we don't update uselessly
+    // Fact is dike should tell us whenever we really need to update.
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
@@ -39,7 +40,7 @@ void PhysicsComponent::Impl::update(float /* dt */)
 
 //----- Callbacks
 
-void PhysicsComponent::Impl::onNonPhysicsTransformChanged()
+void PhysicsComponent::Impl::onNonPhysicsWorldTransformChanged()
 {
     const auto& worldTransform = m_transformComponent.worldTransform();
     m_rigidBody->transform(worldTransform);

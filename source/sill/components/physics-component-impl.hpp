@@ -28,7 +28,7 @@ namespace lava::sill {
 
     protected:
         /// Callbacks
-        void onNonPhysicsTransformChanged();
+        void onNonPhysicsWorldTransformChanged();
 
     private:
         // References

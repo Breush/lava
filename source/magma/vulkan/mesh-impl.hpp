@@ -107,7 +107,7 @@ namespace lava::magma {
         // Node
         glm::mat4 m_transform = glm::mat4(1.f);
         glm::vec3 m_translation = glm::vec3(0.f);
-        glm::quat m_rotation = glm::quat(0.f, 0.f, 0.f, 1.f);
+        glm::quat m_rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
         glm::vec3 m_scaling = glm::vec3(1.f);
 
         // Descriptor
