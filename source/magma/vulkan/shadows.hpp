@@ -18,15 +18,16 @@ namespace lava::magma {
         ~Shadows();
 
         void init(uint32_t lightId, uint32_t cameraId);
-        void update();
-        void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
+        void update(uint32_t frameId);
+        void render(vk::CommandBuffer commandBuffer, uint32_t frameId, vk::PipelineLayout pipelineLayout,
+                    uint32_t descriptorSetIndex) const;
 
         float cascadeSplitDepth(uint32_t cascadeIndex) const { return m_cascades[cascadeIndex].splitDepth; }
         const glm::mat4& cascadeTransform(uint32_t cascadeIndex) const { return m_cascades[cascadeIndex].transform; }
 
     protected:
         void updateImagesBindings();
-        void updateBindings();
+        void updateBindings(uint32_t frameId);
 
     protected:
         struct Cascade {
@@ -41,8 +42,8 @@ namespace lava::magma {
         bool m_initialized = false;
 
         // Resources
-        vulkan::UboHolder m_uboHolder;
-        vk::DescriptorSet m_descriptorSet = nullptr;
+        std::vector<vulkan::UboHolder> m_uboHolders;
+        std::vector<vk::DescriptorSet> m_descriptorSets;
         std::array<Cascade, SHADOWS_CASCADES_COUNT> m_cascades;
     };
 }

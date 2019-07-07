@@ -10,6 +10,7 @@ namespace lava::magma {
         virtual ~Impl() = default;
 
         virtual void init(uint32_t id) = 0;
+        virtual void update() = 0;
         virtual LightType type() const = 0;
 
         /// Bind the light descriptor.

@@ -9,14 +9,17 @@ using namespace lava::magma;
 
 Shadows::Shadows(RenderScene::Impl& scene)
     : m_scene(scene)
-    , m_uboHolder(scene.engine())
+    , m_uboHolders(RenderScene::Impl::FRAME_IDS_COUNT, scene.engine())
+    , m_descriptorSets(RenderScene::Impl::FRAME_IDS_COUNT, nullptr)
 {
 }
 
 Shadows::~Shadows()
 {
     if (m_initialized) {
-        m_scene.shadowsDescriptorHolder().freeSet(m_descriptorSet);
+        for (auto& descriptorSet : m_descriptorSets) {
+            m_scene.shadowsDescriptorHolder().freeSet(descriptorSet);
+        }
     }
 }
 
@@ -28,15 +31,17 @@ void Shadows::init(uint32_t lightId, uint32_t cameraId)
     m_cameraId = cameraId;
     m_lightId = lightId;
 
-    m_descriptorSet =
-        m_scene.shadowsDescriptorHolder().allocateSet("shadows." + std::to_string(m_lightId) + "." + std::to_string(cameraId));
-    m_uboHolder.init(m_descriptorSet, m_scene.shadowsDescriptorHolder().uniformBufferBindingOffset(),
-                     {sizeof(vulkan::ShadowsUbo)});
+    for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
+        m_descriptorSets[i] = m_scene.shadowsDescriptorHolder().allocateSet("shadows." + std::to_string(m_lightId) + "."
+                                                                            + std::to_string(cameraId) + "." + std::to_string(i));
+        m_uboHolders[i].init(m_descriptorSets[i], m_scene.shadowsDescriptorHolder().uniformBufferBindingOffset(),
+                             {sizeof(vulkan::ShadowsUbo)});
+    }
 
     updateImagesBindings();
 }
 
-void Shadows::update()
+void Shadows::update(uint32_t frameId)
 {
     if (!m_initialized) return;
 
@@ -126,13 +131,14 @@ void Shadows::update()
         lastSplitDist = cascadeSplits[i];
     }
 
-    updateBindings();
+    updateBindings(frameId);
 }
 
-void Shadows::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const
+void Shadows::render(vk::CommandBuffer commandBuffer, uint32_t frameId, vk::PipelineLayout pipelineLayout,
+                     uint32_t descriptorSetIndex) const
 {
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
-                                     nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1,
+                                     &m_descriptorSets[frameId], 0, nullptr);
 }
 
 void Shadows::updateImagesBindings()
@@ -149,18 +155,17 @@ void Shadows::updateImagesBindings()
         auto imageLayout = shadowsRenderImage.impl().layout();
 
         if (imageView) {
-            vulkan::updateDescriptorSet(m_scene.engine().device(), m_descriptorSet, imageView, sampler, imageLayout, binding,
-                                        cascadeIndex);
+            for (auto& descriptorSet : m_descriptorSets) {
+                vulkan::updateDescriptorSet(m_scene.engine().device(), descriptorSet, imageView, sampler, imageLayout, binding,
+                                            cascadeIndex);
+            }
         }
     }
 }
 
-void Shadows::updateBindings()
+void Shadows::updateBindings(uint32_t frameId)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
-
-    // // @fixme THIS IS SLOOOOOOOOOO
-    // m_scene.engine().device().waitIdle();
 
     // Bind the splits
     vulkan::ShadowsUbo ubo;
@@ -168,5 +173,6 @@ void Shadows::updateBindings()
         ubo.cascadesTransforms[i] = m_scene.shadowsCascadeTransform(m_lightId, m_cameraId, i);
         ubo.cascadesSplits[i][0] = m_scene.shadowsCascadeSplitDepth(m_lightId, m_cameraId, i);
     }
-    m_uboHolder.copy(0, ubo);
+
+    m_uboHolders[frameId].copy(0, ubo);
 }

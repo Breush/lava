@@ -42,6 +42,7 @@ namespace lava::magma {
 
         // Internal interface
         void init();
+        void update();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex);
 
     protected:
@@ -55,8 +56,10 @@ namespace lava::magma {
         bool m_initialized = false;
 
         // Descriptor
-        vk::DescriptorSet m_descriptorSet;
-        vulkan::UboHolder m_uboHolder;
+        std::vector<vk::DescriptorSet> m_descriptorSets;
+        std::vector<vulkan::UboHolder> m_uboHolders;
+        uint32_t m_currentFrameId = 0u;
+        bool m_uboDirty = false;
 
         // Data
         vulkan::MaterialUbo m_ubo;

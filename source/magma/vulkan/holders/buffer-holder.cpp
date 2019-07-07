@@ -53,8 +53,6 @@ void BufferHolder::copy(const void* data, vk::DeviceSize size, vk::DeviceSize of
     m_engine.device().unmapMemory(m_stagingMemory);
 
     // And to final buffer
-    vulkan::copyBuffer(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), m_stagingBuffer, m_buffer, size,
-                       offset);
+    vulkan::copyBuffer(m_engine.device(), m_engine.transferQueue(), m_engine.transferCommandPool(), m_stagingBuffer, m_buffer,
+                       size, offset);
 }
-
-// @todo Make some ImageDescriptor/BufferDescriptor?

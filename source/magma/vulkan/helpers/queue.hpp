@@ -5,9 +5,10 @@ namespace lava::magma::vulkan {
     class QueueFamilyIndices {
     public:
         int graphics = -1;
+        int transfer = -1;
         int present = -1;
 
-        bool valid() { return graphics >= 0 && present >= 0; }
+        bool valid() { return graphics >= 0 && transfer >= 0 && present >= 0; }
     };
 
     /// Find correct queue families of a device.

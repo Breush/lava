@@ -22,6 +22,7 @@ namespace lava::magma {
 
         // ILight::Impl
         void init(uint32_t id) final;
+        void update() final;
         LightType type() const final { return LightType::Directional; };
 
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const final;
@@ -39,8 +40,10 @@ namespace lava::magma {
         uint32_t m_id = -1u;
 
         // Descriptor
-        vk::DescriptorSet m_descriptorSet;
-        vulkan::UboHolder m_uboHolder;
+        std::vector<vk::DescriptorSet> m_descriptorSets;
+        std::vector<vulkan::UboHolder> m_uboHolders;
+        bool m_uboDirty = false;
+        uint32_t m_currentFrameId = 0u;
 
         // DirectionalLight
         $attribute(glm::vec3, direction);

@@ -93,6 +93,8 @@
         "deque": "cpp",
         "forward_list": "cpp",
         "variant": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "list": "cpp",
+        "unordered_set": "cpp"
     }
 }

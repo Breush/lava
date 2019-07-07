@@ -10,7 +10,7 @@ namespace lava::magma {
 
         virtual void init(uint32_t cameraId) = 0;
         virtual void update(vk::Extent2D extent, vk::PolygonMode polygonMode = vk::PolygonMode::eFill) = 0;
-        virtual void render(vk::CommandBuffer commandBuffer) = 0;
+        virtual void render(vk::CommandBuffer commandBuffer, uint32_t frameId) = 0;
 
         virtual RenderImage renderImage() const = 0;
         virtual RenderImage depthRenderImage() const = 0;

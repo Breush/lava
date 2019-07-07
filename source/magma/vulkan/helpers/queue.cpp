@@ -17,7 +17,7 @@ vulkan::QueueFamilyIndices vulkan::findQueueFamilies(vk::PhysicalDevice physical
         if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             indices.graphics = i;
 
-            // We don't need present support, the graphics one will do.
+            // If we don't need present support, the graphics one will do.
             if (pSurface == nullptr) {
                 presentSupport = true;
             }
@@ -31,6 +31,16 @@ vulkan::QueueFamilyIndices vulkan::findQueueFamilies(vk::PhysicalDevice physical
         if (presentSupport) {
             indices.present = i;
         }
+
+        // For transfer, take one that is not graphics or present if possible.
+        if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer && indices.graphics != int(i) && indices.present != int(i)) {
+            indices.transfer = i;
+        }
+    }
+
+    // Fallback to the present indices if no better.
+    if (indices.transfer < 0) {
+        indices.transfer = indices.present;
     }
 
     return indices;

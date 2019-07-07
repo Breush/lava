@@ -73,6 +73,7 @@ namespace lava::magma {
         const vk::Device& device() const { return m_deviceHolder.device(); }
         const vk::PhysicalDevice& physicalDevice() const { return m_deviceHolder.physicalDevice(); }
         const vk::Queue& graphicsQueue() const { return m_deviceHolder.graphicsQueue(); }
+        const vk::Queue& transferQueue() const { return m_deviceHolder.transferQueue(); }
         const vk::Queue& presentQueue() const { return m_deviceHolder.presentQueue(); }
         uint32_t graphicsQueueFamilyIndex() const { return m_deviceHolder.graphicsQueueFamilyIndex(); }
         uint32_t presentQueueFamilyIndex() const { return m_deviceHolder.presentQueueFamilyIndex(); }
@@ -116,7 +117,7 @@ namespace lava::magma {
 
         // Command buffers
         std::vector<vk::CommandBuffer> recordCommandBuffer(uint32_t renderTargetIndex, uint32_t bufferIndex);
-        void createCommandPool(vk::SurfaceKHR* pSurface);
+        void createCommandPools(vk::SurfaceKHR* pSurface);
         void createCommandBuffers(uint32_t renderTargetIndex);
 
     private:
@@ -145,6 +146,7 @@ namespace lava::magma {
 
         // Commands
         $attribute(vulkan::CommandPool, commandPool, {device()});
+        $attribute(vulkan::CommandPool, transferCommandPool, {device()});
 
         /// Shaders
         ShadersManager m_shadersManager{device()};

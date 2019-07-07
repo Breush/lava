@@ -47,7 +47,7 @@ namespace lava::magma {
         // IRendererStage
         void init(uint32_t cameraId) final;
         void update(vk::Extent2D extent, vk::PolygonMode polygonMode) final;
-        void render(vk::CommandBuffer commandBuffer) final;
+        void render(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
 
         RenderImage renderImage() const final;
         RenderImage depthRenderImage() const final;

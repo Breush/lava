@@ -62,7 +62,7 @@ void ForwardRendererStage::update(vk::Extent2D extent, vk::PolygonMode polygonMo
     createFramebuffers();
 }
 
-void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
+void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
@@ -102,7 +102,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer)
     for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
         m_scene.light(lightId).render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
         m_scene.shadows(lightId, m_cameraId)
-            .render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), SHADOWS_DESCRIPTOR_SET_INDEX);
+            .render(commandBuffer, frameId, m_opaquePipelineHolder.pipelineLayout(), SHADOWS_DESCRIPTOR_SET_INDEX);
     }
 
     // Set the camera

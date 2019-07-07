@@ -25,6 +25,7 @@ namespace lava::magma::vulkan {
         const vk::Device& device() const { return m_device; }
         const vk::PhysicalDevice& physicalDevice() const { return m_physicalDevice; }
         const vk::Queue& graphicsQueue() const { return m_graphicsQueue; }
+        const vk::Queue& transferQueue() const { return m_transferQueue; }
         const vk::Queue& presentQueue() const { return m_presentQueue; }
         uint32_t graphicsQueueFamilyIndex() const { return m_queueFamilyIndices.graphics; }
         uint32_t presentQueueFamilyIndex() const { return m_queueFamilyIndices.present; }
@@ -43,6 +44,7 @@ namespace lava::magma::vulkan {
 
         vk::PhysicalDevice m_physicalDevice = nullptr;
         vk::Queue m_graphicsQueue = nullptr;
+        vk::Queue m_transferQueue = nullptr;
         vk::Queue m_presentQueue = nullptr;
         QueueFamilyIndices m_queueFamilyIndices;
 

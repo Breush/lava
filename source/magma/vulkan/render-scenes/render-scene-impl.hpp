@@ -23,6 +23,13 @@ namespace lava::magma {
      */
     class RenderScene::Impl {
     public:
+        // @note Each frame will be renderer with a frame id being within [0 .. FRAME_IDS_COUNT],
+        // this is independent from the swapchain and is incremented during each render scene update.
+        // Consider using it when you update some buffer that might be used during current render,
+        // which is the case with Shadows's ubo.
+        static constexpr const uint32_t FRAME_IDS_COUNT = 3u;
+
+    public:
         Impl(RenderEngine& engine, RenderScene& scene);
         ~Impl();
 
@@ -153,6 +160,7 @@ namespace lava::magma {
         RenderEngine::Impl& m_engine;
         bool m_initialized = false;
         uint32_t m_id = -1u;
+        uint32_t m_frameId = 0u;
 
         RendererType m_rendererType;
 

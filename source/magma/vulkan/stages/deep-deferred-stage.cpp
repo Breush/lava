@@ -63,7 +63,7 @@ void DeepDeferredStage::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
     createFramebuffers();
 }
 
-void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
+void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
@@ -137,7 +137,8 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
                                      DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0,
                                      nullptr);
 
-    m_scene.environment().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_ENVIRONMENT_DESCRIPTOR_SET_INDEX);
+    m_scene.environment().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
+                                 EPIPHANY_ENVIRONMENT_DESCRIPTOR_SET_INDEX);
 
     // Bind lights and shadows
     for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
@@ -145,7 +146,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer)
                                       EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
 
         m_scene.shadows(lightId, m_cameraId)
-            .render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);
+            .render(commandBuffer, frameId, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);
     }
 
     commandBuffer.draw(6, 1, 0, 1);

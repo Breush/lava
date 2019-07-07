@@ -261,7 +261,7 @@ const MaterialInfo& RenderEngine::Impl::materialInfo(const std::string& hrid) co
     return iMaterialInfo->second;
 }
 
-void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR* pSurface)
+void RenderEngine::Impl::createCommandPools(vk::SurfaceKHR* pSurface)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
@@ -274,6 +274,13 @@ void RenderEngine::Impl::createCommandPool(vk::SurfaceKHR* pSurface)
     poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
     if (device().createCommandPool(&poolInfo, nullptr, m_commandPool.replace()) != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.render-engine") << "Failed to create command pool." << std::endl;
+    }
+
+    poolInfo.queueFamilyIndex = queueFamilyIndices.transfer;
+    poolInfo.flags = vk::CommandPoolCreateFlagBits(0x0);
+
+    if (device().createCommandPool(&poolInfo, nullptr, m_transferCommandPool.replace()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.render-engine") << "Failed to create command pool." << std::endl;
     }
 }
@@ -458,7 +465,7 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR* pSurface)
 
     m_deviceHolder.init(instance(), pSurface, m_instanceHolder.debugEnabled(), m_instanceHolder.vrEnabled());
 
-    createCommandPool(pSurface);
+    createCommandPools(pSurface);
     createDummyTextures();
 
     initRenderScenes();

@@ -163,7 +163,7 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
     float queuePriority = 1.0f;
     m_queueFamilyIndices = findQueueFamilies(m_physicalDevice, pSurface);
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::set<int> uniqueQueueFamilies = {m_queueFamilyIndices.graphics, m_queueFamilyIndices.present};
+    std::set<int> uniqueQueueFamilies = {m_queueFamilyIndices.graphics, m_queueFamilyIndices.transfer, m_queueFamilyIndices.present};
 
     for (int queueFamily : uniqueQueueFamilies) {
         vk::DeviceQueueCreateInfo queueCreateInfo = {};
@@ -211,5 +211,6 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
     };
 
     m_graphicsQueue = m_device.vk().getQueue(m_queueFamilyIndices.graphics, 0);
+    m_transferQueue = m_device.vk().getQueue(m_queueFamilyIndices.transfer, 0);
     m_presentQueue = m_device.vk().getQueue(m_queueFamilyIndices.present, 0);
 }

@@ -10,7 +10,8 @@ using namespace lava::chamber;
 
 Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
     : m_scene(scene.impl())
-    , m_uboHolder(m_scene.engine())
+    , m_descriptorSets(RenderScene::Impl::FRAME_IDS_COUNT, nullptr)
+    , m_uboHolders(RenderScene::Impl::FRAME_IDS_COUNT, m_scene.engine())
 {
     const auto& materialInfo = m_scene.engine().materialInfo(hrid);
     m_ubo.header.id = materialInfo.id;
@@ -80,7 +81,9 @@ Material::Impl::Impl(RenderScene& scene, const std::string& hrid)
 Material::Impl::~Impl()
 {
     if (m_initialized) {
-        m_scene.materialDescriptorHolder().freeSet(m_descriptorSet);
+        for (auto& descriptorSet : m_descriptorSets) {
+            m_scene.materialDescriptorHolder().freeSet(descriptorSet);
+        }
     }
 }
 
@@ -88,19 +91,31 @@ Material::Impl::~Impl()
 
 void Material::Impl::init()
 {
-    m_descriptorSet = m_scene.materialDescriptorHolder().allocateSet("material", true);
-
-    m_uboHolder.init(m_descriptorSet, m_scene.materialDescriptorHolder().uniformBufferBindingOffset(),
-                     {sizeof(vulkan::MaterialUbo)});
+    for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
+        m_descriptorSets[i] = m_scene.materialDescriptorHolder().allocateSet("material." + std::to_string(i), true);
+        m_uboHolders[i].init(m_descriptorSets[i], m_scene.materialDescriptorHolder().uniformBufferBindingOffset(),
+                             {sizeof(vulkan::MaterialUbo)});
+    }
 
     m_initialized = true;
+    m_uboDirty = true;
+}
+
+void Material::Impl::update()
+{
+    if (!m_uboDirty) return;
+
+    // :InternalFrameId @note The idea is to be sure that the material's UBO is not in use
+    // while we update it. We do that by updating it into a different uboHolder/descriptorSet.
+    m_currentFrameId = (m_currentFrameId + 1u) % RenderScene::Impl::FRAME_IDS_COUNT;
+
     updateBindings();
 }
 
 void Material::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex)
 {
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
-                                     nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1,
+                                     &m_descriptorSets[m_currentFrameId], 0, nullptr);
 }
 
 //----- Material
@@ -111,7 +126,7 @@ void Material::Impl::set(const std::string& uniformName, bool value)
     attribute.value.uintValue = (value) ? 1 : 0;
     auto offset = attribute.offset;
     m_ubo.data[offset][0] = (value) ? 1 : 0;
-    updateBindings();
+    m_uboDirty = true;
 }
 
 void Material::Impl::set(const std::string& uniformName, uint32_t value)
@@ -120,7 +135,7 @@ void Material::Impl::set(const std::string& uniformName, uint32_t value)
     attribute.value.uintValue = value;
     auto offset = attribute.offset;
     m_ubo.data[offset][0] = value;
-    updateBindings();
+    m_uboDirty = true;
 }
 
 void Material::Impl::set(const std::string& uniformName, float value)
@@ -129,7 +144,7 @@ void Material::Impl::set(const std::string& uniformName, float value)
     attribute.value.floatValue = value;
     auto offset = attribute.offset;
     reinterpret_cast<float&>(m_ubo.data[offset]) = value;
-    updateBindings();
+    m_uboDirty = true;
 }
 
 void Material::Impl::set(const std::string& uniformName, const glm::vec2& value)
@@ -138,7 +153,7 @@ void Material::Impl::set(const std::string& uniformName, const glm::vec2& value)
     attribute.value.vec2Value = value;
     auto offset = attribute.offset;
     reinterpret_cast<glm::vec2&>(m_ubo.data[offset]) = value;
-    updateBindings();
+    m_uboDirty = true;
 }
 
 void Material::Impl::set(const std::string& uniformName, const glm::vec3& value)
@@ -147,7 +162,7 @@ void Material::Impl::set(const std::string& uniformName, const glm::vec3& value)
     attribute.value.vec3Value = value;
     auto offset = attribute.offset;
     reinterpret_cast<glm::vec3&>(m_ubo.data[offset]) = value;
-    updateBindings();
+    m_uboDirty = true;
 }
 
 void Material::Impl::set(const std::string& uniformName, const glm::vec4& value)
@@ -156,14 +171,14 @@ void Material::Impl::set(const std::string& uniformName, const glm::vec4& value)
     attribute.value.vec4Value = value;
     auto offset = attribute.offset;
     reinterpret_cast<glm::vec4&>(m_ubo.data[offset]) = value;
-    updateBindings();
+    m_uboDirty = true;
 }
 
 void Material::Impl::set(const std::string& uniformName, const Texture& texture)
 {
     auto& attribute = findAttribute(uniformName);
     attribute.texture = &texture.impl();
-    updateBindings();
+    m_uboDirty = true;
 }
 
 void Material::Impl::set(const std::string& uniformName, const uint32_t* values, uint32_t size)
@@ -178,7 +193,7 @@ void Material::Impl::set(const std::string& uniformName, const uint32_t* values,
         if (i + 2 < size) data[2] = values[i + 2];
         if (i + 3 < size) data[3] = values[i + 3];
     }
-    updateBindings();
+    m_uboDirty = true;
 }
 
 const glm::vec4& Material::Impl::get_vec4(const std::string& uniformName) const
@@ -210,9 +225,14 @@ const Material::Impl::Attribute& Material::Impl::findAttribute(const std::string
 void Material::Impl::updateBindings()
 {
     if (!m_initialized) return;
+    m_uboDirty = false;
+
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    auto& descriptorSet = m_descriptorSets[m_currentFrameId];
 
     // MaterialUbo
-    m_uboHolder.copy(0, m_ubo);
+    m_uboHolders[m_currentFrameId].copy(0, m_ubo);
 
     // Samplers
     const auto& engine = m_scene.engine();
@@ -223,7 +243,7 @@ void Material::Impl::updateBindings()
 
     // Force all samplers to white image view by default.
     for (auto i = 0u; i < MATERIAL_SAMPLERS_SIZE; ++i) {
-        vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, binding, i);
+        vulkan::updateDescriptorSet(engine.device(), descriptorSet, imageView, sampler, imageLayout, binding, i);
     }
 
     for (const auto& attributePair : m_attributes) {
@@ -243,8 +263,8 @@ void Material::Impl::updateBindings()
             }
 
             // @fixme We could use that, and updateDescriptorSet should be useless
-            // m_scene.materialDescriptorHolder().updateSet(m_descriptorSet, imageView, imageLayout, )
-            vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, binding,
+            // m_scene.materialDescriptorHolder().updateSet(descriptorSet, imageView, imageLayout, )
+            vulkan::updateDescriptorSet(engine.device(), descriptorSet, imageView, sampler, imageLayout, binding,
                                         attribute.offset);
         }
     }
@@ -253,7 +273,7 @@ void Material::Impl::updateBindings()
 
     // Force white cube
     auto cubeImageView = engine.dummyCubeImageView();
-    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, cubeImageView, sampler, imageLayout, binding + 1);
+    vulkan::updateDescriptorSet(engine.device(), descriptorSet, cubeImageView, sampler, imageLayout, binding + 1);
 
     for (const auto& attributePair : m_attributes) {
         const auto& attribute = attributePair.second;
@@ -265,7 +285,7 @@ void Material::Impl::updateBindings()
                 continue;
             }
 
-            vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, cubeImageView, sampler, imageLayout, binding + 1);
+            vulkan::updateDescriptorSet(engine.device(), descriptorSet, cubeImageView, sampler, imageLayout, binding + 1);
         }
     }
 }

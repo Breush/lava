@@ -57,6 +57,8 @@ void RenderScene::Impl::update()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
+    m_frameId = (m_frameId + 1u) % FRAME_IDS_COUNT;
+
     if (!m_pendingRemovedMeshes.empty()) {
         // @note This is necessary because we are no waiting for device on each update.
         m_engine.device().waitIdle();
@@ -86,9 +88,15 @@ void RenderScene::Impl::update()
     // we should add this concept.
     // We should also be sure this is not done to many times.
     for (auto& lightBundle : m_lightBundles) {
+        lightBundle.light->interfaceImpl().update();
+
         for (auto& shadows : lightBundle.shadows) {
-            shadows->update();
+            shadows->update(m_frameId);
         }
+    }
+
+    for (auto& material : m_materials) {
+        material->impl().update();
     }
 
     for (auto& mesh : m_meshesImpls) {
@@ -123,7 +131,7 @@ void RenderScene::Impl::record()
             }
         }
 
-        cameraBundle.rendererThread->record(*cameraBundle.rendererStage);
+        cameraBundle.rendererThread->record(*cameraBundle.rendererStage, m_frameId);
         m_commandBuffers.emplace_back(cameraBundle.rendererThread->commandBuffer());
     }
 }
@@ -303,6 +311,7 @@ void RenderScene::Impl::fallbackMaterial(std::unique_ptr<Material>&& material)
 
     if (m_initialized) {
         m_fallbackMaterial->impl().init();
+        m_fallbackMaterial->impl().update();
     }
 }
 
@@ -445,6 +454,7 @@ void RenderScene::Impl::initResources()
 
     if (m_fallbackMaterial != nullptr) {
         m_fallbackMaterial->impl().init();
+        m_fallbackMaterial->impl().update();
     }
 
     for (auto& material : m_materials) {
