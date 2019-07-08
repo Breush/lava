@@ -14,11 +14,25 @@ void setupEnvironment(GameState& gameState)
 {
     auto& engine = *gameState.engine;
 
-    // Ground
+    // Skybox
+    {
+        engine.environmentTexture("./assets/skies/cloudy/");
+
+        auto& skyboxEntity = engine.make<sill::GameEntity>();
+        auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
+        sill::makers::BoxMeshOptions options{.siding = sill::BoxSiding::In};
+        sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
+        skyMeshComponent.depthless(true);
+
+        auto& skyboxMaterial = engine.make<sill::Material>("skybox");
+        skyboxMaterial.set("useEnvironmentMap", true);
+        skyboxMaterial.set("lod", 1u);
+        skyMeshComponent.node(0).mesh->primitive(0).material(skyboxMaterial);
+    }
+
+    // Invisible but physically present ground
     {
         auto& entity = engine.make<sill::GameEntity>();
-        auto& meshComponent = entity.make<sill::MeshComponent>();
-        sill::makers::planeMeshMaker({10, 10})(meshComponent);
         entity.make<sill::ColliderComponent>();
         entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
         entity.get<sill::PhysicsComponent>().dynamic(false);

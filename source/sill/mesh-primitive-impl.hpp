@@ -35,6 +35,12 @@ namespace lava::sill {
         }
         void translucent(bool translucent) { m_magma->translucent(translucent); }
 
+        bool canCastShadows() const { return m_magma->canCastShadows(); }
+        void canCastShadows(bool canCastShadows) { m_magma->canCastShadows(canCastShadows); }
+
+        bool depthless() const { return m_magma->depthless(); }
+        void depthless(bool depthless) { m_magma->depthless(depthless); }
+
         // Debug
         bool wireframed() const { return m_magma->wireframed(); }
         void wireframed(bool wireframed) { m_magma->wireframed(wireframed); }

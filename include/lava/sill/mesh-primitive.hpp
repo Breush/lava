@@ -42,6 +42,12 @@ namespace lava::sill {
         Material& material();
         void material(Material& material);
         void translucent(bool translucent);
+
+        bool canCastShadows() const;
+        void canCastShadows(bool canCastShadows);
+
+        bool depthless() const;
+        void depthless(bool depthless);
         /// @}
 
         /**

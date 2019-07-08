@@ -59,7 +59,7 @@ namespace lava::magma {
         void initGBuffer();
         void initClearPass();
         void initGeometryPass();
-        void initGeometryTranslucentPass();
+        void initDepthlessPass();
         void initEpiphanyPass();
 
         void updateGeometryPassShaders(bool firstTime);
@@ -78,6 +78,7 @@ namespace lava::magma {
         vulkan::RenderPassHolder m_renderPassHolder;
         vulkan::PipelineHolder m_clearPipelineHolder;
         vulkan::PipelineHolder m_geometryPipelineHolder;
+        vulkan::PipelineHolder m_depthlessPipelineHolder;
         vulkan::PipelineHolder m_epiphanyPipelineHolder;
 
         // GBuffer

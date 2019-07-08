@@ -31,6 +31,9 @@ namespace lava::sill {
         /// Be warned whenever the animation loops or starts.
         void onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback);
 
+        bool depthless() const;
+        void depthless(bool depthless);
+
         // Debug
         bool wireframed() const;
         void wireframed(bool wireframed);

@@ -58,4 +58,5 @@ $pimpl_method_const(Mesh, bool, translucent);
 $pimpl_method(Mesh, void, translucent, bool, translucent);
 
 $pimpl_property_v(Mesh, bool, wireframed);
+$pimpl_property_v(Mesh, bool, depthless);
 $pimpl_property_v(Mesh, bool, boundingSphereVisible);

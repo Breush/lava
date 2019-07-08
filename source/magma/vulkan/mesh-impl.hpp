@@ -50,7 +50,7 @@ namespace lava::magma {
         void indices(VectorView<uint16_t> indices, bool flipTriangles);
         void indices(VectorView<uint8_t> indices, bool flipTriangles);
 
-        bool canCastShadows() const { return m_canCastShadows && !m_wireframed; }
+        bool canCastShadows() const { return m_canCastShadows && !m_depthless && !m_wireframed; }
         void canCastShadows(bool canCastShadows) { m_canCastShadows = canCastShadows; }
 
         bool vrRenderable() const { return m_vrRenderable; }
@@ -67,6 +67,9 @@ namespace lava::magma {
 
         bool wireframed() const { return m_wireframed; }
         void wireframed(bool wireframed) { m_wireframed = wireframed; }
+
+        bool depthless() const { return m_depthless; }
+        void depthless(bool depthless) { m_depthless = depthless; }
 
         bool boundingSphereVisible() const { return m_boundingSphereVisible; }
         void boundingSphereVisible(bool boundingSphereVisible);
@@ -96,6 +99,7 @@ namespace lava::magma {
         bool m_vrRenderable = true;
         bool m_translucent = false;
         bool m_wireframed = false;
+        bool m_depthless = false;
         bool m_boundingSphereVisible = false;
 
         // Computed

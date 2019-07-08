@@ -36,7 +36,7 @@ epiphany {
         if (gBuffer.useEnvironmentMap == 1.) {
             uint lod = uint(gBuffer.colorOrEnvironmentMapUvwLod.w);
             vec3 cubeUvw = gBuffer.colorOrEnvironmentMapUvwLod.xyz;
-            color = textureLod(environmentRadianceMap, fixCubeUvw(cubeUvw), lod);
+            color = textureLod(environmentRadianceMap, cubeUvw, lod);
         }
         else {
             color = gBuffer.colorOrEnvironmentMapUvwLod;

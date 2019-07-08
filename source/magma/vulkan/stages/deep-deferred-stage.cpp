@@ -18,6 +18,7 @@ DeepDeferredStage::DeepDeferredStage(RenderScene::Impl& scene)
     , m_renderPassHolder(m_scene.engine())
     , m_clearPipelineHolder(m_scene.engine())
     , m_geometryPipelineHolder(m_scene.engine())
+    , m_depthlessPipelineHolder(m_scene.engine())
     , m_epiphanyPipelineHolder(m_scene.engine())
     , m_gBufferInputDescriptorHolder(m_scene.engine())
     , m_gBufferSsboDescriptorHolder(m_scene.engine())
@@ -39,12 +40,14 @@ void DeepDeferredStage::init(uint32_t cameraId)
     initGBuffer();
     initClearPass();
     initGeometryPass();
+    initDepthlessPass();
     initEpiphanyPass();
 
     //----- Render pass
 
     m_renderPassHolder.add(m_clearPipelineHolder);
     m_renderPassHolder.add(m_geometryPipelineHolder);
+    m_renderPassHolder.add(m_depthlessPipelineHolder);
     m_renderPassHolder.add(m_epiphanyPipelineHolder);
     m_renderPassHolder.init();
 
@@ -57,6 +60,7 @@ void DeepDeferredStage::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
 
     m_clearPipelineHolder.update(extent);
     m_geometryPipelineHolder.update(extent, polygonMode);
+    m_depthlessPipelineHolder.update(extent, polygonMode);
     m_epiphanyPipelineHolder.update(extent);
 
     createResources();
@@ -73,7 +77,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     //----- Prologue
 
     // Set render pass
-    std::array<vk::ClearValue, 8> clearValues;
+    std::array<vk::ClearValue, 3u * DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT + 2u> clearValues;
 
     // @note This clear color is used to reset gBufferRenderTargets[0].y to zero,
     // meaning that there is no opaque material there. The effective clear color
@@ -115,12 +119,38 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     const auto& cameraFrustum = camera.frustum();
 
     // Draw all meshes
-    for (auto& mesh : m_scene.meshes()) {
+    std::vector<Mesh::Impl*> depthlessMeshes;
+    for (auto mesh : m_scene.meshes()) {
         if (camera.vrAimed() && !mesh->vrRenderable()) continue;
+        // @todo Somehow, the deep-deferred renderer does not care about wireframes.
+        if (mesh->depthless()) {
+            depthlessMeshes.emplace_back(mesh);
+            continue;
+        }
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
+                         GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+        }
+    }
+
+    deviceHolder.debugEndRegion(commandBuffer);
+
+    //----- Depthless pass
+
+    deviceHolder.debugBeginRegion(commandBuffer, "deep-deferred.depthless");
+
+    commandBuffer.nextSubpass(vk::SubpassContents::eInline);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_depthlessPipelineHolder.pipeline());
+
+    // Draw all meshes
+    for (auto mesh : depthlessMeshes) {
+        if (camera.vrAimed() && !mesh->vrRenderable()) continue;
+        const auto& boundingSphere = mesh->boundingSphere();
+        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+            tracker.counter("draw-calls.renderer") += 1u;
+            mesh->render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                          GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
@@ -272,6 +302,53 @@ void DeepDeferredStage::initGeometryPass()
     m_geometryPipelineHolder.set(vertexInput);
 }
 
+void DeepDeferredStage::initDepthlessPass()
+{
+    //----- Descriptor set layouts
+
+    // @note Ordering is important
+    m_depthlessPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
+    m_depthlessPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
+    m_depthlessPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_depthlessPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
+    m_depthlessPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+
+    //----- Rasterization
+
+    m_depthlessPipelineHolder.set(vk::CullModeFlagBits::eBack);
+
+    //----- Attachments
+
+    vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.depthWriteEnabled = false;
+    depthStencilAttachment.clear = false;
+    m_depthlessPipelineHolder.set(depthStencilAttachment);
+
+    vulkan::PipelineHolder::ColorAttachment gBufferNodeColorAttachment;
+    gBufferNodeColorAttachment.format = vk::Format::eR32G32B32A32Uint;
+    gBufferNodeColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    gBufferNodeColorAttachment.blending = vulkan::PipelineHolder::ColorAttachmentBlending::AlphaBlending;
+
+    // There are multiple nodes render targets
+    for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
+        m_depthlessPipelineHolder.add(gBufferNodeColorAttachment);
+    }
+
+    //---- Vertex input
+
+    vulkan::PipelineHolder::VertexInput vertexInput;
+    vertexInput.stride = sizeof(vulkan::Vertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
+                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
+                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
+    m_depthlessPipelineHolder.set(vertexInput);
+}
+
 void DeepDeferredStage::initEpiphanyPass()
 {
     //----- Shaders
@@ -329,13 +406,22 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
     auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/geometry.vert", moduleOptions);
-    m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     auto fragmentShaderModule =
         m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/deep-deferred/geometry.frag", moduleOptions);
+
+    auto depthlessVertexShaderModule =
+        m_scene.engine().shadersManager().module("./data/shaders/stages/geometry-depthless.vert", moduleOptions);
+
+    m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+
+    m_depthlessPipelineHolder.add(
+        {shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, depthlessVertexShaderModule, "main"});
+    m_depthlessPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     if (!firstTime) {
         m_geometryPipelineHolder.update(m_extent);
+        m_depthlessPipelineHolder.update(m_extent);
     }
 }
 
@@ -420,15 +506,22 @@ void DeepDeferredStage::createFramebuffers()
 {
     // Attachments
     std::vector<vk::ImageView> attachments;
-    attachments.reserve(2u * DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT + 2u);
+    attachments.reserve(3u * (DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT + 1u));
 
+    // Geometry
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
         attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
     }
-
     attachments.emplace_back(m_depthImageHolder.view());
-    attachments.emplace_back(m_finalImageHolder.view());
 
+    // Depthless
+    for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
+        attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
+    }
+    attachments.emplace_back(m_depthImageHolder.view());
+
+    // Epiphany
+    attachments.emplace_back(m_finalImageHolder.view());
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
         attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
     }

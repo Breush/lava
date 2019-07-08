@@ -29,6 +29,9 @@ $pimpl_method(MeshPrimitive, Material&, material);
 $pimpl_method(MeshPrimitive, void, material, Material&, material);
 $pimpl_method(MeshPrimitive, void, translucent, bool, translucent);
 
+$pimpl_property_v(MeshPrimitive, bool, canCastShadows);
+$pimpl_property_v(MeshPrimitive, bool, depthless);
+
 // Debug
 $pimpl_property_v(MeshPrimitive, bool, wireframed);
 $pimpl_property_v(MeshPrimitive, bool, boundingSphereVisible);

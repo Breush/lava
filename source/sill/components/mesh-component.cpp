@@ -23,5 +23,7 @@ $pimpl_method(MeshComponent, void, add, const std::string&, hrid, const MeshAnim
 $pimpl_method(MeshComponent, void, startAnimation, const std::string&, hrid, uint32_t, loops);
 $pimpl_method(MeshComponent, void, onAnimationLoopStart, const std::string&, hrid, AnimationLoopStartCallback, callback);
 
+$pimpl_property_v(MeshComponent, bool, depthless);
+
 $pimpl_property_v(MeshComponent, bool, wireframed);
 $pimpl_property_v(MeshComponent, bool, boundingSpheresVisible);

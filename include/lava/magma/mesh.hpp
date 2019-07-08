@@ -84,6 +84,16 @@ namespace lava::magma {
          */
         bool translucent() const;
         void translucent(bool translucent);
+
+        /**
+         * When a mesh is depthless, it will be renderered
+         * behind all other objects and centered at the camera
+         * point of view. The rotation of the camera is the
+         * only thing that matters then.
+         * This is intended to be used with skyboxes.
+         */
+        bool depthless() const;
+        void depthless(bool depthless);
         /// @}
 
         /**

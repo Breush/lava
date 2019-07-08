@@ -59,29 +59,16 @@ namespace lava::ashe {
 
             m_engine.environmentTexture("./assets/skies/cloudy/");
 
-            // @fixme We could draw the sky into another viewport,
-            // and compose the final image.
-            // Or have it in some pre-pass group with depth disabled.
             auto& skyboxEntity = m_engine.make<sill::GameEntity>();
-            auto& skyboxTransformComponent = skyboxEntity.ensure<sill::TransformComponent>();
-
             auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
-            sill::makers::BoxMeshOptions options;
-            options.siding = sill::BoxSiding::In;
-            options.coordinatesSystem = sill::BoxCoordinatesSystem::Box2x3;
-            sill::makers::boxMeshMaker(80.f, options)(skyMeshComponent);
+            sill::makers::BoxMeshOptions options{.siding = sill::BoxSiding::In};
+            sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
+            skyMeshComponent.depthless(true);
 
             auto& skyboxMaterial = m_engine.make<sill::Material>("skybox");
             skyboxMaterial.set("useEnvironmentMap", true);
             skyboxMaterial.set("lod", 1u);
             skyMeshComponent.node(0).mesh->primitive(0).material(skyboxMaterial);
-
-            // We keep the sky centered in the camera
-            // @fixme The CameraComponent does not care about TransformComponent,
-            // meaning it does not send onWorldTransformChanged.
-            auto& skyboxBehaviorComponent = skyboxEntity.make<sill::BehaviorComponent>();
-            skyboxBehaviorComponent.onUpdate(
-                [&](float /* dt */) { skyboxTransformComponent.translation(cameraComponent.translation()); });
         }
 
         sill::GameEngine& engine() { return m_engine; }

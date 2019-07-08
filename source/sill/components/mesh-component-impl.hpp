@@ -26,6 +26,8 @@ namespace lava::sill {
         void startAnimation(const std::string& hrid, uint32_t loops);
         bool wireframed() const { return m_wireframed; }
         void wireframed(bool wireframed);
+        bool depthless() const { return m_depthless; }
+        void depthless(bool depthless);
         bool boundingSpheresVisible() const { return m_boundingSpheresVisible; }
         void boundingSpheresVisible(bool boundingSpheresVisible);
 
@@ -64,6 +66,7 @@ namespace lava::sill {
 
         // Debug
         bool m_wireframed = false;
+        bool m_depthless = false;
         bool m_boundingSpheresVisible = false;
     };
 }

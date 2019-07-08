@@ -31,8 +31,12 @@ void main() {
 
     mat3 M3 = mat3(mesh.transform);
 
-    vec4 vPosition = camera.viewTransform * mesh.transform * vec4(inMPosition, 1);
+    vec4 vPosition = camera.viewTransform * mesh.transform * vec4(inMPosition, 0);
     gl_Position = camera.projectionTransform * vPosition;
+
+    // @note This makes the shader believes the object is behind everything.
+    // Based on https://learnopengl.com/Advanced-OpenGL/Cubemaps
+    gl_Position = gl_Position.xyww;
 
     // Tangent-space
     vec3 wNormal = inMNormal;
@@ -44,8 +48,5 @@ void main() {
     outUv = inUv;
     outCubeUvw = inMPosition;
 
-    // :NonUniformScaling @fixme There is currently a bug with non-uniform scaling,
-    // as this will change the normal in an unexpected way.
-    // We should probably send T/R/S independently to the push_constants,
-    // and use the rotation matrix directly.
+    // :NonUniformScaling
 }

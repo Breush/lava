@@ -21,6 +21,7 @@ int main(void)
     GameState gameState;
     gameState.engine = &engine;
 
+    engine.registerMaterialFromFile("skybox", "./data/shaders/materials/skybox-material.shmag");
     engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/panel-material.shmag");
 
     // Camera (for companion window)

@@ -103,7 +103,8 @@ void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
     if (m_depthStencilAttachment) {
         depthStencilState.depthTestEnable = true;
         depthStencilState.depthWriteEnable = m_depthStencilAttachment->depthWriteEnabled;
-        depthStencilState.depthCompareOp = vk::CompareOp::eLess;
+        depthStencilState.depthCompareOp =
+            (m_depthStencilAttachment->depthWriteEnabled) ? vk::CompareOp::eLess : vk::CompareOp::eLessOrEqual;
         depthStencilState.minDepthBounds = 0.f;
         depthStencilState.maxDepthBounds = 1.f;
     }

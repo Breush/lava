@@ -194,6 +194,20 @@ void MeshComponent::Impl::wireframed(bool wireframed)
     }
 }
 
+void MeshComponent::Impl::depthless(bool depthless)
+{
+    if (m_depthless == depthless) return;
+    m_depthless = depthless;
+
+    for (auto& node : m_nodes) {
+        if (node.mesh != nullptr) {
+            for (auto& primitive : node.mesh->primitives()) {
+                primitive.depthless(depthless);
+            }
+        }
+    }
+}
+
 void MeshComponent::Impl::boundingSpheresVisible(bool boundingSpheresVisible)
 {
     if (m_boundingSpheresVisible == boundingSpheresVisible) return;
