@@ -30,8 +30,7 @@ PhysicsComponent::Impl::~Impl()
 
 void PhysicsComponent::Impl::update(float /* dt */)
 {
-    // @fixme Have a flag in dike, so that we don't update uselessly
-    // Fact is dike should tell us whenever we really need to update.
+    if (!m_rigidBody->transformChanged()) return;
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 

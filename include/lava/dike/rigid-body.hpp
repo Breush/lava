@@ -30,11 +30,17 @@ namespace lava::dike {
         bool dynamic() const;
         void dynamic(bool dynamic);
 
+        // Whether the transform changed during last update.
+        bool transformChanged() const;
+
         const glm::mat4& transform() const;
         void transform(const glm::mat4& transform);
 
-    private:
+    public:
         class Impl;
+        Impl& impl() { return *m_impl; }
+
+    private:
         Impl* m_impl = nullptr;
     };
 }

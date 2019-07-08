@@ -24,6 +24,9 @@ namespace lava::dike {
         bool dynamic() const { return m_dynamic; }
         void dynamic(bool dynamic);
 
+        void resetTransformChanged() { m_motionState.resetTransformChanged(); }
+        bool transformChanged() const { return m_motionState.transformChanged(); }
+
         const glm::mat4& transform() const { return m_transform; }
         void transform(const glm::mat4& transform);
 

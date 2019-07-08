@@ -11,6 +11,9 @@ namespace lava::dike {
 
         virtual ~MotionState() = default;
 
+        void resetTransformChanged() { m_transformChanged = false; }
+        bool transformChanged() const { return m_transformChanged; }
+
         void getWorldTransform(btTransform& worldTrans) const override final
         {
             // @note We don't really care here... That's the initial position
@@ -36,11 +39,13 @@ namespace lava::dike {
                 }
             }
 
+            m_transformChanged = true;
             worldTrans.getOpenGLMatrix(reinterpret_cast<float*>(&m_transform));
         }
 
     private:
         glm::mat4& m_transform;
         bool m_firstTime = true;
+        bool m_transformChanged = false;
     };
 }

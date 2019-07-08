@@ -1,10 +1,16 @@
 #include "./physics-engine-impl.hpp"
 
+#include "./rigid-body-impl.hpp"
+
 using namespace lava::dike;
 
 void PhysicsEngine::Impl::update(float dt)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    for (auto& rigidBody : m_rigidBodies) {
+        rigidBody->impl().resetTransformChanged();
+    }
 
     m_dynamicsWorld.stepSimulation(dt);
 }
