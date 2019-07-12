@@ -216,7 +216,7 @@ void MeshComponent::Impl::boundingSpheresVisible(bool boundingSpheresVisible)
     for (auto& node : m_nodes) {
         if (node.mesh != nullptr) {
             for (auto& primitive : node.mesh->primitives()) {
-                primitive.boundingSphereVisible(boundingSpheresVisible);
+                primitive.debugBoundingSphere(boundingSpheresVisible);
             }
         }
     }

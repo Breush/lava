@@ -1,9 +1,9 @@
 #include "./render-scene-impl.hpp"
 
+#include "../../aft-vulkan/mesh-aft.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../material-impl.hpp"
-#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
 #include "../stages/forward-renderer-stage.hpp"
@@ -25,7 +25,15 @@ RenderScene::Impl::Impl(RenderEngine& engine, RenderScene& scene)
 {
 }
 
-RenderScene::Impl::~Impl() = default;
+RenderScene::Impl::~Impl()
+{
+    // @note This is just to please the validation layers,
+    // because eveything is going to be removed anyway,
+    // and no more used.
+    for (auto mesh : m_meshes) {
+        m_scene.meshAllocator().deallocate(mesh);
+    }
+}
 
 //----- IRenderScene
 
@@ -68,15 +76,9 @@ void RenderScene::Impl::update()
         auto pendingRemovedMeshes = m_pendingRemovedMeshes;
 
         for (auto mesh : pendingRemovedMeshes) {
-            for (auto iMeshImpl = m_meshesImpls.begin(); iMeshImpl != m_meshesImpls.end(); ++iMeshImpl) {
-                if (*iMeshImpl == &mesh->impl()) {
-                    m_meshesImpls.erase(iMeshImpl);
-                    break;
-                }
-            }
-
             for (auto iMesh = m_meshes.begin(); iMesh != m_meshes.end(); ++iMesh) {
-                if (iMesh->get() == mesh) {
+                if (*iMesh == mesh) {
+                    m_scene.meshAllocator().deallocate(mesh);
                     m_meshes.erase(iMesh);
                     break;
                 }
@@ -99,8 +101,8 @@ void RenderScene::Impl::update()
         material->impl().update();
     }
 
-    for (auto& mesh : m_meshesImpls) {
-        mesh->update();
+    for (auto mesh : m_meshes) {
+        mesh->aft().update();
     }
 }
 
@@ -213,14 +215,13 @@ void RenderScene::Impl::add(std::unique_ptr<Texture>&& texture)
     m_textures.emplace_back(std::move(texture));
 }
 
-void RenderScene::Impl::add(std::unique_ptr<Mesh>&& mesh)
+void RenderScene::Impl::add(Mesh& mesh)
 {
     if (m_initialized) {
-        mesh->impl().init();
+        mesh.aft().init();
     }
 
-    m_meshes.emplace_back(std::move(mesh));
-    m_meshesImpls.emplace_back(&m_meshes.back()->impl());
+    m_meshes.emplace_back(&mesh);
 }
 
 void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
@@ -461,8 +462,8 @@ void RenderScene::Impl::initResources()
         material->impl().init();
     }
 
-    for (auto& mesh : m_meshes) {
-        mesh->impl().init();
+    for (auto mesh : m_meshes) {
+        mesh->aft().init();
     }
 
     for (auto lightId = 0u; lightId < m_lightBundles.size(); ++lightId) {

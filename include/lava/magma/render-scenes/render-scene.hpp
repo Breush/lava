@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/chamber/bucket-allocator.hpp>
 #include <lava/magma/renderer-type.hpp>
 
 #include <functional>
@@ -54,7 +55,7 @@ namespace lava::magma {
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
-        void add(std::unique_ptr<Mesh>&& mesh);
+        void add(Mesh& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
 
@@ -76,12 +77,22 @@ namespace lava::magma {
         void environmentTexture(Texture* texture);
         /// @}
 
+        /**
+         * @name Allocators
+         */
+        /// @{
+        chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
+        /// @}
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }
 
     private:
         Impl* m_impl = nullptr;
+
+    private:
+        chamber::BucketAllocator m_meshAllocator;
     };
 }
 

@@ -35,7 +35,7 @@ void Shadows::init(uint32_t lightId, uint32_t cameraId)
         m_descriptorSets[i] = m_scene.shadowsDescriptorHolder().allocateSet("shadows." + std::to_string(m_lightId) + "."
                                                                             + std::to_string(cameraId) + "." + std::to_string(i));
         m_uboHolders[i].init(m_descriptorSets[i], m_scene.shadowsDescriptorHolder().uniformBufferBindingOffset(),
-                             {sizeof(vulkan::ShadowsUbo)});
+                             {sizeof(ShadowsUbo)});
     }
 
     updateImagesBindings();
@@ -168,7 +168,7 @@ void Shadows::updateBindings(uint32_t frameId)
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     // Bind the splits
-    vulkan::ShadowsUbo ubo;
+    ShadowsUbo ubo;
     for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
         ubo.cascadesTransforms[i] = m_scene.shadowsCascadeTransform(m_lightId, m_cameraId, i);
         ubo.cascadesSplits[i][0] = m_scene.shadowsCascadeSplitDepth(m_lightId, m_cameraId, i);

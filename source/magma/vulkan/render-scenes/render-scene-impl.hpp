@@ -51,7 +51,6 @@ namespace lava::magma {
          * @name Allocators
          */
         /// @{
-        chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
         chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
         /// @}
 
@@ -69,7 +68,7 @@ namespace lava::magma {
         void add(std::unique_ptr<ICamera>&& camera);
         void add(std::unique_ptr<Material>&& material);
         void add(std::unique_ptr<Texture>&& texture);
-        void add(std::unique_ptr<Mesh>&& mesh);
+        void add(Mesh& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
 
@@ -106,7 +105,7 @@ namespace lava::magma {
 
         const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
         const Material::Impl& material(uint32_t index) const { return m_materials[index]->impl(); }
-        const Mesh::Impl& mesh(uint32_t index) const { return *m_meshesImpls[index]; }
+        const Mesh& mesh(uint32_t index) const { return *m_meshes[index]; }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
         ILight::Impl& light(uint32_t index) { return m_lightBundles[index].light->interfaceImpl(); }
         const Shadows& shadows(uint32_t lightIndex, uint32_t cameraIndex) const;
@@ -114,7 +113,7 @@ namespace lava::magma {
 
         const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
-        const std::vector<Mesh::Impl*>& meshes() const { return m_meshesImpls; }
+        const std::vector<Mesh*>& meshes() const { return m_meshes; }
 
         uint32_t camerasCount() const { return m_cameraBundles.size(); }
         uint32_t lightsCount() const { return m_lightBundles.size(); }
@@ -165,7 +164,6 @@ namespace lava::magma {
         RendererType m_rendererType;
 
         // Allocators
-        chamber::BucketAllocator m_meshAllocator;
         chamber::BucketAllocator m_materialAllocator;
 
         // Resources
@@ -184,12 +182,9 @@ namespace lava::magma {
         std::vector<LightBundle> m_lightBundles;
         std::vector<std::unique_ptr<Material>> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
-        std::vector<std::unique_ptr<Mesh>> m_meshes;
+        std::vector<Mesh*> m_meshes; // Pointing to bucket allocators' adresses.
 
         std::vector<const Mesh*> m_pendingRemovedMeshes;
-
-        // Data references
-        std::vector<Mesh::Impl*> m_meshesImpls;
 
         std::vector<vk::CommandBuffer> m_commandBuffers; // All recorded command buffers during last record() call.
     };

@@ -1,9 +1,18 @@
+project "lava-magma-aft"
+    kind "Utility"
+
+    prebuildcommands {
+        "bash ./scripts/aft.sh magma vulkan"
+    }
+
 project "lava-magma"
     kind "SharedLib"
     pic "on"
 
     pchheader "magma/pch.hpp"
     files "magma/**"
+
+    dependson("lava-magma-aft")
 
     function magmaDependencies()
         if options.windowingSystem == "xcb" then

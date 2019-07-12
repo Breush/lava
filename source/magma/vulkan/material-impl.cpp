@@ -94,7 +94,7 @@ void Material::Impl::init()
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = m_scene.materialDescriptorHolder().allocateSet("material." + std::to_string(i), true);
         m_uboHolders[i].init(m_descriptorSets[i], m_scene.materialDescriptorHolder().uniformBufferBindingOffset(),
-                             {sizeof(vulkan::MaterialUbo)});
+                             {sizeof(MaterialUbo)});
     }
 
     m_initialized = true;

@@ -1,16 +1,17 @@
 #include "./forward-renderer-stage.hpp"
 
+#include <lava/magma/vertex.hpp>
+
+#include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../g-buffer-data.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../environment.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../vertex.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -118,9 +119,9 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     m_scene.environment().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), ENVIRONMENT_DESCRIPTOR_SET_INDEX);
 
     // Draw all opaque meshes and sort others
-    std::vector<Mesh::Impl*> depthlessMeshes;
-    std::vector<Mesh::Impl*> wireframedMeshes;
-    std::vector<Mesh::Impl*> translucentMeshes;
+    std::vector<const Mesh*> depthlessMeshes;
+    std::vector<const Mesh*> wireframedMeshes;
+    std::vector<const Mesh*> translucentMeshes;
     for (auto mesh : m_scene.meshes()) {
         if (camera.vrAimed() && !mesh->vrRenderable()) continue;
         if (mesh->depthless()) {
@@ -139,8 +140,8 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
-                         MATERIAL_DESCRIPTOR_SET_INDEX);
+            mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+                               MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
 
@@ -155,8 +156,8 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
 
     for (auto mesh : depthlessMeshes) {
         tracker.counter("draw-calls.renderer") += 1u;
-        mesh->render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
-                     MATERIAL_DESCRIPTOR_SET_INDEX);
+        mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+                           MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
     deviceHolder.debugEndRegion(commandBuffer);
@@ -174,7 +175,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
+            mesh->aft().renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
         }
     }
 
@@ -194,8 +195,8 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
-                         MATERIAL_DESCRIPTOR_SET_INDEX);
+            mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+                               MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
 
@@ -237,8 +238,8 @@ void ForwardRendererStage::initOpaquePass()
 
     //----- Push constants
 
-    m_opaquePipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_opaquePipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_opaquePipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_opaquePipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Rasterization
 
@@ -258,11 +259,11 @@ void ForwardRendererStage::initOpaquePass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::Vertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
-                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
-                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
-                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
+    vertexInput.stride = sizeof(Vertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},
+                              {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
+                              {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
     m_opaquePipelineHolder.set(vertexInput);
 }
 
@@ -278,8 +279,8 @@ void ForwardRendererStage::initDepthlessPass()
 
     //----- Push constants
 
-    m_depthlessPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_depthlessPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_depthlessPipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_depthlessPipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Rasterization
 
@@ -302,11 +303,11 @@ void ForwardRendererStage::initDepthlessPass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::Vertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
-                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
-                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
-                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
+    vertexInput.stride = sizeof(Vertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},
+                              {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
+                              {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
     m_depthlessPipelineHolder.set(vertexInput);
 }
 
@@ -323,8 +324,8 @@ void ForwardRendererStage::initWireframePass()
 
     //----- Push constants
 
-    m_wireframePipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_wireframePipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_wireframePipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_wireframePipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Rasterization
 
@@ -347,8 +348,8 @@ void ForwardRendererStage::initWireframePass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::UnlitVertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::UnlitVertex, pos)}};
+    vertexInput.stride = sizeof(UnlitVertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(UnlitVertex, pos)}};
     m_wireframePipelineHolder.set(vertexInput);
 }
 
@@ -367,8 +368,8 @@ void ForwardRendererStage::initTranslucentPass()
 
     //----- Push constants
 
-    m_translucentPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_translucentPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_translucentPipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_translucentPipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Rasterization
 
@@ -391,11 +392,11 @@ void ForwardRendererStage::initTranslucentPass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::Vertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
-                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
-                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
-                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
+    vertexInput.stride = sizeof(Vertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},
+                              {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
+                              {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
     m_translucentPipelineHolder.set(vertexInput);
 }
 

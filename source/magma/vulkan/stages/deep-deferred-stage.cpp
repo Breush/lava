@@ -1,14 +1,15 @@
 #include "./deep-deferred-stage.hpp"
 
+#include <lava/magma/vertex.hpp>
+
+#include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../vertex.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -119,7 +120,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     const auto& cameraFrustum = camera.frustum();
 
     // Draw all meshes
-    std::vector<Mesh::Impl*> depthlessMeshes;
+    std::vector<const Mesh*> depthlessMeshes;
     for (auto mesh : m_scene.meshes()) {
         if (camera.vrAimed() && !mesh->vrRenderable()) continue;
         // @todo Somehow, the deep-deferred renderer does not care about wireframes.
@@ -130,8 +131,8 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
-                         GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+            mesh->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
+                               GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
 
@@ -150,8 +151,8 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
         const auto& boundingSphere = mesh->boundingSphere();
         if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
-                         GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+            mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
+                               GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
 
@@ -250,8 +251,8 @@ void DeepDeferredStage::initClearPass()
 
     //----- Push constants
 
-    m_clearPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_clearPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_clearPipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_clearPipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 }
 
 void DeepDeferredStage::initGeometryPass()
@@ -269,8 +270,8 @@ void DeepDeferredStage::initGeometryPass()
 
     //----- Push constants
 
-    m_geometryPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_geometryPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_geometryPipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_geometryPipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Rasterization
 
@@ -294,11 +295,11 @@ void DeepDeferredStage::initGeometryPass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::Vertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
-                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
-                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
-                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
+    vertexInput.stride = sizeof(Vertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},
+                              {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
+                              {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
     m_geometryPipelineHolder.set(vertexInput);
 }
 
@@ -313,8 +314,8 @@ void DeepDeferredStage::initDepthlessPass()
 
     //----- Push constants
 
-    m_depthlessPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_depthlessPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_depthlessPipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_depthlessPipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Rasterization
 
@@ -341,11 +342,11 @@ void DeepDeferredStage::initDepthlessPass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::Vertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, pos)},
-                              {vk::Format::eR32G32Sfloat, offsetof(vulkan::Vertex, uv)},
-                              {vk::Format::eR32G32B32Sfloat, offsetof(vulkan::Vertex, normal)},
-                              {vk::Format::eR32G32B32A32Sfloat, offsetof(vulkan::Vertex, tangent)}};
+    vertexInput.stride = sizeof(Vertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},
+                              {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
+                              {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
     m_depthlessPipelineHolder.set(vertexInput);
 }
 
@@ -365,8 +366,8 @@ void DeepDeferredStage::initEpiphanyPass()
 
     //----- Push constants
 
-    m_epiphanyPipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_epiphanyPipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_epiphanyPipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_epiphanyPipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Attachments
 

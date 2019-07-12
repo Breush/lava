@@ -38,10 +38,7 @@ void RenderScene::add(std::unique_ptr<Texture>&& texture)
     m_impl->add(std::move(texture));
 }
 
-void RenderScene::add(std::unique_ptr<Mesh>&& mesh)
-{
-    m_impl->add(std::move(mesh));
-}
+$pimpl_method(RenderScene, void, add, Mesh&, mesh);
 
 void RenderScene::add(std::unique_ptr<ILight>&& light)
 {

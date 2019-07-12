@@ -3,7 +3,6 @@
 #include "../helpers/descriptor.hpp"
 #include "../holders/swapchain-holder.hpp"
 #include "../render-engine-impl.hpp"
-#include "../vertex.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;

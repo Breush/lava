@@ -43,8 +43,8 @@ namespace lava::sill {
         void material(Material& material);
         void translucent(bool translucent);
 
-        bool canCastShadows() const;
-        void canCastShadows(bool canCastShadows);
+        bool shadowsCastable() const;
+        void shadowsCastable(bool shadowsCastable);
 
         bool depthless() const;
         void depthless(bool depthless);
@@ -57,8 +57,8 @@ namespace lava::sill {
         bool wireframed() const;
         void wireframed(bool wireframed);
 
-        bool boundingSphereVisible() const;
-        void boundingSphereVisible(bool boundingSphereVisible);
+        bool debugBoundingSphere() const;
+        void debugBoundingSphere(bool debugBoundingSphere);
         /// @}
 
     public:

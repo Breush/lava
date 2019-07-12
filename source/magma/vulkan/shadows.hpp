@@ -2,8 +2,8 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include "../ubos.hpp" // SHADOWS_CASCADES_COUNT
 #include "./holders/ubo-holder.hpp"
-#include "./ubos.hpp"
 
 namespace lava::magma {
     /**

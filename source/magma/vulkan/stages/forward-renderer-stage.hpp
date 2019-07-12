@@ -4,12 +4,12 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include "../../ubos.hpp"
 #include "../holders/buffer-holder.hpp"
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"
 #include "../holders/render-pass-holder.hpp"
-#include "../ubos.hpp"
 
 namespace lava::magma {
     /**
@@ -21,7 +21,7 @@ namespace lava::magma {
         constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 2u;
         constexpr static const uint32_t SHADOWS_DESCRIPTOR_SET_INDEX = 3u;
         constexpr static const uint32_t CAMERA_PUSH_CONSTANT_OFFSET = 0u;
-        constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = sizeof(vulkan::CameraUbo);
+        constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = sizeof(CameraUbo);
 
     public:
         ForwardRendererStage(RenderScene::Impl& scene);

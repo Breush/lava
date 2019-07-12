@@ -1,14 +1,15 @@
 #include "./shadows-stage.hpp"
 
+#include <lava/magma/vertex.hpp>
+
+#include "../../aft-vulkan/mesh-aft.hpp"
+#include "../../ubos.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/directional-light-impl.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../ubos.hpp"
-#include "../vertex.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -87,14 +88,14 @@ void ShadowsStage::render(vk::CommandBuffer commandBuffer, uint32_t cameraId)
         cascades[i].ubo.cascadeTransform = shadows.cascadeTransform(i);
         commandBuffer.pushConstants(m_pipelineHolder.pipelineLayout(),
                                     vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                    SHADOW_MAP_PUSH_CONSTANT_OFFSET, sizeof(vulkan::ShadowMapUbo), &cascades[i].ubo);
+                                    SHADOW_MAP_PUSH_CONSTANT_OFFSET, sizeof(ShadowMapUbo), &cascades[i].ubo);
 
         // @fixme We could frustrum cull out of light's frustrum
         // Draw all meshes
-        for (auto& mesh : m_scene.meshes()) {
-            if (!mesh->canCastShadows()) continue;
+        for (auto mesh : m_scene.meshes()) {
+            if (!mesh->shadowsCastable()) continue;
             tracker.counter("draw-calls.shadows") += 1u;
-            mesh->renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
+            mesh->aft().renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
         }
 
         // Draw
@@ -135,8 +136,8 @@ void ShadowsStage::initPass()
 
     //----- Push constants
 
-    m_pipelineHolder.addPushConstantRange(sizeof(vulkan::MeshUbo));
-    m_pipelineHolder.addPushConstantRange(sizeof(vulkan::CameraUbo));
+    m_pipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_pipelineHolder.addPushConstantRange(sizeof(CameraUbo));
 
     //----- Attachments
 
@@ -152,8 +153,8 @@ void ShadowsStage::initPass()
     //---- Vertex input
 
     vulkan::PipelineHolder::VertexInput vertexInput;
-    vertexInput.stride = sizeof(vulkan::UnlitVertex);
-    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(vulkan::UnlitVertex, pos)}};
+    vertexInput.stride = sizeof(UnlitVertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(UnlitVertex, pos)}};
     m_pipelineHolder.set(vertexInput);
 }
 

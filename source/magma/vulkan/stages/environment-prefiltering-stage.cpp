@@ -1,11 +1,10 @@
 #include "./environment-prefiltering-stage.hpp"
 
+#include "../../aft-vulkan/mesh-aft.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../mesh-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../vertex.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -111,7 +110,7 @@ void EnvironmentPrefilteringStage::render(vk::CommandBuffer commandBuffer, uint8
         m_radianceUbo.samplesCount = SAMPLES_COUNT;
         commandBuffer.pushConstants(m_pipelineHolder.pipelineLayout(),
                                     vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0,
-                                    sizeof(vulkan::EnvironmentRadianceUbo), &m_radianceUbo);
+                                    sizeof(EnvironmentRadianceUbo), &m_radianceUbo);
     }
     else if (m_algorithm == Algorithm::Irradiance) {
         m_irradianceUbo.mvp = glm::perspective(math::PI / 2.f, 1.0f, 0.1f, (float)m_extent.width) * matrices[faceIndex];
@@ -119,7 +118,7 @@ void EnvironmentPrefilteringStage::render(vk::CommandBuffer commandBuffer, uint8
         m_irradianceUbo.deltaTheta = (0.5f * math::PI) / 64.0f;
         commandBuffer.pushConstants(m_pipelineHolder.pipelineLayout(),
                                     vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0,
-                                    sizeof(vulkan::EnvironmentIrradianceUbo), &m_irradianceUbo);
+                                    sizeof(EnvironmentIrradianceUbo), &m_irradianceUbo);
     }
 
     commandBuffer.draw(6, 1, 0, 0);
@@ -163,9 +162,9 @@ void EnvironmentPrefilteringStage::initPass()
     //----- Push constants
 
     if (m_algorithm == Algorithm::Radiance)
-        m_pipelineHolder.addPushConstantRange(sizeof(vulkan::EnvironmentRadianceUbo));
+        m_pipelineHolder.addPushConstantRange(sizeof(EnvironmentRadianceUbo));
     else if (m_algorithm == Algorithm::Irradiance)
-        m_pipelineHolder.addPushConstantRange(sizeof(vulkan::EnvironmentIrradianceUbo));
+        m_pipelineHolder.addPushConstantRange(sizeof(EnvironmentIrradianceUbo));
 
     //----- Attachments
 

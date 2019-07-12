@@ -3,11 +3,11 @@
 #include <lava/magma/lights/i-light.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include "../../ubos.hpp"
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"
 #include "../holders/render-pass-holder.hpp"
 #include "../render-engine-impl.hpp"
-#include "../ubos.hpp"
 
 namespace lava::magma {
     // @todo Currently fixed extent for shadow maps, might need dynamic ones
@@ -18,7 +18,7 @@ namespace lava::magma {
      */
     class ShadowsStage final {
         constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = 0u;
-        constexpr static const uint32_t SHADOW_MAP_PUSH_CONSTANT_OFFSET = sizeof(vulkan::MeshUbo);
+        constexpr static const uint32_t SHADOW_MAP_PUSH_CONSTANT_OFFSET = sizeof(MeshUbo);
 
     public:
         ShadowsStage(RenderScene::Impl& scene);
@@ -41,7 +41,7 @@ namespace lava::magma {
         struct Cascade {
             vulkan::ImageHolder imageHolder;
             vulkan::Framebuffer framebuffer;
-            vulkan::ShadowMapUbo ubo;
+            ShadowMapUbo ubo;
 
             Cascade(RenderEngine::Impl& engine)
                 : imageHolder(engine, "magma.vulkan.shadows-stage.cascade.image")

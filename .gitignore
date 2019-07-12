@@ -13,3 +13,4 @@ Makefile
 *.make
 *.spv
 *.tmp
+aft-infos.hpp

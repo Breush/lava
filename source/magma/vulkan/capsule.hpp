@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vulkan/vulkan.hpp>
+
 namespace lava::magma::vulkan {
 /**
  * Encapsulate destructor behavior for Vulkan types.

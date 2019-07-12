@@ -49,7 +49,7 @@ void VrEyeCamera::Impl::render(vk::CommandBuffer commandBuffer, vk::PipelineLayo
                                uint32_t pushConstantOffset) const
 {
     commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                pushConstantOffset, sizeof(vulkan::CameraUbo), &m_ubo);
+                                pushConstantOffset, sizeof(CameraUbo), &m_ubo);
 }
 
 void VrEyeCamera::Impl::extent(Extent2d extent)

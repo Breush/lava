@@ -2,10 +2,10 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include "../../ubos.hpp"
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"
 #include "../holders/render-pass-holder.hpp"
-#include "../ubos.hpp"
 
 namespace lava::magma {
     class Environment;
@@ -55,8 +55,8 @@ namespace lava::magma {
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;
         vulkan::PipelineHolder m_pipelineHolder;
-        vulkan::EnvironmentRadianceUbo m_radianceUbo;
-        vulkan::EnvironmentIrradianceUbo m_irradianceUbo;
+        EnvironmentRadianceUbo m_radianceUbo;
+        EnvironmentIrradianceUbo m_irradianceUbo;
 
         // Resources
         vulkan::ImageHolder m_imageHolder;

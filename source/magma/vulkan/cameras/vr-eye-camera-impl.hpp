@@ -6,8 +6,8 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include "../../ubos.hpp"
 #include "../../vr-engine.hpp"
-#include "../ubos.hpp"
 
 namespace lava::magma {
     /**
@@ -60,7 +60,7 @@ namespace lava::magma {
         bool m_initialized = false;
 
         // Descriptor
-        vulkan::CameraUbo m_ubo;
+        CameraUbo m_ubo;
 
         // Configuration
         vk::Extent2D m_extent;

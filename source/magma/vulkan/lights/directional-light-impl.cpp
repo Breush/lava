@@ -1,9 +1,9 @@
 #include "./directional-light-impl.hpp"
 
+#include "../../ubos.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../ubos.hpp"
 
 using namespace lava::magma;
 
@@ -40,7 +40,7 @@ void DirectionalLight::Impl::init(uint32_t id)
         m_descriptorSets[i] =
             m_scene.lightsDescriptorHolder().allocateSet("directional-light." + std::to_string(id) + "." + std::to_string(i));
         m_uboHolders[i].init(m_descriptorSets[i], m_scene.lightsDescriptorHolder().uniformBufferBindingOffset(),
-                             {sizeof(vulkan::LightUbo)});
+                             {sizeof(LightUbo)});
     }
 
     m_initialized = true;
@@ -82,7 +82,7 @@ void DirectionalLight::Impl::updateBindings()
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    vulkan::LightUbo ubo(type());
+    LightUbo ubo(type());
     ubo.data[0].x = reinterpret_cast<const uint32_t&>(m_direction.x);
     ubo.data[0].y = reinterpret_cast<const uint32_t&>(m_direction.y);
     ubo.data[0].z = reinterpret_cast<const uint32_t&>(m_direction.z);

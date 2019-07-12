@@ -33,20 +33,22 @@ namespace lava::sill {
             m_material = &material;
             m_magma->material(material.magma());
         }
+
+        bool translucent() const { return m_magma->translucent(); }
         void translucent(bool translucent) { m_magma->translucent(translucent); }
 
-        bool canCastShadows() const { return m_magma->canCastShadows(); }
-        void canCastShadows(bool canCastShadows) { m_magma->canCastShadows(canCastShadows); }
+        bool wireframed() const { return m_magma->wireframed(); }
+        void wireframed(bool wireframed) { m_magma->wireframed(wireframed); }
+
+        bool shadowsCastable() const { return m_magma->shadowsCastable(); }
+        void shadowsCastable(bool shadowsCastable) { m_magma->shadowsCastable(shadowsCastable); }
 
         bool depthless() const { return m_magma->depthless(); }
         void depthless(bool depthless) { m_magma->depthless(depthless); }
 
         // Debug
-        bool wireframed() const { return m_magma->wireframed(); }
-        void wireframed(bool wireframed) { m_magma->wireframed(wireframed); }
-
-        bool boundingSphereVisible() const { return m_magma->boundingSphereVisible(); }
-        void boundingSphereVisible(bool boundingSphereVisible) { m_magma->boundingSphereVisible(boundingSphereVisible); }
+        bool debugBoundingSphere() const { return m_magma->debugBoundingSphere(); }
+        void debugBoundingSphere(bool debugBoundingSphere) { m_magma->debugBoundingSphere(debugBoundingSphere); }
 
     private:
         // References

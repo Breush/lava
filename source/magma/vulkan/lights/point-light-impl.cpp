@@ -1,8 +1,8 @@
 #include "./point-light-impl.hpp"
 
+#include "../../ubos.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
-#include "../ubos.hpp"
 
 using namespace lava::magma;
 
@@ -39,7 +39,7 @@ void PointLight::Impl::init(uint32_t id)
         m_descriptorSets[i] =
             m_scene.lightsDescriptorHolder().allocateSet("point-light." + std::to_string(id) + "." + std::to_string(i));
         m_uboHolders[i].init(m_descriptorSets[i], m_scene.lightsDescriptorHolder().uniformBufferBindingOffset(),
-                             {sizeof(vulkan::LightUbo)});
+                             {sizeof(LightUbo)});
     }
 
     m_initialized = true;
@@ -86,7 +86,7 @@ void PointLight::Impl::updateBindings()
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    vulkan::LightUbo ubo(type());
+    LightUbo ubo(type());
     ubo.transform = glm::translate(glm::mat4(1.f), m_translation); // @fixme Could be useless, just store that in data
     ubo.data[0].x = reinterpret_cast<const uint32_t&>(m_radius);
     m_uboHolders[m_currentFrameId].copy(0, ubo);

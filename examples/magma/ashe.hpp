@@ -240,7 +240,7 @@ namespace lava::ashe {
             // The cylinder
             auto& cylinder = makeCylinder(0.01f, 1.f, axis);
             cylinder.material(material);
-            cylinder.canCastShadows(false);
+            cylinder.shadowsCastable(false);
         }
 
         magma::Mesh& makeCylinder(float radius, float length, Axis axis)

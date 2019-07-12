@@ -1,6 +1,9 @@
 #pragma once
 
-#include "../light-type.hpp"
+#include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
+
+#include "./light-type.hpp"
 
 namespace lava::magma {
     constexpr const uint32_t MATERIAL_DATA_SIZE = 16u;
@@ -9,8 +12,7 @@ namespace lava::magma {
     constexpr const uint32_t SHADOWS_CASCADES_COUNT = 4u;
 }
 
-// @fixme UBO definitions should not be in 'vulkan' namespace...
-namespace lava::magma::vulkan {
+namespace lava::magma {
     // To be used as push-constants.
     struct ShadowMapUbo { // 64 bytes
         glm::mat4 cascadeTransform;

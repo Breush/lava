@@ -5,10 +5,10 @@
 #include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/texture.hpp>
 
+#include "../ubos.hpp"
 #include "../uniform.hpp"
 #include "./holders/image-holder.hpp"
 #include "./holders/ubo-holder.hpp"
-#include "./ubos.hpp"
 
 namespace lava::magma {
     /**
@@ -62,7 +62,7 @@ namespace lava::magma {
         bool m_uboDirty = false;
 
         // Data
-        vulkan::MaterialUbo m_ubo;
+        MaterialUbo m_ubo;
         std::unordered_map<std::string, Attribute> m_attributes;
     };
 }
