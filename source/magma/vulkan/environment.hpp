@@ -19,7 +19,7 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
         void renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
 
-        void set(Texture::Impl& texture);
+        void set(Texture* texture);
 
     protected:
         void computeRadiance();
@@ -35,7 +35,7 @@ namespace lava::magma {
         // References
         RenderScene::Impl& m_scene;
         bool m_initialized = false;
-        Texture::Impl* m_texture = nullptr;
+        Texture* m_texture = nullptr;
         Texture* m_brdfLutTexture = nullptr;
 
         // Prefiltering

@@ -1,5 +1,10 @@
 #pragma once
 
+#include <cstdint>
+#include <glm/glm.hpp>
+#include <string>
+#include <vector>
+
 namespace lava::magma {
     enum class UniformType {
         Unknown,

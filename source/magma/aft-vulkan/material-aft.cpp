@@ -1,7 +1,7 @@
 #include "./material-aft.hpp"
 
 #include "../vulkan/render-scenes/render-scene-impl.hpp"
-#include "../vulkan/texture-impl.hpp"
+#include "./texture-aft.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
@@ -78,7 +78,7 @@ void MaterialAft::updateBindings()
         const auto& attribute = attributePair.second;
         if (attribute.type == UniformType::Texture) {
             if (attribute.texture) {
-                imageView = attribute.texture->impl().imageView();
+                imageView = attribute.texture->aft().imageView();
             }
             else if (attribute.fallback.textureTypeValue == UniformTextureType::Normal) {
                 imageView = engine.dummyNormalImageView();
@@ -107,7 +107,7 @@ void MaterialAft::updateBindings()
         const auto& attribute = attributePair.second;
         if (attribute.type == UniformType::CubeTexture) {
             if (attribute.texture) {
-                cubeImageView = attribute.texture->impl().imageView();
+                cubeImageView = attribute.texture->aft().imageView();
             }
             else {
                 continue;

@@ -1,8 +1,8 @@
 #include "./environment.hpp"
 
+#include "../aft-vulkan/texture-aft.hpp"
 #include "./render-engine-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"
-#include "./texture-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -62,9 +62,9 @@ void Environment::renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayou
                                      &m_basicDescriptorSet, 0, nullptr);
 }
 
-void Environment::set(Texture::Impl& texture)
+void Environment::set(Texture* texture)
 {
-    m_texture = &texture;
+    m_texture = texture;
     updateBasicBindings();
 
     m_radianceStage.update({ENVIRONMENT_RADIANCE_SIZE, ENVIRONMENT_RADIANCE_SIZE});
@@ -201,7 +201,7 @@ void Environment::updateBrdfLutBindings()
     auto& engine = m_scene.engine();
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    vk::ImageView imageView = m_brdfLutTexture->impl().imageView();
+    vk::ImageView imageView = m_brdfLutTexture->aft().imageView();
 
     vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 2u);
     vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet, imageView, sampler, imageLayout, 2u);
@@ -221,7 +221,7 @@ void Environment::updateBasicBindings()
 
     // Or use texture if provided!
     if (m_texture != nullptr) {
-        imageView = m_texture->imageView();
+        imageView = m_texture->aft().imageView();
     }
 
     vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet, imageView, sampler, imageLayout, 0u);

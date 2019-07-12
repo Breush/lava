@@ -44,7 +44,7 @@ namespace lava::magma {
          * @name Environment
          */
         /// @{
-        void environmentTexture(Texture* texture) { m_environment.set(texture->impl()); }
+        void environmentTexture(Texture* texture) { m_environment.set(texture); }
         /// @}
 
         /**
@@ -53,7 +53,7 @@ namespace lava::magma {
         /// @{
         void add(std::unique_ptr<ICamera>&& camera);
         void add(Material& material);
-        void add(std::unique_ptr<Texture>&& texture);
+        void add(Texture& texture);
         void add(Mesh& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
@@ -98,7 +98,7 @@ namespace lava::magma {
         const Environment& environment() const { return m_environment; }
 
         const std::vector<Material*>& materials() const { return m_materials; }
-        const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
+        const std::vector<Texture*>& textures() const { return m_textures; }
         const std::vector<Mesh*>& meshes() const { return m_meshes; }
 
         uint32_t camerasCount() const { return m_cameraBundles.size(); }
@@ -161,9 +161,11 @@ namespace lava::magma {
         // Data
         std::vector<CameraBundle> m_cameraBundles;
         std::vector<LightBundle> m_lightBundles;
+
+        // These raw pointers are pointing to bucket allocators' adresses.
         std::vector<Material*> m_materials;
-        std::vector<std::unique_ptr<Texture>> m_textures;
-        std::vector<Mesh*> m_meshes; // Pointing to bucket allocators' adresses.
+        std::vector<Texture*> m_textures;
+        std::vector<Mesh*> m_meshes;
 
         std::vector<const Mesh*> m_pendingRemovedMeshes;
 

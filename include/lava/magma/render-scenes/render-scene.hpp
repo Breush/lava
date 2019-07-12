@@ -65,7 +65,7 @@ namespace lava::magma {
         /// @{
         void add(std::unique_ptr<ICamera>&& camera);
         void add(Material& material);
-        void add(std::unique_ptr<Texture>&& texture);
+        void add(Texture& texture);
         void add(Mesh& mesh);
         void add(std::unique_ptr<ILight>&& light);
         /// @}
@@ -75,9 +75,9 @@ namespace lava::magma {
          * Remove a previously added (or made) resource.
          */
         /// @{
-        void remove(const Mesh& mesh);
         void remove(const Material& material);
         void remove(const Texture& texture);
+        void remove(const Mesh& mesh);
         /// @}
 
         /**
@@ -93,6 +93,7 @@ namespace lava::magma {
          */
         /// @{
         chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
+        chamber::BucketAllocator& textureAllocator() { return m_textureAllocator; }
         chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
         /// @}
 
@@ -108,6 +109,7 @@ namespace lava::magma {
 
         // ----- Allocators
         chamber::BucketAllocator m_materialAllocator;
+        chamber::BucketAllocator m_textureAllocator;
         chamber::BucketAllocator m_meshAllocator;
     };
 }

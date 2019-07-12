@@ -2,13 +2,13 @@
 
 #include "../../aft-vulkan/material-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
+#include "../../aft-vulkan/texture-aft.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
 #include "../stages/forward-renderer-stage.hpp"
 #include "../stages/shadows-stage.hpp"
-#include "../texture-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
@@ -27,13 +27,18 @@ RenderScene::Impl::Impl(RenderEngine& engine, RenderScene& scene)
 
 RenderScene::Impl::~Impl()
 {
+    // @note This cleanup is just to please the validation layers,
+    // because eveything is going to be removed anyway,
+    // and no more used.
+
     for (auto material : m_materials) {
         m_scene.materialAllocator().deallocate(material);
     }
 
-    // @note This is just to please the validation layers,
-    // because eveything is going to be removed anyway,
-    // and no more used.
+    for (auto texture : m_textures) {
+        m_scene.textureAllocator().deallocate(texture);
+    }
+
     for (auto mesh : m_meshes) {
         m_scene.meshAllocator().deallocate(mesh);
     }
@@ -210,13 +215,9 @@ void RenderScene::Impl::add(Material& material)
     m_materials.emplace_back(&material);
 }
 
-void RenderScene::Impl::add(std::unique_ptr<Texture>&& texture)
+void RenderScene::Impl::add(Texture& texture)
 {
-    if (m_initialized) {
-        texture->impl().init();
-    }
-
-    m_textures.emplace_back(std::move(texture));
+    m_textures.emplace_back(&texture);
 }
 
 void RenderScene::Impl::add(Mesh& mesh)
@@ -288,7 +289,8 @@ void RenderScene::Impl::remove(const Texture& texture)
 {
     m_engine.device().waitIdle();
     for (auto iTexture = m_textures.begin(); iTexture != m_textures.end(); ++iTexture) {
-        if (iTexture->get() == &texture) {
+        if (*iTexture == &texture) {
+            m_scene.textureAllocator().deallocate(&texture);
             m_textures.erase(iTexture);
             break;
         }
