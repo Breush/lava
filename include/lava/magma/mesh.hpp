@@ -1,6 +1,5 @@
 #pragma once
 
-// @fixme Check if everything is needed
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <lava/core/axis.hpp>
@@ -156,7 +155,6 @@ namespace lava::magma {
         glm::vec3 m_boundingBoxExtentGeometry;
 
         // ----- Geometry
-
         std::vector<Vertex> m_temporaryVertices; // Only used for tangents generation.
         std::vector<UnlitVertex> m_unlitVertices;
         std::vector<Vertex> m_vertices;

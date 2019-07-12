@@ -2,8 +2,8 @@
 
 #include <lava/magma/mesh.hpp>
 
-#include "../vulkan/material-impl.hpp"
 #include "../vulkan/render-scenes/render-scene-impl.hpp"
+#include "./material-aft.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
@@ -39,10 +39,10 @@ void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelin
     // @todo Have this in a more clever render loop, and not called by this mesh
     // Fact is we shouldn't know about the correct descriptorSetIndex here
     if (m_fore.material() != nullptr) {
-        m_fore.material()->impl().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
+        m_fore.material()->aft().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
     else {
-        m_scene.fallbackMaterial().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
+        m_scene.fallbackMaterial().aft().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
 
     // Add the vertex buffer

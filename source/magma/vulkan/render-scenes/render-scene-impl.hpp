@@ -23,13 +23,6 @@ namespace lava::magma {
      */
     class RenderScene::Impl {
     public:
-        // @note Each frame will be renderer with a frame id being within [0 .. FRAME_IDS_COUNT],
-        // this is independent from the swapchain and is incremented during each render scene update.
-        // Consider using it when you update some buffer that might be used during current render,
-        // which is the case with Shadows's ubo.
-        static constexpr const uint32_t FRAME_IDS_COUNT = 3u;
-
-    public:
         Impl(RenderEngine& engine, RenderScene& scene);
         ~Impl();
 
@@ -48,13 +41,6 @@ namespace lava::magma {
         void rendererType(RendererType rendererType) { m_rendererType = rendererType; }
 
         /**
-         * @name Allocators
-         */
-        /// @{
-        chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
-        /// @}
-
-        /**
          * @name Environment
          */
         /// @{
@@ -66,7 +52,7 @@ namespace lava::magma {
          */
         /// @{
         void add(std::unique_ptr<ICamera>&& camera);
-        void add(std::unique_ptr<Material>&& material);
+        void add(Material& material);
         void add(std::unique_ptr<Texture>&& texture);
         void add(Mesh& mesh);
         void add(std::unique_ptr<ILight>&& light);
@@ -100,18 +86,18 @@ namespace lava::magma {
         /// @{
         void updateCamera(uint32_t cameraID);
 
-        Material::Impl& fallbackMaterial() { return m_fallbackMaterial->impl(); }
-        void fallbackMaterial(std::unique_ptr<Material>&& material);
+        Material& fallbackMaterial() { return *m_fallbackMaterial; }
+        void fallbackMaterial(Material& material);
 
         const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
-        const Material::Impl& material(uint32_t index) const { return m_materials[index]->impl(); }
+        const Material& material(uint32_t index) const { return *m_materials[index]; }
         const Mesh& mesh(uint32_t index) const { return *m_meshes[index]; }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
         ILight::Impl& light(uint32_t index) { return m_lightBundles[index].light->interfaceImpl(); }
         const Shadows& shadows(uint32_t lightIndex, uint32_t cameraIndex) const;
         const Environment& environment() const { return m_environment; }
 
-        const std::vector<std::unique_ptr<Material>>& materials() const { return m_materials; }
+        const std::vector<Material*>& materials() const { return m_materials; }
         const std::vector<std::unique_ptr<Texture>>& textures() const { return m_textures; }
         const std::vector<Mesh*>& meshes() const { return m_meshes; }
 
@@ -163,24 +149,19 @@ namespace lava::magma {
 
         RendererType m_rendererType;
 
-        // Allocators
-        chamber::BucketAllocator m_materialAllocator;
-
         // Resources
         vulkan::DescriptorHolder m_lightsDescriptorHolder;
         vulkan::DescriptorHolder m_shadowsDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
         vulkan::DescriptorHolder m_environmentDescriptorHolder;
 
-        // @note To be kept after m_materialDescriptorHolder,
-        // to prevent delete order issues.
-        std::unique_ptr<Material> m_fallbackMaterial;
+        Material* m_fallbackMaterial;
         Environment m_environment;
 
         // Data
         std::vector<CameraBundle> m_cameraBundles;
         std::vector<LightBundle> m_lightBundles;
-        std::vector<std::unique_ptr<Material>> m_materials;
+        std::vector<Material*> m_materials;
         std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<Mesh*> m_meshes; // Pointing to bucket allocators' adresses.
 

@@ -10,7 +10,6 @@
 #include "./holders/device-holder.hpp"
 #include "./holders/image-holder.hpp"
 #include "./holders/instance-holder.hpp"
-#include "./material-info.hpp"
 #include "./shaders-manager.hpp"
 #include "./wrappers.hpp"
 
@@ -39,6 +38,7 @@ namespace lava::magma {
          * @name Materials
          */
         /// @{
+        const MaterialInfo& materialInfo(const std::string& hrid) const;
         uint32_t materialId(const std::string& hrid) const { return m_registeredMaterialsMap.at(hrid); }
         /// @}
 
@@ -97,8 +97,6 @@ namespace lava::magma {
         /// @{
         VrEngine& vrEngine() { return m_vrEngine; }
         const VrEngine& vrEngine() const { return m_vrEngine; }
-
-        const MaterialInfo& materialInfo(const std::string& hrid) const;
 
         void updateRenderViews(RenderImage renderImage);
         /// @}

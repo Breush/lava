@@ -2,7 +2,8 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
-#include "../../ubos.hpp"
+#include <lava/magma/ubos.hpp>
+
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"
 #include "../holders/render-pass-holder.hpp"

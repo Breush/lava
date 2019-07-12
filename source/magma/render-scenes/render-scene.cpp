@@ -7,12 +7,14 @@
 using namespace lava::magma;
 
 RenderScene::RenderScene(RenderEngine& engine)
+    : m_engine(engine)
 {
     m_impl = new Impl(engine, *this);
 
     // Fallback material
-    auto fallbackMaterial = std::make_unique<Material>(*this, "fallback");
-    m_impl->fallbackMaterial(std::move(fallbackMaterial));
+    auto fallbackMaterial = m_materialAllocator.allocate<Material>(*this, "fallback");
+    m_impl->add(*fallbackMaterial);
+    m_impl->fallbackMaterial(*fallbackMaterial);
 }
 
 RenderScene::~RenderScene()
@@ -28,10 +30,7 @@ void RenderScene::add(std::unique_ptr<ICamera>&& camera)
     m_impl->add(std::move(camera));
 }
 
-void RenderScene::add(std::unique_ptr<Material>&& material)
-{
-    m_impl->add(std::move(material));
-}
+$pimpl_method(RenderScene, void, add, Material&, material);
 
 void RenderScene::add(std::unique_ptr<Texture>&& texture)
 {

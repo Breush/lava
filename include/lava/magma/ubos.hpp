@@ -2,8 +2,7 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
-
-#include "./light-type.hpp"
+#include <lava/magma/light-type.hpp>
 
 namespace lava::magma {
     constexpr const uint32_t MATERIAL_DATA_SIZE = 16u;

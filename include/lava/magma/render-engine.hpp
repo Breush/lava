@@ -1,10 +1,12 @@
 #pragma once
 
 #include <functional>
+#include <glm/mat4x4.hpp>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/viewport.hpp>
 #include <lava/core/vr-device-type.hpp>
 #include <lava/core/vr-event.hpp>
+#include <lava/magma/material-info.hpp>
 #include <memory>
 
 namespace lava::magma {
@@ -29,6 +31,9 @@ namespace lava::magma {
 
         /// Render the current state to all the targets.
         void draw();
+
+        /// Receive all infos about a parsed registered material.
+        const MaterialInfo& materialInfo(const std::string& hrid) const;
 
         /**
          * Register a material (.shmag) to the engine.

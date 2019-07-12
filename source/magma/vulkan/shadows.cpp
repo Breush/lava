@@ -9,8 +9,8 @@ using namespace lava::magma;
 
 Shadows::Shadows(RenderScene::Impl& scene)
     : m_scene(scene)
-    , m_uboHolders(RenderScene::Impl::FRAME_IDS_COUNT, scene.engine())
-    , m_descriptorSets(RenderScene::Impl::FRAME_IDS_COUNT, nullptr)
+    , m_uboHolders(RenderScene::FRAME_IDS_COUNT, scene.engine())
+    , m_descriptorSets(RenderScene::FRAME_IDS_COUNT, nullptr)
 {
 }
 

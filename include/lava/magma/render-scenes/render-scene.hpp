@@ -21,8 +21,19 @@ namespace lava::magma {
      */
     class RenderScene {
     public:
+        // @note Each frame will be renderer with a frame id being within [0 .. FRAME_IDS_COUNT],
+        // this is independent from the swapchain and is incremented during each render scene update.
+        // Consider using it when you update some buffer that might be used during current render,
+        // which is the case with Shadows's ubo.
+        // @fixme Move that to config file or something?
+        static constexpr const uint32_t FRAME_IDS_COUNT = 3u;
+
+    public:
         RenderScene(RenderEngine& engine);
         ~RenderScene();
+
+        RenderEngine& engine() { return m_engine; }
+        const RenderEngine& engine() const { return m_engine; }
 
         /// Choose the type of renderer.
         void rendererType(RendererType rendererType);
@@ -53,7 +64,7 @@ namespace lava::magma {
          */
         /// @{
         void add(std::unique_ptr<ICamera>&& camera);
-        void add(std::unique_ptr<Material>&& material);
+        void add(Material& material);
         void add(std::unique_ptr<Texture>&& texture);
         void add(Mesh& mesh);
         void add(std::unique_ptr<ILight>&& light);
@@ -81,6 +92,7 @@ namespace lava::magma {
          * @name Allocators
          */
         /// @{
+        chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
         chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
         /// @}
 
@@ -92,6 +104,10 @@ namespace lava::magma {
         Impl* m_impl = nullptr;
 
     private:
+        RenderEngine& m_engine;
+
+        // ----- Allocators
+        chamber::BucketAllocator m_materialAllocator;
         chamber::BucketAllocator m_meshAllocator;
     };
 }

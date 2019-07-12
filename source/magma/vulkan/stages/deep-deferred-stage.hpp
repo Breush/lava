@@ -4,8 +4,9 @@
 
 #include <lava/magma/render-scenes/render-scene.hpp>
 
+#include <lava/magma/ubos.hpp>
+
 #include "../../g-buffer-data.hpp"
-#include "../../ubos.hpp"
 #include "../holders/buffer-holder.hpp"
 #include "../holders/descriptor-holder.hpp"
 #include "../holders/image-holder.hpp"

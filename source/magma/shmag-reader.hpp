@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./uniform.hpp"
+#include <lava/magma/uniform.hpp>
 
 namespace lava::magma {
     /// Converts a .shmag file to ShaderManager 'impl' standards.

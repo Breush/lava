@@ -1,9 +1,9 @@
 #include "./render-scene-impl.hpp"
 
+#include "../../aft-vulkan/material-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
-#include "../material-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
 #include "../stages/forward-renderer-stage.hpp"
@@ -27,6 +27,10 @@ RenderScene::Impl::Impl(RenderEngine& engine, RenderScene& scene)
 
 RenderScene::Impl::~Impl()
 {
+    for (auto material : m_materials) {
+        m_scene.materialAllocator().deallocate(material);
+    }
+
     // @note This is just to please the validation layers,
     // because eveything is going to be removed anyway,
     // and no more used.
@@ -97,8 +101,8 @@ void RenderScene::Impl::update()
         }
     }
 
-    for (auto& material : m_materials) {
-        material->impl().update();
+    for (auto material : m_materials) {
+        material->aft().update();
     }
 
     for (auto mesh : m_meshes) {
@@ -197,13 +201,13 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
     logger.log().tab(-1);
 }
 
-void RenderScene::Impl::add(std::unique_ptr<Material>&& material)
+void RenderScene::Impl::add(Material& material)
 {
     if (m_initialized) {
-        material->impl().init();
+        material.aft().init();
     }
 
-    m_materials.emplace_back(std::move(material));
+    m_materials.emplace_back(&material);
 }
 
 void RenderScene::Impl::add(std::unique_ptr<Texture>&& texture)
@@ -272,7 +276,8 @@ void RenderScene::Impl::remove(const Material& material)
 {
     m_engine.device().waitIdle();
     for (auto iMaterial = m_materials.begin(); iMaterial != m_materials.end(); ++iMaterial) {
-        if (iMaterial->get() == &material) {
+        if (*iMaterial == &material) {
+            m_scene.materialAllocator().deallocate(&material);
             m_materials.erase(iMaterial);
             break;
         }
@@ -306,14 +311,9 @@ void RenderScene::Impl::updateCamera(uint32_t cameraId)
     m_engine.updateRenderViews(camera.depthRenderImage());
 }
 
-void RenderScene::Impl::fallbackMaterial(std::unique_ptr<Material>&& material)
+void RenderScene::Impl::fallbackMaterial(Material& material)
 {
-    m_fallbackMaterial = std::move(material);
-
-    if (m_initialized) {
-        m_fallbackMaterial->impl().init();
-        m_fallbackMaterial->impl().update();
-    }
+    m_fallbackMaterial = &material;
 }
 
 const Shadows& RenderScene::Impl::shadows(uint32_t lightIndex, uint32_t cameraIndex) const
@@ -453,13 +453,8 @@ void RenderScene::Impl::initResources()
         cameraBundle.camera->interfaceImpl().init(cameraId);
     }
 
-    if (m_fallbackMaterial != nullptr) {
-        m_fallbackMaterial->impl().init();
-        m_fallbackMaterial->impl().update();
-    }
-
     for (auto& material : m_materials) {
-        material->impl().init();
+        material->aft().init();
     }
 
     for (auto mesh : m_meshes) {

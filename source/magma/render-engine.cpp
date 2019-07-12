@@ -23,6 +23,7 @@ RenderEngine::~RenderEngine()
 
 $pimpl_method(RenderEngine, void, update);
 $pimpl_method(RenderEngine, void, draw);
+$pimpl_method_const(RenderEngine, const MaterialInfo&, materialInfo, const std::string&, hrid);
 $pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 
 uint32_t RenderEngine::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)

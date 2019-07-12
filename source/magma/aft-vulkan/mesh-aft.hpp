@@ -1,8 +1,8 @@
 #pragma once
 
 #include <lava/magma/render-scenes/render-scene.hpp>
+#include <lava/magma/ubos.hpp>
 
-#include "../ubos.hpp"
 #include "../vulkan/holders/buffer-holder.hpp"
 
 namespace lava::magma {
@@ -43,5 +43,4 @@ namespace lava::magma {
         vulkan::BufferHolder m_indexBufferHolder;
         bool m_vertexBufferDirty = false;
     };
-    constexpr auto U = sizeof(MeshAft);
 }

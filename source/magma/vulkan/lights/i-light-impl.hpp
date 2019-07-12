@@ -1,8 +1,7 @@
 #pragma once
 
 #include <lava/magma/lights/i-light.hpp>
-
-#include "../../light-type.hpp"
+#include <lava/magma/light-type.hpp>
 
 namespace lava::magma {
     class ILight::Impl {

@@ -1,6 +1,7 @@
 #include "./directional-light-impl.hpp"
 
-#include "../../ubos.hpp"
+#include <lava/magma/ubos.hpp>
+
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
@@ -9,8 +10,8 @@ using namespace lava::magma;
 
 DirectionalLight::Impl::Impl(RenderScene& scene)
     : m_scene(scene.impl())
-    , m_descriptorSets(RenderScene::Impl::FRAME_IDS_COUNT, nullptr)
-    , m_uboHolders(RenderScene::Impl::FRAME_IDS_COUNT, m_scene.engine())
+    , m_descriptorSets(RenderScene::FRAME_IDS_COUNT, nullptr)
+    , m_uboHolders(RenderScene::FRAME_IDS_COUNT, m_scene.engine())
 {
 }
 
@@ -52,7 +53,7 @@ void DirectionalLight::Impl::update()
     if (!m_uboDirty) return;
 
     // :InternalFrameId
-    m_currentFrameId = (m_currentFrameId + 1u) % RenderScene::Impl::FRAME_IDS_COUNT;
+    m_currentFrameId = (m_currentFrameId + 1u) % RenderScene::FRAME_IDS_COUNT;
 
     updateBindings();
 }
