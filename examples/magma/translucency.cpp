@@ -32,8 +32,8 @@ int main(void)
         redMesh.translucent(true);
     }
 
-    app.camera().translation({2.f, 2.f, 2.f});
-    app.camera().target({0.f, 0.f, 0.f});
+    app.cameraController().origin({2.f, 2.f, 2.f});
+    app.cameraController().target({0.f, 0.f, 0.f});
 
     app.run();
 

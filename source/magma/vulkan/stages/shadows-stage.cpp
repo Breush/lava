@@ -3,7 +3,6 @@
 #include <lava/magma/vertex.hpp>
 
 #include "../../aft-vulkan/mesh-aft.hpp"
-#include "../cameras/i-camera-impl.hpp"
 #include "../lights/directional-light-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../render-engine-impl.hpp"

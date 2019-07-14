@@ -27,17 +27,20 @@ int main(void)
         auto& light = scene.make<magma::DirectionalLight>();
         light.direction({-0.8f, -0.7f, -0.4f});
 
-        auto& frontCamera = scene.make<magma::OrbitCamera>(Extent2d{400, 800});
-        frontCamera.translation({5.f, 0, 0});
-        frontCamera.target({0, 0, 0});
+        auto& frontCamera = scene.make<magma::Camera>(Extent2d{400, 800});
+        magma::OrbitCameraController frontCameraController(frontCamera);
+        frontCameraController.origin({5.f, 0, 0});
+        frontCameraController.target({0, 0, 0});
 
-        auto& leftCamera = scene.make<magma::OrbitCamera>(Extent2d{200, 200});
-        leftCamera.translation({0, 5.f, 0});
-        leftCamera.target({0, 0, 0});
+        auto& leftCamera = scene.make<magma::Camera>(Extent2d{200, 200});
+        magma::OrbitCameraController leftCameraController(leftCamera);
+        leftCameraController.origin({0, 5.f, 0});
+        leftCameraController.target({0, 0, 0});
 
-        auto& upCamera = scene.make<magma::OrbitCamera>(Extent2d{200, 200});
-        upCamera.translation({0.01f, 0.01f, 5.f});
-        upCamera.target({0, 0, 0});
+        auto& upCamera = scene.make<magma::Camera>(Extent2d{200, 200});
+        magma::OrbitCameraController upCameraController(upCamera);
+        upCameraController.origin({0.01f, 0.01f, 5.f});
+        upCameraController.target({0, 0, 0});
 
         auto& cube = ashe::makeCube(scene, 0.7f);
         cube.rotate({1.f, 0.f, 1.f}, 3.14f / 3.f);
@@ -58,9 +61,10 @@ int main(void)
         auto& light = scene.make<magma::DirectionalLight>();
         light.direction({-0.8f, -0.7f, -0.4f});
 
-        auto& frontCamera = scene.make<magma::OrbitCamera>(Extent2d{400, 800});
-        frontCamera.translation({5.f, 0, 0});
-        frontCamera.target({0, 0, 0});
+        auto& frontCamera = scene.make<magma::Camera>(Extent2d{400, 800});
+        magma::OrbitCameraController frontCameraController(frontCamera);
+        frontCameraController.origin({5.f, 0, 0});
+        frontCameraController.target({0, 0, 0});
 
         auto& tetrahedron = ashe::makeTetrahedron(scene, 0.7f);
         tetrahedron.rotate({1.f, 0.f, 1.f}, 3.14f / 3.f);
@@ -89,6 +93,7 @@ int main(void)
             }
         }
 
+        engine.update();
         engine.draw();
     }
 

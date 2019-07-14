@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/vec3.hpp>
+
 namespace lava::magma {
     /**
      * A frustum, as composed of planes, delimiting half-space,

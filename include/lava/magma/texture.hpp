@@ -17,6 +17,7 @@ namespace lava::magma {
     class Texture {
     public:
         Texture(RenderScene& scene);
+        Texture(const Texture&) = delete;
         ~Texture();
 
         /// Internal implementation

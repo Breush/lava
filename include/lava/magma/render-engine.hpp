@@ -10,7 +10,7 @@
 #include <memory>
 
 namespace lava::magma {
-    class ICamera;
+    class Camera;
     class IRenderTarget;
     class RenderImage;
     class RenderScene;
@@ -51,7 +51,7 @@ namespace lava::magma {
          *
          * @return A unique identifier to the view generated.
          */
-        uint32_t addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport);
+        uint32_t addView(Camera& camera, IRenderTarget& renderTarget, Viewport viewport);
         uint32_t addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport);
         void removeView(uint32_t viewId);
 

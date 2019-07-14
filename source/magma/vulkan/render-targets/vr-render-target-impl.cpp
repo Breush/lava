@@ -2,7 +2,7 @@
 
 #include <lava/magma/render-engine.hpp>
 
-#include "../cameras/vr-eye-camera-impl.hpp"
+#include "../../aft-vulkan/camera-aft.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 
@@ -17,6 +17,11 @@ VrRenderTarget::Impl::Impl(RenderEngine& engine)
         logger.error("magma.vulkan.vr-render-target") << "Cannot use VrRenderTarget because "
                                                       << "no VR system has been enabled on startup." << std::endl;
     }
+}
+
+VrRenderTarget::Impl::~Impl()
+{
+    cleanup();
 }
 
 //----- IRenderTarget
@@ -47,8 +52,8 @@ bool VrRenderTarget::Impl::prepare()
         m_engine.device().resetFences(1u, &m_fence);
     }
 
-    m_leftEyeCamera->impl().update(VrEngine::Eye::Left);
-    m_rightEyeCamera->impl().update(VrEngine::Eye::Right);
+    m_leftEyeCameraController.updateCamera(VrEye::Left);
+    m_rightEyeCameraController.updateCamera(VrEye::Right);
 
     return true;
 }
@@ -56,8 +61,8 @@ bool VrRenderTarget::Impl::prepare()
 void VrRenderTarget::Impl::render(vk::CommandBuffer commandBuffer)
 {
     // Change final image layout
-    m_leftEyeCamera->impl().changeImageLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
-    m_rightEyeCamera->impl().changeImageLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
+    m_leftEyeCamera->aft().changeImageLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
+    m_rightEyeCamera->aft().changeImageLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
 }
 
 void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuffers) const
@@ -113,17 +118,29 @@ void VrRenderTarget::Impl::bindScene(RenderScene& scene)
 {
     m_scene = &scene.impl();
 
-    // @fixme Should cleanup here, and during destructor
+    cleanup();
 
     // @todo Work on a stereo render pass for VR
-    m_leftEyeCamera = &scene.make<magma::VrEyeCamera>(m_extent);
-    m_rightEyeCamera = &scene.make<magma::VrEyeCamera>(m_extent);
+    m_leftEyeCamera = &scene.make<Camera>(m_extent);
+    m_leftEyeCameraController.bind(*m_leftEyeCamera);
+    m_rightEyeCamera = &scene.make<Camera>(m_extent);
+    m_rightEyeCameraController.bind(*m_rightEyeCamera);
 
     // Let the right eye use the same shadow maps than the left eye
     m_scene->shadowsFallbackCamera(*m_rightEyeCamera, *m_leftEyeCamera);
 }
 
 //----- Internal
+
+void VrRenderTarget::Impl::cleanup()
+{
+    if (m_leftEyeCamera != nullptr) {
+        m_scene->remove(*m_leftEyeCamera);
+    }
+    if (m_rightEyeCamera != nullptr) {
+        m_scene->remove(*m_rightEyeCamera);
+    }
+}
 
 void VrRenderTarget::Impl::initFence()
 {

@@ -27,8 +27,8 @@ int main(void)
     auto& mesh = app.makePlane({1, 1});
     mesh.material(watchedMaterial);
 
-    app.camera().translation({2.f, 2.f, 2.f});
-    app.camera().target({0.f, 0.f, 0.f});
+    app.cameraController().origin({2.f, 2.f, 2.f});
+    app.cameraController().target({0.f, 0.f, 0.f});
 
     app.run();
 

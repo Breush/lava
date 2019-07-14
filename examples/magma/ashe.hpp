@@ -157,7 +157,7 @@ namespace lava::ashe {
         magma::RenderEngine& engine() { return *m_engine; }
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowTarget; }
         magma::RenderScene& scene() { return *m_scene; }
-        magma::OrbitCamera& camera() { return *m_camera; }
+        magma::OrbitCameraController& cameraController() { return m_cameraController; }
         magma::DirectionalLight& light() { return *m_light; }
 
         /**
@@ -180,9 +180,10 @@ namespace lava::ashe {
             m_scene->rendererType(magma::RendererType::DeepDeferred);
 
             // A camera.
-            m_camera = &m_scene->make<magma::OrbitCamera>(m_window->extent());
-            m_camera->translation({2.f, 2.f, 1.f});
-            m_camera->target({0.f, 0.f, 0.5f});
+            m_camera = &m_scene->make<magma::Camera>(m_window->extent());
+            m_cameraController.bind(*m_camera);
+            m_cameraController.origin({2.f, 2.f, 1.f});
+            m_cameraController.target({0.f, 0.f, 0.5f});
 
             // A light.
             m_light = &m_scene->make<magma::DirectionalLight>();
@@ -354,8 +355,6 @@ namespace lava::ashe {
                 else if (event.key.which == Key::C) {
                     if (depthViewId == -1u) {
                         depthViewId = m_engine->addView(m_camera->depthRenderImage(), *m_windowTarget, Viewport{0, 0, 1, 1});
-                        std::cout << "camera.translation: " << glm::to_string(m_camera->translation()) << std::endl;
-                        std::cout << "camera.target: " << glm::to_string(m_camera->target()) << std::endl;
                     }
                     else {
                         m_engine->removeView(depthViewId);
@@ -389,6 +388,7 @@ namespace lava::ashe {
                 Extent2d extent{event.windowSize.width, event.windowSize.height};
                 m_windowTarget->extent(extent);
                 m_camera->extent(extent);
+                m_cameraController.updateCamera();
                 break;
             }
 
@@ -406,7 +406,7 @@ namespace lava::ashe {
 
             case WsEventType::MouseWheelScrolled: {
                 if (event.mouseWheel.which != MouseWheel::Vertical) break;
-                m_camera->radiusAdd(-event.mouseWheel.delta * m_camera->radius() / 10.f);
+                m_cameraController.radiusAdd(-event.mouseWheel.delta * m_cameraController.radius() / 10.f);
                 break;
             }
 
@@ -419,11 +419,11 @@ namespace lava::ashe {
 
                 // Orbit with left button
                 if (buttonPressed == MouseButton::Left) {
-                    m_camera->orbitAdd(-delta.x, delta.y);
+                    m_cameraController.orbitAdd(-delta.x, delta.y);
                 }
                 // Strafe with right button
                 else if (buttonPressed == MouseButton::Right) {
-                    m_camera->strafe(delta.x / 10.f, delta.y / 10.f);
+                    m_cameraController.strafe(delta.x / 10.f, delta.y / 10.f);
                 }
                 break;
             }
@@ -437,7 +437,8 @@ namespace lava::ashe {
         std::unique_ptr<magma::RenderEngine> m_engine = nullptr;
         magma::WindowRenderTarget* m_windowTarget = nullptr;
         magma::RenderScene* m_scene = nullptr;
-        magma::OrbitCamera* m_camera = nullptr;
+        magma::Camera* m_camera = nullptr;
+        magma::OrbitCameraController m_cameraController;
         magma::DirectionalLight* m_light = nullptr;
     };
 }

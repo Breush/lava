@@ -2,10 +2,10 @@
 
 #include <lava/magma/vertex.hpp>
 
+#include "../../aft-vulkan/camera-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../g-buffer-data.hpp"
 #include "../../helpers/frustum.hpp"
-#include "../cameras/i-camera-impl.hpp"
 #include "../environment.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
@@ -112,7 +112,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
-    camera.render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
+    camera.aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
     const auto& cameraFrustum = camera.frustum();
 
     // Set the environment
@@ -138,7 +138,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
         }
 
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -173,7 +173,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     // Draw all wireframed meshes
     for (auto mesh : wireframedMeshes) {
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
         }
@@ -193,7 +193,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     // https://github.com/Breush/lava/issues/36
     for (auto mesh : translucentMeshes) {
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);

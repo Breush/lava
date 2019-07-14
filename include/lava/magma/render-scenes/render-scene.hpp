@@ -8,11 +8,11 @@
 
 namespace lava::magma {
     class RenderEngine;
-    class ICamera;
     class ILight;
+    class Camera;
     class Material;
-    class Mesh;
     class Texture;
+    class Mesh;
 }
 
 namespace lava::magma {
@@ -63,11 +63,11 @@ namespace lava::magma {
          * For convenience, you usually want to use makers (see above).
          */
         /// @{
-        void add(std::unique_ptr<ICamera>&& camera);
+        void add(std::unique_ptr<ILight>&& light);
+        void add(Camera& camera);
         void add(Material& material);
         void add(Texture& texture);
         void add(Mesh& mesh);
-        void add(std::unique_ptr<ILight>&& light);
         /// @}
 
         /**
@@ -75,6 +75,7 @@ namespace lava::magma {
          * Remove a previously added (or made) resource.
          */
         /// @{
+        void remove(const Camera& camera);
         void remove(const Material& material);
         void remove(const Texture& texture);
         void remove(const Mesh& mesh);
@@ -92,6 +93,7 @@ namespace lava::magma {
          * @name Allocators
          */
         /// @{
+        chamber::BucketAllocator& cameraAllocator() { return m_cameraAllocator; }
         chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
         chamber::BucketAllocator& textureAllocator() { return m_textureAllocator; }
         chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
@@ -108,6 +110,7 @@ namespace lava::magma {
         RenderEngine& m_engine;
 
         // ----- Allocators
+        chamber::BucketAllocator m_cameraAllocator;
         chamber::BucketAllocator m_materialAllocator;
         chamber::BucketAllocator m_textureAllocator;
         chamber::BucketAllocator m_meshAllocator;

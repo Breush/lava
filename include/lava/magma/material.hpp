@@ -31,6 +31,7 @@ namespace lava::magma {
 
     public:
         Material(RenderScene& scene, const std::string& hrid);
+        Material(const Material&) = delete;
         ~Material();
 
         /// Internal implementation

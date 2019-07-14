@@ -20,8 +20,8 @@ namespace lava::sill {
         // Public API
         const Extent2d& extent() const;
 
-        const glm::vec3& translation() const;
-        void translation(const glm::vec3& translation);
+        const glm::vec3& origin() const;
+        void origin(const glm::vec3& origin);
 
         const glm::vec3& target() const;
         void target(const glm::vec3& target);

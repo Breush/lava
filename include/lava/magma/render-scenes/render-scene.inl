@@ -14,6 +14,17 @@ namespace {
     };
 
     template <>
+    struct RenderSceneMaker<lava::magma::Camera> {
+        template <class... Arguments>
+        static inline lava::magma::Camera& make(lava::magma::RenderScene& scene, Arguments&&... arguments)
+        {
+            auto resource = scene.cameraAllocator().allocate<lava::magma::Camera>(scene, std::forward<Arguments>(arguments)...);
+            scene.add(*resource);
+            return *resource;
+        }
+    };
+
+    template <>
     struct RenderSceneMaker<lava::magma::Material> {
         template <class... Arguments>
         static inline lava::magma::Material& make(lava::magma::RenderScene& scene, Arguments&&... arguments)

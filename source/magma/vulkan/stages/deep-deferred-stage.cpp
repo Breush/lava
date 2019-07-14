@@ -2,9 +2,9 @@
 
 #include <lava/magma/vertex.hpp>
 
+#include "../../aft-vulkan/camera-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../helpers/frustum.hpp"
-#include "../cameras/i-camera-impl.hpp"
 #include "../helpers/format.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../render-engine-impl.hpp"
@@ -116,7 +116,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
 
     // Set the camera
     auto& camera = m_scene.camera(m_cameraId);
-    camera.render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
+    camera.aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
     const auto& cameraFrustum = camera.frustum();
 
     // Draw all meshes
@@ -129,7 +129,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
             continue;
         }
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -149,7 +149,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     for (auto mesh : depthlessMeshes) {
         if (camera.vrAimed() && !mesh->vrRenderable()) continue;
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.useFrustumCulling() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/cameras/i-camera.hpp>
+#include <lava/magma/camera.hpp>
 #include <lava/magma/lights/i-light.hpp>
 #include <lava/magma/material.hpp>
 #include <lava/magma/mesh.hpp>
@@ -51,17 +51,18 @@ namespace lava::magma {
          * @name Adders
          */
         /// @{
-        void add(std::unique_ptr<ICamera>&& camera);
+        void add(std::unique_ptr<ILight>&& light);
+        void add(Camera& camera);
         void add(Material& material);
         void add(Texture& texture);
         void add(Mesh& mesh);
-        void add(std::unique_ptr<ILight>&& light);
         /// @}
 
         /**
          * @name Removers
          */
         /// @{
+        void remove(const Camera& camera);
         void remove(const Mesh& mesh);
         void remove(const Material& material);
         void remove(const Texture& texture);
@@ -89,11 +90,11 @@ namespace lava::magma {
         Material& fallbackMaterial() { return *m_fallbackMaterial; }
         void fallbackMaterial(Material& material);
 
-        const ICamera::Impl& camera(uint32_t index) const { return m_cameraBundles[index].camera->interfaceImpl(); }
-        const Material& material(uint32_t index) const { return *m_materials[index]; }
-        const Mesh& mesh(uint32_t index) const { return *m_meshes[index]; }
         const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
         ILight::Impl& light(uint32_t index) { return m_lightBundles[index].light->interfaceImpl(); }
+        const Camera& camera(uint32_t index) const { return *m_cameraBundles[index].camera; }
+        const Material& material(uint32_t index) const { return *m_materials[index]; }
+        const Mesh& mesh(uint32_t index) const { return *m_meshes[index]; }
         const Shadows& shadows(uint32_t lightIndex, uint32_t cameraIndex) const;
         const Environment& environment() const { return m_environment; }
 
@@ -109,7 +110,12 @@ namespace lava::magma {
         RenderImage shadowsCascadeRenderImage(uint32_t lightIndex, uint32_t cameraIndex = 0u, uint32_t cascadeIndex = 0u) const;
         float shadowsCascadeSplitDepth(uint32_t lightIndex, uint32_t cameraIndex, uint32_t cascadeIndex) const;
         const glm::mat4& shadowsCascadeTransform(uint32_t lightIndex, uint32_t cameraIndex, uint32_t cascadeIndex) const;
-        void shadowsFallbackCamera(ICamera& camera, const ICamera& fallbackCamera);
+
+        /**
+         * Says to use the fallbackCamera's shadows for the specified camera.
+         * This is used for VR rendering in order to share the shadow maps between the two eyes.
+         */
+        void shadowsFallbackCamera(Camera& camera, const Camera& fallbackCamera);
 
         void changeCameraRenderImageLayout(uint32_t cameraIndex, vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
         /// @}
@@ -132,7 +138,7 @@ namespace lava::magma {
         };
 
         struct CameraBundle {
-            std::unique_ptr<ICamera> camera;
+            Camera* camera = nullptr; // Pointing to bucket's allocator address.
             std::unique_ptr<IRendererStage> rendererStage;
             std::unique_ptr<vulkan::CommandBufferThread> rendererThread;
             // When different of -1u, specifies which shadows to use.

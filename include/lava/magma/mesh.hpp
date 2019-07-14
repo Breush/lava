@@ -21,6 +21,7 @@ namespace lava::magma {
     class Mesh {
     public:
         Mesh(RenderScene& scene);
+        Mesh(const Mesh&) = delete;
         ~Mesh();
 
         /// Internal implementation

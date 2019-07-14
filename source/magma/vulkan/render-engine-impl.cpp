@@ -3,7 +3,6 @@
 #include <lava/magma/vr-tools.hpp>
 
 #include "../shmag-reader.hpp"
-#include "./cameras/i-camera-impl.hpp"
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
 #include "./render-image-impl.hpp"

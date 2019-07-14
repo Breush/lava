@@ -1,8 +1,7 @@
 #pragma once
 
 #include <lava/magma/bounding-sphere.hpp>
-
-#include "../frustum.hpp"
+#include <lava/magma/frustum.hpp>
 
 namespace lava::magma::helpers {
     /// Checks whether the bounding sphere is at least partly inside the frustum.

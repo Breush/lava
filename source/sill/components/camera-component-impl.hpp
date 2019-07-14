@@ -16,18 +16,18 @@ namespace lava::sill {
         // CameraComponent
         const Extent2d& extent() const { return m_extent; }
 
-        const glm::vec3& translation() const { return m_camera->translation(); }
-        void translation(const glm::vec3& translation) { m_camera->translation(translation); }
+        const glm::vec3& origin() const { return m_cameraController.origin(); }
+        void origin(const glm::vec3& origin) { m_cameraController.origin(origin); }
 
-        const glm::vec3& target() const { return m_camera->target(); }
-        void target(const glm::vec3& target) { m_camera->target(target); }
+        const glm::vec3& target() const { return m_cameraController.target(); }
+        void target(const glm::vec3& target) { m_cameraController.target(target); }
 
-        float radius() const { return m_camera->radius(); }
-        void radius(float radius) { m_camera->radius(radius); }
+        float radius() const { return m_cameraController.radius(); }
+        void radius(float radius) { m_cameraController.radius(radius); }
 
-        void strafe(float x, float y) { m_camera->strafe(x, y); }
-        void radiusAdd(float radiusDistance) { m_camera->radiusAdd(radiusDistance); }
-        void orbitAdd(float longitudeAngle, float latitudeAngle) { m_camera->orbitAdd(longitudeAngle, latitudeAngle); }
+        void strafe(float x, float y) { m_cameraController.strafe(x, y); }
+        void radiusAdd(float radiusDistance) { m_cameraController.radiusAdd(radiusDistance); }
+        void orbitAdd(float longitudeAngle, float latitudeAngle) { m_cameraController.orbitAdd(longitudeAngle, latitudeAngle); }
 
         const glm::mat4& viewTransform() const { return m_camera->viewTransform(); }
         const glm::mat4& projectionTransform() const { return m_camera->projectionTransform(); }
@@ -36,7 +36,8 @@ namespace lava::sill {
         glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
 
     private:
-        magma::OrbitCamera* m_camera = nullptr;
+        magma::Camera* m_camera = nullptr;
+        magma::OrbitCameraController m_cameraController;
 
         Extent2d m_extent;
         float m_updateDelay = -1.f;

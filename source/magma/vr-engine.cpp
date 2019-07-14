@@ -117,9 +117,10 @@ Extent2d VrEngine::renderTargetExtent()
     return extent;
 }
 
-glm::mat4 VrEngine::eyeProjectionTransform(Eye eye, float nearClip, float farClip)
+glm::mat4 VrEngine::eyeProjectionTransform(VrEye eye, float nearClip, float farClip)
 {
-    vr::HmdMatrix44_t mat = m_vrSystem->GetProjectionMatrix((eye == Eye::Left) ? vr::Eye_Left : vr::Eye_Right, nearClip, farClip);
+    vr::HmdMatrix44_t mat =
+        m_vrSystem->GetProjectionMatrix((eye == VrEye::Left) ? vr::Eye_Left : vr::Eye_Right, nearClip, farClip);
     auto transform =
         glm::mat4(mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0], mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
                   mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2], mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]);
@@ -127,15 +128,15 @@ glm::mat4 VrEngine::eyeProjectionTransform(Eye eye, float nearClip, float farCli
     return transform;
 }
 
-glm::mat4 VrEngine::eyeToHeadTransform(Eye eye)
+glm::mat4 VrEngine::eyeToHeadTransform(VrEye eye)
 {
-    auto mat = m_vrSystem->GetEyeToHeadTransform((eye == Eye::Left) ? vr::Eye_Left : vr::Eye_Right);
+    auto mat = m_vrSystem->GetEyeToHeadTransform((eye == VrEye::Left) ? vr::Eye_Left : vr::Eye_Right);
     auto transform = glm::mat4(mat.m[0][0], mat.m[1][0], mat.m[2][0], 0.f, mat.m[0][1], mat.m[1][1], mat.m[2][1], 0.f,
                                mat.m[0][2], mat.m[1][2], mat.m[2][2], 0.f, mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.f);
     return transform;
 }
 
-glm::mat4 VrEngine::eyeViewTransform(Eye eye)
+glm::mat4 VrEngine::eyeViewTransform(VrEye eye)
 {
     return m_devicesInfos[VrDeviceType::Head].transform * eyeToHeadTransform(eye);
 }

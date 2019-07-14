@@ -4,18 +4,13 @@
 #include <lava/core/vr-event.hpp>
 #include <lava/magma/mesh.hpp>
 #include <lava/magma/render-engine.hpp>
+#include <lava/magma/vr-eye.hpp>
 
 namespace lava::magma {
     /**
      * This VrEngine is backend independent.
      */
     class VrEngine {
-    public:
-        enum class Eye {
-            Left,
-            Right,
-        };
-
     public:
         VrEngine();
         ~VrEngine();
@@ -40,13 +35,13 @@ namespace lava::magma {
         Extent2d renderTargetExtent();
 
         /// Get camera projection transform for an eye.
-        glm::mat4 eyeProjectionTransform(Eye eye, float nearClip, float farClip);
+        glm::mat4 eyeProjectionTransform(VrEye eye, float nearClip, float farClip);
 
         /// Get camera view transform for an eye from the head.
-        glm::mat4 eyeToHeadTransform(Eye eye);
+        glm::mat4 eyeToHeadTransform(VrEye eye);
 
         /// Get premultiplied (headTransform * eyeToHeadTransform) eye absolute transform.
-        glm::mat4 eyeViewTransform(Eye eye);
+        glm::mat4 eyeViewTransform(VrEye eye);
 
         /// Need to adapt from OpenVR.
         const glm::mat4 fixesTransform() const { return m_fixesTransform; }

@@ -12,7 +12,7 @@ $pimpl_method(CameraComponent, void, update, float, dt);
 // Public API
 $pimpl_method_const(CameraComponent, const lava::Extent2d&, extent);
 
-$pimpl_property(CameraComponent, glm::vec3, translation);
+$pimpl_property(CameraComponent, glm::vec3, origin);
 $pimpl_property(CameraComponent, glm::vec3, target);
 $pimpl_property_v(CameraComponent, float, radius);
 

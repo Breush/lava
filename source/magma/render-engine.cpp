@@ -1,6 +1,6 @@
 #include <lava/magma/render-engine.hpp>
 
-#include <lava/magma/cameras/i-camera.hpp>
+#include <lava/magma/camera.hpp>
 
 #include "./vulkan/render-engine-impl.hpp"
 
@@ -26,7 +26,7 @@ $pimpl_method(RenderEngine, void, draw);
 $pimpl_method_const(RenderEngine, const MaterialInfo&, materialInfo, const std::string&, hrid);
 $pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 
-uint32_t RenderEngine::addView(ICamera& camera, IRenderTarget& renderTarget, Viewport viewport)
+uint32_t RenderEngine::addView(Camera& camera, IRenderTarget& renderTarget, Viewport viewport)
 {
     return addView(camera.renderImage(), renderTarget, viewport);
 }

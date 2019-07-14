@@ -1,9 +1,9 @@
 #include "./render-scene-impl.hpp"
 
+#include "../../aft-vulkan/camera-aft.hpp"
 #include "../../aft-vulkan/material-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../aft-vulkan/texture-aft.hpp"
-#include "../cameras/i-camera-impl.hpp"
 #include "../lights/i-light-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
@@ -30,6 +30,10 @@ RenderScene::Impl::~Impl()
     // @note This cleanup is just to please the validation layers,
     // because eveything is going to be removed anyway,
     // and no more used.
+
+    for (const auto& cameraBundle : m_cameraBundles) {
+        m_scene.cameraAllocator().deallocate(cameraBundle.camera);
+    }
 
     for (auto material : m_materials) {
         m_scene.materialAllocator().deallocate(material);
@@ -161,7 +165,7 @@ void RenderScene::Impl::waitRecord()
     }
 }
 
-void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
+void RenderScene::Impl::add(Camera& camera)
 {
     const uint32_t cameraId = m_cameraBundles.size();
 
@@ -171,7 +175,7 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
 
     m_cameraBundles.emplace_back();
     auto& cameraBundle = m_cameraBundles.back();
-    cameraBundle.camera = std::move(camera);
+    cameraBundle.camera = &camera;
     cameraBundle.rendererThread = std::make_unique<vulkan::CommandBufferThread>(m_engine, "camera.renderer");
 
     // @note We fallback to a forward renderer if something is not handled.
@@ -181,7 +185,7 @@ void RenderScene::Impl::add(std::unique_ptr<ICamera>&& camera)
         cameraBundle.rendererStage = std::make_unique<ForwardRendererStage>(*this);
 
     if (m_initialized) {
-        cameraBundle.camera->interfaceImpl().init(cameraId);
+        cameraBundle.camera->aft().init(cameraId);
         cameraBundle.rendererStage->init(cameraId);
         updateStages(cameraId);
     }
@@ -265,12 +269,16 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
     logger.log().tab(-1);
 }
 
-void RenderScene::Impl::remove(const Mesh& mesh)
+void RenderScene::Impl::remove(const Camera& camera)
 {
-    // @note Some meshes might remove others within their destructor,
-    // so this pending removed mesh list is necessary.
-
-    m_pendingRemovedMeshes.emplace_back(&mesh);
+    m_engine.device().waitIdle();
+    for (auto iCameraBundle = m_cameraBundles.begin(); iCameraBundle != m_cameraBundles.end(); ++iCameraBundle) {
+        if (iCameraBundle->camera == &camera) {
+            m_scene.cameraAllocator().deallocate(&camera);
+            m_cameraBundles.erase(iCameraBundle);
+            break;
+        }
+    }
 }
 
 void RenderScene::Impl::remove(const Material& material)
@@ -295,6 +303,14 @@ void RenderScene::Impl::remove(const Texture& texture)
             break;
         }
     }
+}
+
+void RenderScene::Impl::remove(const Mesh& mesh)
+{
+    // @note Some meshes might remove others within their destructor,
+    // so this pending removed mesh list is necessary.
+
+    m_pendingRemovedMeshes.emplace_back(&mesh);
 }
 
 //---- Internal interface
@@ -398,15 +414,15 @@ const glm::mat4& RenderScene::Impl::shadowsCascadeTransform(uint32_t lightIndex,
     return m_lightBundles[lightIndex].shadows[cameraIndex]->cascadeTransform(cascadeIndex);
 }
 
-void RenderScene::Impl::shadowsFallbackCamera(ICamera& camera, const ICamera& fallbackCamera)
+void RenderScene::Impl::shadowsFallbackCamera(Camera& camera, const Camera& fallbackCamera)
 {
     uint32_t cameraId = -1u;
     uint32_t fallbackCameraId = -1u;
     for (auto i = 0u; i < m_cameraBundles.size(); ++i) {
-        if (m_cameraBundles[i].camera.get() == &camera) {
+        if (m_cameraBundles[i].camera == &camera) {
             cameraId = i;
         }
-        else if (m_cameraBundles[i].camera.get() == &fallbackCamera) {
+        else if (m_cameraBundles[i].camera == &fallbackCamera) {
             fallbackCameraId = i;
         }
     }
@@ -452,7 +468,7 @@ void RenderScene::Impl::initResources()
 {
     for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
         auto& cameraBundle = m_cameraBundles[cameraId];
-        cameraBundle.camera->interfaceImpl().init(cameraId);
+        cameraBundle.camera->aft().init(cameraId);
     }
 
     for (auto& material : m_materials) {
@@ -477,7 +493,8 @@ void RenderScene::Impl::updateStages(uint32_t cameraId)
     auto& rendererStage = *cameraBundle.rendererStage;
 
     // Extent update
-    const auto& extent = cameraBundle.camera->interfaceImpl().renderExtent();
+    const auto& extent = cameraBundle.camera->extent();
+    vk::Extent2D vkExtent{extent.width, extent.height};
     const auto polygonMode = cameraBundle.camera->polygonMode();
-    rendererStage.update(extent, (polygonMode == PolygonMode::Line) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
+    rendererStage.update(vkExtent, (polygonMode == PolygonMode::Line) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
 }

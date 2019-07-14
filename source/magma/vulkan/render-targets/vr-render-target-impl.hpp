@@ -4,7 +4,7 @@
 
 #include "./i-render-target-impl.hpp"
 
-#include <lava/magma/cameras/vr-eye-camera.hpp>
+#include <lava/magma/camera-controllers/vr-eye-camera-controller.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "../holders/swapchain-holder.hpp"
@@ -15,6 +15,7 @@ namespace lava::magma {
     class VrRenderTarget::Impl final : public IRenderTarget::Impl {
     public:
         Impl(RenderEngine& engine);
+        ~Impl();
 
         // IRenderTarget::Impl
         void init(uint32_t id) override final;
@@ -36,6 +37,7 @@ namespace lava::magma {
 
     protected:
         // Internal
+        void cleanup();
         void initFence();
 
     private:
@@ -45,8 +47,10 @@ namespace lava::magma {
         uint32_t m_id = -1u;
 
         // VR resources
-        VrEyeCamera* m_leftEyeCamera = nullptr;
-        VrEyeCamera* m_rightEyeCamera = nullptr;
+        Camera* m_leftEyeCamera = nullptr;
+        Camera* m_rightEyeCamera = nullptr;
+        VrEyeCameraController m_leftEyeCameraController;
+        VrEyeCameraController m_rightEyeCameraController;
 
         // Resources
         Extent2d m_extent;

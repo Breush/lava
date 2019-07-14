@@ -1,6 +1,5 @@
 #include "./shadows.hpp"
 
-#include "./cameras/i-camera-impl.hpp"
 #include "./lights/directional-light-impl.hpp"
 #include "./render-image-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"
