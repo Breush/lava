@@ -1,14 +1,17 @@
 #include "./forward-renderer-stage.hpp"
 
+#include <lava/magma/camera.hpp>
+#include <lava/magma/light.hpp>
+#include <lava/magma/mesh.hpp>
 #include <lava/magma/vertex.hpp>
 
 #include "../../aft-vulkan/camera-aft.hpp"
+#include "../../aft-vulkan/light-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../g-buffer-data.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../environment.hpp"
 #include "../helpers/format.hpp"
-#include "../lights/i-light-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
@@ -105,7 +108,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
 
     // Bind lights
     for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
-        m_scene.light(lightId).render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
+        m_scene.light(lightId).aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
         m_scene.shadows(lightId, m_cameraId)
             .render(commandBuffer, frameId, m_opaquePipelineHolder.pipelineLayout(), SHADOWS_DESCRIPTOR_SET_INDEX);
     }

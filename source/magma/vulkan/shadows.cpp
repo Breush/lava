@@ -1,6 +1,8 @@
 #include "./shadows.hpp"
 
-#include "./lights/directional-light-impl.hpp"
+#include <lava/magma/camera.hpp>
+#include <lava/magma/light.hpp>
+
 #include "./render-image-impl.hpp"
 #include "./render-scenes/render-scene-impl.hpp"
 
@@ -64,9 +66,9 @@ void Shadows::update(uint32_t frameId)
     float range = maxZ - minZ;
     float ratio = maxZ / minZ;
 
-    // @fixme Currently handling only directional lights!
-    const auto& directionalLight = dynamic_cast<const DirectionalLight::Impl&>(light);
-    glm::vec3 lightDir = directionalLight.direction();
+    // @todo Currently handling only directional lights!
+    // What's the good thing to do?
+    glm::vec3 lightDir = light.shadowsDirection();
 
     // Calculate split depths based on view camera frustum
     // Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html

@@ -1,12 +1,15 @@
 #include "./deep-deferred-stage.hpp"
 
+#include <lava/magma/camera.hpp>
+#include <lava/magma/light.hpp>
+#include <lava/magma/mesh.hpp>
 #include <lava/magma/vertex.hpp>
 
 #include "../../aft-vulkan/camera-aft.hpp"
+#include "../../aft-vulkan/light-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../helpers/format.hpp"
-#include "../lights/i-light-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 #include "../render-scenes/render-scene-impl.hpp"
@@ -173,8 +176,8 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
 
     // Bind lights and shadows
     for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
-        m_scene.light(lightId).render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
-                                      EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
+        m_scene.light(lightId).aft().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
+                                            EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
 
         m_scene.shadows(lightId, m_cameraId)
             .render(commandBuffer, frameId, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);

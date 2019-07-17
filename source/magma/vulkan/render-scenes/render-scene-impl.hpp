@@ -1,11 +1,6 @@
 #pragma once
 
-#include <lava/magma/camera.hpp>
-#include <lava/magma/lights/i-light.hpp>
-#include <lava/magma/material.hpp>
-#include <lava/magma/mesh.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
-#include <lava/magma/texture.hpp>
 
 #include "../command-buffer-thread.hpp"
 #include "../environment.hpp"
@@ -15,6 +10,11 @@
 namespace lava::magma {
     class IRendererStage;
     class ShadowsStage;
+    class Light;
+    class Camera;
+    class Material;
+    class Texture;
+    class Mesh;
 }
 
 namespace lava::magma {
@@ -51,7 +51,7 @@ namespace lava::magma {
          * @name Adders
          */
         /// @{
-        void add(std::unique_ptr<ILight>&& light);
+        void add(Light& light);
         void add(Camera& camera);
         void add(Material& material);
         void add(Texture& texture);
@@ -62,6 +62,7 @@ namespace lava::magma {
          * @name Removers
          */
         /// @{
+        void remove(const Light& light);
         void remove(const Camera& camera);
         void remove(const Mesh& mesh);
         void remove(const Material& material);
@@ -90,8 +91,7 @@ namespace lava::magma {
         Material& fallbackMaterial() { return *m_fallbackMaterial; }
         void fallbackMaterial(Material& material);
 
-        const ILight::Impl& light(uint32_t index) const { return m_lightBundles[index].light->interfaceImpl(); }
-        ILight::Impl& light(uint32_t index) { return m_lightBundles[index].light->interfaceImpl(); }
+        const Light& light(uint32_t index) const { return *m_lightBundles[index].light; }
         const Camera& camera(uint32_t index) const { return *m_cameraBundles[index].camera; }
         const Material& material(uint32_t index) const { return *m_materials[index]; }
         const Mesh& mesh(uint32_t index) const { return *m_meshes[index]; }
@@ -102,8 +102,8 @@ namespace lava::magma {
         const std::vector<Texture*>& textures() const { return m_textures; }
         const std::vector<Mesh*>& meshes() const { return m_meshes; }
 
-        uint32_t camerasCount() const { return m_cameraBundles.size(); }
         uint32_t lightsCount() const { return m_lightBundles.size(); }
+        uint32_t camerasCount() const { return m_cameraBundles.size(); }
 
         RenderImage cameraRenderImage(uint32_t cameraIndex) const;
         RenderImage cameraDepthRenderImage(uint32_t cameraIndex) const;
@@ -129,7 +129,7 @@ namespace lava::magma {
     protected:
         /// This bundle is for lights, allowing us to create shadow map.
         struct LightBundle {
-            std::unique_ptr<ILight> light;
+            Light* light = nullptr; // Pointing to bucket's allocator address.
             std::unique_ptr<ShadowsStage> shadowsStage;
             std::vector<std::unique_ptr<Shadows>> shadows;
 

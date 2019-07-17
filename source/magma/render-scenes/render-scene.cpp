@@ -25,17 +25,14 @@ RenderScene::~RenderScene()
 $pimpl_method(RenderScene, void, rendererType, RendererType, rendererType);
 
 // Adders
+$pimpl_method(RenderScene, void, add, Light&, light);
 $pimpl_method(RenderScene, void, add, Camera&, camera);
 $pimpl_method(RenderScene, void, add, Material&, material);
 $pimpl_method(RenderScene, void, add, Texture&, texture);
 $pimpl_method(RenderScene, void, add, Mesh&, mesh);
 
-void RenderScene::add(std::unique_ptr<ILight>&& light)
-{
-    m_impl->add(std::move(light));
-}
-
 // Removers
+$pimpl_method(RenderScene, void, remove, const Light&, light);
 $pimpl_method(RenderScene, void, remove, const Camera&, camera);
 $pimpl_method(RenderScene, void, remove, const Material&, material);
 $pimpl_method(RenderScene, void, remove, const Texture&, texture);

@@ -1,10 +1,15 @@
 #include "./render-scene-impl.hpp"
 
+#include <lava/magma/camera.hpp>
+#include <lava/magma/light.hpp>
+#include <lava/magma/material.hpp>
+#include <lava/magma/mesh.hpp>
+
 #include "../../aft-vulkan/camera-aft.hpp"
+#include "../../aft-vulkan/light-aft.hpp"
 #include "../../aft-vulkan/material-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../aft-vulkan/texture-aft.hpp"
-#include "../lights/i-light-impl.hpp"
 #include "../render-engine-impl.hpp"
 #include "../stages/deep-deferred-stage.hpp"
 #include "../stages/forward-renderer-stage.hpp"
@@ -30,6 +35,10 @@ RenderScene::Impl::~Impl()
     // @note This cleanup is just to please the validation layers,
     // because eveything is going to be removed anyway,
     // and no more used.
+
+    for (const auto& lightBundle : m_lightBundles) {
+        m_scene.lightAllocator().deallocate(lightBundle.light);
+    }
 
     for (const auto& cameraBundle : m_cameraBundles) {
         m_scene.cameraAllocator().deallocate(cameraBundle.camera);
@@ -101,9 +110,9 @@ void RenderScene::Impl::update()
 
     // @todo Some light or cameras might be inactive,
     // we should add this concept.
-    // We should also be sure this is not done to many times.
+    // We should also be sure this is not done too many times.
     for (auto& lightBundle : m_lightBundles) {
-        lightBundle.light->interfaceImpl().update();
+        lightBundle.light->aft().update();
 
         for (auto& shadows : lightBundle.shadows) {
             shadows->update(m_frameId);
@@ -233,7 +242,7 @@ void RenderScene::Impl::add(Mesh& mesh)
     m_meshes.emplace_back(&mesh);
 }
 
-void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
+void RenderScene::Impl::add(Light& light)
 {
     const uint32_t lightId = m_lightBundles.size();
 
@@ -242,31 +251,41 @@ void RenderScene::Impl::add(std::unique_ptr<ILight>&& light)
 
     m_lightBundles.emplace_back();
     auto& lightBundle = m_lightBundles.back();
-    lightBundle.light = std::move(light);
+    lightBundle.light = &light;
 
     // Setting shadows
-    if (lightBundle.light->shadowsEnabled()) {
-        lightBundle.shadowsStage = std::make_unique<ShadowsStage>(*this);
-        lightBundle.shadows.resize(m_cameraBundles.size());
-        lightBundle.shadowsThreads.resize(m_cameraBundles.size());
-        for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
-            lightBundle.shadows[cameraId] = std::make_unique<Shadows>(*this);
-            lightBundle.shadowsThreads[cameraId] = std::make_unique<vulkan::CommandBufferThread>(m_engine, "light.shadows");
-        }
+    lightBundle.shadowsStage = std::make_unique<ShadowsStage>(*this);
+    lightBundle.shadows.resize(m_cameraBundles.size());
+    lightBundle.shadowsThreads.resize(m_cameraBundles.size());
+    for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+        lightBundle.shadows[cameraId] = std::make_unique<Shadows>(*this);
+        lightBundle.shadowsThreads[cameraId] = std::make_unique<vulkan::CommandBufferThread>(m_engine, "light.shadows");
     }
 
     if (m_initialized) {
-        lightBundle.light->interfaceImpl().init(lightId);
-        if (lightBundle.light->shadowsEnabled()) {
-            lightBundle.shadowsStage->init(lightId);
-            lightBundle.shadowsStage->update(vk::Extent2D{SHADOW_MAP_SIZE, SHADOW_MAP_SIZE});
-            for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
-                lightBundle.shadows[cameraId]->init(lightId, cameraId);
-            }
+        lightBundle.light->aft().init(lightId);
+        lightBundle.shadowsStage->init(lightId);
+        lightBundle.shadowsStage->update(vk::Extent2D{SHADOW_MAP_SIZE, SHADOW_MAP_SIZE});
+        for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+            lightBundle.shadows[cameraId]->init(lightId, cameraId);
         }
     }
 
     logger.log().tab(-1);
+}
+
+// ----- Removers
+
+void RenderScene::Impl::remove(const Light& light)
+{
+    m_engine.device().waitIdle();
+    for (auto iLightBundle = m_lightBundles.begin(); iLightBundle != m_lightBundles.end(); ++iLightBundle) {
+        if (iLightBundle->light == &light) {
+            m_scene.lightAllocator().deallocate(&light);
+            m_lightBundles.erase(iLightBundle);
+            break;
+        }
+    }
 }
 
 void RenderScene::Impl::remove(const Camera& camera)
@@ -451,13 +470,11 @@ void RenderScene::Impl::initStages()
 
     for (auto lightId = 0u; lightId < m_cameraBundles.size(); ++lightId) {
         auto& lightBundle = m_lightBundles[lightId];
-        lightBundle.light->interfaceImpl().init(lightId);
-        if (lightBundle.light->shadowsEnabled()) {
-            lightBundle.shadowsStage->init(lightId);
-            lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
-            for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
-                lightBundle.shadows[cameraId]->init(lightId, cameraId);
-            }
+        lightBundle.light->aft().init(lightId);
+        lightBundle.shadowsStage->init(lightId);
+        lightBundle.shadowsStage->update(vk::Extent2D{1024u, 1024u});
+        for (auto cameraId = 0u; cameraId < m_cameraBundles.size(); ++cameraId) {
+            lightBundle.shadows[cameraId]->init(lightId, cameraId);
         }
     }
 
@@ -481,7 +498,7 @@ void RenderScene::Impl::initResources()
 
     for (auto lightId = 0u; lightId < m_lightBundles.size(); ++lightId) {
         auto& lightBundle = m_lightBundles[lightId];
-        lightBundle.light->interfaceImpl().init(lightId);
+        lightBundle.light->aft().init(lightId);
     }
 
     m_environment.init();

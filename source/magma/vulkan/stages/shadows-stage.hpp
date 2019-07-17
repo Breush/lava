@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lava/magma/lights/i-light.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
 #include <lava/magma/ubos.hpp>

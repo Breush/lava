@@ -85,7 +85,8 @@ namespace lava::sill {
         magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
         magma::VrRenderTarget* m_vrRenderTarget = nullptr;
         magma::RenderScene* m_renderScene = nullptr;
-        magma::DirectionalLight* m_light = nullptr;
+        magma::Light* m_light = nullptr;
+        magma::DirectionalLightController m_lightController;
 
         // User control
         bool m_fpsCounterEnabled = false;

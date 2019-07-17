@@ -56,11 +56,10 @@ namespace lava::magma {
             glm::vec4 __padding;
         };
 
-        glm::mat4 transform;
         glm::uvec4 data[2];
 
-        LightUbo(LightType lightType)
-            : type(static_cast<uint32_t>(lightType))
+        LightUbo()
+            : type(static_cast<uint32_t>(LightType::Unknown))
         {
         }
     };

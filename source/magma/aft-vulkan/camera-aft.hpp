@@ -1,8 +1,9 @@
 #pragma once
 
+#include <lava/magma/render-image.hpp>
 #include <lava/magma/render-scenes/render-scene.hpp>
 
-#include "../vulkan/holders/image-holder.hpp"
+#include <vulkan/vulkan.hpp>
 
 namespace lava::magma {
     class Camera;

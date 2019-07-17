@@ -4,12 +4,17 @@ namespace {
     template <class T>
     struct RenderSceneMaker {
         template <class... Arguments>
-        static inline T& make(lava::magma::RenderScene& scene, Arguments&&... arguments)
+        static T& make(lava::magma::RenderScene& scene, Arguments&&... arguments);
+    };
+
+    template <>
+    struct RenderSceneMaker<lava::magma::Light> {
+        template <class... Arguments>
+        static inline lava::magma::Light& make(lava::magma::RenderScene& scene, Arguments&&... arguments)
         {
-            auto pResource = std::make_unique<T>(scene, std::forward<Arguments>(arguments)...);
-            auto& resource = *pResource;
-            scene.add(std::move(pResource));
-            return resource;
+            auto resource = scene.cameraAllocator().allocate<lava::magma::Light>(scene, std::forward<Arguments>(arguments)...);
+            scene.add(*resource);
+            return *resource;
         }
     };
 

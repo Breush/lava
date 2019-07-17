@@ -158,7 +158,8 @@ namespace lava::ashe {
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowTarget; }
         magma::RenderScene& scene() { return *m_scene; }
         magma::OrbitCameraController& cameraController() { return m_cameraController; }
-        magma::DirectionalLight& light() { return *m_light; }
+        magma::Light& light() { return *m_light; }
+        magma::DirectionalLightController& lightController() { return m_lightController; }
 
         /**
          * Create base elements for the examples.
@@ -186,8 +187,9 @@ namespace lava::ashe {
             m_cameraController.target({0.f, 0.f, 0.5f});
 
             // A light.
-            m_light = &m_scene->make<magma::DirectionalLight>();
-            m_light->direction({-0.8f, -0.7f, -0.4f});
+            m_light = &m_scene->make<magma::Light>();
+            m_lightController.bind(*m_light);
+            m_lightController.direction({-0.8f, -0.7f, -0.4f});
 
             // We decide to show the scene's camera "0" at a certain translation in the window.
             m_engine->addView(*m_camera, *m_windowTarget, Viewport{0, 0, 1, 1});
@@ -210,8 +212,8 @@ namespace lava::ashe {
         }
 
         /// Running with a custom event handler.
-        inline void run(std::function<void(const WsEvent&)> eventHandler,
-                        std::function<void(float)> updateCallback = [](float) {})
+        inline void run(
+            std::function<void(const WsEvent&)> eventHandler, std::function<void(float)> updateCallback = [](float) {})
         {
             static auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -439,6 +441,7 @@ namespace lava::ashe {
         magma::RenderScene* m_scene = nullptr;
         magma::Camera* m_camera = nullptr;
         magma::OrbitCameraController m_cameraController;
-        magma::DirectionalLight* m_light = nullptr;
+        magma::Light* m_light = nullptr;
+        magma::DirectionalLightController m_lightController;
     };
 }

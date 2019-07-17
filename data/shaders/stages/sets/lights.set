@@ -5,7 +5,6 @@
 
 layout(set = LIGHTS_DESCRIPTOR_SET_INDEX, binding = 0) uniform LightUbo {
     uint type;      // LIGHT_TYPE_XXX values from above defines.
-    mat4 transform;
     uvec4 data[2];
 } light;
 

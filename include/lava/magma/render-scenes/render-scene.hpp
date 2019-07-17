@@ -8,7 +8,7 @@
 
 namespace lava::magma {
     class RenderEngine;
-    class ILight;
+    class Light;
     class Camera;
     class Material;
     class Texture;
@@ -57,13 +57,13 @@ namespace lava::magma {
 
         /**
          * @name Adders
-         * Add a resource that has already been created.
+         * Add a resource that has already been created on the corresponding allocator.
          *
          * Its ownership goes to the scene.
          * For convenience, you usually want to use makers (see above).
          */
         /// @{
-        void add(std::unique_ptr<ILight>&& light);
+        void add(Light& light);
         void add(Camera& camera);
         void add(Material& material);
         void add(Texture& texture);
@@ -75,6 +75,7 @@ namespace lava::magma {
          * Remove a previously added (or made) resource.
          */
         /// @{
+        void remove(const Light& light);
         void remove(const Camera& camera);
         void remove(const Material& material);
         void remove(const Texture& texture);
@@ -93,6 +94,7 @@ namespace lava::magma {
          * @name Allocators
          */
         /// @{
+        chamber::BucketAllocator& lightAllocator() { return m_lightAllocator; }
         chamber::BucketAllocator& cameraAllocator() { return m_cameraAllocator; }
         chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
         chamber::BucketAllocator& textureAllocator() { return m_textureAllocator; }
@@ -110,6 +112,7 @@ namespace lava::magma {
         RenderEngine& m_engine;
 
         // ----- Allocators
+        chamber::BucketAllocator m_lightAllocator;
         chamber::BucketAllocator m_cameraAllocator;
         chamber::BucketAllocator m_materialAllocator;
         chamber::BucketAllocator m_textureAllocator;

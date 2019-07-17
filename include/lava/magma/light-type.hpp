@@ -2,7 +2,8 @@
 
 namespace lava::magma {
     enum class LightType {
-        Point = 0u,
-        Directional = 1u,
+        Unknown = 0u,
+        Point = 1u,
+        Directional = 2u,
     };
 }

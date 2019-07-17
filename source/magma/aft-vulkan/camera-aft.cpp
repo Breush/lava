@@ -1,5 +1,7 @@
 #include "./camera-aft.hpp"
 
+#include <lava/magma/camera.hpp>
+
 #include "../vulkan/render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;

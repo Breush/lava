@@ -1,5 +1,7 @@
 #include "./material-aft.hpp"
 
+#include <lava/magma/material.hpp>
+
 #include "../vulkan/render-scenes/render-scene-impl.hpp"
 #include "./texture-aft.hpp"
 

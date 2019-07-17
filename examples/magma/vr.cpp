@@ -27,9 +27,10 @@ int main(void)
 
     // Lights.
     {
-        auto& light = scene.make<magma::PointLight>();
-        light.translation({0.2, 0.4, 2});
-        light.radius(10.f);
+        auto& light = scene.make<magma::Light>();
+        magma::PointLightController lightController(light);
+        lightController.translation({0.2, 0.4, 2});
+        lightController.radius(10.f);
     }
 
     // Some demo mesh

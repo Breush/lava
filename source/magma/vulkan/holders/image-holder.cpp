@@ -79,7 +79,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
         dstStageMask |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
         dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        m_layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        m_layout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
     }
     // Color
     else if (imageAspect == vk::ImageAspectFlagBits::eColor) {

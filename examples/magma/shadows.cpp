@@ -46,7 +46,7 @@ int main(void)
     auto t = 0.f;
     app.run([&](float dt) {
         t += dt;
-        app.light().direction({std::cos(t), std::sin(t), -0.5f});
+        app.lightController().direction({std::cos(t), std::sin(t), -0.5f});
     });
 
     return EXIT_SUCCESS;

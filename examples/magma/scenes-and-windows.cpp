@@ -24,8 +24,8 @@ int main(void)
         auto& scene = engine.make<magma::RenderScene>();
         scene.rendererType(magma::RendererType::DeepDeferred);
 
-        auto& light = scene.make<magma::DirectionalLight>();
-        light.direction({-0.8f, -0.7f, -0.4f});
+        auto& light = scene.make<magma::Light>();
+        magma::DirectionalLightController(light).direction({-0.8f, -0.7f, -0.4f});
 
         auto& frontCamera = scene.make<magma::Camera>(Extent2d{400, 800});
         magma::OrbitCameraController frontCameraController(frontCamera);
@@ -58,8 +58,8 @@ int main(void)
         auto& scene = engine.make<magma::RenderScene>();
         scene.rendererType(magma::RendererType::DeepDeferred);
 
-        auto& light = scene.make<magma::DirectionalLight>();
-        light.direction({-0.8f, -0.7f, -0.4f});
+        auto& light = scene.make<magma::Light>();
+        magma::DirectionalLightController(light).direction({-0.8f, -0.7f, -0.4f});
 
         auto& frontCamera = scene.make<magma::Camera>(Extent2d{400, 800});
         magma::OrbitCameraController frontCameraController(frontCamera);

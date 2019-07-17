@@ -1,5 +1,6 @@
 #include "./vr-render-target-impl.hpp"
 
+#include <lava/magma/camera.hpp>
 #include <lava/magma/render-engine.hpp>
 
 #include "../../aft-vulkan/camera-aft.hpp"
