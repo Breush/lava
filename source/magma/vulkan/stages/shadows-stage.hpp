@@ -1,13 +1,12 @@
 #pragma once
 
-#include <lava/magma/render-scenes/render-scene.hpp>
+#include <lava/magma/scene.hpp>
 
 #include <lava/magma/ubos.hpp>
 
 #include "../holders/image-holder.hpp"
 #include "../holders/pipeline-holder.hpp"
 #include "../holders/render-pass-holder.hpp"
-#include "../render-engine-impl.hpp"
 
 namespace lava::magma {
     // @todo Currently fixed extent for shadow maps, might need dynamic ones
@@ -21,21 +20,21 @@ namespace lava::magma {
         constexpr static const uint32_t SHADOW_MAP_PUSH_CONSTANT_OFFSET = sizeof(MeshUbo);
 
     public:
-        ShadowsStage(RenderScene::Impl& scene);
+        ShadowsStage(Scene& scene);
 
-        void init(uint32_t lightId);
+        void init(const Light& light);
         void update(vk::Extent2D extent);
         void updateFromCamerasCount();
-        void render(vk::CommandBuffer commandBuffer, uint32_t cameraId);
+        void render(vk::CommandBuffer commandBuffer, const Camera* camera);
 
-        RenderImage renderImage(uint32_t cameraId = 0u, uint32_t cascadeIndex = 0u) const;
+        RenderImage renderImage(const Camera& camera, uint32_t cascadeIndex = 0u) const;
         vk::RenderPass renderPass() const { return m_renderPassHolder.renderPass(); }
 
     protected:
         void initPass();
 
         void createResources();
-        void ensureResourcesForCamera(uint32_t cameraId);
+        void ensureResourcesForCamera(const Camera& camera);
 
     protected:
         struct Cascade {
@@ -43,17 +42,13 @@ namespace lava::magma {
             vulkan::Framebuffer framebuffer;
             ShadowMapUbo ubo;
 
-            Cascade(RenderEngine::Impl& engine)
-                : imageHolder(engine, "magma.vulkan.shadows-stage.cascade.image")
-                , framebuffer(engine.device())
-            {
-            }
+            Cascade(RenderEngine& engine);
         };
 
     private:
         // References
-        RenderScene::Impl& m_scene;
-        uint32_t m_lightId = -1u;
+        Scene& m_scene;
+        const Light* m_light = nullptr;
         vk::Extent2D m_extent;
 
         // Pass and subpasses
@@ -62,6 +57,6 @@ namespace lava::magma {
 
         // Cascade shadow maps
         // @todo For clarity, we might want a using CameraId = uint32_t somewhere.
-        std::unordered_map<uint32_t, std::vector<Cascade>> m_cascades; // Stored per cameraId
+        std::unordered_map<const Camera*, std::vector<Cascade>> m_cascades; // Stored per cameraId
     };
 }

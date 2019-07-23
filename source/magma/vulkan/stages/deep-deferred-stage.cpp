@@ -3,40 +3,41 @@
 #include <lava/magma/camera.hpp>
 #include <lava/magma/light.hpp>
 #include <lava/magma/mesh.hpp>
+#include <lava/magma/scene.hpp>
 #include <lava/magma/vertex.hpp>
 
 #include "../../aft-vulkan/camera-aft.hpp"
 #include "../../aft-vulkan/light-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
+#include "../../aft-vulkan/scene-aft.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../helpers/format.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
-#include "../render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
-DeepDeferredStage::DeepDeferredStage(RenderScene::Impl& scene)
+DeepDeferredStage::DeepDeferredStage(Scene& scene)
     : m_scene(scene)
-    , m_renderPassHolder(m_scene.engine())
-    , m_clearPipelineHolder(m_scene.engine())
-    , m_geometryPipelineHolder(m_scene.engine())
-    , m_depthlessPipelineHolder(m_scene.engine())
-    , m_epiphanyPipelineHolder(m_scene.engine())
-    , m_gBufferInputDescriptorHolder(m_scene.engine())
-    , m_gBufferSsboDescriptorHolder(m_scene.engine())
-    , m_gBufferSsboHeaderBufferHolder(m_scene.engine())
-    , m_gBufferSsboListBufferHolder(m_scene.engine())
-    , m_finalImageHolder(m_scene.engine(), "magma.vulkan.stages.deep-deferred-stage.final-image")
-    , m_depthImageHolder(m_scene.engine(), "magma.vulkan.stages.deep-deferred-stage.depth-image")
-    , m_framebuffer(m_scene.engine().device())
+    , m_renderPassHolder(m_scene.engine().impl())
+    , m_clearPipelineHolder(m_scene.engine().impl())
+    , m_geometryPipelineHolder(m_scene.engine().impl())
+    , m_depthlessPipelineHolder(m_scene.engine().impl())
+    , m_epiphanyPipelineHolder(m_scene.engine().impl())
+    , m_gBufferInputDescriptorHolder(m_scene.engine().impl())
+    , m_gBufferSsboDescriptorHolder(m_scene.engine().impl())
+    , m_gBufferSsboHeaderBufferHolder(m_scene.engine().impl())
+    , m_gBufferSsboListBufferHolder(m_scene.engine().impl())
+    , m_finalImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.deep-deferred-stage.final-image")
+    , m_depthImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.deep-deferred-stage.depth-image")
+    , m_framebuffer(m_scene.engine().impl().device())
 {
 }
 
-void DeepDeferredStage::init(uint32_t cameraId)
+void DeepDeferredStage::init(const Camera& camera)
 {
-    m_cameraId = cameraId;
+    m_camera = &camera;
 
     logger.info("magma.vulkan.stages.deep-deferred-stage") << "Initializing." << std::endl;
     logger.log().tab(1);
@@ -75,7 +76,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
-    const auto& deviceHolder = m_scene.engine().deviceHolder();
+    const auto& deviceHolder = m_scene.engine().impl().deviceHolder();
     deviceHolder.debugBeginRegion(commandBuffer, "deep-deferred");
 
     //----- Prologue
@@ -118,21 +119,20 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryPipelineHolder.pipeline());
 
     // Set the camera
-    auto& camera = m_scene.camera(m_cameraId);
-    camera.aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
-    const auto& cameraFrustum = camera.frustum();
+    m_camera->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
+    const auto& cameraFrustum = m_camera->frustum();
 
     // Draw all meshes
     std::vector<const Mesh*> depthlessMeshes;
     for (auto mesh : m_scene.meshes()) {
-        if (camera.vrAimed() && !mesh->vrRenderable()) continue;
+        if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
         // @todo Somehow, the deep-deferred renderer does not care about wireframes.
         if (mesh->depthless()) {
             depthlessMeshes.emplace_back(mesh);
             continue;
         }
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -150,9 +150,9 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
 
     // Draw all meshes
     for (auto mesh : depthlessMeshes) {
-        if (camera.vrAimed() && !mesh->vrRenderable()) continue;
+        if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -171,15 +171,14 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
                                      DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0,
                                      nullptr);
 
-    m_scene.environment().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
-                                 EPIPHANY_ENVIRONMENT_DESCRIPTOR_SET_INDEX);
+    m_scene.aft().environment().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
+                                       EPIPHANY_ENVIRONMENT_DESCRIPTOR_SET_INDEX);
 
     // Bind lights and shadows
-    for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
-        m_scene.light(lightId).aft().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
-                                            EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
-
-        m_scene.shadows(lightId, m_cameraId)
+    for (auto light : m_scene.lights()) {
+        light->aft().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
+        m_scene.aft()
+            .shadows(*light, *m_camera)
             .render(commandBuffer, frameId, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);
     }
 
@@ -196,12 +195,14 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
 
 RenderImage DeepDeferredStage::renderImage() const
 {
-    return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + m_cameraId);
+    auto cameraId = m_scene.aft().cameraId(*m_camera);
+    return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
 }
 
 RenderImage DeepDeferredStage::depthRenderImage() const
 {
-    return m_depthImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + m_cameraId);
+    auto cameraId = m_scene.aft().cameraId(*m_camera);
+    return m_depthImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + cameraId);
 }
 
 void DeepDeferredStage::changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
@@ -229,7 +230,7 @@ void DeepDeferredStage::initClearPass()
     //----- Shaders
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/fullscreen.vert");
+    auto vertexShaderModule = m_scene.engine().impl().shadersManager().module("./data/shaders/stages/fullscreen.vert");
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
     ShadersManager::ModuleOptions moduleOptions;
@@ -243,8 +244,8 @@ void DeepDeferredStage::initClearPass()
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
-    auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/deep-deferred/clear.frag", moduleOptions);
+    auto fragmentShaderModule = m_scene.engine().impl().shadersManager().module(
+        "./data/shaders/stages/renderers/deep-deferred/clear.frag", moduleOptions);
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     //----- Descriptor set layouts
@@ -269,7 +270,7 @@ void DeepDeferredStage::initGeometryPass()
     // @note Ordering is important
     m_geometryPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_geometryPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
-    m_geometryPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
+    m_geometryPipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -283,7 +284,7 @@ void DeepDeferredStage::initGeometryPass()
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     m_geometryPipelineHolder.set(depthStencilAttachment);
 
     vulkan::PipelineHolder::ColorAttachment gBufferNodeColorAttachment;
@@ -313,7 +314,7 @@ void DeepDeferredStage::initDepthlessPass()
     // @note Ordering is important
     m_depthlessPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_depthlessPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
-    m_depthlessPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
+    m_depthlessPipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -327,7 +328,7 @@ void DeepDeferredStage::initDepthlessPass()
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     depthStencilAttachment.depthWriteEnabled = false;
     depthStencilAttachment.clear = false;
     m_depthlessPipelineHolder.set(depthStencilAttachment);
@@ -363,9 +364,9 @@ void DeepDeferredStage::initEpiphanyPass()
 
     m_epiphanyPipelineHolder.add(m_gBufferInputDescriptorHolder.setLayout());
     m_epiphanyPipelineHolder.add(m_gBufferSsboDescriptorHolder.setLayout());
-    m_epiphanyPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
-    m_epiphanyPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
-    m_epiphanyPipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
+    m_epiphanyPipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
+    m_epiphanyPipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
+    m_epiphanyPipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -409,12 +410,13 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
     if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryPassShaders(false); };
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/geometry.vert", moduleOptions);
-    auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/deep-deferred/geometry.frag", moduleOptions);
+    auto vertexShaderModule =
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry.vert", moduleOptions);
+    auto fragmentShaderModule = m_scene.engine().impl().shadersManager().module(
+        "./data/shaders/stages/renderers/deep-deferred/geometry.frag", moduleOptions);
 
     auto depthlessVertexShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/geometry-depthless.vert", moduleOptions);
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry-depthless.vert", moduleOptions);
 
     m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     m_geometryPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
@@ -458,11 +460,11 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
     if (firstTime) moduleOptions.updateCallback = [this]() { updateEpiphanyPassShaders(false); };
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/fullscreen.vert");
+    auto vertexShaderModule = m_scene.engine().impl().shadersManager().module("./data/shaders/stages/fullscreen.vert");
     m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
-    auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/deep-deferred/epiphany.frag", moduleOptions);
+    auto fragmentShaderModule = m_scene.engine().impl().shadersManager().module(
+        "./data/shaders/stages/renderers/deep-deferred/epiphany.frag", moduleOptions);
     m_epiphanyPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     if (!firstTime) {
@@ -477,7 +479,7 @@ void DeepDeferredStage::createResources()
     m_gBufferInputNodeImageHolders.reserve(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     auto gBufferHeaderFormat = vk::Format::eR32G32B32A32Uint;
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
-        m_gBufferInputNodeImageHolders.emplace_back(m_scene.engine());
+        m_gBufferInputNodeImageHolders.emplace_back(m_scene.engine().impl());
         m_gBufferInputNodeImageHolders[i].create(gBufferHeaderFormat, m_extent, vk::ImageAspectFlagBits::eColor);
         m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet, m_gBufferInputNodeImageHolders[i].view(),
                                                  vk::ImageLayout::eShaderReadOnlyOptimal, i);
@@ -502,7 +504,7 @@ void DeepDeferredStage::createResources()
     m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
 
     // Depth
-    auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
 }
 
@@ -539,7 +541,8 @@ void DeepDeferredStage::createFramebuffers()
     framebufferInfo.height = m_extent.height;
     framebufferInfo.layers = 1;
 
-    if (m_scene.engine().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
+    if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
+        != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.deep-deferred-stage") << "Failed to create framebuffers." << std::endl;
     }
 }

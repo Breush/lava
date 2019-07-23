@@ -7,7 +7,7 @@
 
 namespace lava::magma {
     class TextureAft;
-    class RenderScene;
+    class Scene;
 }
 
 namespace lava::magma {
@@ -16,7 +16,7 @@ namespace lava::magma {
      */
     class Texture {
     public:
-        Texture(RenderScene& scene);
+        Texture(Scene& scene);
         Texture(const Texture&) = delete;
         ~Texture();
 
@@ -41,6 +41,6 @@ namespace lava::magma {
         uint8_t m_aft[MAGMA_SIZEOF_TextureAft];
 
         // ----- References
-        RenderScene& m_scene;
+        Scene& m_scene;
     };
 }

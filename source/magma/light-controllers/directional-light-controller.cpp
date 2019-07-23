@@ -20,7 +20,7 @@ void DirectionalLightController::bind(Light& light)
 
 void DirectionalLightController::direction(const glm::vec3& direction)
 {
-    m_direction = direction;
+    m_direction = glm::normalize(direction);
 
     auto& ubo = m_light->ubo();
     ubo.data[0].x = reinterpret_cast<const uint32_t&>(m_direction.x);

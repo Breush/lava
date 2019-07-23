@@ -14,7 +14,7 @@ CameraComponent::Impl::Impl(GameEntity& entity)
     // @todo We might want to have a way to specify that this camera should be
     // using the window extent but user specific one. For instance, if the result
     // should be used as a mirror.
-    m_camera = &engine.renderScene().make<magma::Camera>(engine.windowRenderTarget().extent());
+    m_camera = &engine.scene().make<magma::Camera>(engine.windowRenderTarget().extent());
     m_cameraController.bind(*m_camera);
     m_extent = engine.windowRenderTarget().extent();
 
@@ -31,7 +31,7 @@ CameraComponent::Impl::Impl(GameEntity& entity)
 CameraComponent::Impl::~Impl()
 {
     auto& engine = m_entity.engine().impl();
-    engine.renderScene().remove(*m_camera);
+    engine.scene().remove(*m_camera);
 }
 
 void CameraComponent::Impl::update(float dt)

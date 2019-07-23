@@ -28,7 +28,7 @@ TARGETS=($TARGETS)
 TARGETS_COUNT=${#TARGETS[@]}
 
 CONFIG="fast-compile"
-if [ "$2" != "" ]; then
+if [ "$2" != "" ] && [ "$2" != "slow" ]; then
     CONFIG="$2"
 fi
 
@@ -39,7 +39,11 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
 
     echo -e "\e[35mBuilding ${TARGET}...\e[39m"
 
-    ${MAKE} config=${CONFIG} -j 3 ${TARGET}
+    if [ "$2" == "slow" ]; then
+        ${MAKE} config=${CONFIG} ${TARGET}
+    else
+        ${MAKE} config=${CONFIG} -j 3 ${TARGET}
+    fi
 
     # Run
     if [ $? -eq 0 ]; then

@@ -7,12 +7,12 @@ using namespace lava::sill;
 Material::Material(GameEngine& engine, const std::string& hrid)
     : m_engine(engine)
 {
-    m_magma = &m_engine.impl().renderScene().make<magma::Material>(hrid);
+    m_magma = &m_engine.impl().scene().make<magma::Material>(hrid);
 }
 
 Material::~Material()
 {
-    m_engine.impl().renderScene().remove(*m_magma);
+    m_engine.impl().scene().remove(*m_magma);
     m_magma = nullptr;
 }
 

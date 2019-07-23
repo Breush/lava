@@ -25,16 +25,16 @@ GameEngine::Impl::Impl(GameEngine& engine)
 
     m_windowRenderTarget = &m_renderEngine->make<magma::WindowRenderTarget>(m_window->handle(), windowExtent);
 
-    m_renderScene = &m_renderEngine->make<magma::RenderScene>();
-    m_renderScene->rendererType(magma::RendererType::Forward);
+    m_scene = &m_renderEngine->make<magma::Scene>();
+    m_scene->rendererType(magma::RendererType::Forward);
 
     if (m_renderEngine->vrEnabled()) {
         m_vrRenderTarget = &m_renderEngine->make<magma::VrRenderTarget>();
-        m_vrRenderTarget->bindScene(*m_renderScene);
+        m_vrRenderTarget->bindScene(*m_scene);
     }
 
     // @todo Handle custom lights
-    m_light = &m_renderScene->make<magma::Light>();
+    m_light = &m_scene->make<magma::Light>();
     m_lightController.bind(*m_light);
     m_lightController.direction({3.f, 2.f, -6.f});
 
@@ -141,7 +141,7 @@ void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath)
 
     m_environmentTexture = &m_engine.make<sill::Texture>();
     m_environmentTexture->loadCubeFromFiles(imagesPath);
-    m_renderScene->environmentTexture(&m_environmentTexture->magma());
+    m_scene->environmentTexture(&m_environmentTexture->magma());
 }
 
 //----- Materials
@@ -168,15 +168,15 @@ void GameEngine::Impl::updateInput()
     // Update VR controllers
     if (m_vrRenderTarget != nullptr) {
         if (m_renderEngine->vrDeviceValid(VrDeviceType::LeftHand)) {
-            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::LeftHand, *m_renderScene);
+            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::LeftHand, *m_scene);
             mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::LeftHand));
         }
         if (m_renderEngine->vrDeviceValid(VrDeviceType::RightHand)) {
-            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::RightHand, *m_renderScene);
+            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::RightHand, *m_scene);
             mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::RightHand));
         }
         if (m_renderEngine->vrDeviceValid(VrDeviceType::Head)) {
-            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::Head, *m_renderScene);
+            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::Head, *m_scene);
             mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::Head));
         }
     }

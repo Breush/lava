@@ -8,7 +8,6 @@
 #include <lava/magma/render-engine.hpp>
 
 #include "../holders/swapchain-holder.hpp"
-#include "../render-scenes/render-scene-impl.hpp"
 #include "../wrappers.hpp"
 
 namespace lava::magma {
@@ -33,7 +32,7 @@ namespace lava::magma {
         uint32_t buffersCount() const final { return 1; }
 
         // VrRenderTarget
-        void bindScene(RenderScene& scene);
+        void bindScene(Scene& scene);
 
     protected:
         // Internal
@@ -43,7 +42,7 @@ namespace lava::magma {
     private:
         // References
         RenderEngine::Impl& m_engine;
-        RenderScene::Impl* m_scene = nullptr;
+        Scene* m_scene = nullptr;
         uint32_t m_id = -1u;
 
         // VR resources

@@ -1,17 +1,16 @@
 #pragma once
 
-#include <lava/magma/render-scenes/render-scene.hpp>
-
 #include "../vulkan/holders/image-holder.hpp"
 
 namespace lava::magma {
     class Texture;
+    class Scene;
 }
 
 namespace lava::magma {
     class TextureAft {
     public:
-        TextureAft(Texture& fore, RenderScene::Impl& scene);
+        TextureAft(Texture& fore, Scene& scene);
 
         vk::ImageView imageView() const { return m_imageHolder.view(); }
 
@@ -21,7 +20,7 @@ namespace lava::magma {
 
     private:
         Texture& m_fore;
-        RenderScene::Impl& m_scene;
+        Scene& m_scene;
 
         vulkan::ImageHolder m_imageHolder;
     };

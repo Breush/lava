@@ -6,7 +6,7 @@
 
 namespace lava::magma {
     class LightAft;
-    class RenderScene;
+    class Scene;
 }
 
 namespace lava::magma {
@@ -23,12 +23,12 @@ namespace lava::magma {
      */
     class Light {
     public:
-        Light(RenderScene& scene);
+        Light(Scene& scene);
         Light(const Light&) = delete;
         ~Light();
 
-        RenderScene& scene() { return m_scene; }
-        const RenderScene& scene() const { return m_scene; }
+        Scene& scene() { return m_scene; }
+        const Scene& scene() const { return m_scene; }
 
         /// Internal implementation
         LightAft& aft() { return reinterpret_cast<LightAft&>(m_aft); }
@@ -41,7 +41,7 @@ namespace lava::magma {
         /// The shadow map rendered image (if any).
         RenderImage shadowsRenderImage() const;
 
-        /// What direction the light goes.
+        /// What direction the light goes. The provided vector must be normalized.
         /// @note Note currently handling shadows for non-directional lights.
         const glm::vec3& shadowsDirection() const { return m_shadowsDirection; }
         void shadowsDirection(const glm::vec3& shadowsDirection) { m_shadowsDirection = shadowsDirection; }
@@ -65,7 +65,7 @@ namespace lava::magma {
         uint8_t m_aft[MAGMA_SIZEOF_LightAft];
 
         // ----- References
-        RenderScene& m_scene;
+        Scene& m_scene;
 
         // ----- Shader data
         LightUbo m_ubo;

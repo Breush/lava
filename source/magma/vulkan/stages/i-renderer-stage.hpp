@@ -3,12 +3,16 @@
 #include <lava/magma/render-image.hpp>
 
 namespace lava::magma {
+    class Camera;
+}
+
+namespace lava::magma {
     /// Interface for renderer stages, as used by RenderScene::Impl.
     class IRendererStage {
     public:
         virtual ~IRendererStage() = default;
 
-        virtual void init(uint32_t cameraId) = 0;
+        virtual void init(const Camera& camera) = 0;
         virtual void update(vk::Extent2D extent, vk::PolygonMode polygonMode = vk::PolygonMode::eFill) = 0;
         virtual void render(vk::CommandBuffer commandBuffer, uint32_t frameId) = 0;
 

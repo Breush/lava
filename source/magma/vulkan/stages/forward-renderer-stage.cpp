@@ -3,38 +3,39 @@
 #include <lava/magma/camera.hpp>
 #include <lava/magma/light.hpp>
 #include <lava/magma/mesh.hpp>
+#include <lava/magma/scene.hpp>
 #include <lava/magma/vertex.hpp>
 
 #include "../../aft-vulkan/camera-aft.hpp"
 #include "../../aft-vulkan/light-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
+#include "../../aft-vulkan/scene-aft.hpp"
 #include "../../g-buffer-data.hpp"
 #include "../../helpers/frustum.hpp"
 #include "../environment.hpp"
 #include "../helpers/format.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
-#include "../render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
-ForwardRendererStage::ForwardRendererStage(RenderScene::Impl& scene)
+ForwardRendererStage::ForwardRendererStage(Scene& scene)
     : m_scene(scene)
-    , m_renderPassHolder(m_scene.engine())
-    , m_opaquePipelineHolder(m_scene.engine())
-    , m_depthlessPipelineHolder(m_scene.engine())
-    , m_wireframePipelineHolder(m_scene.engine())
-    , m_translucentPipelineHolder(m_scene.engine())
-    , m_finalImageHolder(m_scene.engine(), "magma.vulkan.stages.forward-renderer.final-image")
-    , m_depthImageHolder(m_scene.engine(), "magma.vulkan.stages.forward-renderer.depth-image")
-    , m_framebuffer(m_scene.engine().device())
+    , m_renderPassHolder(m_scene.engine().impl())
+    , m_opaquePipelineHolder(m_scene.engine().impl())
+    , m_depthlessPipelineHolder(m_scene.engine().impl())
+    , m_wireframePipelineHolder(m_scene.engine().impl())
+    , m_translucentPipelineHolder(m_scene.engine().impl())
+    , m_finalImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.final-image")
+    , m_depthImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.depth-image")
+    , m_framebuffer(m_scene.engine().impl().device())
 {
 }
 
-void ForwardRendererStage::init(uint32_t cameraId)
+void ForwardRendererStage::init(const Camera& camera)
 {
-    m_cameraId = cameraId;
+    m_camera = &camera;
 
     logger.info("magma.vulkan.stages.forward-renderer-stage") << "Initializing." << std::endl;
     logger.log().tab(1);
@@ -74,7 +75,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
-    const auto& deviceHolder = m_scene.engine().deviceHolder();
+    const auto& deviceHolder = m_scene.engine().impl().deviceHolder();
     deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer");
 
     //----- Prologue
@@ -107,26 +108,26 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_opaquePipelineHolder.pipeline());
 
     // Bind lights
-    for (auto lightId = 0u; lightId < m_scene.lightsCount(); ++lightId) {
-        m_scene.light(lightId).aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
-        m_scene.shadows(lightId, m_cameraId)
+    for (auto light : m_scene.lights()) {
+        light->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
+        m_scene.aft()
+            .shadows(*light, *m_camera)
             .render(commandBuffer, frameId, m_opaquePipelineHolder.pipelineLayout(), SHADOWS_DESCRIPTOR_SET_INDEX);
     }
 
     // Set the camera
-    auto& camera = m_scene.camera(m_cameraId);
-    camera.aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
-    const auto& cameraFrustum = camera.frustum();
+    m_camera->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
+    const auto& cameraFrustum = m_camera->frustum();
 
     // Set the environment
-    m_scene.environment().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), ENVIRONMENT_DESCRIPTOR_SET_INDEX);
+    m_scene.aft().environment().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), ENVIRONMENT_DESCRIPTOR_SET_INDEX);
 
     // Draw all opaque meshes and sort others
     std::vector<const Mesh*> depthlessMeshes;
     std::vector<const Mesh*> wireframedMeshes;
     std::vector<const Mesh*> translucentMeshes;
     for (auto mesh : m_scene.meshes()) {
-        if (camera.vrAimed() && !mesh->vrRenderable()) continue;
+        if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
         if (mesh->depthless()) {
             depthlessMeshes.emplace_back(mesh);
             continue;
@@ -141,7 +142,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
         }
 
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -176,7 +177,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     // Draw all wireframed meshes
     for (auto mesh : wireframedMeshes) {
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
         }
@@ -196,7 +197,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     // https://github.com/Breush/lava/issues/36
     for (auto mesh : translucentMeshes) {
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!camera.frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -214,12 +215,14 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
 
 RenderImage ForwardRendererStage::renderImage() const
 {
-    return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + m_cameraId);
+    auto cameraId = m_scene.aft().cameraId(*m_camera);
+    return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
 }
 
 RenderImage ForwardRendererStage::depthRenderImage() const
 {
-    return m_depthImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + m_cameraId);
+    auto cameraId = m_scene.aft().cameraId(*m_camera);
+    return m_depthImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + cameraId);
 }
 
 void ForwardRendererStage::changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
@@ -234,10 +237,10 @@ void ForwardRendererStage::initOpaquePass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_opaquePipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
-    m_opaquePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_opaquePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
-    m_opaquePipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
+    m_opaquePipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
+    m_opaquePipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
+    m_opaquePipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
+    m_opaquePipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -251,7 +254,7 @@ void ForwardRendererStage::initOpaquePass()
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     m_opaquePipelineHolder.set(depthStencilAttachment);
 
     vulkan::PipelineHolder::ColorAttachment finalColorAttachment;
@@ -275,10 +278,10 @@ void ForwardRendererStage::initDepthlessPass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_depthlessPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
-    m_depthlessPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_depthlessPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
-    m_depthlessPipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
+    m_depthlessPipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
+    m_depthlessPipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
+    m_depthlessPipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
+    m_depthlessPipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -292,7 +295,7 @@ void ForwardRendererStage::initDepthlessPass()
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     depthStencilAttachment.depthWriteEnabled = false;
     depthStencilAttachment.clear = false;
     m_depthlessPipelineHolder.set(depthStencilAttachment);
@@ -319,11 +322,11 @@ void ForwardRendererStage::initWireframePass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_wireframePipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
-    m_wireframePipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
     // @note Useful, so that the pipelines are all compatible
-    m_wireframePipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
-    m_wireframePipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
+    m_wireframePipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -337,7 +340,7 @@ void ForwardRendererStage::initWireframePass()
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     depthStencilAttachment.depthWriteEnabled = false;
     depthStencilAttachment.clear = false;
     m_wireframePipelineHolder.set(depthStencilAttachment);
@@ -364,10 +367,10 @@ void ForwardRendererStage::initTranslucentPass()
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_translucentPipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
-    m_translucentPipelineHolder.add(m_scene.materialDescriptorHolder().setLayout());
-    m_translucentPipelineHolder.add(m_scene.lightsDescriptorHolder().setLayout());
-    m_translucentPipelineHolder.add(m_scene.shadowsDescriptorHolder().setLayout());
+    m_translucentPipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
+    m_translucentPipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
+    m_translucentPipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
+    m_translucentPipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -381,7 +384,7 @@ void ForwardRendererStage::initTranslucentPass()
     //----- Attachments
 
     vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
-    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     depthStencilAttachment.depthWriteEnabled = false;
     depthStencilAttachment.clear = false;
     m_translucentPipelineHolder.set(depthStencilAttachment);
@@ -426,17 +429,18 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     if (firstTime) moduleOptions.updateCallback = [this]() { updatePassShaders(false); };
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
-    auto vertexShaderModule = m_scene.engine().shadersManager().module("./data/shaders/stages/geometry.vert", moduleOptions);
+    auto vertexShaderModule =
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry.vert", moduleOptions);
     auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/renderers/forward/geometry.frag", moduleOptions);
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/renderers/forward/geometry.frag", moduleOptions);
 
     auto depthlessVertexShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/geometry-depthless.vert", moduleOptions);
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry-depthless.vert", moduleOptions);
 
     auto unlitVertexShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/geometry-unlit.vert", moduleOptions);
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry-unlit.vert", moduleOptions);
     auto unlitFragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/geometry-unlit.frag", moduleOptions);
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry-unlit.frag", moduleOptions);
 
     m_opaquePipelineHolder.removeShaderStages();
     m_opaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
@@ -470,7 +474,7 @@ void ForwardRendererStage::createResources()
     m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
 
     // Depth
-    auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().physicalDevice());
+    auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
 }
 
@@ -496,7 +500,8 @@ void ForwardRendererStage::createFramebuffers()
     framebufferInfo.height = m_extent.height;
     framebufferInfo.layers = 1;
 
-    if (m_scene.engine().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
+    if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
+        != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.forward-renderer-stage") << "Failed to create framebuffers." << std::endl;
     }
 }

@@ -1,14 +1,16 @@
 #include <lava/magma/material.hpp>
 
+#include <lava/magma/scene.hpp>
+
 #include "./aft-vulkan/material-aft.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
 
-Material::Material(RenderScene& scene, const std::string& hrid)
+Material::Material(Scene& scene, const std::string& hrid)
     : m_scene(scene)
 {
-    new (&aft()) MaterialAft(*this, m_scene.impl());
+    new (&aft()) MaterialAft(*this, m_scene);
 
     initFromMaterialInfo(hrid);
 }

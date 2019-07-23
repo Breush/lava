@@ -19,7 +19,7 @@ int main(void)
     // @fixme Should have a way to position the center of the world for VR.
 
     // Render scene: holds what has to be drawn.
-    auto& scene = engine.make<magma::RenderScene>();
+    auto& scene = engine.make<magma::Scene>();
     scene.rendererType(magma::RendererType::Forward); // Deferred might be too much for VR
 
     // Tell the VR render target to exist within this scene.

@@ -1,29 +1,27 @@
 #include "./light-aft.hpp"
 
 #include <lava/magma/light.hpp>
+#include <lava/magma/scene.hpp>
 
-#include "../vulkan/render-scenes/render-scene-impl.hpp"
+#include "./scene-aft.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
 
-LightAft::LightAft(Light& fore, RenderScene::Impl& scene)
+LightAft::LightAft(Light& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_descriptorSets(make_array<RenderScene::FRAME_IDS_COUNT, vk::DescriptorSet>(nullptr))
-    , m_uboHolders(make_array<RenderScene::FRAME_IDS_COUNT, vulkan::UboHolder>(m_scene.engine()))
+    , m_descriptorSets(make_array<FRAME_IDS_COUNT, vk::DescriptorSet>(nullptr))
+    , m_uboHolders(make_array<FRAME_IDS_COUNT, vulkan::UboHolder>(m_scene.engine().impl()))
 {
 }
 
-void LightAft::init(uint32_t id)
+void LightAft::init()
 {
-    m_id = id;
-
+    auto& descriptorHolder = m_scene.aft().lightsDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
-        m_descriptorSets[i] =
-            m_scene.lightsDescriptorHolder().allocateSet("light." + std::to_string(id) + "." + std::to_string(i));
-        m_uboHolders[i].init(m_descriptorSets[i], m_scene.lightsDescriptorHolder().uniformBufferBindingOffset(),
-                             {sizeof(LightUbo)});
+        m_descriptorSets[i] = descriptorHolder.allocateSet("light." + std::to_string(i));
+        m_uboHolders[i].init(m_descriptorSets[i], descriptorHolder.uniformBufferBindingOffset(), {sizeof(LightUbo)});
     }
 
     m_uboDirty = true;
@@ -34,7 +32,7 @@ void LightAft::update()
     if (!m_uboDirty) return;
 
     // :InternalFrameId
-    m_currentFrameId = (m_currentFrameId + 1u) % RenderScene::FRAME_IDS_COUNT;
+    m_currentFrameId = (m_currentFrameId + 1u) % FRAME_IDS_COUNT;
 
     updateBindings();
 }
@@ -49,7 +47,7 @@ void LightAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipeli
 
 RenderImage LightAft::foreShadowsRenderImage() const
 {
-    return m_scene.shadowsCascadeRenderImage(m_id);
+    return m_scene.aft().shadowsCascadeRenderImage(m_fore);
 }
 
 // ----- Updates

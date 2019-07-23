@@ -6,7 +6,7 @@ using namespace lava::magma;
 
 $pimpl_class(VrRenderTarget, RenderEngine&, engine);
 
-$pimpl_method(VrRenderTarget, void, bindScene, RenderScene&, scene);
+$pimpl_method(VrRenderTarget, void, bindScene, Scene&, scene);
 
 // IRenderTarget
 IRenderTarget::Impl& VrRenderTarget::interfaceImpl()

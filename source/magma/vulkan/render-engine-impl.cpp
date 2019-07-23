@@ -2,11 +2,11 @@
 
 #include <lava/magma/vr-tools.hpp>
 
+#include "../aft-vulkan/scene-aft.hpp"
 #include "../shmag-reader.hpp"
 #include "./helpers/queue.hpp"
 #include "./holders/swapchain-holder.hpp"
 #include "./render-image-impl.hpp"
-#include "./render-scenes/render-scene-impl.hpp"
 #include "./render-targets/i-render-target-impl.hpp"
 #include "./stages/present.hpp"
 
@@ -15,6 +15,10 @@ using namespace lava::chamber;
 
 RenderEngine::Impl::Impl(RenderEngine& engine)
     : m_engine(engine)
+    , m_dummyImageHolder{*this, "magma.vulkan.render-engine.dummy-image"}
+    , m_dummyNormalImageHolder{*this, "magma.vulkan.render-engine.dummy-normal-image"}
+    , m_dummyInvisibleImageHolder{*this, "magma.vulkan.render-engine.dummy-invisible-image"}
+    , m_dummyCubeImageHolder{*this, "magma.vulkan.render-engine.dummy-cube-image"}
 {
     // @note This VR initialisation has to be done before initVulkan, because we need
     // to get the extensions list to be enable.
@@ -27,6 +31,10 @@ RenderEngine::Impl::~Impl()
     vr::VR_Shutdown();
 
     device().waitIdle();
+
+    for (auto scene : m_scenes) {
+        m_engine.sceneAllocator().deallocate(scene);
+    }
 }
 
 void RenderEngine::Impl::update()
@@ -36,8 +44,8 @@ void RenderEngine::Impl::update()
     updateVr();
     updateShaders();
 
-    for (auto& scene : m_renderScenes) {
-        scene->impl().update();
+    for (auto scene : m_scenes) {
+        scene->aft().update();
     }
 }
 
@@ -47,9 +55,8 @@ void RenderEngine::Impl::draw()
     PROFILE_FUNCTION();
 
     // We record all render scenes cameras once
-    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
-        auto& renderScene = m_renderScenes[renderSceneId];
-        renderScene->impl().record();
+    for (auto scene : m_scenes) {
+        scene->aft().record();
     }
 
     // Prepare all render targets
@@ -61,13 +68,13 @@ void RenderEngine::Impl::draw()
     }
 
     // Wait for all scenes to be done with recording
-    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
-        auto& renderScene = m_renderScenes[renderSceneId];
-        renderScene->impl().waitRecord();
+    for (auto sceneId = 0u; sceneId < m_scenes.size(); ++sceneId) {
+        auto scene = m_scenes[sceneId];
+        scene->aft().waitRecord();
 
         // Tracking
         if (m_logTracking) {
-            logger.info("magma.render-engine") << "Render scene " << renderSceneId << "." << std::endl;
+            logger.info("magma.render-engine") << "Render scene " << sceneId << "." << std::endl;
             logger.log().tab(1);
             logger.log() << "draw-calls.renderer: " << tracker.counter("draw-calls.renderer") << std::endl;
             logger.log() << "draw-calls.shadows: " << tracker.counter("draw-calls.shadows") << std::endl;
@@ -179,20 +186,20 @@ void RenderEngine::Impl::removeView(uint32_t viewId)
 
 //----- Adders
 
-void RenderEngine::Impl::add(std::unique_ptr<RenderScene>&& renderScene)
+void RenderEngine::Impl::add(Scene& scene)
 {
-    const uint32_t renderSceneId = m_renderScenes.size();
+    const uint32_t sceneId = m_scenes.size();
 
-    logger.info("magma.vulkan.render-engine") << "Adding render scene " << renderSceneId << "." << std::endl;
+    logger.info("magma.vulkan.render-engine") << "Adding render scene " << sceneId << "." << std::endl;
     logger.log().tab(1);
 
     // If no device yet, the scene initialization will be postponed
     // until it is created.
     if (m_deviceHolder.device()) {
-        renderScene->impl().init(renderSceneId);
+        scene.aft().init();
     }
 
-    m_renderScenes.emplace_back(std::move(renderScene));
+    m_scenes.emplace_back(&scene);
 
     logger.log().tab(-1);
 }
@@ -359,9 +366,8 @@ std::vector<vk::CommandBuffer> RenderEngine::Impl::recordCommandBuffer(uint32_t 
     // and use these directly without having to re-render everything.
     std::vector<vk::CommandBuffer> commandBuffers;
 
-    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
-        auto& renderScene = m_renderScenes[renderSceneId];
-        const auto& sceneCommandBuffers = renderScene->impl().commandBuffers();
+    for (auto scene : m_scenes) {
+        const auto& sceneCommandBuffers = scene->aft().commandBuffers();
         commandBuffers.insert(commandBuffers.end(), sceneCommandBuffers.begin(), sceneCommandBuffers.end());
     }
 
@@ -411,18 +417,17 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
     }
 }
 
-void RenderEngine::Impl::initRenderScenes()
+void RenderEngine::Impl::initScenes()
 {
-    if (m_renderScenes.size() == 0u) return;
+    if (m_scenes.size() == 0u) return;
 
     PROFILE_FUNCTION(PROFILER_COLOR_INIT);
 
     logger.info("magma.vulkan.render-engine") << "Initializing render scenes." << std::endl;
     logger.log().tab(1);
 
-    for (auto renderSceneId = 0u; renderSceneId < m_renderScenes.size(); ++renderSceneId) {
-        auto& renderSceneImpl = m_renderScenes[renderSceneId]->impl();
-        renderSceneImpl.init(renderSceneId);
+    for (const auto& scene : m_scenes) {
+        scene->aft().init();
     }
 
     logger.log().tab(-1);
@@ -467,7 +472,7 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR* pSurface)
     createCommandPools(pSurface);
     createDummyTextures();
 
-    initRenderScenes();
+    initScenes();
 
     logger.log().tab(-1);
 }

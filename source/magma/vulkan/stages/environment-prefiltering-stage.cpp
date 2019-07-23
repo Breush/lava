@@ -1,19 +1,21 @@
 #include "./environment-prefiltering-stage.hpp"
 
+#include <lava/magma/scene.hpp>
+
 #include "../../aft-vulkan/mesh-aft.hpp"
+#include "../../aft-vulkan/scene-aft.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
-#include "../render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
-EnvironmentPrefilteringStage::EnvironmentPrefilteringStage(RenderScene::Impl& scene)
+EnvironmentPrefilteringStage::EnvironmentPrefilteringStage(Scene& scene, RenderEngine& engine)
     : m_scene(scene)
-    , m_renderPassHolder(m_scene.engine())
-    , m_pipelineHolder(m_scene.engine())
-    , m_imageHolder(scene.engine(), "magma.vulkan.stages.environment-prefiltering-stage.image")
-    , m_framebuffer(m_scene.engine().device())
+    , m_renderPassHolder(engine.impl())
+    , m_pipelineHolder(engine.impl())
+    , m_imageHolder(engine.impl(), "magma.vulkan.stages.environment-prefiltering-stage.image")
+    , m_framebuffer(engine.impl().device())
 {
 }
 
@@ -53,7 +55,7 @@ void EnvironmentPrefilteringStage::render(vk::CommandBuffer commandBuffer, uint8
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 
-    const auto& deviceHolder = m_scene.engine().deviceHolder();
+    const auto& deviceHolder = m_scene.engine().impl().deviceHolder();
     deviceHolder.debugBeginRegion(commandBuffer, "environment-prefiltering");
 
     //----- Prologue
@@ -89,7 +91,7 @@ void EnvironmentPrefilteringStage::render(vk::CommandBuffer commandBuffer, uint8
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
 
-    m_scene.environment().renderBasic(commandBuffer, m_pipelineHolder.pipelineLayout(), 0u);
+    m_scene.aft().environment().renderBasic(commandBuffer, m_pipelineHolder.pipelineLayout(), 0u);
 
     // The transform needed for each face
     std::vector<glm::mat4> matrices = {
@@ -147,16 +149,16 @@ void EnvironmentPrefilteringStage::initPass()
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
     auto vertexShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/environment-prefiltering.vert", moduleOptions);
-    auto fragmentShaderModule =
-        m_scene.engine().shadersManager().module("./data/shaders/stages/environment-" + algorithm + ".frag", moduleOptions);
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/environment-prefiltering.vert", moduleOptions);
+    auto fragmentShaderModule = m_scene.engine().impl().shadersManager().module(
+        "./data/shaders/stages/environment-" + algorithm + ".frag", moduleOptions);
     m_pipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     m_pipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
 
     //----- Descriptor set layouts
 
     // @note Ordering is important
-    m_pipelineHolder.add(m_scene.environmentDescriptorHolder().setLayout());
+    m_pipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
 
     //----- Push constants
 
@@ -197,7 +199,8 @@ void EnvironmentPrefilteringStage::createFramebuffers()
     framebufferInfo.height = m_extent.height;
     framebufferInfo.layers = 1;
 
-    if (m_scene.engine().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace()) != vk::Result::eSuccess) {
+    if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
+        != vk::Result::eSuccess) {
         logger.error("magma.vulkan.stages.environment-prefiltering-stage") << "Failed to create framebuffers." << std::endl;
     }
 }

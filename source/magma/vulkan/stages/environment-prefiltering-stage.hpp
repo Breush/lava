@@ -1,7 +1,5 @@
 #pragma once
 
-#include <lava/magma/render-scenes/render-scene.hpp>
-
 #include <lava/magma/ubos.hpp>
 
 #include "../holders/image-holder.hpp"
@@ -10,6 +8,8 @@
 
 namespace lava::magma {
     class Environment;
+    class Scene;
+    class RenderEngine;
 }
 
 namespace lava::magma {
@@ -28,7 +28,7 @@ namespace lava::magma {
         };
 
     public:
-        EnvironmentPrefilteringStage(RenderScene::Impl& scene);
+        EnvironmentPrefilteringStage(Scene& scene, RenderEngine& engine);
 
         // Algorithm should be either "radiance" or "irrandiance".
         void init(Algorithm algorithm);
@@ -49,7 +49,7 @@ namespace lava::magma {
 
     private:
         // References
-        RenderScene::Impl& m_scene;
+        Scene& m_scene;
         vk::Extent2D m_extent;
         Algorithm m_algorithm = Algorithm::Unknown;
 

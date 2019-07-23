@@ -1,34 +1,37 @@
 #include "./material-aft.hpp"
 
 #include <lava/magma/material.hpp>
+#include <lava/magma/scene.hpp>
+#include <lava/magma/texture.hpp>
 
-#include "../vulkan/render-scenes/render-scene-impl.hpp"
+#include "../vulkan/render-engine-impl.hpp"
+#include "./scene-aft.hpp"
 #include "./texture-aft.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
 
-MaterialAft::MaterialAft(Material& fore, RenderScene::Impl& scene)
+MaterialAft::MaterialAft(Material& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_descriptorSets(make_array<RenderScene::FRAME_IDS_COUNT, vk::DescriptorSet>(nullptr))
-    , m_uboHolders(make_array<RenderScene::FRAME_IDS_COUNT, vulkan::UboHolder>(m_scene.engine()))
+    , m_descriptorSets(make_array<FRAME_IDS_COUNT, vk::DescriptorSet>(nullptr))
+    , m_uboHolders(make_array<FRAME_IDS_COUNT, vulkan::UboHolder>(m_scene.engine().impl()))
 {
 }
 
 MaterialAft::~MaterialAft()
 {
     for (auto& descriptorSet : m_descriptorSets) {
-        m_scene.materialDescriptorHolder().freeSet(descriptorSet);
+        m_scene.aft().materialDescriptorHolder().freeSet(descriptorSet);
     }
 }
 
 void MaterialAft::init()
 {
+    auto& descriptorHolder = m_scene.aft().materialDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
-        m_descriptorSets[i] = m_scene.materialDescriptorHolder().allocateSet("material." + std::to_string(i), true);
-        m_uboHolders[i].init(m_descriptorSets[i], m_scene.materialDescriptorHolder().uniformBufferBindingOffset(),
-                             {sizeof(MaterialUbo)});
+        m_descriptorSets[i] = descriptorHolder.allocateSet("material." + std::to_string(i), true);
+        m_uboHolders[i].init(m_descriptorSets[i], descriptorHolder.uniformBufferBindingOffset(), {sizeof(MaterialUbo)});
     }
 
     m_uboDirty = true;
@@ -40,7 +43,7 @@ void MaterialAft::update()
 
     // :InternalFrameId @note The idea is to be sure that the material's UBO is not in use
     // while we update it. We do that by updating it into a different uboHolder/descriptorSet.
-    m_currentFrameId = (m_currentFrameId + 1u) % RenderScene::FRAME_IDS_COUNT;
+    m_currentFrameId = (m_currentFrameId + 1u) % FRAME_IDS_COUNT;
 
     updateBindings();
 }
@@ -65,10 +68,11 @@ void MaterialAft::updateBindings()
     m_uboHolders[m_currentFrameId].copy(0, m_fore.ubo());
 
     // Samplers
-    const auto& engine = m_scene.engine();
+    const auto& engine = m_scene.engine().impl();
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    const auto binding = m_scene.materialDescriptorHolder().combinedImageSamplerBindingOffset();
+    auto& descriptorHolder = m_scene.aft().materialDescriptorHolder();
+    const auto binding = descriptorHolder.combinedImageSamplerBindingOffset();
     auto imageView = engine.dummyImageView();
 
     // Force all samplers to white image view by default.

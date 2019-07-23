@@ -1,5 +1,7 @@
 #include "./command-buffer-thread.hpp"
 
+#include "../vulkan/render-engine-impl.hpp"
+
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 

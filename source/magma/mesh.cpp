@@ -1,6 +1,7 @@
 #include <lava/magma/mesh.hpp>
 
 #include <lava/chamber/mikktspace.hpp>
+#include <lava/magma/scene.hpp>
 
 #include "./mesh-tools.hpp"
 
@@ -18,18 +19,20 @@ namespace {
                     uint32_t verticesCount);
 }
 
-Mesh::Mesh(RenderScene& scene)
+Mesh::Mesh(Scene& scene)
     : m_scene(scene)
 {
-    new (&aft()) MeshAft(*this, m_scene.impl());
+    new (&aft()) MeshAft(*this, m_scene);
 
-    if (m_debugBoundingSphere) {
-        debugBoundingSphere(false);
-    }
+    updateUbo();
 }
 
 Mesh::~Mesh()
 {
+    if (m_debugBoundingSphere) {
+        debugBoundingSphere(false);
+    }
+
     aft().~MeshAft();
 }
 
@@ -44,7 +47,7 @@ void Mesh::transform(const glm::mat4& transform)
     glm::decompose(m_transform, m_scaling, m_rotation, m_translation, skew, perspective);
 
     updateBoundingSphere();
-    aft().foreTransformChanged();
+    updateUbo();
 }
 
 void Mesh::translation(const glm::vec3& translation)
@@ -274,6 +277,14 @@ void Mesh::debugBoundingSphere(bool debugBoundingSphere)
 
 // ----- Updates
 
+void Mesh::updateUbo()
+{
+    auto transposeTransform = glm::transpose(m_transform);
+    m_ubo.transform0 = transposeTransform[0];
+    m_ubo.transform1 = transposeTransform[1];
+    m_ubo.transform2 = transposeTransform[2];
+}
+
 void Mesh::updateTransform()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
@@ -283,7 +294,7 @@ void Mesh::updateTransform()
     m_transform[3] = glm::vec4(m_translation, 1.f);
 
     updateBoundingSphere();
-    aft().foreTransformChanged();
+    updateUbo();
 }
 
 void Mesh::updateBoundingSphere()

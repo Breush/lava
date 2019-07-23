@@ -2,7 +2,7 @@
 
 #include "./i-renderer-stage.hpp"
 
-#include <lava/magma/render-scenes/render-scene.hpp>
+#include <lava/magma/scene.hpp>
 
 #include <lava/magma/ubos.hpp>
 
@@ -25,10 +25,10 @@ namespace lava::magma {
         constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = sizeof(CameraUbo);
 
     public:
-        ForwardRendererStage(RenderScene::Impl& scene);
+        ForwardRendererStage(Scene& scene);
 
         // IRendererStage
-        void init(uint32_t cameraId) final;
+        void init(const Camera& camera) final;
         void update(vk::Extent2D extent, vk::PolygonMode polygonMode) final;
         void render(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
 
@@ -51,8 +51,8 @@ namespace lava::magma {
 
     private:
         // References
-        RenderScene::Impl& m_scene;
-        uint32_t m_cameraId = -1u;
+        Scene& m_scene;
+        const Camera* m_camera = nullptr;
         vk::Extent2D m_extent;
         vk::PolygonMode m_polygonMode = vk::PolygonMode::eFill;
 

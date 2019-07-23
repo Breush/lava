@@ -21,7 +21,7 @@ int main(void)
 
     // Left scene setup, with a cube
     {
-        auto& scene = engine.make<magma::RenderScene>();
+        auto& scene = engine.make<magma::Scene>();
         scene.rendererType(magma::RendererType::DeepDeferred);
 
         auto& light = scene.make<magma::Light>();
@@ -55,7 +55,7 @@ int main(void)
 
     // Right scene setup
     {
-        auto& scene = engine.make<magma::RenderScene>();
+        auto& scene = engine.make<magma::Scene>();
         scene.rendererType(magma::RendererType::DeepDeferred);
 
         auto& light = scene.make<magma::Light>();

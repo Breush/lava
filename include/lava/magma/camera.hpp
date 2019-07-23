@@ -10,7 +10,7 @@
 
 namespace lava::magma {
     class CameraAft;
-    class RenderScene;
+    class Scene;
 }
 
 namespace lava::magma {
@@ -27,12 +27,12 @@ namespace lava::magma {
      */
     class Camera {
     public:
-        Camera(RenderScene& scene, Extent2d extent);
+        Camera(Scene& scene, Extent2d extent);
         Camera(const Camera&) = delete;
         ~Camera();
 
-        RenderScene& scene() { return m_scene; }
-        const RenderScene& scene() const { return m_scene; }
+        Scene& scene() { return m_scene; }
+        const Scene& scene() const { return m_scene; }
 
         /// Internal implementation
         CameraAft& aft() { return reinterpret_cast<CameraAft&>(m_aft); }
@@ -125,7 +125,7 @@ namespace lava::magma {
         uint8_t m_aft[MAGMA_SIZEOF_CameraAft];
 
         // ----- References
-        RenderScene& m_scene;
+        Scene& m_scene;
 
         // ----- Shader data
         CameraUbo m_ubo;

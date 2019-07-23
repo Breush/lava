@@ -1,18 +1,18 @@
 #pragma once
 
-#include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/ubos.hpp>
 
 #include "../vulkan/holders/buffer-holder.hpp"
 
 namespace lava::magma {
     class Mesh;
+    class Scene;
 }
 
 namespace lava::magma {
     class MeshAft {
     public:
-        MeshAft(Mesh& fore, RenderScene::Impl& scene);
+        MeshAft(Mesh& fore, Scene& scene);
 
         void init();
         void update();
@@ -21,7 +21,6 @@ namespace lava::magma {
         void renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const;
 
         // ----- Fore
-        void foreTransformChanged();
         void foreVerticesChanged() { m_vertexBufferDirty = true; }
         void foreIndicesChanged();
 
@@ -31,11 +30,7 @@ namespace lava::magma {
 
     private:
         Mesh& m_fore;
-        RenderScene::Impl& m_scene;
-
-        // ----- Shader data
-        // @todo PUT that in Mesh because it's cross-tech?
-        MeshUbo m_ubo;
+        Scene& m_scene;
 
         // ----- Geometry
         vulkan::BufferHolder m_unlitVertexBufferHolder;

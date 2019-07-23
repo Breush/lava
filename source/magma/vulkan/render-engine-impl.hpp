@@ -2,8 +2,8 @@
 
 #include <lava/magma/render-engine.hpp>
 
-#include <lava/magma/render-scenes/render-scene.hpp>
 #include <lava/magma/render-targets/i-render-target.hpp>
+#include <lava/magma/scene.hpp>
 
 #include "../vr-engine.hpp"
 #include "./holders/buffer-holder.hpp"
@@ -46,7 +46,7 @@ namespace lava::magma {
          * @name Adders
          */
         /// @{
-        void add(std::unique_ptr<RenderScene>&& renderScene);
+        void add(Scene& scene);
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 
@@ -58,7 +58,7 @@ namespace lava::magma {
         bool vrEnabled() const { return m_vrEngine.enabled(); }
         bool vrDeviceValid(VrDeviceType deviceType) const { return m_vrEngine.deviceValid(deviceType); }
         const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const { return m_vrEngine.deviceTransform(deviceType); }
-        Mesh& vrDeviceMesh(VrDeviceType deviceType, RenderScene& scene) { return m_vrEngine.deviceMesh(deviceType, scene); }
+        Mesh& vrDeviceMesh(VrDeviceType deviceType, Scene& scene) { return m_vrEngine.deviceMesh(deviceType, scene); }
         /// @}
 
         /**
@@ -105,7 +105,7 @@ namespace lava::magma {
         void initVr();
         void initVulkan();
         void initVulkanDevice(vk::SurfaceKHR* pSurface);
-        void initRenderScenes();
+        void initScenes();
 
         void updateVr();
         void updateShaders();
@@ -160,16 +160,16 @@ namespace lava::magma {
          */
         /// @{
         /// Dummy texture for colors. 1x1 pixel of rgba(255, 255, 255, 255)
-        vulkan::ImageHolder m_dummyImageHolder{*this, "magma.vulkan.render-engine.dummy-image"};
+        vulkan::ImageHolder m_dummyImageHolder;
 
         /// Dummy texture for normal mapping. 1x1 pixel of rgba(128, 128, 255, 255)
-        vulkan::ImageHolder m_dummyNormalImageHolder{*this, "magma.vulkan.render-engine.dummy-normal-image"};
+        vulkan::ImageHolder m_dummyNormalImageHolder;
 
         /// Dummy texture for black-invisible. 1x1 pixel of rgba(0, 0, 0, 0)
-        vulkan::ImageHolder m_dummyInvisibleImageHolder{*this, "magma.vulkan.render-engine.dummy-invisible-image"};
+        vulkan::ImageHolder m_dummyInvisibleImageHolder;
 
         /// Dummy texture for cube maps. 1x1 pixel of rgba(255, 255, 255, 255)
-        vulkan::ImageHolder m_dummyCubeImageHolder{*this, "magma.vulkan.render-engine.dummy-cube-image"};
+        vulkan::ImageHolder m_dummyCubeImageHolder;
 
         /// Dummy texture sampler.
         $attribute(vulkan::Sampler, dummySampler, {device()});
@@ -179,7 +179,7 @@ namespace lava::magma {
         /// @}
 
         // Data
-        std::vector<std::unique_ptr<RenderScene>> m_renderScenes;
+        std::vector<Scene*> m_scenes;
         std::vector<RenderTargetBundle> m_renderTargetBundles;
         std::vector<RenderView> m_renderViews;
     };

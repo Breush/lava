@@ -1,17 +1,17 @@
 #pragma once
 
-#include <lava/magma/render-scenes/render-scene.hpp>
-
 #include "../vulkan/holders/ubo-holder.hpp"
+#include "./config.hpp"
 
 namespace lava::magma {
     class Material;
+    class Scene;
 }
 
 namespace lava::magma {
     class MaterialAft {
     public:
-        MaterialAft(Material& fore, RenderScene::Impl& scene);
+        MaterialAft(Material& fore, Scene& scene);
         ~MaterialAft();
 
         void init();
@@ -26,13 +26,13 @@ namespace lava::magma {
 
     private:
         Material& m_fore;
-        RenderScene::Impl& m_scene;
+        Scene& m_scene;
 
         uint32_t m_currentFrameId = 0u;
 
         // ----- Shader data
-        std::array<vk::DescriptorSet, RenderScene::FRAME_IDS_COUNT> m_descriptorSets;
-        std::array<vulkan::UboHolder, RenderScene::FRAME_IDS_COUNT> m_uboHolders;
+        std::array<vk::DescriptorSet, FRAME_IDS_COUNT> m_descriptorSets;
+        std::array<vulkan::UboHolder, FRAME_IDS_COUNT> m_uboHolders;
         bool m_uboDirty = false;
     };
 }

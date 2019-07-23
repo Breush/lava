@@ -1,7 +1,7 @@
 #include "./vr-engine.hpp"
 
 #include <lava/magma/material.hpp>
-#include <lava/magma/render-scenes/render-scene.hpp>
+#include <lava/magma/scene.hpp>
 #include <lava/magma/texture.hpp>
 #include <lava/magma/vr-tools.hpp>
 
@@ -141,7 +141,7 @@ glm::mat4 VrEngine::eyeViewTransform(VrEye eye)
     return m_devicesInfos[VrDeviceType::Head].transform * eyeToHeadTransform(eye);
 }
 
-Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, RenderScene& scene)
+Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, Scene& scene)
 {
     // Check if already in cache
     if (m_devicesMeshes[deviceType] != nullptr) {

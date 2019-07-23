@@ -1,10 +1,14 @@
 #pragma once
 
-#include <lava/magma/render-scenes/render-scene.hpp>
-
 #include <lava/magma/ubos.hpp> // SHADOWS_CASCADES_COUNT
 
 #include "./holders/ubo-holder.hpp"
+
+namespace lava::magma {
+    class Scene;
+    class Light;
+    class Camera;
+}
 
 namespace lava::magma {
     /**
@@ -15,10 +19,10 @@ namespace lava::magma {
      */
     class Shadows final {
     public:
-        Shadows(RenderScene::Impl& scene);
+        Shadows(Scene& scene);
         ~Shadows();
 
-        void init(uint32_t lightId, uint32_t cameraId);
+        void init(const Light& light, const Camera& camera);
         void update(uint32_t frameId);
         void render(vk::CommandBuffer commandBuffer, uint32_t frameId, vk::PipelineLayout pipelineLayout,
                     uint32_t descriptorSetIndex) const;
@@ -37,9 +41,9 @@ namespace lava::magma {
         };
 
     private:
-        RenderScene::Impl& m_scene;
-        uint32_t m_lightId = -1u;
-        uint32_t m_cameraId = -1u;
+        Scene& m_scene;
+        const Light* m_light = nullptr;
+        const Camera* m_camera = nullptr;
         bool m_initialized = false;
 
         // Resources

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <lava/magma/render-scenes/render-scene.hpp>
-#include <lava/magma/texture.hpp>
-
 #include "./stages/environment-prefiltering-stage.hpp"
+
+namespace lava::magma {
+    class Texture;
+}
 
 namespace lava::magma {
     constexpr const uint32_t ENVIRONMENT_RADIANCE_SIZE = 512u;
@@ -12,14 +13,14 @@ namespace lava::magma {
 
     class Environment {
     public:
-        Environment(RenderScene::Impl& scene);
+        Environment(Scene& scene, RenderEngine& engine);
         ~Environment();
 
         void init();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
         void renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
 
-        void set(Texture* texture);
+        void set(const Texture* texture);
 
     protected:
         void computeRadiance();
@@ -33,9 +34,9 @@ namespace lava::magma {
 
     private:
         // References
-        RenderScene::Impl& m_scene;
+        Scene& m_scene;
         bool m_initialized = false;
-        Texture* m_texture = nullptr;
+        const Texture* m_texture = nullptr;
         Texture* m_brdfLutTexture = nullptr;
 
         // Prefiltering

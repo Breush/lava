@@ -5,10 +5,10 @@
 using namespace lava::chamber;
 using namespace lava::magma;
 
-Texture::Texture(RenderScene& scene)
+Texture::Texture(Scene& scene)
     : m_scene(scene)
 {
-    new (&aft()) TextureAft(*this, m_scene.impl());
+    new (&aft()) TextureAft(*this, m_scene);
 }
 
 Texture::~Texture()

@@ -36,10 +36,7 @@ $pimpl_method(RenderEngine, void, removeView, uint32_t, viewId);
 
 //----- Adders
 
-void RenderEngine::add(std::unique_ptr<RenderScene>&& renderScene)
-{
-    m_impl->add(std::move(renderScene));
-}
+$pimpl_method(RenderEngine, void, add, Scene&, scene);
 
 void RenderEngine::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 {
@@ -52,7 +49,7 @@ $pimpl_method(RenderEngine, std::optional<VrEvent>, vrPollEvent);
 $pimpl_method_const(RenderEngine, bool, vrEnabled);
 $pimpl_method_const(RenderEngine, bool, vrDeviceValid, VrDeviceType, deviceType);
 $pimpl_method_const(RenderEngine, const glm::mat4&, vrDeviceTransform, VrDeviceType, deviceType);
-$pimpl_method(RenderEngine, Mesh&, vrDeviceMesh, VrDeviceType, deviceType, RenderScene&, scene);
+$pimpl_method(RenderEngine, Mesh&, vrDeviceMesh, VrDeviceType, deviceType, Scene&, scene);
 
 //----- Extra
 

@@ -6,12 +6,13 @@
 #include <lava/core/vector-view.hpp>
 #include <lava/magma/aft-infos.hpp>
 #include <lava/magma/bounding-sphere.hpp>
+#include <lava/magma/ubos.hpp>
 #include <lava/magma/vertex.hpp>
 
 namespace lava::magma {
     class MeshAft;
     class Material;
-    class RenderScene;
+    class Scene;
 }
 
 namespace lava::magma {
@@ -20,7 +21,7 @@ namespace lava::magma {
      */
     class Mesh {
     public:
-        Mesh(RenderScene& scene);
+        Mesh(Scene& scene);
         Mesh(const Mesh&) = delete;
         ~Mesh();
 
@@ -125,6 +126,13 @@ namespace lava::magma {
         /// @}
 
         /**
+         * @name Shader data
+         */
+        /// @{
+        const MeshUbo& ubo() const { return m_ubo; }
+        /// @}
+
+        /**
          * @name Debug
          */
         /// @{
@@ -134,6 +142,7 @@ namespace lava::magma {
         /// @}
 
     private:
+        void updateUbo();
         void updateTransform();
         void updateBoundingSphere();
 
@@ -141,7 +150,7 @@ namespace lava::magma {
         uint8_t m_aft[MAGMA_SIZEOF_MeshAft];
 
         // ----- References
-        RenderScene& m_scene;
+        Scene& m_scene;
 
         // ----- Transform
         glm::mat4 m_transform = glm::mat4(1.f);
@@ -168,6 +177,9 @@ namespace lava::magma {
         bool m_wireframed = false;
         bool m_depthless = false;
         bool m_vrRenderable = true;
+
+        // ----- Shader data
+        MeshUbo m_ubo;
 
         // ----- Debug
         bool m_debugBoundingSphere = false;

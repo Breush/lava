@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <glm/mat4x4.hpp>
+#include <lava/chamber/bucket-allocator.hpp>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/viewport.hpp>
 #include <lava/core/vr-device-type.hpp>
@@ -13,7 +14,7 @@ namespace lava::magma {
     class Camera;
     class IRenderTarget;
     class RenderImage;
-    class RenderScene;
+    class Scene;
     class Mesh;
 }
 
@@ -63,16 +64,13 @@ namespace lava::magma {
          * Any resource that match an adder (see below) can be made.
          *
          * ```
-         * auto& scene = engine.make<RenderScene>(); // Its lifetime is now managed by the engine.
+         * auto& scene = engine.make<Scene>(); // Its lifetime is now managed by the engine.
          * ```
          */
         /// @{
         /// Make a new resource directly.
         template <class T, class... Arguments>
         T& make(Arguments&&... arguments);
-        /// Make a new resource using a custom maker.
-        template <class T, class... Arguments>
-        T& make(std::function<void(T&)> maker, Arguments&&... arguments);
         /// @}
 
         /**
@@ -83,7 +81,7 @@ namespace lava::magma {
          * For convenience, you usually want to use makers (see above).
          */
         /// @{
-        void add(std::unique_ptr<RenderScene>&& renderScene);
+        void add(Scene& scene);
         void add(std::unique_ptr<IRenderTarget>&& renderTarget);
         /// @}
 
@@ -115,18 +113,33 @@ namespace lava::magma {
          * a mesh within the provided scene. This means the scene
          * cannot be removed afterwards or the mesh used in a different scene.
          */
-        Mesh& vrDeviceMesh(VrDeviceType deviceType, RenderScene& scene);
+        Mesh& vrDeviceMesh(VrDeviceType deviceType, Scene& scene);
         /// @}
 
         /// Enable extra logging for next draw.
         void logTrackingOnce();
 
+        /**
+         * @name Allocators
+         *
+         * To be used whenever one wants to allocate a resource.
+         * However, the make<Resource>() might be more convenient,
+         * as it calls the add() function too.
+         */
+        /// @{
+        chamber::BucketAllocator& sceneAllocator() { return m_sceneAllocator; }
+        /// @}
+
     public:
         class Impl;
+        const Impl& impl() const { return *m_impl; }
         Impl& impl() { return *m_impl; }
 
     private:
         Impl* m_impl = nullptr;
+
+        // ----- Allocators
+        chamber::BucketAllocator m_sceneAllocator;
     };
 }
 

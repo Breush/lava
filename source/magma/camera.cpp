@@ -4,11 +4,11 @@
 
 using namespace lava::magma;
 
-Camera::Camera(RenderScene& scene, Extent2d extent)
+Camera::Camera(Scene& scene, Extent2d extent)
     : m_scene(scene)
     , m_extent(extent)
 {
-    new (&aft()) CameraAft(*this, m_scene.impl());
+    new (&aft()) CameraAft(*this, m_scene);
 
     updateFrustum();
 

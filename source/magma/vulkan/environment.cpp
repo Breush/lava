@@ -1,26 +1,29 @@
 #include "./environment.hpp"
 
+#include <lava/magma/scene.hpp>
+#include <lava/magma/texture.hpp>
+
+#include "../aft-vulkan/scene-aft.hpp"
 #include "../aft-vulkan/texture-aft.hpp"
 #include "./render-engine-impl.hpp"
-#include "./render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;
 using namespace lava::chamber;
 
-Environment::Environment(RenderScene::Impl& scene)
+Environment::Environment(Scene& scene, RenderEngine& engine)
     : m_scene(scene)
-    , m_radianceStage(scene)
-    , m_irradianceStage(scene)
-    , m_radianceImageHolder(scene.engine(), "magma.vulkan.environment.radiance-image")
-    , m_irradianceImageHolder(scene.engine(), "magma.vulkan.environment.irradiance-image")
+    , m_radianceStage(scene, engine)
+    , m_irradianceStage(scene, engine)
+    , m_radianceImageHolder(engine.impl(), "magma.vulkan.environment.radiance-image")
+    , m_irradianceImageHolder(engine.impl(), "magma.vulkan.environment.irradiance-image")
 {
 }
 
 Environment::~Environment()
 {
     if (m_initialized) {
-        m_scene.environmentDescriptorHolder().freeSet(m_descriptorSet);
-        m_scene.environmentDescriptorHolder().freeSet(m_basicDescriptorSet);
+        m_scene.aft().environmentDescriptorHolder().freeSet(m_descriptorSet);
+        m_scene.aft().environmentDescriptorHolder().freeSet(m_basicDescriptorSet);
     }
 }
 
@@ -62,7 +65,7 @@ void Environment::renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayou
                                      &m_basicDescriptorSet, 0, nullptr);
 }
 
-void Environment::set(Texture* texture)
+void Environment::set(const Texture* texture)
 {
     m_texture = texture;
     updateBasicBindings();
@@ -82,9 +85,10 @@ void Environment::computeRadiance()
     if (!m_initialized) return;
 
     // Temporary command buffer
-    auto& device = m_scene.engine().device();
-    auto& queue = m_scene.engine().graphicsQueue();
-    auto& commandPool = m_scene.engine().commandPool();
+    auto& engine = m_scene.engine().impl();
+    auto& device = engine.device();
+    auto& queue = engine.graphicsQueue();
+    auto& commandPool = engine.commandPool();
 
     vk::CommandBufferAllocateInfo allocInfo;
     allocInfo.level = vk::CommandBufferLevel::ePrimary;
@@ -129,9 +133,10 @@ void Environment::computeIrradiance()
     if (!m_initialized) return;
 
     // Temporary command buffer
-    auto& device = m_scene.engine().device();
-    auto& queue = m_scene.engine().graphicsQueue();
-    auto& commandPool = m_scene.engine().commandPool();
+    auto& engine = m_scene.engine().impl();
+    auto& device = engine.device();
+    auto& queue = engine.graphicsQueue();
+    auto& commandPool = engine.commandPool();
 
     vk::CommandBufferAllocateInfo allocInfo;
     allocInfo.level = vk::CommandBufferLevel::ePrimary;
@@ -176,8 +181,8 @@ void Environment::createResources()
     logger.info("magma.vulkan.environment") << "Set to generate " << ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT
                                             << " mip levels for prefiltering." << std::endl;
 
-    m_descriptorSet = m_scene.environmentDescriptorHolder().allocateSet("environment");
-    m_basicDescriptorSet = m_scene.environmentDescriptorHolder().allocateSet("environment.non-prefiltered");
+    m_descriptorSet = m_scene.aft().environmentDescriptorHolder().allocateSet("environment");
+    m_basicDescriptorSet = m_scene.aft().environmentDescriptorHolder().allocateSet("environment.non-prefiltered");
 
     // Radiance
     m_radianceImageHolder.create(vk::Format::eR16G16B16A16Sfloat, {ENVIRONMENT_RADIANCE_SIZE, ENVIRONMENT_RADIANCE_SIZE},
@@ -188,7 +193,7 @@ void Environment::createResources()
                                    vk::ImageAspectFlagBits::eColor, 6u);
 
     // BRDF look-up texture
-    m_brdfLutTexture = &m_scene.scene().make<Texture>();
+    m_brdfLutTexture = &m_scene.make<Texture>();
     m_brdfLutTexture->loadFromFile("./data/textures/brdf-lut.png");
 }
 
@@ -198,7 +203,7 @@ void Environment::updateBrdfLutBindings()
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    auto& engine = m_scene.engine();
+    auto& engine = m_scene.engine().impl();
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     vk::ImageView imageView = m_brdfLutTexture->aft().imageView();
@@ -214,7 +219,7 @@ void Environment::updateBasicBindings()
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     // Force transparent cube
-    auto& engine = m_scene.engine();
+    auto& engine = m_scene.engine().impl();
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     vk::ImageView imageView = engine.dummyCubeImageView();
@@ -234,7 +239,7 @@ void Environment::updateBindings()
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    auto& engine = m_scene.engine();
+    auto& engine = m_scene.engine().impl();
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 

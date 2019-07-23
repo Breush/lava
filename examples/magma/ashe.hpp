@@ -7,7 +7,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 namespace lava::ashe {
-    magma::Mesh& makeCube(magma::RenderScene& scene, float sideLength)
+    magma::Mesh& makeCube(magma::Scene& scene, float sideLength)
     {
         auto& mesh = scene.make<magma::Mesh>();
         const auto halfSideLength = sideLength / 2.f;
@@ -101,7 +101,7 @@ namespace lava::ashe {
         return mesh;
     }
 
-    magma::Mesh& makeTetrahedron(magma::RenderScene& scene, float size)
+    magma::Mesh& makeTetrahedron(magma::Scene& scene, float size)
     {
         auto& mesh = scene.make<magma::Mesh>();
 
@@ -156,7 +156,7 @@ namespace lava::ashe {
         crater::Window& window() { return *m_window; }
         magma::RenderEngine& engine() { return *m_engine; }
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowTarget; }
-        magma::RenderScene& scene() { return *m_scene; }
+        magma::Scene& scene() { return *m_scene; }
         magma::OrbitCameraController& cameraController() { return m_cameraController; }
         magma::Light& light() { return *m_light; }
         magma::DirectionalLightController& lightController() { return m_lightController; }
@@ -177,7 +177,7 @@ namespace lava::ashe {
             m_windowTarget = &m_engine->make<magma::WindowRenderTarget>(m_window->handle(), m_window->extent());
 
             // Render scene: holds what has to be drawn.
-            m_scene = &m_engine->make<magma::RenderScene>();
+            m_scene = &m_engine->make<magma::Scene>();
             m_scene->rendererType(magma::RendererType::DeepDeferred);
 
             // A camera.
@@ -438,7 +438,7 @@ namespace lava::ashe {
         std::unique_ptr<crater::Window> m_window = nullptr;
         std::unique_ptr<magma::RenderEngine> m_engine = nullptr;
         magma::WindowRenderTarget* m_windowTarget = nullptr;
-        magma::RenderScene* m_scene = nullptr;
+        magma::Scene* m_scene = nullptr;
         magma::Camera* m_camera = nullptr;
         magma::OrbitCameraController m_cameraController;
         magma::Light* m_light = nullptr;

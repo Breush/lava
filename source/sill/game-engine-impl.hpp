@@ -61,8 +61,8 @@ namespace lava::sill {
         const magma::RenderEngine& renderEngine() const { return *m_renderEngine; }
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowRenderTarget; }
         const magma::WindowRenderTarget& windowRenderTarget() const { return *m_windowRenderTarget; }
-        magma::RenderScene& renderScene() { return *m_renderScene; }
-        const magma::RenderScene& renderScene() const { return *m_renderScene; }
+        magma::Scene& scene() { return *m_scene; }
+        const magma::Scene& scene() const { return *m_scene; }
 
         // Callbacks
         void onWindowExtentChanged(WindowExtentChangedCallback callback)
@@ -84,7 +84,7 @@ namespace lava::sill {
         std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
         magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
         magma::VrRenderTarget* m_vrRenderTarget = nullptr;
-        magma::RenderScene* m_renderScene = nullptr;
+        magma::Scene* m_scene = nullptr;
         magma::Light* m_light = nullptr;
         magma::DirectionalLightController m_lightController;
 

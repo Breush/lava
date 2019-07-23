@@ -2,26 +2,21 @@
 
 #include <lava/magma/material.hpp>
 #include <lava/magma/mesh.hpp>
+#include <lava/magma/scene.hpp>
 
-#include "../vulkan/render-scenes/render-scene-impl.hpp"
 #include "./material-aft.hpp"
+#include "./scene-aft.hpp"
 
 using namespace lava::chamber;
 using namespace lava::magma;
 
-MeshAft::MeshAft(Mesh& fore, RenderScene::Impl& scene)
+MeshAft::MeshAft(Mesh& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_unlitVertexBufferHolder(m_scene.engine())
-    , m_vertexBufferHolder(m_scene.engine())
-    , m_indexBufferHolder(m_scene.engine())
+    , m_unlitVertexBufferHolder(m_scene.engine().impl())
+    , m_vertexBufferHolder(m_scene.engine().impl())
+    , m_indexBufferHolder(m_scene.engine().impl())
 {
-}
-
-void MeshAft::init()
-{
-    // Init UBO
-    foreTransformChanged();
 }
 
 void MeshAft::update()
@@ -52,7 +47,7 @@ void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelin
     commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
 
     commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                pushConstantOffset, sizeof(MeshUbo), &m_ubo);
+                                pushConstantOffset, sizeof(MeshUbo), &m_fore.ubo());
 
     // Draw
     commandBuffer.drawIndexed(m_fore.indices().size(), 1, 0, 0, 0);
@@ -68,22 +63,13 @@ void MeshAft::renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pi
     commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
 
     commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                pushConstantOffset, sizeof(MeshUbo), &m_ubo);
+                                pushConstantOffset, sizeof(MeshUbo), &m_fore.ubo());
 
     // Draw
     commandBuffer.drawIndexed(m_fore.indices().size(), 1, 0, 0, 0);
 }
 
 // ----- Fore
-
-void MeshAft::foreTransformChanged()
-{
-    // Update UBO whenever the transform changed.
-    auto transposeTransform = glm::transpose(m_fore.transform());
-    m_ubo.transform0 = transposeTransform[0];
-    m_ubo.transform1 = transposeTransform[1];
-    m_ubo.transform2 = transposeTransform[2];
-}
 
 void MeshAft::foreIndicesChanged()
 {

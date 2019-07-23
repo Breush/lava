@@ -2,16 +2,19 @@
 
 #include <lava/magma/camera.hpp>
 #include <lava/magma/light.hpp>
+#include <lava/magma/scene.hpp>
 
+#include "../aft-vulkan/config.hpp"
+#include "../aft-vulkan/scene-aft.hpp"
+#include "./render-engine-impl.hpp"
 #include "./render-image-impl.hpp"
-#include "./render-scenes/render-scene-impl.hpp"
 
 using namespace lava::magma;
 
-Shadows::Shadows(RenderScene::Impl& scene)
+Shadows::Shadows(Scene& scene)
     : m_scene(scene)
-    , m_uboHolders(RenderScene::FRAME_IDS_COUNT, scene.engine())
-    , m_descriptorSets(RenderScene::FRAME_IDS_COUNT, nullptr)
+    , m_uboHolders(FRAME_IDS_COUNT, scene.engine().impl())
+    , m_descriptorSets(FRAME_IDS_COUNT, nullptr)
 {
 }
 
@@ -19,24 +22,23 @@ Shadows::~Shadows()
 {
     if (m_initialized) {
         for (auto& descriptorSet : m_descriptorSets) {
-            m_scene.shadowsDescriptorHolder().freeSet(descriptorSet);
+            m_scene.aft().shadowsDescriptorHolder().freeSet(descriptorSet);
         }
     }
 }
 
-void Shadows::init(uint32_t lightId, uint32_t cameraId)
+void Shadows::init(const Light& light, const Camera& camera)
 {
     if (m_initialized) return;
     m_initialized = true;
 
-    m_cameraId = cameraId;
-    m_lightId = lightId;
+    m_camera = &camera;
+    m_light = &light;
 
+    auto& descriptorHolder = m_scene.aft().shadowsDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
-        m_descriptorSets[i] = m_scene.shadowsDescriptorHolder().allocateSet("shadows." + std::to_string(m_lightId) + "."
-                                                                            + std::to_string(cameraId) + "." + std::to_string(i));
-        m_uboHolders[i].init(m_descriptorSets[i], m_scene.shadowsDescriptorHolder().uniformBufferBindingOffset(),
-                             {sizeof(ShadowsUbo)});
+        m_descriptorSets[i] = descriptorHolder.allocateSet("shadows." + std::to_string(i));
+        m_uboHolders[i].init(m_descriptorSets[i], descriptorHolder.uniformBufferBindingOffset(), {sizeof(ShadowsUbo)});
     }
 
     updateImagesBindings();
@@ -48,15 +50,12 @@ void Shadows::update(uint32_t frameId)
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    auto& light = m_scene.light(m_lightId);
-    auto& camera = m_scene.camera(m_cameraId);
-
     float cascadeSplitLambda = 0.95f;
     float cascadeSplits[SHADOWS_CASCADES_COUNT];
 
-    float nearClip = camera.nearClip();
-    float farClip = camera.farClip();
-    const auto& invCameraViewProjection = camera.inverseViewProjectionTransform();
+    float nearClip = m_camera->nearClip();
+    float farClip = m_camera->farClip();
+    const auto& invCameraViewProjection = m_camera->inverseViewProjectionTransform();
 
     float clipRange = farClip - nearClip;
 
@@ -68,7 +67,7 @@ void Shadows::update(uint32_t frameId)
 
     // @todo Currently handling only directional lights!
     // What's the good thing to do?
-    glm::vec3 lightDir = light.shadowsDirection();
+    glm::vec3 lightDir = m_light->shadowsDirection();
 
     // Calculate split depths based on view camera frustum
     // Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
@@ -147,17 +146,18 @@ void Shadows::updateImagesBindings()
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     // Bind the maps, just once, as these never change
-    const auto binding = m_scene.shadowsDescriptorHolder().combinedImageSamplerBindingOffset();
-    const auto& sampler = m_scene.engine().shadowsSampler();
+    auto& engine = m_scene.engine().impl();
+    const auto binding = m_scene.aft().shadowsDescriptorHolder().combinedImageSamplerBindingOffset();
+    const auto& sampler = engine.shadowsSampler();
 
     for (auto cascadeIndex = 0u; cascadeIndex < SHADOWS_CASCADES_COUNT; ++cascadeIndex) {
-        auto shadowsRenderImage = m_scene.shadowsCascadeRenderImage(m_lightId, m_cameraId, cascadeIndex);
+        auto shadowsRenderImage = m_scene.aft().shadowsCascadeRenderImage(*m_light, m_camera, cascadeIndex);
         auto imageView = shadowsRenderImage.impl().view();
         auto imageLayout = shadowsRenderImage.impl().layout();
 
         if (imageView) {
             for (auto& descriptorSet : m_descriptorSets) {
-                vulkan::updateDescriptorSet(m_scene.engine().device(), descriptorSet, imageView, sampler, imageLayout, binding,
+                vulkan::updateDescriptorSet(engine.device(), descriptorSet, imageView, sampler, imageLayout, binding,
                                             cascadeIndex);
             }
         }
@@ -171,8 +171,8 @@ void Shadows::updateBindings(uint32_t frameId)
     // Bind the splits
     ShadowsUbo ubo;
     for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
-        ubo.cascadesTransforms[i] = m_scene.shadowsCascadeTransform(m_lightId, m_cameraId, i);
-        ubo.cascadesSplits[i][0] = m_scene.shadowsCascadeSplitDepth(m_lightId, m_cameraId, i);
+        ubo.cascadesTransforms[i] = m_scene.aft().shadowsCascadeTransform(*m_light, *m_camera, i);
+        ubo.cascadesSplits[i][0] = m_scene.aft().shadowsCascadeSplitDepth(*m_light, *m_camera, i);
     }
 
     m_uboHolders[frameId].copy(0, ubo);

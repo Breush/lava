@@ -4,6 +4,7 @@
 #include <lava/magma/render-engine.hpp>
 
 #include "../../aft-vulkan/camera-aft.hpp"
+#include "../../aft-vulkan/scene-aft.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
 
@@ -115,9 +116,9 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
 
 //----- VrRenderTarget
 
-void VrRenderTarget::Impl::bindScene(RenderScene& scene)
+void VrRenderTarget::Impl::bindScene(Scene& scene)
 {
-    m_scene = &scene.impl();
+    m_scene = &scene;
 
     cleanup();
 
@@ -128,7 +129,7 @@ void VrRenderTarget::Impl::bindScene(RenderScene& scene)
     m_rightEyeCameraController.bind(*m_rightEyeCamera);
 
     // Let the right eye use the same shadow maps than the left eye
-    m_scene->shadowsFallbackCamera(*m_rightEyeCamera, *m_leftEyeCamera);
+    m_scene->aft().shadowsFallbackCamera(*m_rightEyeCamera, *m_leftEyeCamera);
 }
 
 //----- Internal

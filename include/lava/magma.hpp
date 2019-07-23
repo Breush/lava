@@ -9,6 +9,7 @@
 #include <lava/magma/camera-controllers.hpp>
 #include <lava/magma/light-controllers.hpp>
 
-#include <lava/magma/render-engine.hpp>
-#include <lava/magma/render-scenes.hpp>
 #include <lava/magma/render-targets.hpp>
+#include <lava/magma/scene.hpp>
+
+#include <lava/magma/render-engine.hpp>

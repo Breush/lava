@@ -10,7 +10,7 @@
 
 namespace lava::magma {
     class MaterialAft;
-    class RenderScene;
+    class Scene;
     class Texture;
 }
 
@@ -30,7 +30,7 @@ namespace lava::magma {
         using Attributes = std::unordered_map<std::string, Attribute>;
 
     public:
-        Material(RenderScene& scene, const std::string& hrid);
+        Material(Scene& scene, const std::string& hrid);
         Material(const Material&) = delete;
         ~Material();
 
@@ -72,7 +72,7 @@ namespace lava::magma {
         uint8_t m_aft[MAGMA_SIZEOF_MaterialAft];
 
         // ----- References
-        RenderScene& m_scene;
+        Scene& m_scene;
 
         // ----- Shader data
         MaterialUbo m_ubo;

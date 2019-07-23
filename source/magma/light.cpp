@@ -4,10 +4,10 @@
 
 using namespace lava::magma;
 
-Light::Light(RenderScene& scene)
+Light::Light(Scene& scene)
     : m_scene(scene)
 {
-    new (&aft()) LightAft(*this, m_scene.impl());
+    new (&aft()) LightAft(*this, m_scene);
 }
 
 Light::~Light()

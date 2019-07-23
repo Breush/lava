@@ -7,7 +7,7 @@ using namespace lava::sill;
 Texture::Texture(GameEngine& engine)
     : m_engine(engine)
 {
-    m_magma = &m_engine.impl().renderScene().make<magma::Texture>();
+    m_magma = &m_engine.impl().scene().make<magma::Texture>();
 }
 
 Texture::Texture(GameEngine& engine, const std::string& imagePath)
@@ -18,7 +18,7 @@ Texture::Texture(GameEngine& engine, const std::string& imagePath)
 
 Texture::~Texture()
 {
-    m_engine.impl().renderScene().remove(*m_magma);
+    m_engine.impl().scene().remove(*m_magma);
     m_magma = nullptr;
 }
 

@@ -1,20 +1,19 @@
 #pragma once
 
 #include <lava/magma/render-image.hpp>
-#include <lava/magma/render-scenes/render-scene.hpp>
 
 #include <vulkan/vulkan.hpp>
 
 namespace lava::magma {
     class Camera;
+    class Scene;
 }
 
 namespace lava::magma {
     class CameraAft {
     public:
-        CameraAft(Camera& fore, RenderScene::Impl& scene);
+        CameraAft(Camera& fore, Scene& scene);
 
-        void init(uint32_t id);
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const;
         void changeImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
 
@@ -26,9 +25,6 @@ namespace lava::magma {
 
     private:
         Camera& m_fore;
-        RenderScene::Impl& m_scene;
-
-        // ----- Infos
-        uint32_t m_id = -1u;
+        Scene& m_scene;
     };
 }

@@ -1,13 +1,13 @@
 #include "./texture-aft.hpp"
 
-#include "../vulkan/render-scenes/render-scene-impl.hpp"
+#include <lava/magma/scene.hpp>
 
 using namespace lava::magma;
 
-TextureAft::TextureAft(Texture& fore, RenderScene::Impl& scene)
+TextureAft::TextureAft(Texture& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_imageHolder(scene.engine(), "magma.vulkan.texture.image")
+    , m_imageHolder(scene.engine().impl(), "magma.vulkan.texture.image")
 {
 }
 
