@@ -2,6 +2,7 @@
 
 #include <lava/magma/camera.hpp>
 
+#include "./aft-vulkan/scene-aft.hpp"
 #include "./vulkan/render-engine-impl.hpp"
 
 using namespace lava;
@@ -33,6 +34,18 @@ uint32_t RenderEngine::addView(Camera& camera, IRenderTarget& renderTarget, View
 
 $pimpl_method(RenderEngine, uint32_t, addView, RenderImage, renderImage, IRenderTarget&, renderTarget, Viewport, viewport);
 $pimpl_method(RenderEngine, void, removeView, uint32_t, viewId);
+
+//----- Makers
+
+// :RuntimeAft
+
+Scene& RenderEngine::makeScene()
+{
+    constexpr const auto size = sizeof(std::aligned_union<0, Scene>::type) + sizeof(SceneAft);
+    auto resource = m_sceneAllocator.allocateSized<Scene>(size, *this);
+    add(*resource);
+    return *resource;
+}
 
 //----- Adders
 

@@ -71,6 +71,8 @@ namespace lava::magma {
         /// Make a new resource directly.
         template <class T, class... Arguments>
         T& make(Arguments&&... arguments);
+
+        Scene& makeScene();
         /// @}
 
         /**

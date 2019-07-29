@@ -1,7 +1,8 @@
 #pragma once
 
 #include <lava/chamber/bucket-allocator.hpp>
-#include <lava/magma/aft-infos.hpp>
+#include <lava/core/extent.hpp>
+#include <lava/core/macros/aft.hpp>
 #include <lava/magma/renderer-type.hpp>
 
 namespace lava::magma {
@@ -23,9 +24,7 @@ namespace lava::magma {
         Scene(RenderEngine& engine);
         ~Scene();
 
-        /// Internal implementation
-        SceneAft& aft() { return reinterpret_cast<SceneAft&>(m_aft); }
-        const SceneAft& aft() const { return reinterpret_cast<const SceneAft&>(m_aft); }
+        $aft_class(Scene);
 
         /**
          * @name References
@@ -54,7 +53,7 @@ namespace lava::magma {
          * Allocate a new resource and add it to the scene.
          *
          * Arguments will be forwarded to the constructor.
-         * Any resource that match an adder (see below) can be made.
+         * Any resource that match an makeResource (see below) can be made.
          *
          * ```
          * auto& mesh = engine.make<Mesh>(); // Its lifetime is now managed by the engine.
@@ -64,22 +63,12 @@ namespace lava::magma {
         /// Make a new resource directly.
         template <class T, class... Arguments>
         T& make(Arguments&&... arguments);
-        /// @}
 
-        /**
-         * @name Adders
-         *
-         * Add a resource that has already been created on the corresponding allocator.
-         *
-         * Its ownership goes to the scene.
-         * For convenience, you usually want to use makers (see above).
-         */
-        /// @{
-        void add(Light& light);
-        void add(Camera& camera);
-        void add(Material& material);
-        void add(Texture& texture);
-        void add(Mesh& mesh);
+        Light& makeLight();
+        Camera& makeCamera(Extent2d extent);
+        Material& makeMaterial(const std::string& hrid);
+        Texture& makeTexture();
+        Mesh& makeMesh();
         /// @}
 
         /**
@@ -149,8 +138,6 @@ namespace lava::magma {
         /// @}
 
     private:
-        uint8_t m_aft[MAGMA_SIZEOF_SceneAft];
-
         // ----- References
         RenderEngine& m_engine;
 

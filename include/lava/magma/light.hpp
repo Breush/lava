@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/aft-infos.hpp>
+#include <lava/core/macros/aft.hpp>
 #include <lava/magma/render-image.hpp>
 #include <lava/magma/ubos.hpp>
 
@@ -24,15 +24,12 @@ namespace lava::magma {
     class Light {
     public:
         Light(Scene& scene);
-        Light(const Light&) = delete;
         ~Light();
+
+        $aft_class(Light);
 
         Scene& scene() { return m_scene; }
         const Scene& scene() const { return m_scene; }
-
-        /// Internal implementation
-        LightAft& aft() { return reinterpret_cast<LightAft&>(m_aft); }
-        const LightAft& aft() const { return reinterpret_cast<const LightAft&>(m_aft); }
 
         /**
          * @name Rendering
@@ -62,8 +59,6 @@ namespace lava::magma {
         /// @}
 
     private:
-        uint8_t m_aft[MAGMA_SIZEOF_LightAft];
-
         // ----- References
         Scene& m_scene;
 

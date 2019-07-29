@@ -6,7 +6,12 @@
 #include <lava/magma/mesh.hpp>
 #include <lava/magma/texture.hpp>
 
+#include "./aft-vulkan/camera-aft.hpp"
+#include "./aft-vulkan/light-aft.hpp"
+#include "./aft-vulkan/material-aft.hpp"
+#include "./aft-vulkan/mesh-aft.hpp"
 #include "./aft-vulkan/scene-aft.hpp"
+#include "./aft-vulkan/texture-aft.hpp"
 #include "./vulkan/holders/buffer-holder.hpp"
 #include "./vulkan/stages/shadows-stage.hpp"
 
@@ -18,8 +23,7 @@ Scene::Scene(RenderEngine& engine)
     new (&aft()) SceneAft(*this, engine);
 
     // Fallback material
-    m_fallbackMaterial = m_materialAllocator.allocate<Material>(*this, "fallback");
-    add(*m_fallbackMaterial);
+    m_fallbackMaterial = &make<Material>("fallback");
 }
 
 Scene::~Scene()
@@ -53,36 +57,61 @@ Scene::~Scene()
     aft().~SceneAft();
 }
 
-// ----- Adders
+// ----- Makers
 
-void Scene::add(Light& light)
+// :RuntimeAft @note Any resource is in fact allocated with more space,
+// thanks to the bucket allocator allocateSized() function.
+// Doing so allows us to have good memory layout, keeping the aft near
+// the resource data.
+
+Light& Scene::makeLight()
 {
-    m_lights.emplace_back(&light);
-    aft().foreAdd(light);
+    constexpr const auto size = sizeof(std::aligned_union<0, Light>::type) + sizeof(LightAft);
+    auto resource = m_lightAllocator.allocateSized<Light>(size, *this);
+
+    m_lights.emplace_back(resource);
+    aft().foreAdd(*resource);
+    return *resource;
 }
 
-void Scene::add(Camera& camera)
+Camera& Scene::makeCamera(Extent2d extent)
 {
-    m_cameras.emplace_back(&camera);
-    aft().foreAdd(camera);
+    constexpr const auto size = sizeof(std::aligned_union<0, Camera>::type) + sizeof(CameraAft);
+    auto resource = m_cameraAllocator.allocateSized<Camera>(size, *this, extent);
+
+    m_cameras.emplace_back(resource);
+    aft().foreAdd(*resource);
+    return *resource;
 }
 
-void Scene::add(Material& material)
+Material& Scene::makeMaterial(const std::string& hrid)
 {
-    m_materials.emplace_back(&material);
-    aft().foreAdd(material);
+    constexpr const auto size = sizeof(std::aligned_union<0, Material>::type) + sizeof(MaterialAft);
+    auto resource = m_materialAllocator.allocateSized<Material>(size, *this, hrid);
+
+    m_materials.emplace_back(resource);
+    aft().foreAdd(*resource);
+    return *resource;
 }
 
-void Scene::add(Texture& texture)
+Texture& Scene::makeTexture()
 {
-    m_textures.emplace_back(&texture);
-    aft().foreAdd(texture);
+    constexpr const auto size = sizeof(std::aligned_union<0, Texture>::type) + sizeof(TextureAft);
+    auto resource = m_textureAllocator.allocateSized<Texture>(size, *this);
+
+    m_textures.emplace_back(resource);
+    aft().foreAdd(*resource);
+    return *resource;
 }
 
-void Scene::add(Mesh& mesh)
+Mesh& Scene::makeMesh()
 {
-    m_meshes.emplace_back(&mesh);
-    aft().foreAdd(mesh);
+    constexpr const auto size = sizeof(std::aligned_union<0, Mesh>::type) + sizeof(MeshAft);
+    auto resource = m_meshAllocator.allocateSized<Mesh>(size, *this);
+
+    m_meshes.emplace_back(resource);
+    aft().foreAdd(*resource);
+    return *resource;
 }
 
 // ----- Removers

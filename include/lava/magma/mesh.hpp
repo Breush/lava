@@ -3,8 +3,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <lava/core/axis.hpp>
+#include <lava/core/macros/aft.hpp>
 #include <lava/core/vector-view.hpp>
-#include <lava/magma/aft-infos.hpp>
 #include <lava/magma/bounding-sphere.hpp>
 #include <lava/magma/ubos.hpp>
 #include <lava/magma/vertex.hpp>
@@ -22,12 +22,12 @@ namespace lava::magma {
     class Mesh {
     public:
         Mesh(Scene& scene);
-        Mesh(const Mesh&) = delete;
         ~Mesh();
 
-        /// Internal implementation
-        MeshAft& aft() { return reinterpret_cast<MeshAft&>(m_aft); }
-        const MeshAft& aft() const { return reinterpret_cast<const MeshAft&>(m_aft); }
+        $aft_class(Mesh);
+
+        Scene& scene() { return m_scene; }
+        const Scene& scene() const { return m_scene; }
 
         /**
          * @name Transform
@@ -147,8 +147,6 @@ namespace lava::magma {
         void updateBoundingSphere();
 
     private:
-        uint8_t m_aft[MAGMA_SIZEOF_MeshAft];
-
         // ----- References
         Scene& m_scene;
 

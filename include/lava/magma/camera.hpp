@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <lava/core/extent.hpp>
-#include <lava/magma/aft-infos.hpp>
+#include <lava/core/macros/aft.hpp>
 #include <lava/magma/frustum.hpp>
 #include <lava/magma/polygon-mode.hpp>
 #include <lava/magma/render-image.hpp>
@@ -28,15 +28,12 @@ namespace lava::magma {
     class Camera {
     public:
         Camera(Scene& scene, Extent2d extent);
-        Camera(const Camera&) = delete;
         ~Camera();
+
+        $aft_class(Camera);
 
         Scene& scene() { return m_scene; }
         const Scene& scene() const { return m_scene; }
-
-        /// Internal implementation
-        CameraAft& aft() { return reinterpret_cast<CameraAft&>(m_aft); }
-        const CameraAft& aft() const { return reinterpret_cast<const CameraAft&>(m_aft); }
 
         /**
          * @name Rendering
@@ -122,8 +119,6 @@ namespace lava::magma {
         void updateFrustum();
 
     private:
-        uint8_t m_aft[MAGMA_SIZEOF_CameraAft];
-
         // ----- References
         Scene& m_scene;
 

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <lava/magma/aft-infos.hpp>
-
 #include <array>
 #include <cstdint>
+#include <lava/core/macros/aft.hpp>
 
 namespace lava::magma {
     class TextureAft;
@@ -17,12 +16,12 @@ namespace lava::magma {
     class Texture {
     public:
         Texture(Scene& scene);
-        Texture(const Texture&) = delete;
         ~Texture();
 
-        /// Internal implementation
-        TextureAft& aft() { return reinterpret_cast<TextureAft&>(m_aft); }
-        const TextureAft& aft() const { return reinterpret_cast<const TextureAft&>(m_aft); }
+        $aft_class(Texture);
+
+        Scene& scene() { return m_scene; }
+        const Scene& scene() const { return m_scene; }
 
         /**
          * @name Loaders
@@ -38,8 +37,6 @@ namespace lava::magma {
         /// @}
 
     private:
-        uint8_t m_aft[MAGMA_SIZEOF_TextureAft];
-
         // ----- References
         Scene& m_scene;
     };

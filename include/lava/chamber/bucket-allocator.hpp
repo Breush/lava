@@ -17,10 +17,8 @@ namespace lava::chamber {
 
     public:
         template <class T, typename... Args>
-        inline T* allocate(Args&&... args)
+        inline T* allocateSized(size_t allocationSize, Args&&... args)
         {
-            uint32_t allocationSize = sizeof(T);
-
             // If we don't know the bucketSize, set it
             if (m_bucketSize == 0u) {
                 m_bucketSize = INSTANCES_PER_BUCKET * allocationSize;
@@ -41,6 +39,12 @@ namespace lava::chamber {
             T* tPointer = new (pointer) T(std::forward<Args>(args)...);
 
             return tPointer;
+        }
+
+        template <class T, typename... Args>
+        inline T* allocate(Args&&... args)
+        {
+            return allocateSized<T>(sizeof(T), std::forward<Args>(args)...);
         }
 
         template <class T>

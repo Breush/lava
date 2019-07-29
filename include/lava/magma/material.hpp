@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <glm/glm.hpp>
-#include <lava/magma/aft-infos.hpp>
+#include <lava/core/macros/aft.hpp>
 #include <lava/magma/ubos.hpp>
 #include <lava/magma/uniform.hpp>
 #include <string>
@@ -31,12 +31,12 @@ namespace lava::magma {
 
     public:
         Material(Scene& scene, const std::string& hrid);
-        Material(const Material&) = delete;
         ~Material();
 
-        /// Internal implementation
-        MaterialAft& aft() { return reinterpret_cast<MaterialAft&>(m_aft); }
-        const MaterialAft& aft() const { return reinterpret_cast<const MaterialAft&>(m_aft); }
+        $aft_class(Material);
+
+        Scene& scene() { return m_scene; }
+        const Scene& scene() const { return m_scene; }
 
         /**
          * @name Uniform setters
@@ -69,8 +69,6 @@ namespace lava::magma {
         const Attribute& findAttribute(const std::string& uniformName) const;
 
     private:
-        uint8_t m_aft[MAGMA_SIZEOF_MaterialAft];
-
         // ----- References
         Scene& m_scene;
 
