@@ -67,7 +67,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         gameState.panels[0] = std::make_unique<Panel>(gameState);
         gameState.panels[0]->transform().worldTransform(glm::rotate(glm::mat4(1.f), 3.14156f, {0, 0, 1}));
         gameState.panels[0]->extent({3, 3});
-        gameState.panels[0]->transform().translate({-1, -0.8f, 0});
+        gameState.panels[0]->transform().translate({1, 0.8f, 0});
         gameState.panels[0]->transform().rotate({0, 0, 1}, 3.14156f * 0.5f);
 
         gameState.bricks.clear();
@@ -110,7 +110,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
         gameState.panels[0]->extent({3, 3});
         gameState.panels[0]->addLink({0, 0}, {0, 1});
         gameState.panels[0]->addLink({1, 1}, {2, 1});
-        gameState.panels[0]->transform().translate({-1, -0.8f, 0});
+        gameState.panels[0]->transform().translate({1, 0.8f, 0});
         gameState.panels[0]->transform().rotate({0, 0, 1}, 3.14156f * 0.5f);
 
         // Open clock

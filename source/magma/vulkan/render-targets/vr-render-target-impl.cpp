@@ -107,6 +107,8 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
     }
 
     vulkanData.m_nImage = (uint64_t) static_cast<VkImage>(m_rightEyeCamera->renderImage().impl().image());
+
+    vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
     error = vr::VRCompositor()->Submit(vr::Eye_Right, &texture, &bounds);
 
     if (error != 0) {

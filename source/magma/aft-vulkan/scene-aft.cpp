@@ -84,6 +84,7 @@ void SceneAft::update()
         light->aft().update();
 
         for (auto& shadows : m_lightBundles[light].shadows) {
+            if (m_cameraBundles.at(shadows.first).shadowsFallbackCamera != nullptr) continue;
             shadows.second.update(m_frameId);
         }
     }
@@ -234,7 +235,7 @@ void SceneAft::foreAdd(Light& light)
     if (m_initialized) {
         light.aft().init();
         lightBundle.shadowsStage->init(light);
-        lightBundle.shadowsStage->update(vk::Extent2D{SHADOW_MAP_SIZE, SHADOW_MAP_SIZE});
+        lightBundle.shadowsStage->update({SHADOW_MAP_SIZE, SHADOW_MAP_SIZE});
     }
 
     updateLightBundleFromCameras(light);

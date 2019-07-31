@@ -9,9 +9,6 @@
 #include "../holders/render-pass-holder.hpp"
 
 namespace lava::magma {
-    // @todo Currently fixed extent for shadow maps, might need dynamic ones
-    constexpr const uint32_t SHADOW_MAP_SIZE = 2048u;
-
     /**
      * Creating a shadows maps for the lights.
      */
@@ -49,7 +46,7 @@ namespace lava::magma {
         // References
         Scene& m_scene;
         const Light* m_light = nullptr;
-        vk::Extent2D m_extent;
+        vk::Extent2D m_extent = {0, 0};
 
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;
