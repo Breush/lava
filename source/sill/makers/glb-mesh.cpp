@@ -3,10 +3,7 @@
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/game-entity.hpp>
-#include <lava/sill/material.hpp>
 #include <lava/sill/mesh-node.hpp>
-#include <lava/sill/mesh-primitive.hpp>
-#include <lava/sill/texture.hpp>
 
 #include "../glb/loader.hpp"
 
@@ -23,15 +20,15 @@ using namespace lava::sill;
 
 namespace {
     struct CacheData {
-        std::unordered_map<uint32_t, Texture*> textures;
-        std::unordered_map<uint32_t, Material*> materials;
+        std::unordered_map<uint32_t, magma::Texture*> textures;
+        std::unordered_map<uint32_t, magma::Material*> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
         std::unordered_map<uint32_t, uint32_t> nodeIndices;
     };
 
     using PixelsCallback = std::function<void(uint8_t*, uint32_t, uint32_t)>;
 
-    void setTexture(GameEngine& engine, Material& material, const std::string& uniformName, uint32_t textureIndex,
+    void setTexture(GameEngine& engine, magma::Material& material, const std::string& uniformName, uint32_t textureIndex,
                     const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData,
                     PixelsCallback pixelsCallback = nullptr)
     {
@@ -54,7 +51,7 @@ namespace {
                                                 STBI_rgb_alpha);
             if (pixelsCallback) pixelsCallback(pixels, texWidth, texHeight);
 
-            auto& rmTexture = engine.make<Texture>();
+            auto& rmTexture = engine.scene().make<magma::Texture>();
             rmTexture.loadFromMemory(pixels, texWidth, texHeight, 4u);
             material.set(uniformName, rmTexture);
 
@@ -63,7 +60,7 @@ namespace {
         }
     }
 
-    void setOrmTexture(GameEngine& engine, Material& material, uint32_t occlusionTextureIndex,
+    void setOrmTexture(GameEngine& engine, magma::Material& material, uint32_t occlusionTextureIndex,
                        uint32_t metallicRoughnessTextureIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
                        CacheData& cacheData)
     {
@@ -96,7 +93,7 @@ namespace {
         const auto& bufferViews = json["bufferViews"];
         const auto& materials = json.find("materials");
 
-        auto meshData = std::make_unique<Mesh>();
+        auto meshData = std::make_unique<Mesh>(entity.engine());
         meshData->name(mesh.name);
 
         // Each primitive will consist in one magma::Mesh
@@ -133,14 +130,14 @@ namespace {
 
             // Material
             bool translucent = false;
-            Material* rmMaterial = nullptr;
+            magma::Material* rmMaterial = nullptr;
             if (cacheData.materials.find(primitive.materialIndex) != cacheData.materials.end()) {
                 rmMaterial = cacheData.materials.at(primitive.materialIndex);
                 translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
             }
             else if (materials != json.end() && primitive.materialIndex != -1u) {
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
-                rmMaterial = &engine.make<Material>("roughness-metallic");
+                rmMaterial = &engine.scene().make<magma::Material>("roughness-metallic");
                 translucent = material.translucent;
 
                 // Material textures
@@ -158,7 +155,7 @@ namespace {
             }
 
             // Apply the geometry
-            auto& meshPrimitive = meshData->addPrimitive(entity.engine());
+            auto& meshPrimitive = meshData->addPrimitive();
             meshPrimitive.verticesCount(positions.size());
 
             auto indicesComponentType = accessors[primitive.indicesAccessorIndex]["componentType"];

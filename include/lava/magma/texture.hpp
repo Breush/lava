@@ -15,7 +15,7 @@ namespace lava::magma {
      */
     class Texture {
     public:
-        Texture(Scene& scene);
+        Texture(Scene& scene, const std::string& imagePath);
         ~Texture();
 
         $aft_class(Texture);

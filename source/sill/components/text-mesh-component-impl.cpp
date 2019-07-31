@@ -3,7 +3,6 @@
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/game-entity.hpp>
-#include <lava/sill/material.hpp>
 
 using namespace lava::chamber;
 using namespace lava::sill;
@@ -110,11 +109,11 @@ void TextMeshComponent::Impl::update(float /* dt */)
 
     //----- Apply the geometry
 
-    auto& material = m_entity.engine().make<Material>("font");
+    auto& material = m_entity.engine().scene().make<magma::Material>("font");
     material.set("fontTexture", font.texture());
 
-    auto mesh = std::make_unique<Mesh>();
-    auto& primitive = mesh->addPrimitive(m_entity.engine());
+    auto mesh = std::make_unique<Mesh>(m_entity.engine());
+    auto& primitive = mesh->addPrimitive();
     primitive.verticesCount(positions.size());
     primitive.verticesPositions(positions);
     primitive.verticesNormals(normals);

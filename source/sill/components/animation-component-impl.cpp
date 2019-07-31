@@ -1,7 +1,6 @@
 #include "./animation-component-impl.hpp"
 
 #include <lava/sill/components.hpp>
-#include <lava/sill/material.hpp>
 
 using namespace lava::chamber;
 using namespace lava::sill;
@@ -39,7 +38,7 @@ void AnimationComponent::Impl::start(AnimationFlags flags, float time)
         animationInfo.needUpdate = true;
     }
 }
-void AnimationComponent::Impl::start(AnimationFlags flags, Material& material, const std::string& uniformName, float time)
+void AnimationComponent::Impl::start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time)
 {
     if (flags & AnimationFlag::MaterialUniform) {
         auto& animationInfo = findOrCreateAnimationInfo(AnimationFlag::MaterialUniform, material, uniformName);
@@ -65,7 +64,7 @@ void AnimationComponent::Impl::target(AnimationFlag flag, const glm::mat4& targe
     animationInfo.needUpdate = true;
 }
 
-void AnimationComponent::Impl::target(AnimationFlag flag, Material& material, const std::string& uniformName,
+void AnimationComponent::Impl::target(AnimationFlag flag, magma::Material& material, const std::string& uniformName,
                                       const glm::vec4& target)
 {
     auto& animationInfo = findOrCreateAnimationInfo(flag, material, uniformName);
@@ -88,7 +87,7 @@ AnimationComponent::Impl::AnimationInfo& AnimationComponent::Impl::findOrCreateA
 }
 
 AnimationComponent::Impl::AnimationInfo& AnimationComponent::Impl::findOrCreateAnimationInfo(AnimationFlag flag,
-                                                                                             Material& material,
+                                                                                             magma::Material& material,
                                                                                              const std::string& uniformName)
 {
     auto& animationInfos = m_animationsInfos[flag];

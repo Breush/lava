@@ -15,7 +15,7 @@ int main(void)
 
     float roughness = 0.f;
     float roughnessSpeed = 0.2f;
-    auto& material = engine.make<sill::Material>("roughness-metallic");
+    auto& material = engine.scene().make<magma::Material>("roughness-metallic");
     material.set("roughnessFactor", roughness);
     material.set("metallicFactor", 1.f);
 

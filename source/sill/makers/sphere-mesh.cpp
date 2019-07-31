@@ -146,8 +146,8 @@ std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellatio
         }
 
         // Apply the geometry
-        auto mesh = std::make_unique<Mesh>();
-        auto& primitive = mesh->addPrimitive(meshComponent.entity().engine());
+        auto mesh = std::make_unique<Mesh>(meshComponent.entity().engine());
+        auto& primitive = mesh->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);

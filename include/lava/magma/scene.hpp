@@ -67,7 +67,7 @@ namespace lava::magma {
         Light& makeLight();
         Camera& makeCamera(Extent2d extent);
         Material& makeMaterial(const std::string& hrid);
-        Texture& makeTexture();
+        Texture& makeTexture(const std::string& imagePath = "");
         Mesh& makeMesh();
         /// @}
 

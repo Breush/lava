@@ -119,7 +119,7 @@ void Brick::extraRotationLevel(uint32_t extraRotationLevel)
 void Brick::updateBlocksColor()
 {
     for (auto& block : m_blocks) {
-        block.entity->get<sill::MeshComponent>().node(1).mesh->primitive(0).material().set("albedoColor", m_apparentColor);
+        block.entity->get<sill::MeshComponent>().node(1).mesh->primitive(0).material()->set("albedoColor", m_apparentColor);
     }
 }
 

@@ -19,7 +19,7 @@ Panel::Panel(GameState& gameState)
     // hold the table stand mesh.
 
     // Set up panel material
-    m_material = &engine.make<sill::Material>("panel");
+    m_material = &engine.scene().make<magma::Material>("panel");
 
     // Load and get table info
     m_entity = &engine.make<sill::GameEntity>();
@@ -32,7 +32,7 @@ Panel::Panel(GameState& gameState)
         if (node.name == "table") {
             // @todo As said above, we don't hold table stand material
             // because it should not even be our job creating it.
-            m_tableMaterial = &node.mesh->primitive(0).material();
+            m_tableMaterial = node.mesh->primitive(0).material();
             continue;
         }
 

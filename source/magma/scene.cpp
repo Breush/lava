@@ -94,10 +94,10 @@ Material& Scene::makeMaterial(const std::string& hrid)
     return *resource;
 }
 
-Texture& Scene::makeTexture()
+Texture& Scene::makeTexture(const std::string& imagePath)
 {
     constexpr const auto size = sizeof(std::aligned_union<0, Texture>::type) + sizeof(TextureAft);
-    auto resource = m_textureAllocator.allocateSized<Texture>(size, *this);
+    auto resource = m_textureAllocator.allocateSized<Texture>(size, *this, imagePath);
 
     m_textures.emplace_back(resource);
     aft().foreAdd(*resource);

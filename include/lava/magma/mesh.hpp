@@ -66,6 +66,7 @@ namespace lava::magma {
          * @name Geometry
          */
         /// @{
+        uint32_t verticesCount() const { return m_vertices.size(); }
         void verticesCount(const uint32_t count);
         void verticesPositions(VectorView<glm::vec3> positions);
         void verticesUvs(VectorView<glm::vec2> uvs);

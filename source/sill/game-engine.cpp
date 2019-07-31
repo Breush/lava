@@ -9,6 +9,8 @@ $pimpl_class_forward(GameEngine);
 
 $pimpl_method(GameEngine, InputManager&, input);
 $pimpl_method(GameEngine, dike::PhysicsEngine&, physicsEngine);
+$pimpl_method(GameEngine, magma::RenderEngine&, renderEngine);
+$pimpl_method(GameEngine, magma::Scene&, scene);
 
 // ----- Fonts
 $pimpl_method(GameEngine, Font&, font, const std::string&, hrid);
@@ -17,16 +19,6 @@ $pimpl_method(GameEngine, Font&, font, const std::string&, hrid);
 void GameEngine::add(std::unique_ptr<GameEntity>&& gameEntity)
 {
     m_impl->add(std::move(gameEntity));
-}
-
-void GameEngine::add(std::unique_ptr<Material>&& material)
-{
-    m_impl->add(std::move(material));
-}
-
-void GameEngine::add(std::unique_ptr<Texture>&& texture)
-{
-    m_impl->add(std::move(texture));
 }
 
 $pimpl_method(GameEngine, void, remove, const GameEntity&, entity);

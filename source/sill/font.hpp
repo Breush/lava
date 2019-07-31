@@ -2,7 +2,6 @@
 
 namespace lava::sill {
     class GameEngine;
-    class Texture;
 }
 
 namespace lava::sill {
@@ -23,7 +22,7 @@ namespace lava::sill {
         std::vector<GlyphInfo> glyphsInfos(std::wstring_view u16Text);
 
         // Getters
-        Texture& texture();
+        magma::Texture& texture();
         float glyphsRatio() const { return m_glyphsRatio; }
 
     protected:
@@ -35,8 +34,8 @@ namespace lava::sill {
         GameEngine& m_engine;
 
         // Storage
-        Texture* m_texture = nullptr;  //< Font texture (containing drawn glyphs).
-        std::vector<uint8_t> m_pixels; //< Font texture pixels.
+        magma::Texture* m_texture = nullptr; //< Font texture (containing drawn glyphs).
+        std::vector<uint8_t> m_pixels;       //< Font texture pixels.
         std::unordered_map<wchar_t, GlyphInfo> m_glyphsInfos;
         uint32_t m_textureWidth;
         uint32_t m_textureHeight;

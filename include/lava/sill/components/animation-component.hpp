@@ -2,14 +2,10 @@
 
 #include <lava/sill/components/i-component.hpp>
 
-#include <lava/sill/animation-flags.hpp>
-
 #include <functional>
+#include <lava/magma/material.hpp>
+#include <lava/sill/animation-flags.hpp>
 #include <string>
-
-namespace lava::sill {
-    class Material;
-}
 
 namespace lava::sill {
     /**
@@ -33,10 +29,10 @@ namespace lava::sill {
          * Calling target afterwards would be illegal.
          */
         void start(AnimationFlags flags, float time);
-        void start(AnimationFlags flags, Material& material, const std::string& uniformName, float time);
+        void start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time);
         void stop(AnimationFlags flags);
         void target(AnimationFlag flag, const glm::mat4& target);
-        void target(AnimationFlag flag, Material& material, const std::string& uniformName, const glm::vec4& target);
+        void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, const glm::vec4& target);
 
     public:
         class Impl;

@@ -65,7 +65,7 @@ namespace lava::ashe {
             sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
             skyMeshComponent.depthless(true);
 
-            auto& skyboxMaterial = m_engine.make<sill::Material>("skybox");
+            auto& skyboxMaterial = m_engine.scene().make<magma::Material>("skybox");
             skyboxMaterial.set("useEnvironmentMap", true);
             skyboxMaterial.set("lod", 1u);
             skyMeshComponent.node(0).mesh->primitive(0).material(skyboxMaterial);

@@ -117,16 +117,6 @@ void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
     m_pendingAddedEntities.emplace_back(std::move(gameEntity));
 }
 
-void GameEngine::Impl::add(std::unique_ptr<Material>&& material)
-{
-    m_materials.emplace_back(std::move(material));
-}
-
-void GameEngine::Impl::add(std::unique_ptr<Texture>&& texture)
-{
-    m_textures.emplace_back(std::move(texture));
-}
-
 void GameEngine::Impl::remove(const GameEntity& gameEntity)
 {
     m_pendingRemovedEntities.emplace_back(&gameEntity);
@@ -139,9 +129,9 @@ void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath)
         // but we should do that here.
     }
 
-    m_environmentTexture = &m_engine.make<sill::Texture>();
+    m_environmentTexture = &m_scene->make<magma::Texture>();
     m_environmentTexture->loadCubeFromFiles(imagesPath);
-    m_scene->environmentTexture(&m_environmentTexture->magma());
+    m_scene->environmentTexture(m_environmentTexture);
 }
 
 //----- Materials

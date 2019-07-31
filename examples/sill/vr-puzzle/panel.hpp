@@ -45,7 +45,7 @@ public:
     bool checkSolveStatus(bool* solveStatusChanged);
 
     // @fixme As said above, table stand should not be of our concern in the end.
-    lava::sill::Material& tableMaterial() { return *m_tableMaterial; }
+    lava::magma::Material& tableMaterial() { return *m_tableMaterial; }
 
 protected:
     void updateSnappingPoints();
@@ -70,7 +70,7 @@ private:
     // Mesh
     lava::sill::GameEntity* m_entity = nullptr;
     lava::sill::MeshNode* m_meshNode = nullptr;
-    lava::sill::Material* m_material = nullptr;
+    lava::magma::Material* m_material = nullptr;
 
-    lava::sill::Material* m_tableMaterial = nullptr;
+    lava::magma::Material* m_tableMaterial = nullptr;
 };

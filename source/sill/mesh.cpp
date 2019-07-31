@@ -2,21 +2,19 @@
 
 #include "./mesh-impl.hpp"
 
+using namespace lava;
 using namespace lava::sill;
 
-$pimpl_class(Mesh);
+$pimpl_class(Mesh, GameEngine&, engine);
 
 // User info
 $pimpl_property(Mesh, std::string, name);
 
 // Primitives
-$pimpl_method(Mesh, MeshPrimitive&, primitive, uint32_t, index);
-$pimpl_method_const(Mesh, const std::vector<MeshPrimitive>&, primitives);
-$pimpl_method(Mesh, std::vector<MeshPrimitive>&, primitives);
+$pimpl_method_const(Mesh, const magma::Mesh&, primitive, uint32_t, index);
+$pimpl_method(Mesh, magma::Mesh&, primitive, uint32_t, index);
 
-void Mesh::primitives(std::vector<MeshPrimitive>&& primitives)
-{
-    m_impl->primitives(std::move(primitives));
-}
+$pimpl_method_const(Mesh, const std::vector<magma::Mesh*>&, primitives);
+$pimpl_method(Mesh, std::vector<magma::Mesh*>&, primitives);
 
-$pimpl_method(Mesh, MeshPrimitive&, addPrimitive, GameEngine&, engine);
+$pimpl_method(Mesh, magma::Mesh&, addPrimitive);

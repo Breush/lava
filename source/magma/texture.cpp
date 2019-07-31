@@ -5,10 +5,14 @@
 using namespace lava::chamber;
 using namespace lava::magma;
 
-Texture::Texture(Scene& scene)
+Texture::Texture(Scene& scene, const std::string& imagePath)
     : m_scene(scene)
 {
     new (&aft()) TextureAft(*this, m_scene);
+
+    if (!imagePath.empty()) {
+        loadFromFile(imagePath);
+    }
 }
 
 Texture::~Texture()

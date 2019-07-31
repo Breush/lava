@@ -3,17 +3,20 @@
 #include <glm/mat4x4.hpp>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/vr-device-type.hpp>
+#include <lava/magma/scene.hpp>
 #include <memory>
 
 namespace lava::dike {
     class PhysicsEngine;
 }
 
+namespace lava::magma {
+    class RenderEngine;
+}
+
 namespace lava::sill {
     class GameEntity;
     class InputManager;
-    class Material;
-    class Texture;
     class Font;
 }
 
@@ -34,6 +37,10 @@ namespace lava::sill {
 
         /// Access physics engine.
         dike::PhysicsEngine& physicsEngine();
+
+        /// Access the render engine.
+        magma::RenderEngine& renderEngine();
+        magma::Scene& scene();
 
         /**
          * @name Fonts
@@ -59,8 +66,6 @@ namespace lava::sill {
          */
         /// @{
         void add(std::unique_ptr<GameEntity>&& gameEntity);
-        void add(std::unique_ptr<Material>&& material);
-        void add(std::unique_ptr<Texture>&& texture);
 
         void remove(const GameEntity& gameEntity);
         /// @}

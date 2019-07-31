@@ -4,8 +4,6 @@
 
 #include <lava/sill/game-entity.hpp>
 #include <lava/sill/input-manager.hpp>
-#include <lava/sill/material.hpp>
-#include <lava/sill/texture.hpp>
 
 #include "./font-manager.hpp"
 
@@ -33,8 +31,6 @@ namespace lava::sill {
 
         // Adders
         void add(std::unique_ptr<GameEntity>&& gameEntity);
-        void add(std::unique_ptr<Material>&& material);
-        void add(std::unique_ptr<Texture>&& texture);
         void remove(const GameEntity& gameEntity);
 
         // Materials
@@ -92,7 +88,7 @@ namespace lava::sill {
         bool m_fpsCounterEnabled = false;
         std::chrono::nanoseconds m_fpsElapsedTime;
         uint32_t m_fpsCount = 0u;
-        sill::Texture* m_environmentTexture = nullptr;
+        magma::Texture* m_environmentTexture = nullptr;
 
         // Physics
         std::unique_ptr<dike::PhysicsEngine> m_physicsEngine = nullptr;
@@ -110,8 +106,6 @@ namespace lava::sill {
         std::vector<std::unique_ptr<GameEntity>> m_entities;
         std::vector<std::unique_ptr<GameEntity>> m_pendingAddedEntities;
         std::vector<const GameEntity*> m_pendingRemovedEntities;
-        std::vector<std::unique_ptr<Material>> m_materials;
-        std::vector<std::unique_ptr<Texture>> m_textures;
 
         // Callbacks
         std::vector<WindowExtentChangedCallback> m_windowExtentChangedCallbacks;

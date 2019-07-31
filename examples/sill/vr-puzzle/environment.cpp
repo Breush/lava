@@ -24,7 +24,7 @@ void setupEnvironment(GameState& gameState)
         sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
         skyMeshComponent.depthless(true);
 
-        auto& skyboxMaterial = engine.make<sill::Material>("skybox");
+        auto& skyboxMaterial = engine.scene().make<magma::Material>("skybox");
         skyboxMaterial.set("useEnvironmentMap", true);
         skyboxMaterial.set("lod", 1u);
         skyMeshComponent.node(0).mesh->primitive(0).material(skyboxMaterial);

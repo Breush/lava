@@ -1,8 +1,8 @@
 #include "./font.hpp"
 
 #include <lava/sill/game-engine.hpp>
-#include <lava/sill/texture.hpp>
 
+using namespace lava;
 using namespace lava::sill;
 using namespace lava::chamber;
 
@@ -74,10 +74,10 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
 
 //---- Getters
 
-Texture& Font::texture()
+magma::Texture& Font::texture()
 {
     if (m_texture == nullptr) {
-        m_texture = &m_engine.make<Texture>();
+        m_texture = &m_engine.scene().make<magma::Texture>();
     }
     return *m_texture;
 }

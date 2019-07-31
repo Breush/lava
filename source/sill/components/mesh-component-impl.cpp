@@ -188,7 +188,7 @@ void MeshComponent::Impl::wireframed(bool wireframed)
     for (auto& node : m_nodes) {
         if (node.mesh != nullptr) {
             for (auto& primitive : node.mesh->primitives()) {
-                primitive.wireframed(wireframed);
+                primitive->wireframed(wireframed);
             }
         }
     }
@@ -202,7 +202,7 @@ void MeshComponent::Impl::depthless(bool depthless)
     for (auto& node : m_nodes) {
         if (node.mesh != nullptr) {
             for (auto& primitive : node.mesh->primitives()) {
-                primitive.depthless(depthless);
+                primitive->depthless(depthless);
             }
         }
     }
@@ -216,7 +216,7 @@ void MeshComponent::Impl::boundingSpheresVisible(bool boundingSpheresVisible)
     for (auto& node : m_nodes) {
         if (node.mesh != nullptr) {
             for (auto& primitive : node.mesh->primitives()) {
-                primitive.debugBoundingSphere(boundingSpheresVisible);
+                primitive->debugBoundingSphere(boundingSpheresVisible);
             }
         }
     }

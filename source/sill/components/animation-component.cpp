@@ -11,8 +11,9 @@ $pimpl_method(AnimationComponent, void, update, float, dt);
 
 // Callbacks
 $pimpl_method(AnimationComponent, void, start, AnimationFlags, flags, float, time);
-$pimpl_method(AnimationComponent, void, start, AnimationFlags, flags, Material&, material, const std::string&, uniformName, float, time);
+$pimpl_method(AnimationComponent, void, start, AnimationFlags, flags, magma::Material&, material, const std::string&, uniformName,
+              float, time);
 $pimpl_method(AnimationComponent, void, stop, AnimationFlags, flags);
 $pimpl_method(AnimationComponent, void, target, AnimationFlag, flag, const glm::mat4&, target);
-$pimpl_method(AnimationComponent, void, target, AnimationFlag, flag, Material&, material, const std::string&, uniformName,
+$pimpl_method(AnimationComponent, void, target, AnimationFlag, flag, magma::Material&, material, const std::string&, uniformName,
               const glm::vec4&, target);

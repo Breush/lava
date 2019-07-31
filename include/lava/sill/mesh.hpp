@@ -1,9 +1,13 @@
 #pragma once
 
-#include <lava/sill/mesh-primitive.hpp>
+#include <lava/magma/mesh.hpp>
 
 #include <string>
 #include <vector>
+
+namespace lava::sill {
+    class GameEngine;
+}
 
 namespace lava::sill {
     /**
@@ -14,7 +18,7 @@ namespace lava::sill {
      */
     class Mesh {
     public:
-        Mesh();
+        Mesh(GameEngine& engine);
         ~Mesh();
 
         // User info
@@ -22,11 +26,13 @@ namespace lava::sill {
         void name(const std::string& name);
 
         /// Primitives
-        MeshPrimitive& primitive(uint32_t index);
-        const std::vector<MeshPrimitive>& primitives() const;
-        std::vector<MeshPrimitive>& primitives();
-        void primitives(std::vector<MeshPrimitive>&& primitives);
-        MeshPrimitive& addPrimitive(GameEngine& engine);
+        const magma::Mesh& primitive(uint32_t index) const;
+        magma::Mesh& primitive(uint32_t index);
+
+        const std::vector<magma::Mesh*>& primitives() const;
+        std::vector<magma::Mesh*>& primitives();
+
+        magma::Mesh& addPrimitive();
 
     public:
         class Impl;

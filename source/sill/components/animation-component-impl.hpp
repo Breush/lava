@@ -14,10 +14,10 @@ namespace lava::sill {
 
         // AnimationComponent
         void start(AnimationFlags flags, float time);
-        void start(AnimationFlags flags, Material& material, const std::string& uniformName, float time);
+        void start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time);
         void stop(AnimationFlags flags);
         void target(AnimationFlag flag, const glm::mat4& target);
-        void target(AnimationFlag flag, Material& material, const std::string& uniformName, const glm::vec4& target);
+        void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, const glm::vec4& target);
 
     protected:
         enum class UniformType {
@@ -34,14 +34,14 @@ namespace lava::sill {
             std::variant<glm::mat4, glm::vec4> targetValue;
 
             // For AnimationFlag::MaterialUniform
-            Material* material;
+            magma::Material* material;
             std::string uniformName;
             UniformType uniformType;
         };
 
     protected:
         AnimationInfo& findOrCreateAnimationInfo(AnimationFlag flag);
-        AnimationInfo& findOrCreateAnimationInfo(AnimationFlag flag, Material& material, const std::string& uniformName);
+        AnimationInfo& findOrCreateAnimationInfo(AnimationFlag flag, magma::Material& material, const std::string& uniformName);
         void updateInterpolation(AnimationFlag flag, AnimationInfo& animationInfo);
 
     private:

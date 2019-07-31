@@ -6,7 +6,6 @@
 
 namespace lava::sill {
     class TransformComponent;
-    class Material;
 }
 
 namespace lava::sill {

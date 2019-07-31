@@ -155,8 +155,8 @@ std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         // Apply the geometry
-        auto mesh = std::make_unique<Mesh>();
-        auto& primitive = mesh->addPrimitive(meshComponent.entity().engine());
+        auto mesh = std::make_unique<Mesh>(meshComponent.entity().engine());
+        auto& primitive = mesh->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);
