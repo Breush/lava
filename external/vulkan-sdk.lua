@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Vulkan SDK"
-local VERSION = "1.1.108.0"
+local VERSION = "1.1.114.0"
 
 -- Download
 
