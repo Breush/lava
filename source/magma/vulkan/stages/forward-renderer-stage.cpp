@@ -462,6 +462,7 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
 
     if (!firstTime) {
         m_opaquePipelineHolder.update(m_extent, m_polygonMode);
+        m_depthlessPipelineHolder.update(m_extent, m_polygonMode);
         m_wireframePipelineHolder.update(m_extent, vk::PolygonMode::eLine);
         m_translucentPipelineHolder.update(m_extent, m_polygonMode);
     }
