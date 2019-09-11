@@ -48,6 +48,9 @@ namespace lava::magma {
         void parseGBufferDeclarations();
         GBufferDeclaration parseGBufferDeclaration();
 
+        // Generic
+        void parseBlock(std::stringstream& adaptedCode, bool expectSemicolon = false);
+
         // Geometry
         void parseGeometry(std::stringstream& adaptedCode);
         UniformDefinitions parseGeometryUniform();
@@ -59,7 +62,6 @@ namespace lava::magma {
 
         // Epiphany
         void parseEpiphany(std::stringstream& adaptedCode);
-        void parseEpiphanyBlock(std::stringstream& adaptedCode, bool expectSemicolon = false);
         void parseEpiphanyMain(std::stringstream& adaptedCode);
 
         void injectEpiphanyGBufferDataExtraction(std::stringstream& adaptedCode);

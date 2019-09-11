@@ -133,6 +133,10 @@ void ShmagReader::parseGeometry(std::stringstream& adaptedCode)
             parseIdentifier("main");
             parseGeometryMain(adaptedCode);
         }
+        else if (firstIdentifier == "float") {
+            adaptedCode << firstIdentifier << " ";
+            parseBlock(adaptedCode);
+        }
         else {
             errorExpected("uniform, declaration, definition");
         }
@@ -437,14 +441,14 @@ void ShmagReader::parseEpiphany(std::stringstream& adaptedCode)
             }
             else {
                 adaptedCode << secondIdentifier << " ";
-                parseEpiphanyBlock(adaptedCode);
+                parseBlock(adaptedCode);
             }
         }
         else if (firstIdentifier == "struct") {
-            parseEpiphanyBlock(adaptedCode, true);
+            parseBlock(adaptedCode, true);
         }
         else if (firstIdentifier == "float" || firstIdentifier == "vec3") {
-            parseEpiphanyBlock(adaptedCode);
+            parseBlock(adaptedCode);
         }
         else {
             errorExpected("declaration, definition");
@@ -454,7 +458,7 @@ void ShmagReader::parseEpiphany(std::stringstream& adaptedCode)
     adaptedCode << "@magma:impl:end epiphany" << std::endl;
 }
 
-void ShmagReader::parseEpiphanyBlock(std::stringstream& adaptedCode, bool expectSemicolon)
+void ShmagReader::parseBlock(std::stringstream& adaptedCode, bool expectSemicolon)
 {
     while (auto token = getNotToken(chamber::TokenType::LeftBrace)) {
         adaptedCode << token->string << " ";
