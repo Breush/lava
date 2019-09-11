@@ -111,9 +111,9 @@ namespace {
     void onUpdateVr(GameState& gameState)
     {
         auto& engine = *gameState.engine;
-        if (!engine.vrDeviceValid(VrDeviceType::RightHand)) return;
+        if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
-        auto handTransform = engine.vrDeviceTransform(VrDeviceType::RightHand);
+        auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
         if (engine.input().justDown("trigger") && gameState.pointedBrick != nullptr) {
@@ -227,7 +227,7 @@ void setupGameLogic(GameState& gameState)
     auto& entity = gameState.engine->make<sill::GameEntity>();
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     behaviorComponent.onUpdate([&](float /* dt */) {
-        if (gameState.engine->vrEnabled()) {
+        if (gameState.engine->vr().enabled()) {
             onUpdateVr(gameState);
         }
         else {

@@ -94,6 +94,10 @@ namespace lava::magma {
         /// Poll VR event.
         std::optional<VrEvent> vrPollEvent();
 
+        /// The world translation of the VR area.
+        const glm::vec3& vrTranslation() const;
+        void vrTranslation(const glm::vec3& translation);
+
         /// Whether a VR system can be used (initialization worked).
         bool vrEnabled() const;
 

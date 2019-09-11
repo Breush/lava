@@ -27,9 +27,4 @@ $pimpl_method(GameEngine, void, remove, const GameEntity&, entity);
 $pimpl_method(GameEngine, void, environmentTexture, const fs::Path&, imagesPath);
 $pimpl_method(GameEngine, void, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 
-// ----- VR
-$pimpl_method_const(GameEngine, bool, vrEnabled);
-$pimpl_method_const(GameEngine, bool, vrDeviceValid, VrDeviceType, deviceType);
-$pimpl_method_const(GameEngine, const glm::mat4&, vrDeviceTransform, VrDeviceType, deviceType);
-
 $pimpl_method(GameEngine, void, run);

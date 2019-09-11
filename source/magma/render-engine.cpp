@@ -59,6 +59,8 @@ void RenderEngine::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 //----- VR
 
 $pimpl_method(RenderEngine, std::optional<VrEvent>, vrPollEvent);
+$pimpl_method_const(RenderEngine, const glm::vec3&, vrTranslation);
+$pimpl_method(RenderEngine, void, vrTranslation, const glm::vec3&, translation);
 $pimpl_method_const(RenderEngine, bool, vrEnabled);
 $pimpl_method_const(RenderEngine, bool, vrDeviceValid, VrDeviceType, deviceType);
 $pimpl_method_const(RenderEngine, const glm::mat4&, vrDeviceTransform, VrDeviceType, deviceType);

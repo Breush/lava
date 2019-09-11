@@ -46,9 +46,9 @@ int main(void)
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
         behaviorComponent.onUpdate([&](float /* dt */) {
             static sill::GameEntity* grabbedCube = nullptr;
-            if (!engine.vrDeviceValid(VrDeviceType::RightHand)) return;
+            if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
-            auto handTransform = engine.vrDeviceTransform(VrDeviceType::RightHand);
+            auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
             // When the user uses the trigger, we find the closest cube nearby, and grab it.
             if (engine.input().justDown("trigger")) {

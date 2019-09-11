@@ -54,10 +54,10 @@ namespace {
     void onUpdateVr(GameState& gameState)
     {
         auto& engine = *gameState.engine;
-        if (!engine.vrDeviceValid(VrDeviceType::RightHand)) return;
+        if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
         // Let the ray mesh follow the hand
-        auto handTransform = engine.vrDeviceTransform(VrDeviceType::RightHand);
+        auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
         gameState.rayPickingEntity->get<sill::TransformComponent>().worldTransform(handTransform);
 
         // Check if any brick is hit
@@ -109,7 +109,7 @@ void setupRayPicking(GameState& gameState)
 
         if (!g_rayPickingEnabled) return;
 
-        if (gameState.engine->vrEnabled()) {
+        if (gameState.engine->vr().enabled()) {
             onUpdateVr(gameState);
         }
         else {

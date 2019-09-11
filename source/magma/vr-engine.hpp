@@ -22,6 +22,8 @@ namespace lava::magma {
         bool deviceValid(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).valid; }
         const glm::mat4& deviceTransform(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).fixedTransform; }
         Mesh& deviceMesh(VrDeviceType deviceType, Scene& scene);
+        const glm::vec3& translation() const { return m_translation; }
+        void translation(const glm::vec3& translation);
         std::optional<VrEvent> pollEvent();
 
         // ----- Internal API
@@ -52,7 +54,7 @@ namespace lava::magma {
             uint32_t index = 0;                        // OpenVR's device index.
             bool valid = false;                        // Whether the device is valid.
             vr::ETrackedDeviceClass type;              // Which device is being tracked.
-            glm::mat4 transform = glm::mat4(1.f);      // Last known absolute transform of the device given by OpenVR.
+            glm::mat4 transform = glm::mat4(1.f);      // Last known VR-space transform of the device given by OpenVR.
             glm::mat4 fixedTransform = glm::mat4(1.f); // Last known absolute transform of the device in our coordinate system.
         };
 
@@ -63,6 +65,10 @@ namespace lava::magma {
         std::vector<vr::TrackedDevicePose_t> m_devicesPoses;
         std::unordered_map<VrDeviceType, DeviceInfo> m_devicesInfos;
         std::unordered_map<VrDeviceType, Mesh*> m_devicesMeshes;
+
+        glm::mat4 m_transform = glm::mat4(1.f);
+        glm::mat4 m_unfixedTransform = glm::mat4(1.f); // Allows transform within openVR space.
+        glm::vec3 m_translation = glm::vec3(0.f);
 
         const glm::mat4 m_fixesTransform = glm::mat4(-1, 0, 0, 0, // -X
                                                      0, 0, 1, 0,  // Z

@@ -89,7 +89,7 @@ void VrEngine::update()
                                          m[0][1], m[1][1], m[2][1], 0.f, // Y
                                          m[0][2], m[1][2], m[2][2], 0.f, // Z
                                          m[0][3], m[1][3], m[2][3], 1.f);
-        deviceInfo.fixedTransform = m_fixesTransform * deviceInfo.transform;
+        deviceInfo.fixedTransform = m_transform * m_fixesTransform * deviceInfo.transform;
 
         deviceInfo.type = m_vrSystem->GetTrackedDeviceClass(deviceIndex);
         deviceInfo.index = deviceIndex;
@@ -138,7 +138,7 @@ glm::mat4 VrEngine::eyeToHeadTransform(VrEye eye)
 
 glm::mat4 VrEngine::eyeViewTransform(VrEye eye)
 {
-    return m_devicesInfos[VrDeviceType::Head].transform * eyeToHeadTransform(eye);
+    return m_unfixedTransform * m_devicesInfos[VrDeviceType::Head].transform * eyeToHeadTransform(eye);
 }
 
 Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, Scene& scene)
@@ -231,6 +231,18 @@ Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, Scene& scene)
 
     logger.log().tab(-1);
     return mesh;
+}
+
+void VrEngine::translation(const glm::vec3& translation)
+{
+    m_translation = translation;
+
+    // @note Currently, only translation can be applied, so there's nothing
+    // too clever to do here.
+    m_transform = glm::translate(glm::mat4(1.f), translation);
+
+    // @note Should have been F * T * F^{-1}, but here we know that F = F^{-1}
+    m_unfixedTransform = m_fixesTransform * m_transform * m_fixesTransform;
 }
 
 std::optional<VrEvent> VrEngine::pollEvent()

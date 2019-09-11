@@ -1,8 +1,8 @@
 #pragma once
 
-#include <glm/mat4x4.hpp>
+#include <lava/sill/vr-manager.hpp>
+
 #include <lava/core/filesystem.hpp>
-#include <lava/core/vr-device-type.hpp>
 #include <lava/magma/scene.hpp>
 #include <memory>
 
@@ -34,6 +34,9 @@ namespace lava::sill {
 
         /// Access input manager.
         InputManager& input();
+
+        /// Access the VR manager.
+        VrManager& vr() { return m_vrManager; }
 
         /// Access physics engine.
         dike::PhysicsEngine& physicsEngine();
@@ -78,21 +81,6 @@ namespace lava::sill {
         void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
         /// @}
 
-        /**
-         * @name VR
-         */
-        /// @{
-        /// Whether a VR system can be used (initialization worked).
-        bool vrEnabled() const;
-
-        /// Get whether a device is valid (active and ready to be asked for transform or mesh).
-        bool vrDeviceValid(VrDeviceType deviceType) const;
-
-        // @todo Could be nice to access a VrDevice entity instead of transform directly.
-        /// Get a device transform.
-        const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const;
-        /// @}
-
         /// Main loop.
         void run();
 
@@ -102,6 +90,8 @@ namespace lava::sill {
 
     private:
         Impl* m_impl = nullptr;
+
+        VrManager m_vrManager{*this};
     };
 }
 

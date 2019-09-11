@@ -37,14 +37,6 @@ namespace lava::sill {
         void environmentTexture(const fs::Path& imagesPath);
         void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
 
-        // VR
-        bool vrEnabled() const { return m_renderEngine->vrEnabled(); }
-        bool vrDeviceValid(VrDeviceType deviceType) const { return m_renderEngine->vrDeviceValid(deviceType); }
-        const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const
-        {
-            return m_renderEngine->vrDeviceTransform(deviceType);
-        }
-
         void run();
         /// @}
 
