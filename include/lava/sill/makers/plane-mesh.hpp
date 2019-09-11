@@ -8,5 +8,12 @@ namespace lava::sill {
 }
 
 namespace lava::sill::makers {
-    std::function<void(MeshComponent&)> planeMeshMaker(Extent2d dimensions);
+    struct PlaneMeshOptions {
+        glm::uvec2 tessellation = {2u, 2u}; // How many points per side (for X and Y axis).
+        bool doubleSided = false;
+    };
+
+    std::function<void(MeshComponent&)> planeMeshMaker(float sidesLength, PlaneMeshOptions options = PlaneMeshOptions());
+    std::function<void(MeshComponent&)> planeMeshMaker(const glm::vec2& dimensions,
+                                                       PlaneMeshOptions options = PlaneMeshOptions());
 }
