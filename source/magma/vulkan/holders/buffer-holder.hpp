@@ -37,6 +37,9 @@ namespace lava::magma::vulkan {
         vulkan::DeviceMemory m_stagingMemory;
         $attribute(vulkan::Buffer, buffer);
         $attribute(vulkan::DeviceMemory, memory);
+
+        vk::BufferUsageFlagBits m_usage;
+        vk::DeviceSize m_size = 0u;
     };
 }
 

@@ -24,6 +24,10 @@ void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
             << "Valid ones are currently UniformBuffer, StorageBuffer, VertexBuffer and IndexBuffer." << std::endl;
     }
 
+    if (m_usage == usage && m_size == size) return;
+    m_usage = usage;
+    m_size = size;
+
     //----- Staging memory
 
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
