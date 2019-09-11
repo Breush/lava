@@ -60,6 +60,8 @@ namespace {
 
     void grabBrick(GameState& gameState, Brick* brick)
     {
+        gameState.state = State::GrabbedBrick;
+
         grabbedBrick = brick;
         grabbedBrick->unsnap();
         rayPickingEnabled(gameState, false);
@@ -73,6 +75,7 @@ namespace {
 
     void ungrabBrick(GameState& gameState)
     {
+        gameState.state = State::Idle;
         grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
 
         if (grabbedBrick->snapped()) {
@@ -116,43 +119,45 @@ namespace {
         auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
-        if (engine.input().justDown("trigger") && gameState.pointedBrick != nullptr) {
+        if (gameState.state == State::Idle && engine.input().justDown("trigger") && gameState.pointedBrick) {
             grabBrick(gameState, gameState.pointedBrick);
         }
-        else if (engine.input().justUp("trigger") && grabbedBrick != nullptr) {
+
+        if (gameState.state != State::GrabbedBrick) return;
+
+        if (engine.input().justUp("trigger")) {
             ungrabBrick(gameState);
+            return;
         }
 
         // Update entity to us whenever it is in grabbing state.
-        if (grabbedBrick != nullptr) {
-            if (engine.input().justDown("touchpad")) {
-                rotateGrabbedBrick();
-            }
-
-            // The user might be trying to turn is wrist instead of pushing the turning button.
-            auto handRotationLevel = computeHandRotationLevel(handTransform);
-            grabbedBrick->extraRotationLevel(handRotationLevel);
-
-            // Offsetting from hand transform a little bit.
-            auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});
-            targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
-            targetTransform = targetTransform * baseRotationLevelMatrix();
-
-            // If the hand is close to a snapping point, we snap to it.
-            grabbedBrick->unsnap();
-            for (auto& panel : gameState.panels) {
-                if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform[3])) {
-                    targetTransform = snappingPoint->worldTransform;
-                    targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
-
-                    // Set the coordinates of snapped snapping point.
-                    grabbedBrick->snap(*panel, snappingPoint->coordinates);
-                    break;
-                }
-            }
-
-            grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);
+        if (engine.input().justDown("touchpad")) {
+            rotateGrabbedBrick();
         }
+
+        // The user might be trying to turn is wrist instead of pushing the turning button.
+        auto handRotationLevel = computeHandRotationLevel(handTransform);
+        grabbedBrick->extraRotationLevel(handRotationLevel);
+
+        // Offsetting from hand transform a little bit.
+        auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});
+        targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
+        targetTransform = targetTransform * baseRotationLevelMatrix();
+
+        // If the hand is close to a snapping point, we snap to it.
+        grabbedBrick->unsnap();
+        for (auto& panel : gameState.panels) {
+            if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform[3])) {
+                targetTransform = snappingPoint->worldTransform;
+                targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+
+                // Set the coordinates of snapped snapping point.
+                grabbedBrick->snap(*panel, snappingPoint->coordinates);
+                break;
+            }
+        }
+
+        grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);
     }
 
     void onUpdateMouse(GameState& gameState)

@@ -4,6 +4,7 @@
 #include "./environment.hpp"
 #include "./game-logic.hpp"
 #include "./ray-picking.hpp"
+#include "./teleport-beam.hpp"
 
 using namespace lava;
 
@@ -23,6 +24,8 @@ int main(void)
 
     engine.registerMaterialFromFile("skybox", "./data/shaders/materials/skybox-material.shmag");
     engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/panel-material.shmag");
+    engine.registerMaterialFromFile("teleport-beam", "./examples/sill/vr-puzzle/teleport-beam.shmag");
+    engine.registerMaterialFromFile("teleport-area", "./examples/sill/vr-puzzle/teleport-area.shmag");
 
     // Camera (for companion window)
     setupCamera(gameState);
@@ -34,6 +37,7 @@ int main(void)
     // Environment
     setupEnvironment(gameState);
     setupRayPicking(gameState);
+    setupTeleportBeam(gameState);
 
     // Game logic
     setupGameLogic(gameState);

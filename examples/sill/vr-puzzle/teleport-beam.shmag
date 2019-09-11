@@ -1,0 +1,39 @@
+struct {
+    float invalid; // @fixme Don't we have bool there?
+} gBuffer;
+
+geometry {
+    uniform {
+        float length = 1;
+        float time = 0;
+        bool invalid = false;
+    };
+
+    bool main() {
+        if (!invalid) {
+            gBuffer.invalid = 0.;
+            float intensity = 2 * abs(fract(uv.y * length * 0.5  - time * 3) - 0.5);
+            intensity = smoothstep(0.4, 0.6, intensity);
+
+            if (intensity < 0.1) {
+                discard;
+            }
+        } else {
+            gBuffer.invalid = 1.;
+            if (uv.y > 1.5 / length) {
+                discard;
+            }
+        }
+
+        return true;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        if (gBuffer.invalid > 0.5) {
+            return vec4(1, 0.3, 0.3, 0.75);
+        }
+        return vec4(0.5, 1, 0.8, 0.75);
+    }
+}
