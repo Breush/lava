@@ -9,6 +9,7 @@
 
 enum class State {
     Idle,
+    Editor,
     GrabbedBrick,
     TeleportBeam,
 };

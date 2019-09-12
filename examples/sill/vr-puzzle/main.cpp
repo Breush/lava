@@ -1,6 +1,7 @@
 #include <lava/sill.hpp>
 
 #include "./camera.hpp"
+#include "./editor.hpp"
 #include "./environment.hpp"
 #include "./game-logic.hpp"
 #include "./ray-picking.hpp"
@@ -41,6 +42,9 @@ int main(void)
 
     // Game logic
     setupGameLogic(gameState);
+
+    // Editor
+    setupEditor(gameState);
 
     // Load first level
     loadLevel(gameState, 0);

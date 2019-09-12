@@ -10,27 +10,15 @@ namespace {
 
     Brick* pickBrick(GameState& gameState, const Ray& ray)
     {
-        const auto bsRadius = std::sqrt(blockExtent.x * blockExtent.x + blockExtent.y * blockExtent.y) / 2.f;
-
-        // @fixme Should be done through GameEngine API with raycast colliders?
         Brick* pickedBrick = nullptr;
 
         float minDistance = 50.f;
         for (auto& brick : gameState.bricks) {
             for (auto& block : brick->blocks()) {
-                // @todo For now, this is just a arbitrary ray-sphere detection,
-                // we could do ray-box intersection.
-                glm::vec3 bsCenter = block.entity->get<sill::TransformComponent>().worldTransform()[3];
-                auto rayOriginToBsCenter = bsCenter - ray.origin;
-                auto bsCenterProjectionDistance = glm::dot(ray.direction, rayOriginToBsCenter);
-                if (bsCenterProjectionDistance > 0.f) {
-                    if (std::abs(bsCenterProjectionDistance) < minDistance) {
-                        auto bsCenterProjection = ray.origin + ray.direction * bsCenterProjectionDistance;
-                        if (glm::length(bsCenter - bsCenterProjection) < bsRadius) {
-                            minDistance = std::abs(bsCenterProjectionDistance);
-                            pickedBrick = brick.get();
-                        }
-                    }
+                float distance = block.entity->distanceFrom(ray);
+                if (distance > 0.f && distance < minDistance) {
+                    minDistance = distance;
+                    pickedBrick = brick.get();
                 }
             }
         }
@@ -100,13 +88,13 @@ void setupRayPicking(GameState& gameState)
     rayPickingEntity.ensure<sill::TransformComponent>();
 
     if (gameState.engine->vr().enabled()) {
-    auto& meshComponent = rayPickingEntity.make<sill::MeshComponent>();
+        auto& meshComponent = rayPickingEntity.make<sill::MeshComponent>();
 
-    sill::makers::BoxMeshOptions boxMeshOptions;
-    boxMeshOptions.origin = sill::BoxOrigin::Bottom;
-    // @todo Could be cylinder, and disable shadows
-    sill::makers::boxMeshMaker({0.005f, 0.005f, 50.f}, boxMeshOptions)(meshComponent);
-    meshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
+        sill::makers::BoxMeshOptions boxMeshOptions;
+        boxMeshOptions.origin = sill::BoxOrigin::Bottom;
+        // @todo Could be cylinder, and disable shadows
+        sill::makers::boxMeshMaker({0.005f, 0.005f, 50.f}, boxMeshOptions)(meshComponent);
+        meshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
     }
 
     auto& behaviorComponent = rayPickingEntity.make<sill::BehaviorComponent>();

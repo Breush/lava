@@ -7,7 +7,7 @@
 #include <vector>
 
 class Brick;
-class GameState;
+struct GameState;
 
 class Panel {
 public:
