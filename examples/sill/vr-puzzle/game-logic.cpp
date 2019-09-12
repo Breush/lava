@@ -166,70 +166,70 @@ namespace {
 
         // For mouse, the user uses click to grab then click to drop.
         if (engine.input().justDown("left-fire")) {
-            if (grabbedBrick == nullptr && gameState.pointedBrick != nullptr) {
+            if (gameState.state == State::Idle && gameState.pointedBrick) {
                 grabBrick(gameState, gameState.pointedBrick);
             }
-            else if (grabbedBrick != nullptr) {
+            else if (gameState.state == State::GrabbedBrick) {
                 ungrabBrick(gameState);
             }
         }
 
+        if (gameState.state != State::GrabbedBrick) return;
+
         // Update entity to us whenever it is in grabbing state.
-        if (grabbedBrick != nullptr) {
-            if (engine.input().justDown("right-fire")) {
-                rotateGrabbedBrick();
-            }
-
-            auto targetTransform = glm::mat4(1.f);
-
-            // If the cursor is over a snapping point, we snap to it.
-            bool brickLooksSnapped = false;
-            grabbedBrick->unsnap();
-            for (auto& panel : gameState.panels) {
-                // @todo We should find out which panel is the closest!
-                Panel::SnappingInfo snappingInfo = panel->rayHitSnappingPoint(*grabbedBrick, gameState.pickingRay);
-                if (snappingInfo.point != nullptr) {
-                    brickLooksSnapped = true;
-                    targetTransform = snappingInfo.point->worldTransform;
-                    targetTransform *= baseRotationLevelMatrix();
-
-                    // Set the coordinates of snapped snapping point.
-                    if (snappingInfo.validForBrick) {
-                        grabbedBrick->apparentColor({0, 0.8, 0});
-                        grabbedBrick->snap(*panel, snappingInfo.point->coordinates);
-                    }
-                    else {
-                        grabbedBrick->apparentColor({1, 0, 0});
-                    }
-
-                    break;
-                }
-            }
-
-            // If the brick is not snapped, we move the brick to the lower right corner of the screen.
-            if (!brickLooksSnapped) {
-                grabbedBrick->apparentColor(grabbedBrick->color());
-
-                const auto& extent = gameState.camera->extent();
-                auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};
-                targetTransform = gameState.camera->transformAtCoordinates(coordinates, 0.5f);
-
-                auto screenMatrix = glm::mat4(1.f);
-                screenMatrix = glm::scale(screenMatrix, {0.2f, 0.2f, 0.2f});
-                screenMatrix = glm::rotate(screenMatrix, 3.14156f * 0.5f, {1, 0, 0});
-                screenMatrix = glm::rotate(screenMatrix, -3.14156f * 0.5f, {0, 1, 0});
-
-                targetTransform *= screenMatrix * baseRotationLevelMatrix();
-            }
-
-            grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);
+        if (engine.input().justDown("right-fire")) {
+            rotateGrabbedBrick();
         }
+
+        auto targetTransform = glm::mat4(1.f);
+
+        // If the cursor is over a snapping point, we snap to it.
+        bool brickLooksSnapped = false;
+        grabbedBrick->unsnap();
+        for (auto& panel : gameState.panels) {
+            // @todo We should find out which panel is the closest!
+            Panel::SnappingInfo snappingInfo = panel->rayHitSnappingPoint(*grabbedBrick, gameState.pickingRay);
+            if (snappingInfo.point != nullptr) {
+                brickLooksSnapped = true;
+                targetTransform = snappingInfo.point->worldTransform;
+                targetTransform *= baseRotationLevelMatrix();
+
+                // Set the coordinates of snapped snapping point.
+                if (snappingInfo.validForBrick) {
+                    grabbedBrick->apparentColor({0, 0.8, 0});
+                    grabbedBrick->snap(*panel, snappingInfo.point->coordinates);
+                }
+                else {
+                    grabbedBrick->apparentColor({1, 0, 0});
+                }
+
+                break;
+            }
+        }
+
+        // If the brick is not snapped, we move the brick to the lower right corner of the screen.
+        if (!brickLooksSnapped) {
+            grabbedBrick->apparentColor(grabbedBrick->color());
+
+            const auto& extent = gameState.camera->extent();
+            auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};
+            targetTransform = gameState.camera->transformAtCoordinates(coordinates, 0.5f);
+
+            auto screenMatrix = glm::mat4(1.f);
+            screenMatrix = glm::scale(screenMatrix, {0.2f, 0.2f, 0.2f});
+            screenMatrix = glm::rotate(screenMatrix, 3.14156f * 0.5f, {1, 0, 0});
+            screenMatrix = glm::rotate(screenMatrix, -3.14156f * 0.5f, {0, 1, 0});
+
+            targetTransform *= screenMatrix * baseRotationLevelMatrix();
+        }
+
+        grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);
     }
 }
 
 void setupGameLogic(GameState& gameState)
 {
-    auto& entity = gameState.engine->make<sill::GameEntity>();
+    auto& entity = gameState.engine->make<sill::GameEntity>("game-logic");
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     behaviorComponent.onUpdate([&](float /* dt */) {
         if (gameState.engine->vr().enabled()) {

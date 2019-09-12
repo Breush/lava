@@ -6,7 +6,7 @@
 
 constexpr const glm::vec3 blockExtent = {0.22f, 0.22f, 0.0625f};
 
-class GameState;
+struct GameState;
 class Panel;
 
 struct Block {

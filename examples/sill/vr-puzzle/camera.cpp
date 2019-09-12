@@ -18,7 +18,7 @@ void setupCamera(GameState& gameState)
     input.bindAction("right-fire", MouseButton::Right);
 
     // Make the entity
-    auto& entity = engine.make<sill::GameEntity>();
+    auto& entity = engine.make<sill::GameEntity>("camera");
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     auto& cameraComponent = entity.make<sill::CameraComponent>();
     cameraComponent.origin({-2.f, 0.f, 2.f});

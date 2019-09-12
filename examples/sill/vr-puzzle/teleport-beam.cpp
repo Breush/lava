@@ -115,7 +115,7 @@ void setupTeleportBeam(GameState& gameState)
     if (!gameState.engine->vr().enabled()) return;
 
     // Beam
-    auto& teleportBeamEntity = engine.make<sill::GameEntity>();
+    auto& teleportBeamEntity = engine.make<sill::GameEntity>("teleport-beam");
     auto& meshComponent = teleportBeamEntity.make<sill::MeshComponent>();
     gameState.teleportBeamEntity = &teleportBeamEntity;
 
@@ -132,7 +132,7 @@ void setupTeleportBeam(GameState& gameState)
     meshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
 
     // Area
-    auto& teleportAreaEntity = engine.make<sill::GameEntity>();
+    auto& teleportAreaEntity = engine.make<sill::GameEntity>("teleport-area");
     auto& teleportAreaMeshComponent = teleportAreaEntity.make<sill::MeshComponent>();
     gameState.teleportAreaEntity = &teleportAreaEntity;
 

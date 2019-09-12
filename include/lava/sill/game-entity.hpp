@@ -14,10 +14,19 @@ namespace lava::sill {
     class GameEntity final {
     public:
         GameEntity(GameEngine& engine);
+        GameEntity(GameEngine& engine, const std::string& name);
         ~GameEntity();
 
         GameEngine& engine() { return m_engine; }
         const GameEngine& engine() const { return m_engine; }
+
+        /**
+         * @name Attributes
+         */
+        /// @{
+        const std::string& name() const { return m_name; }
+        void name(const std::string& name) { m_name = name; }
+        /// @}
 
         /**
          * @name Hierarchy
@@ -79,6 +88,8 @@ namespace lava::sill {
     private:
         GameEngine& m_engine;
         Impl* m_impl = nullptr;
+
+        std::string m_name = "Unknown";
     };
 }
 

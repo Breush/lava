@@ -22,7 +22,7 @@ Panel::Panel(GameState& gameState)
     m_material = &engine.scene().make<magma::Material>("panel");
 
     // Load and get table info
-    m_entity = &engine.make<sill::GameEntity>();
+    m_entity = &engine.make<sill::GameEntity>("panel");
     auto& meshComponent = m_entity->make<sill::MeshComponent>();
     sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-table.glb")(meshComponent);
     m_entity->make<sill::AnimationComponent>();

@@ -96,7 +96,10 @@ void setupRayPicking(GameState& gameState)
 {
     auto& engine = *gameState.engine;
 
-    auto& rayPickingEntity = engine.make<sill::GameEntity>();
+    auto& rayPickingEntity = engine.make<sill::GameEntity>("ray-picking");
+    rayPickingEntity.ensure<sill::TransformComponent>();
+
+    if (gameState.engine->vr().enabled()) {
     auto& meshComponent = rayPickingEntity.make<sill::MeshComponent>();
 
     sill::makers::BoxMeshOptions boxMeshOptions;
@@ -104,6 +107,7 @@ void setupRayPicking(GameState& gameState)
     // @todo Could be cylinder, and disable shadows
     sill::makers::boxMeshMaker({0.005f, 0.005f, 50.f}, boxMeshOptions)(meshComponent);
     meshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
+    }
 
     auto& behaviorComponent = rayPickingEntity.make<sill::BehaviorComponent>();
     behaviorComponent.onUpdate([&](float /* dt */) {

@@ -9,6 +9,13 @@ GameEntity::GameEntity(GameEngine& engine)
 {
     m_impl = new GameEntity::Impl(*this, engine);
 }
+
+GameEntity::GameEntity(GameEngine& engine, const std::string& name)
+    : GameEntity(engine)
+{
+    this->name(name);
+}
+
 GameEntity::~GameEntity()
 {
     delete m_impl;

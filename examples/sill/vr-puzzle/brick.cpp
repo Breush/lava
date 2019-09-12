@@ -9,7 +9,7 @@ using namespace lava;
 Brick::Brick(GameState& gameState)
     : m_gameState(gameState)
 {
-    m_entity = &gameState.engine->make<sill::GameEntity>();
+    m_entity = &gameState.engine->make<sill::GameEntity>("brick");
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::AnimationComponent>();
     m_entity->make<sill::ColliderComponent>();
@@ -39,7 +39,7 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
         m_blocks[i].nonRotatedCoordinates = blocks[i];
 
         // Allocate block
-        auto& entity = m_gameState.engine->make<sill::GameEntity>();
+        auto& entity = m_gameState.engine->make<sill::GameEntity>("block");
         auto& meshComponent = entity.make<sill::MeshComponent>();
         brickMaker(meshComponent);
         entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});

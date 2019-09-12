@@ -18,7 +18,7 @@ void setupEnvironment(GameState& gameState)
     {
         engine.environmentTexture("./assets/skies/cloudy/");
 
-        auto& skyboxEntity = engine.make<sill::GameEntity>();
+        auto& skyboxEntity = engine.make<sill::GameEntity>("skybox");
         auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
         sill::makers::BoxMeshOptions options{.siding = sill::BoxSiding::In};
         sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
@@ -32,7 +32,7 @@ void setupEnvironment(GameState& gameState)
 
     // Invisible but physically present ground
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::GameEntity>("ground");
         entity.make<sill::ColliderComponent>();
         entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
         entity.get<sill::PhysicsComponent>().dynamic(false);
@@ -48,7 +48,7 @@ void loadLevel(GameState& gameState, uint32_t levelId)
     if (levelId == 0) {
         // Waking hall
         {
-            auto& entity = gameState.engine->make<sill::GameEntity>();
+            auto& entity = gameState.engine->make<sill::GameEntity>("waking-hall");
             auto& meshComponent = entity.make<sill::MeshComponent>();
             sill::makers::glbMeshMaker("./assets/models/vr-puzzle/waking-hall.glb")(meshComponent);
             entity.get<sill::TransformComponent>().rotate({0, 0, 1}, 3.14156f * 0.5f);
