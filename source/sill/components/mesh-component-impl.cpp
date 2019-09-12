@@ -208,16 +208,31 @@ void MeshComponent::Impl::depthless(bool depthless)
     }
 }
 
+BoundingSphere MeshComponent::Impl::boundingSphere() const
+{
+    BoundingSphere boundingSphere;
+
+    for (auto& node : m_nodes) {
+        if (node.mesh == nullptr) continue;
+
+        for (auto& primitive : node.mesh->primitives()) {
+            boundingSphere = mergeBoundingSpheres(boundingSphere, primitive->boundingSphere());
+        }
+    }
+
+    return boundingSphere;
+}
+
 void MeshComponent::Impl::boundingSpheresVisible(bool boundingSpheresVisible)
 {
     if (m_boundingSpheresVisible == boundingSpheresVisible) return;
     m_boundingSpheresVisible = boundingSpheresVisible;
 
     for (auto& node : m_nodes) {
-        if (node.mesh != nullptr) {
-            for (auto& primitive : node.mesh->primitives()) {
-                primitive->debugBoundingSphere(boundingSpheresVisible);
-            }
+        if (node.mesh == nullptr) continue;
+
+        for (auto& primitive : node.mesh->primitives()) {
+            primitive->debugBoundingSphere(boundingSpheresVisible);
         }
     }
 }

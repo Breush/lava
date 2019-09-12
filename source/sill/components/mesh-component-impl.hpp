@@ -27,6 +27,7 @@ namespace lava::sill {
         void wireframed(bool wireframed);
         bool depthless() const { return m_depthless; }
         void depthless(bool depthless);
+        BoundingSphere boundingSphere() const;
         bool boundingSpheresVisible() const { return m_boundingSpheresVisible; }
         void boundingSpheresVisible(bool boundingSpheresVisible);
 

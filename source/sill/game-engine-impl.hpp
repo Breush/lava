@@ -52,6 +52,9 @@ namespace lava::sill {
         magma::Scene& scene() { return *m_scene; }
         const magma::Scene& scene() const { return *m_scene; }
 
+        const std::vector<std::unique_ptr<GameEntity>>& entities() const { return m_entities; }
+        std::vector<std::unique_ptr<GameEntity>>& entities() { return m_entities; }
+
         // Callbacks
         void onWindowExtentChanged(WindowExtentChangedCallback callback)
         {

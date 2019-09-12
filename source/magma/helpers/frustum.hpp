@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/magma/bounding-sphere.hpp>
+#include <lava/core/bounding-sphere.hpp>
 #include <lava/magma/frustum.hpp>
 
 namespace lava::magma::helpers {

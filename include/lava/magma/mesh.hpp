@@ -3,9 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <lava/core/axis.hpp>
+#include <lava/core/bounding-sphere.hpp>
 #include <lava/core/macros/aft.hpp>
 #include <lava/core/vector-view.hpp>
-#include <lava/magma/bounding-sphere.hpp>
 #include <lava/magma/ubos.hpp>
 #include <lava/magma/vertex.hpp>
 

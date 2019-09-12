@@ -1,8 +1,10 @@
 #pragma once
 
+#include <lava/sill/pick-precision.hpp>
 #include <lava/sill/vr-manager.hpp>
 
 #include <lava/core/filesystem.hpp>
+#include <lava/core/ray.hpp>
 #include <lava/magma/scene.hpp>
 #include <memory>
 
@@ -79,6 +81,14 @@ namespace lava::sill {
         /// @{
         void environmentTexture(const fs::Path& imagesPath);
         void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
+        /// @}
+
+        /**
+         * @name Tools
+         */
+        /// @{
+        /// Find the closest entity that crosses the ray.
+        GameEntity* pickEntity(Ray ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
         /// @}
 
         /// Main loop.

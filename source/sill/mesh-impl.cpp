@@ -13,6 +13,9 @@ Mesh::Impl::Impl(GameEngine& engine)
 Mesh::Impl::~Impl()
 {
     for (auto& primitive : m_primitives) {
+        if (primitive->material() != nullptr) {
+            m_engine.scene().remove(*primitive->material());
+        }
         m_engine.scene().remove(*primitive);
     }
 }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <lava/sill/pick-precision.hpp>
+
+#include <lava/core/ray.hpp>
 #include <memory>
 
 namespace lava::sill {
@@ -80,6 +83,10 @@ namespace lava::sill {
         void remove();
         void removeComponent(const std::string& hrid);
         /// @}
+
+        /// Tools
+        /// Returns 0.f if no intersection. Never returns a negative.
+        float distanceFrom(Ray ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
 
     public:
         class Impl;

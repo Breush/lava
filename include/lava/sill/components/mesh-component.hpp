@@ -2,8 +2,11 @@
 
 #include <lava/sill/components/i-component.hpp>
 
+#include <lava/core/bounding-sphere.hpp>
+#include <lava/core/ray.hpp>
 #include <lava/sill/mesh-animation.hpp>
 #include <lava/sill/mesh-node.hpp>
+#include <lava/sill/pick-precision.hpp>
 
 namespace lava::sill {
     class MeshComponent final : public IComponent {
@@ -33,6 +36,9 @@ namespace lava::sill {
 
         bool depthless() const;
         void depthless(bool depthless);
+
+        BoundingSphere boundingSphere() const;
+        float distanceFrom(Ray ray, PickPrecision pickPrecision) const;
 
         // Debug
         bool wireframed() const;

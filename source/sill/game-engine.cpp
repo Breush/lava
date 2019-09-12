@@ -1,5 +1,7 @@
 #include <lava/sill/game-engine.hpp>
 
+#include <lava/sill/game-entity.hpp>
+
 #include "./game-engine-impl.hpp"
 
 using namespace lava;
@@ -28,3 +30,22 @@ $pimpl_method(GameEngine, void, environmentTexture, const fs::Path&, imagesPath)
 $pimpl_method(GameEngine, void, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 
 $pimpl_method(GameEngine, void, run);
+
+// ----- Tools
+
+GameEntity* GameEngine::pickEntity(Ray ray, PickPrecision pickPrecision) const
+{
+    GameEntity* pickedEntity = nullptr;
+
+    float minDistance = INFINITY;
+    const auto& entities = m_impl->entities();
+    for (const auto& entity : entities) {
+        auto distance = entity->distanceFrom(ray, pickPrecision);
+        if (distance > 0.f && distance < minDistance) {
+            minDistance = distance;
+            pickedEntity = entity.get();
+        }
+    }
+
+    return pickedEntity;
+}
