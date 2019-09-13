@@ -120,7 +120,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
     primitive.verticesUvs(uvs);
     primitive.indices(indices);
     primitive.material(material);
-    primitive.translucent(true);
+    primitive.category(RenderCategory::Translucent);
 
     std::vector<MeshNode> nodes(1u);
     nodes[0u].mesh = std::move(mesh);

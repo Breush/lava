@@ -126,11 +126,13 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     std::vector<const Mesh*> depthlessMeshes;
     for (auto mesh : m_scene.meshes()) {
         if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
+
         // @todo Somehow, the deep-deferred renderer does not care about wireframes.
-        if (mesh->depthless()) {
+        if (mesh->category() == RenderCategory::Depthless) {
             depthlessMeshes.emplace_back(mesh);
             continue;
         }
+
         const auto& boundingSphere = mesh->boundingSphere();
         if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
             tracker.counter("draw-calls.renderer") += 1u;

@@ -32,4 +32,8 @@ struct GameState {
     Brick* pointedBrick = nullptr;
 
     lava::sill::GameEntity* wakingHall = nullptr;
+
+    struct {
+        lava::sill::GameEntity* selectedEntity = nullptr;
+    } editor;
 };

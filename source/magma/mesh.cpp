@@ -263,7 +263,7 @@ void Mesh::debugBoundingSphere(bool debugBoundingSphere)
 
     if (m_debugBoundingSphere) {
         m_debugBoundingSphereMesh = &m_scene.make<Mesh>();
-        m_debugBoundingSphereMesh->wireframed(true);
+        m_debugBoundingSphereMesh->category(RenderCategory::Wireframe);
 
         buildSphereMesh(*m_debugBoundingSphereMesh);
 

@@ -128,7 +128,7 @@ void setupTeleportBeam(GameState& gameState)
     auto& teleportBeamMaterial = engine.scene().make<magma::Material>("teleport-beam");
     teleportBeamMaterial.set("length", 32.f);
     meshComponent.node(0).mesh->primitive(0).material(teleportBeamMaterial);
-    meshComponent.node(0).mesh->primitive(0).translucent(true);
+    meshComponent.node(0).mesh->primitive(0).category(RenderCategory::Translucent);
     meshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
 
     // Area
@@ -140,7 +140,7 @@ void setupTeleportBeam(GameState& gameState)
     auto& teleportAreaMaterial = engine.scene().make<magma::Material>("teleport-area");
     sill::makers::cylinderMeshMaker(32u, 0.75f, 0.25f, {.doubleSided = true})(teleportAreaMeshComponent);
     teleportAreaMeshComponent.node(0).mesh->primitive(0).material(teleportAreaMaterial);
-    teleportAreaMeshComponent.node(0).mesh->primitive(0).translucent(true);
+    teleportAreaMeshComponent.node(0).mesh->primitive(0).category(RenderCategory::Translucent);
     teleportAreaMeshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
 
     // Update

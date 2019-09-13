@@ -23,10 +23,7 @@ namespace lava::sill {
         void nodes(std::vector<MeshNode>&& nodes);
         void add(const std::string& hrid, const MeshAnimation& animation);
         void startAnimation(const std::string& hrid, uint32_t loops);
-        bool wireframed() const { return m_wireframed; }
-        void wireframed(bool wireframed);
-        bool depthless() const { return m_depthless; }
-        void depthless(bool depthless);
+        void category(RenderCategory category);
         BoundingSphere boundingSphere() const;
         bool boundingSpheresVisible() const { return m_boundingSpheresVisible; }
         void boundingSpheresVisible(bool boundingSpheresVisible);
@@ -65,8 +62,7 @@ namespace lava::sill {
         std::unordered_map<std::string, AnimationInfo> m_animationsInfos;
 
         // Debug
-        bool m_wireframed = false;
-        bool m_depthless = false;
+        RenderCategory m_category = RenderCategory::Opaque;
         bool m_boundingSpheresVisible = false;
     };
 }

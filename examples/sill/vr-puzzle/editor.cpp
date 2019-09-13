@@ -4,6 +4,21 @@
 
 using namespace lava;
 
+namespace {
+    void setCategoryForHierarchy(sill::GameEntity* entity, RenderCategory category)
+    {
+        if (!entity) return;
+
+        if (entity->has<sill::MeshComponent>()) {
+            entity->get<sill::MeshComponent>().category(category);
+        }
+
+        for (auto& child : entity->children()) {
+            setCategoryForHierarchy(child, category);
+        }
+    }
+}
+
 void setupEditor(GameState& gameState)
 {
     auto& engine = *gameState.engine;
@@ -21,11 +36,25 @@ void setupEditor(GameState& gameState)
 
         if (gameState.state != State::Editor) return;
 
+        // Select entity on left click if any.
         if (engine.input().justDown("left-fire")) {
-            auto* entity = engine.pickEntity(gameState.pickingRay);
-            if (entity) {
-                std::cout << entity->name() << std::endl;
+            auto* selectedEntity = engine.pickEntity(gameState.pickingRay);
+
+            // Find the "root" entity of the selected mesh.
+            if (selectedEntity) {
+                while (selectedEntity->parent()) {
+                    selectedEntity = selectedEntity->parent();
+                }
             }
+
+            if (gameState.editor.selectedEntity != selectedEntity) {
+                setCategoryForHierarchy(gameState.editor.selectedEntity, RenderCategory::Opaque);
+            }
+
+            gameState.editor.selectedEntity = selectedEntity;
+            setCategoryForHierarchy(selectedEntity, RenderCategory::Wireframe);
+
+            if (!selectedEntity) return;
         }
     });
 }

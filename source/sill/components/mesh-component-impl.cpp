@@ -180,30 +180,16 @@ void MeshComponent::Impl::onAnimationLoopStart(const std::string& hrid, Animatio
 
 // ----- Debug
 
-void MeshComponent::Impl::wireframed(bool wireframed)
+void MeshComponent::Impl::category(RenderCategory category)
 {
-    if (m_wireframed == wireframed) return;
-    m_wireframed = wireframed;
+    if (m_category == category) return;
+    m_category = category;
 
     for (auto& node : m_nodes) {
-        if (node.mesh != nullptr) {
-            for (auto& primitive : node.mesh->primitives()) {
-                primitive->wireframed(wireframed);
-            }
-        }
-    }
-}
+        if (node.mesh == nullptr) continue;
 
-void MeshComponent::Impl::depthless(bool depthless)
-{
-    if (m_depthless == depthless) return;
-    m_depthless = depthless;
-
-    for (auto& node : m_nodes) {
-        if (node.mesh != nullptr) {
-            for (auto& primitive : node.mesh->primitives()) {
-                primitive->depthless(depthless);
-            }
+        for (auto& primitive : node.mesh->primitives()) {
+            primitive->category(category);
         }
     }
 }

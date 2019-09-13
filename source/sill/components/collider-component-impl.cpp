@@ -94,7 +94,7 @@ void ColliderComponent::Impl::debugEnabled(bool debugEnabled)
             makers::BoxMeshOptions options;
             options.offset = boxShape.offset;
             makers::boxMeshMaker(boxShape.dimensions, options)(debugMeshComponent);
-            debugMeshComponent.wireframed(true);
+            debugMeshComponent.category(RenderCategory::Wireframe);
         }
 
         // @todo Debug for spheres

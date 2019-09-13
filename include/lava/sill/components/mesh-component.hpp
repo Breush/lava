@@ -4,6 +4,7 @@
 
 #include <lava/core/bounding-sphere.hpp>
 #include <lava/core/ray.hpp>
+#include <lava/core/render-category.hpp>
 #include <lava/sill/mesh-animation.hpp>
 #include <lava/sill/mesh-node.hpp>
 #include <lava/sill/pick-precision.hpp>
@@ -34,16 +35,12 @@ namespace lava::sill {
         /// Be warned whenever the animation loops or starts.
         void onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback);
 
-        bool depthless() const;
-        void depthless(bool depthless);
+        void category(RenderCategory category);
 
         BoundingSphere boundingSphere() const;
         float distanceFrom(Ray ray, PickPrecision pickPrecision) const;
 
         // Debug
-        bool wireframed() const;
-        void wireframed(bool wireframed);
-
         bool boundingSpheresVisible() const;
         void boundingSpheresVisible(bool boundingSpheresVisible);
 

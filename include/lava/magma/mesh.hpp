@@ -5,6 +5,7 @@
 #include <lava/core/axis.hpp>
 #include <lava/core/bounding-sphere.hpp>
 #include <lava/core/macros/aft.hpp>
+#include <lava/core/render-category.hpp>
 #include <lava/core/vector-view.hpp>
 #include <lava/magma/ubos.hpp>
 #include <lava/magma/vertex.hpp>
@@ -95,31 +96,13 @@ namespace lava::magma {
         const Material* material() const { return m_material; }
         void material(Material& material);
 
-        /**
-         * Whether the mesh should be considered translucent.
-         * If so, it will go to a specific pipeline to be
-         * rendered with alpha blending.
-         */
-        bool translucent() const { return m_translucent; }
-        void translucent(bool translucent) { m_translucent = translucent; }
-
         /// Whether the mesh can cast shadows.
         bool shadowsCastable() const { return m_shadowsCastable; }
         void shadowsCastable(bool shadowsCastable) { m_shadowsCastable = shadowsCastable; }
 
-        /// Render the mesh as wireframe only.
-        bool wireframed() const { return m_wireframed; }
-        void wireframed(bool wireframed) { m_wireframed = wireframed; }
-
-        /**
-         * When a mesh is depthless, it will be renderered
-         * behind all other objects and centered at the camera
-         * point of view. The rotation of the camera is the
-         * only thing that matters then.
-         * This is intended to be used with skyboxes.
-         */
-        bool depthless() const { return m_depthless; }
-        void depthless(bool depthless) { m_depthless = depthless; }
+        /// Decides how to render the mesh.
+        RenderCategory category() { return m_category; }
+        void category(RenderCategory category) { m_category = category; }
 
         /// Whether the mesh should be rendered if the render target is a VR one.
         bool vrRenderable() const { return m_vrRenderable; }
@@ -171,10 +154,9 @@ namespace lava::magma {
 
         // ----- Material
         Material* m_material = nullptr;
+        RenderCategory m_category = RenderCategory::Opaque;
         bool m_translucent = false;
         bool m_shadowsCastable = true;
-        bool m_wireframed = false;
-        bool m_depthless = false;
         bool m_vrRenderable = true;
 
         // ----- Shader data

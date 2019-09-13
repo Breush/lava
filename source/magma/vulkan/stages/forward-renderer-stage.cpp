@@ -128,17 +128,21 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     std::vector<const Mesh*> translucentMeshes;
     for (auto mesh : m_scene.meshes()) {
         if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
-        if (mesh->depthless()) {
+
+        switch (mesh->category()) {
+        case RenderCategory::Depthless: {
             depthlessMeshes.emplace_back(mesh);
             continue;
         }
-        if (mesh->wireframed()) {
+        case RenderCategory::Wireframe: {
             wireframedMeshes.emplace_back(mesh);
             continue;
         }
-        if (mesh->translucent()) {
+        case RenderCategory::Translucent: {
             translucentMeshes.emplace_back(mesh);
             continue;
+        }
+        default: break;
         }
 
         const auto& boundingSphere = mesh->boundingSphere();

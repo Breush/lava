@@ -24,17 +24,12 @@ $pimpl_method(MeshComponent, void, add, const std::string&, hrid, const MeshAnim
 $pimpl_method(MeshComponent, void, startAnimation, const std::string&, hrid, uint32_t, loops);
 $pimpl_method(MeshComponent, void, onAnimationLoopStart, const std::string&, hrid, AnimationLoopStartCallback, callback);
 
+$pimpl_method(MeshComponent, void, category, RenderCategory, category);
 $pimpl_method_const(MeshComponent, BoundingSphere, boundingSphere);
-
-$pimpl_property_v(MeshComponent, bool, depthless);
-
-$pimpl_property_v(MeshComponent, bool, wireframed);
 $pimpl_property_v(MeshComponent, bool, boundingSpheresVisible);
 
 float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
 {
-    if (depthless()) return 0.f;
-
     // @fixme Currently not handling PickPrecision::BoundingBox
 
     const auto& bs = boundingSphere();
@@ -60,6 +55,10 @@ float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
         // which projects the ray into the barycentric coordinates system
         // of the triangle to test;
         for (const auto& primitive : node.mesh->primitives()) {
+            if (primitive->category() != RenderCategory::Opaque && primitive->category() != RenderCategory::Translucent) {
+                continue;
+            }
+
             auto transform = primitive->transform();
             const auto& indices = primitive->indices();
             const auto& vertices = primitive->unlitVertices();

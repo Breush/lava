@@ -190,7 +190,7 @@ namespace {
             }
 
             if (rmMaterial != nullptr) meshPrimitive.material(*rmMaterial);
-            meshPrimitive.translucent(translucent);
+            meshPrimitive.category(translucent ? RenderCategory::Translucent : RenderCategory::Opaque);
         }
 
         return std::move(meshData);
