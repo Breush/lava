@@ -7,5 +7,5 @@ layout(std140, set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 0) uniform Materia
     uvec4 data[MATERIAL_DATA_SIZE];
 } material;
 
-layout(set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 1) uniform sampler2D samplers[MATERIAL_SAMPLERS_SIZE];
-layout(set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 2) uniform samplerCube cubeSamplers0;
+layout(set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 1) uniform sampler2D materialSamplers[MATERIAL_SAMPLERS_SIZE];
+layout(set = MATERIAL_DESCRIPTOR_SET_INDEX, binding = 2) uniform samplerCube materialCubeSamplers0;

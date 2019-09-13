@@ -30,6 +30,7 @@ SceneAft::SceneAft(Scene& scene, RenderEngine& engine)
     , m_lightsDescriptorHolder(engine.impl())
     , m_shadowsDescriptorHolder(engine.impl())
     , m_materialDescriptorHolder(engine.impl())
+    , m_materialGlobalDescriptorHolder(engine.impl())
     , m_environmentDescriptorHolder(engine.impl())
     , m_environment(scene, engine)
 {
@@ -47,8 +48,19 @@ void SceneAft::init()
     m_shadowsDescriptorHolder.init(256, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
     m_materialDescriptorHolder.uniformBufferSizes({1});
-    m_materialDescriptorHolder.combinedImageSamplerSizes({8, 1}); // 8 samplers, 1 cubeSampler
+    m_materialDescriptorHolder.combinedImageSamplerSizes({MATERIAL_SAMPLERS_SIZE, 1}); // samplers, cubeSampler
     m_materialDescriptorHolder.init(128, vk::ShaderStageFlagBits::eFragment);
+
+    m_materialGlobalDescriptorHolder.combinedImageSamplerSizes({MATERIAL_SAMPLERS_SIZE});
+    m_materialGlobalDescriptorHolder.init(1, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
+
+    m_materialGlobalDescriptorSet = m_materialGlobalDescriptorHolder.allocateSet("engine.material-global");
+    auto& engine = m_engine.impl();
+    const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    for (auto i = 0u; i < MATERIAL_SAMPLERS_SIZE; ++i) {
+        vulkan::updateDescriptorSet(engine.device(), m_materialGlobalDescriptorSet, engine.dummyImageView(),
+                                    engine.dummySampler(), imageLayout, 0u, i);
+    }
 
     // environmentRadianceMap, environmentIrradianceMap, brdfLut
     m_environmentDescriptorHolder.combinedImageSamplerSizes({1, 1, 1});

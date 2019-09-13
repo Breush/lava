@@ -20,9 +20,11 @@ namespace lava::magma {
 
         // ----- Fore
         void foreUboChanged() { m_uboDirty = true; }
+        void foreGlobalUboChanged() { m_globalUboDirty = true; }
 
     protected:
         void updateBindings();
+        void updateGlobalBindings();
 
     private:
         Material& m_fore;
@@ -34,5 +36,6 @@ namespace lava::magma {
         std::array<vk::DescriptorSet, FRAME_IDS_COUNT> m_descriptorSets;
         std::array<vulkan::UboHolder, FRAME_IDS_COUNT> m_uboHolders;
         bool m_uboDirty = false;
+        bool m_globalUboDirty = false;
     };
 }

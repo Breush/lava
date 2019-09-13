@@ -7,8 +7,11 @@
 using namespace lava::chamber;
 using namespace lava::magma;
 
+std::unordered_map<std::string, Material::Attributes> Material::s_globalAttributes;
+
 Material::Material(Scene& scene, const std::string& hrid)
     : m_scene(scene)
+    , m_hrid(hrid)
 {
     new (&aft()) MaterialAft(*this, m_scene);
 
@@ -98,6 +101,13 @@ void Material::set(const std::string& uniformName, const uint32_t* values, uint3
     aft().foreUboChanged();
 }
 
+void Material::setGlobal(const std::string& uniformName, const Texture& texture)
+{
+    auto& attribute = findGlobalAttribute(uniformName);
+    attribute.texture = &texture;
+    aft().foreGlobalUboChanged();
+}
+
 // ----- Uniform getters
 
 const glm::vec4& Material::get_vec4(const std::string& uniformName) const
@@ -113,64 +123,55 @@ void Material::initFromMaterialInfo(const std::string& hrid)
     const auto& materialInfo = m_scene.engine().materialInfo(hrid);
     m_ubo.header.id = materialInfo.id;
 
-    auto basicUniformCount = 0u;
-    auto textureUniformCount = 0u;
-    for (const auto& uniformDefinition : materialInfo.uniformDefinitions) {
-        auto& attribute = m_attributes[uniformDefinition.name];
+    initAttributes(m_attributes, materialInfo.uniformDefinitions);
+
+    // Set up global attributes if needed.
+    if (s_globalAttributes.find(m_hrid) == s_globalAttributes.end()) {
+        initAttributes(s_globalAttributes[m_hrid], materialInfo.globalUniformDefinitions);
+        aft().foreGlobalUboChanged();
+    }
+}
+
+void Material::initAttributes(Attributes& attributes, const UniformDefinitions& uniformDefinitions)
+{
+    for (const auto& uniformDefinition : uniformDefinitions) {
+        auto& attribute = attributes[uniformDefinition.name];
         attribute.type = uniformDefinition.type;
         attribute.fallback = uniformDefinition.fallback;
         attribute.value = uniformDefinition.fallback;
+        attribute.offset = uniformDefinition.offset;
 
         switch (attribute.type) {
-        case UniformType::Texture: {
-            attribute.offset = textureUniformCount++;
-            break;
-        }
-        case UniformType::CubeTexture: {
-            attribute.offset = 0u;
-            break;
-        }
         case UniformType::Bool: {
-            attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.uintValue);
             break;
         }
         case UniformType::Uint: {
             if (uniformDefinition.arraySize == 0u) {
-                attribute.offset = basicUniformCount++;
                 set(uniformDefinition.name, uniformDefinition.fallback.uintValue);
             }
             else {
-                attribute.offset = basicUniformCount;
-                basicUniformCount += std::ceil(uniformDefinition.arraySize / 4.f);
                 set(uniformDefinition.name, uniformDefinition.fallback.uintArrayValue, uniformDefinition.arraySize);
             }
             break;
         }
         case UniformType::Float: {
-            attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.floatValue);
             break;
         }
         case UniformType::Vec2: {
-            attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.vec2Value);
             break;
         }
         case UniformType::Vec3: {
-            attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.vec3Value);
             break;
         }
         case UniformType::Vec4: {
-            attribute.offset = basicUniformCount++;
             set(uniformDefinition.name, uniformDefinition.fallback.vec4Value);
             break;
         }
-        default: {
-            logger.error("magma.material") << "Uniform definition " << uniformDefinition.name << " has no type specified."
-                                           << std::endl;
-        }
+        default: break;
         }
     }
 }
@@ -181,7 +182,8 @@ Material::Attribute& Material::findAttribute(const std::string& uniformName)
 {
     auto pAttribute = m_attributes.find(uniformName);
     if (pAttribute == m_attributes.end()) {
-        logger.error("magma.material") << "Attribute '" << uniformName << "' has not been defined." << std::endl;
+        logger.error("magma.material") << "Attribute '" << uniformName << "' has not been defined within material '" << m_hrid
+                                       << "'." << std::endl;
     }
     return pAttribute->second;
 }
@@ -190,7 +192,28 @@ const Material::Attribute& Material::findAttribute(const std::string& uniformNam
 {
     auto pAttribute = m_attributes.find(uniformName);
     if (pAttribute == m_attributes.end()) {
-        logger.error("magma.material") << "Attribute '" << uniformName << "' has not been defined." << std::endl;
+        logger.error("magma.material") << "Attribute '" << uniformName << "' has not been defined within material '" << m_hrid
+                                       << "'." << std::endl;
+    }
+    return pAttribute->second;
+}
+
+Material::Attribute& Material::findGlobalAttribute(const std::string& uniformName)
+{
+    auto pAttribute = s_globalAttributes[m_hrid].find(uniformName);
+    if (pAttribute == s_globalAttributes[m_hrid].end()) {
+        logger.error("magma.material") << "Global attribute '" << uniformName << "' has not been defined within material '"
+                                       << m_hrid << "'." << std::endl;
+    }
+    return pAttribute->second;
+}
+
+const Material::Attribute& Material::findGlobalAttribute(const std::string& uniformName) const
+{
+    auto pAttribute = s_globalAttributes[m_hrid].find(uniformName);
+    if (pAttribute == s_globalAttributes[m_hrid].end()) {
+        logger.error("magma.material") << "Global attribute '" << uniformName << "' has not been defined within material '"
+                                       << m_hrid << "'." << std::endl;
     }
     return pAttribute->second;
 }

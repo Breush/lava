@@ -7,6 +7,11 @@ using namespace lava;
 using namespace lava::chamber;
 using namespace lava::magma;
 
+namespace {
+    static uint32_t g_globalBasicOffset = 0u;
+    static uint32_t g_globalTextureOffset = 0u;
+}
+
 ShmagReader::ShmagReader(const fs::Path& shaderPath)
     : m_path(shaderPath)
 {
@@ -23,6 +28,14 @@ ShmagReader::ShmagReader(const fs::Path& shaderPath)
 
         if (context == "struct") {
             parseGBuffer();
+
+            injectGBufferDefinitions(adaptedCode);
+        }
+        else if (context == "global") {
+            parseIdentifier("uniform");
+            m_globalUniformDefinitions = parseUniform(g_globalBasicOffset, g_globalTextureOffset);
+
+            injectGlobalUniformDefinitions(adaptedCode);
         }
         else if (context == "geometry") {
             parseGeometry(adaptedCode);
@@ -31,7 +44,7 @@ ShmagReader::ShmagReader(const fs::Path& shaderPath)
             parseEpiphany(adaptedCode);
         }
         else {
-            errorExpected("context: struct (gBuffer), geometry, epiphany");
+            errorExpected("context: struct (gBuffer), global uniform, geometry, epiphany");
         }
     }
 
@@ -40,7 +53,7 @@ ShmagReader::ShmagReader(const fs::Path& shaderPath)
     }
 }
 
-// ----- G-Buffer
+// ----- Global
 
 void ShmagReader::parseGBuffer()
 {
@@ -70,6 +83,9 @@ ShmagReader::GBufferDeclaration ShmagReader::parseGBufferDeclaration()
 
     if (type == "float") {
         gBufferDeclaration.type = GBufferType::Float;
+    }
+    else if (type == "vec2") {
+        gBufferDeclaration.type = GBufferType::Vec2;
     }
     else if (type == "vec3") {
         gBufferDeclaration.type = GBufferType::Vec3;
@@ -114,45 +130,14 @@ ShmagReader::GBufferDeclaration ShmagReader::parseGBufferDeclaration()
     return gBufferDeclaration;
 }
 
-// ----- Geometry
-
-void ShmagReader::parseGeometry(std::stringstream& adaptedCode)
-{
-    adaptedCode << "@magma:impl:begin geometry" << std::endl;
-
-    parseToken(chamber::TokenType::LeftBrace);
-
-    // Optional gBuffer definition
-    while (auto token = getNotToken(chamber::TokenType::RightBrace)) {
-        auto firstIdentifier = parseCurrentIdentifier();
-
-        if (firstIdentifier == "uniform") {
-            m_uniformDefinitions = parseGeometryUniform();
-        }
-        else if (firstIdentifier == "bool") {
-            parseIdentifier("main");
-            parseGeometryMain(adaptedCode);
-        }
-        else if (firstIdentifier == "float") {
-            adaptedCode << firstIdentifier << " ";
-            parseBlock(adaptedCode);
-        }
-        else {
-            errorExpected("uniform, declaration, definition");
-        }
-    }
-
-    adaptedCode << "@magma:impl:end geometry" << std::endl;
-}
-
-UniformDefinitions ShmagReader::parseGeometryUniform()
+UniformDefinitions ShmagReader::parseUniform(uint32_t& baseOffset, uint32_t& textureOffset)
 {
     UniformDefinitions uniformDefinitions;
 
     parseToken(chamber::TokenType::LeftBrace);
 
     while (auto token = getNotToken(chamber::TokenType::RightBrace)) {
-        auto uniformDefinition = parseGeometryUniformDefinition();
+        auto uniformDefinition = parseUniformDefinition(baseOffset, textureOffset);
         uniformDefinitions.emplace_back(uniformDefinition);
     }
 
@@ -161,7 +146,7 @@ UniformDefinitions ShmagReader::parseGeometryUniform()
     return uniformDefinitions;
 }
 
-UniformDefinition ShmagReader::parseGeometryUniformDefinition()
+UniformDefinition ShmagReader::parseUniformDefinition(uint32_t& baseOffset, uint32_t& textureOffset)
 {
     UniformDefinition uniformDefinition;
 
@@ -170,27 +155,35 @@ UniformDefinition ShmagReader::parseGeometryUniformDefinition()
 
     if (type == "float") {
         uniformDefinition.type = UniformType::Float;
+        uniformDefinition.offset = baseOffset++;
     }
     else if (type == "uint") {
         uniformDefinition.type = UniformType::Uint;
+        uniformDefinition.offset = baseOffset++;
     }
     else if (type == "bool") {
         uniformDefinition.type = UniformType::Bool;
+        uniformDefinition.offset = baseOffset++;
     }
     else if (type == "vec2") {
         uniformDefinition.type = UniformType::Vec2;
+        uniformDefinition.offset = baseOffset++;
     }
     else if (type == "vec3") {
         uniformDefinition.type = UniformType::Vec3;
+        uniformDefinition.offset = baseOffset++;
     }
     else if (type == "vec4") {
         uniformDefinition.type = UniformType::Vec4;
+        uniformDefinition.offset = baseOffset++;
     }
     else if (type == "texture2d") {
         uniformDefinition.type = UniformType::Texture;
+        uniformDefinition.offset = textureOffset++;
     }
     else if (type == "textureCube") {
         uniformDefinition.type = UniformType::CubeTexture;
+        uniformDefinition.offset = 0u; // @fixme Currently handling only one cube texture.
     }
     else {
         errorExpected("type: bool, uint, float, vec2, vec3, vec4, texture2d, textureCube");
@@ -199,6 +192,15 @@ UniformDefinition ShmagReader::parseGeometryUniformDefinition()
     // Name
     uniformDefinition.name = parseIdentifier();
     uniformDefinition.arraySize = parseArraySize();
+
+    if (uniformDefinition.arraySize > 0u) {
+        if (uniformDefinition.type == UniformType::Uint) {
+            baseOffset += (uniformDefinition.arraySize - 1u);
+        }
+        else {
+            logger.error("magma.shmag-reader") << "Unhandled array on types that are not: uint." << std::endl;
+        }
+    }
 
     // Default value
     if (m_lexer->currentToken()->type == chamber::TokenType::Equal) {
@@ -244,6 +246,39 @@ UniformDefinition ShmagReader::parseGeometryUniformDefinition()
     return uniformDefinition;
 }
 
+// ----- Geometry
+
+void ShmagReader::parseGeometry(std::stringstream& adaptedCode)
+{
+    adaptedCode << "@magma:impl:begin geometry" << std::endl;
+
+    parseToken(chamber::TokenType::LeftBrace);
+
+    // Optional gBuffer definition
+    while (auto token = getNotToken(chamber::TokenType::RightBrace)) {
+        auto firstIdentifier = parseCurrentIdentifier();
+
+        if (firstIdentifier == "uniform") {
+            uint32_t baseOffset = 0u;
+            uint32_t textureOffset = 0u;
+            m_uniformDefinitions = parseUniform(baseOffset, textureOffset);
+        }
+        else if (firstIdentifier == "bool") {
+            parseIdentifier("main");
+            parseGeometryMain(adaptedCode);
+        }
+        else if (firstIdentifier == "float") {
+            adaptedCode << firstIdentifier << " ";
+            parseBlock(adaptedCode);
+        }
+        else {
+            errorExpected("uniform, declaration, definition");
+        }
+    }
+
+    adaptedCode << "@magma:impl:end geometry" << std::endl;
+}
+
 void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
 {
     parseToken(chamber::TokenType::LeftParenthesis);
@@ -252,8 +287,12 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
 
     adaptedCode << "bool @magma:impl:main (out GBufferData gBufferData, float fragmentDepth) {" << std::endl;
 
-    // ----- Inject G-Buffer definitions
+    // ----- Inject global definitions
 
+    m_samplersMap.clear();
+    m_samplerCubeName = "";
+
+    injectGlobalUniformDefinitions(adaptedCode);
     injectGBufferDefinitions(adaptedCode);
 
     // ----- Inject uniform definitions
@@ -266,116 +305,66 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
     std::unordered_map<std::string, std::string> inMap = {{"uv", "inUv"}, {"cubeUvw", "inCubeUvw"}, {"tbn", "inTbn"}};
 
     adaptedCode << "// [shmag-reader] Remapped original geometry code." << std::endl;
-    auto bracesCount = 1u;
-    auto tokensCountBeforeEndl = 0u;
-    while (auto token = m_lexer->nextToken()) {
-        auto tokenString = token->string;
-        if (token->type == chamber::TokenType::Identifier) {
-            if (m_samplersMap.find(token->string) != m_samplersMap.end())
-                tokenString = m_samplersMap[token->string];
-            else if (m_samplerCubeName == token->string)
-                tokenString = "cubeSamplers0";
-            else if (inMap.find(token->string) != inMap.end())
-                tokenString = inMap[token->string];
-            else if (token->string == "return")
-                injectGeometryGBufferDataInsertion(adaptedCode);
-        }
-        else if (token->type == chamber::TokenType::Sharp) {
-            // So that "#define name value" is followed by std::endl
-            tokensCountBeforeEndl = 4;
-        }
-
-        adaptedCode << tokenString << " ";
-
-        if (tokensCountBeforeEndl > 0u) {
-            tokensCountBeforeEndl -= 1u;
-            if (tokensCountBeforeEndl == 0u) {
-                adaptedCode << std::endl;
-            }
-        }
-
-        // @todo Make a better pretty print? (Using it in shader-manager too.)
-        if (token->type == chamber::TokenType::Semicolon) {
-            adaptedCode << std::endl;
-        }
-        else if (token->type == chamber::TokenType::LeftBrace) {
-            adaptedCode << std::endl;
-            bracesCount++;
-        }
-        else if (token->type == chamber::TokenType::RightBrace) {
-            adaptedCode << std::endl << std::endl;
-            bracesCount--;
-        }
-
-        if (bracesCount == 0u) break;
-    }
+    remapBlock(adaptedCode, inMap, [&]() { injectGeometryGBufferDataInsertion(adaptedCode); });
 }
 
 void ShmagReader::injectGeometryUniformDefinitions(std::stringstream& adaptedCode)
 {
-    m_samplersMap.clear();
-
     adaptedCode << "// [shmag-reader] Injected uniform definitions." << std::endl;
-    uint16_t dataOffset = 0u;
     for (auto& uniformDefinition : m_uniformDefinitions) {
         const auto& name = uniformDefinition.name;
+        auto offset = uniformDefinition.offset;
 
         if (uniformDefinition.type == UniformType::Texture) {
-            auto sampler = "samplers[" + std::to_string(m_samplersMap.size()) + "]";
+            auto sampler = "materialSamplers[" + std::to_string(m_samplersMap.size()) + "]";
             adaptedCode << "// sampler2D " << name << " = " << sampler << ";" << std::endl;
             m_samplersMap[name] = sampler;
         }
         else if (uniformDefinition.type == UniformType::CubeTexture) {
-            adaptedCode << "// samplerCube " << name << " = cubeSamplers0;" << std::endl;
+            adaptedCode << "// samplerCube " << name << " = materialCubeSamplers0;" << std::endl;
             m_samplerCubeName = name;
         }
         else if (uniformDefinition.type == UniformType::Vec2) {
             adaptedCode << "vec2 " << name << ";" << std::endl;
-            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
-            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << dataOffset << "][1]);" << std::endl;
-            dataOffset += 1u;
+            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << offset << "][0]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << offset << "][1]);" << std::endl;
         }
         else if (uniformDefinition.type == UniformType::Vec3) {
             adaptedCode << "vec3 " << name << ";" << std::endl;
-            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
-            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << dataOffset << "][1]);" << std::endl;
-            adaptedCode << name << "[2] = uintBitsToFloat(material.data[" << dataOffset << "][2]);" << std::endl;
-            dataOffset += 1u;
+            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << offset << "][0]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << offset << "][1]);" << std::endl;
+            adaptedCode << name << "[2] = uintBitsToFloat(material.data[" << offset << "][2]);" << std::endl;
         }
         else if (uniformDefinition.type == UniformType::Vec4) {
             adaptedCode << "vec4 " << name << ";" << std::endl;
-            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
-            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << dataOffset << "][1]);" << std::endl;
-            adaptedCode << name << "[2] = uintBitsToFloat(material.data[" << dataOffset << "][2]);" << std::endl;
-            adaptedCode << name << "[3] = uintBitsToFloat(material.data[" << dataOffset << "][3]);" << std::endl;
-            dataOffset += 1u;
+            adaptedCode << name << "[0] = uintBitsToFloat(material.data[" << offset << "][0]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(material.data[" << offset << "][1]);" << std::endl;
+            adaptedCode << name << "[2] = uintBitsToFloat(material.data[" << offset << "][2]);" << std::endl;
+            adaptedCode << name << "[3] = uintBitsToFloat(material.data[" << offset << "][3]);" << std::endl;
         }
         else if (uniformDefinition.type == UniformType::Float) {
-            adaptedCode << "float " << name << " = uintBitsToFloat(material.data[" << dataOffset << "][0]);" << std::endl;
-            dataOffset += 1u;
+            adaptedCode << "float " << name << " = uintBitsToFloat(material.data[" << offset << "][0]);" << std::endl;
         }
         else if (uniformDefinition.type == UniformType::Uint) {
             if (uniformDefinition.arraySize == 0u) {
-                adaptedCode << "uint " << name << " = material.data[" << dataOffset << "][0];" << std::endl;
-                dataOffset += 1u;
+                adaptedCode << "uint " << name << " = material.data[" << offset << "][0];" << std::endl;
             }
             else {
                 adaptedCode << "uint " << name << "[" << uniformDefinition.arraySize << "];" << std::endl;
                 for (auto i = 0u; i < uniformDefinition.arraySize; i += 4u) {
-                    adaptedCode << name << "[" << i << "] = material.data[" << dataOffset << "][0];" << std::endl;
+                    adaptedCode << name << "[" << i << "] = material.data[" << offset << "][0];" << std::endl;
                     if (i + 1 < uniformDefinition.arraySize)
-                        adaptedCode << name << "[" << i + 1 << "]  = material.data[" << dataOffset << "][1];" << std::endl;
+                        adaptedCode << name << "[" << i + 1 << "]  = material.data[" << offset << "][1];" << std::endl;
                     if (i + 2 < uniformDefinition.arraySize)
-                        adaptedCode << name << "[" << i + 2 << "]  = material.data[" << dataOffset << "][2];" << std::endl;
+                        adaptedCode << name << "[" << i + 2 << "]  = material.data[" << offset << "][2];" << std::endl;
                     if (i + 3 < uniformDefinition.arraySize)
-                        adaptedCode << name << "[" << i + 3 << "]  = material.data[" << dataOffset << "][3];" << std::endl;
-                    dataOffset += 1u;
+                        adaptedCode << name << "[" << i + 3 << "]  = material.data[" << offset << "][3];" << std::endl;
+                    offset += 1u;
                 }
             }
         }
         else if (uniformDefinition.type == UniformType::Bool) {
-            adaptedCode << "bool " << name << " = (material.data[" << dataOffset << "][0] != 0);" << std::endl;
-            dataOffset += 1u;
+            adaptedCode << "bool " << name << " = (material.data[" << offset << "][0] != 0);" << std::endl;
         }
         else {
             logger.error("magma.shmag-reader") << "Unhandled uniform type." << std::endl;
@@ -396,6 +385,10 @@ void ShmagReader::injectGeometryGBufferDataInsertion(std::stringstream& adaptedC
         auto name = "gBuffer." + gBufferDeclaration.name;
         if (gBufferDeclaration.type == GBufferType::Float) {
             adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << ");" << std::endl;
+        }
+        else if (gBufferDeclaration.type == GBufferType::Vec2) {
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[0]);" << std::endl;
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[1]);" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec3) {
             adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << "[0]);" << std::endl;
@@ -508,8 +501,12 @@ void ShmagReader::parseEpiphanyMain(std::stringstream& adaptedCode)
     adaptedCode << "@magma:impl:main (GBufferData gBufferData, float fragmentDepth) {" << std::endl;
     adaptedCode << "    vec2 fragmentPosition = gl_FragCoord.xy / vec2(camera.extent);" << std::endl;
 
-    // ----- Inject G-Buffer definitions
+    // ----- Inject global definitions
 
+    m_samplersMap.clear();
+    m_samplerCubeName = "";
+
+    injectGlobalUniformDefinitions(adaptedCode);
     injectGBufferDefinitions(adaptedCode);
 
     // ----- Inject node extraction
@@ -519,26 +516,7 @@ void ShmagReader::parseEpiphanyMain(std::stringstream& adaptedCode)
     // ----- Remap original code
 
     adaptedCode << "// [shmag-reader] Remapped original epiphany code." << std::endl;
-    auto bracesCount = 1u;
-    while (auto token = m_lexer->nextToken()) {
-        auto tokenString = token->string;
-        adaptedCode << tokenString << " ";
-
-        // @todo Make a better pretty print? (Using it in shader-manager too.)
-        if (token->type == chamber::TokenType::Semicolon) {
-            adaptedCode << std::endl;
-        }
-        else if (token->type == chamber::TokenType::LeftBrace) {
-            adaptedCode << std::endl;
-            bracesCount++;
-        }
-        else if (token->type == chamber::TokenType::RightBrace) {
-            bracesCount--;
-            adaptedCode << std::endl << std::endl;
-        }
-
-        if (bracesCount == 0u) break;
-    }
+    remapBlock(adaptedCode, {}, []() {});
 }
 
 void ShmagReader::injectEpiphanyGBufferDataExtraction(std::stringstream& adaptedCode)
@@ -552,6 +530,10 @@ void ShmagReader::injectEpiphanyGBufferDataExtraction(std::stringstream& adapted
         auto name = "gBuffer." + gBufferDeclaration.name;
         if (gBufferDeclaration.type == GBufferType::Float) {
             adaptedCode << name << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+        }
+        else if (gBufferDeclaration.type == GBufferType::Vec2) {
+            adaptedCode << name << "[0] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
+            adaptedCode << name << "[1] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec3) {
             adaptedCode << name << "[0] = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
@@ -583,6 +565,25 @@ void ShmagReader::injectEpiphanyGBufferDataExtraction(std::stringstream& adapted
 
 // ----- Common
 
+void ShmagReader::injectGlobalUniformDefinitions(std::stringstream& adaptedCode)
+{
+    adaptedCode << "// [shmag-reader] Injected global uniform definitions." << std::endl;
+
+    for (auto& uniformDefinition : m_globalUniformDefinitions) {
+        const auto& name = uniformDefinition.name;
+
+        if (uniformDefinition.type == UniformType::Texture) {
+            auto sampler = "materialGlobalSamplers[" + std::to_string(uniformDefinition.offset) + "]";
+            adaptedCode << "// sampler2D " << name << " = " << sampler << ";" << std::endl;
+            m_samplersMap[name] = sampler;
+        }
+        else {
+            logger.error("magma.shmag-reader") << "Unhandled global uniform type." << std::endl;
+        }
+    }
+    adaptedCode << std::endl;
+}
+
 void ShmagReader::injectGBufferDefinitions(std::stringstream& adaptedCode)
 {
     adaptedCode << "// [shmag-reader] Injected G-Buffer definitions." << std::endl;
@@ -590,6 +591,8 @@ void ShmagReader::injectGBufferDefinitions(std::stringstream& adaptedCode)
     for (auto& gBufferDeclaration : m_gBufferDeclarations) {
         if (gBufferDeclaration.type == GBufferType::Float)
             adaptedCode << "float " << gBufferDeclaration.name << ";" << std::endl;
+        else if (gBufferDeclaration.type == GBufferType::Vec2)
+            adaptedCode << "vec2 " << gBufferDeclaration.name << ";" << std::endl;
         else if (gBufferDeclaration.type == GBufferType::Vec3)
             adaptedCode << "vec3 " << gBufferDeclaration.name << ";" << std::endl;
         else if (gBufferDeclaration.type == GBufferType::NormalizedVec3)
@@ -740,6 +743,54 @@ std::string ShmagReader::parseCurrentIdentifier()
         errorExpected(chamber::TokenType::Identifier);
     }
     return token->string;
+}
+
+void ShmagReader::remapBlock(std::stringstream& adaptedCode, const std::unordered_map<std::string, std::string>& extraMap,
+                             std::function<void(void)> onReturn)
+{
+    auto bracesCount = 1u;
+    auto tokensCountBeforeEndl = 0u;
+    while (auto token = m_lexer->nextToken()) {
+        auto tokenString = token->string;
+        if (token->type == chamber::TokenType::Identifier) {
+            if (m_samplersMap.find(token->string) != m_samplersMap.end())
+                tokenString = m_samplersMap[token->string];
+            else if (m_samplerCubeName == token->string)
+                tokenString = "materialCubeSamplers0";
+            else if (extraMap.find(token->string) != extraMap.end())
+                tokenString = extraMap.at(token->string);
+            else if (token->string == "return")
+                onReturn();
+        }
+        else if (token->type == chamber::TokenType::Sharp) {
+            // So that "#define name value" is followed by std::endl
+            tokensCountBeforeEndl = 4;
+        }
+
+        adaptedCode << tokenString << " ";
+
+        if (tokensCountBeforeEndl > 0u) {
+            tokensCountBeforeEndl -= 1u;
+            if (tokensCountBeforeEndl == 0u) {
+                adaptedCode << std::endl;
+            }
+        }
+
+        // @todo Make a better pretty print? (Using it in shader-manager too.)
+        if (token->type == chamber::TokenType::Semicolon) {
+            adaptedCode << std::endl;
+        }
+        else if (token->type == chamber::TokenType::LeftBrace) {
+            adaptedCode << std::endl;
+            bracesCount++;
+        }
+        else if (token->type == chamber::TokenType::RightBrace) {
+            adaptedCode << std::endl << std::endl;
+            bracesCount--;
+        }
+
+        if (bracesCount == 0u) break;
+    }
 }
 
 // ----- Errors

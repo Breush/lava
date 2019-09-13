@@ -8,6 +8,7 @@
 #include "./g-buffer-ssbo.set"
 #include "../../sets/push-constants.set"
 #include "../../sets/material.set"
+#include "../../sets/material-global.set"
 
 //----- Fragment forwarded in
 

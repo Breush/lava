@@ -50,6 +50,8 @@ namespace lava::magma {
         void set(const std::string& uniformName, const glm::vec4& value);
         void set(const std::string& uniformName, const Texture& texture);
         void set(const std::string& uniformName, const uint32_t* values, uint32_t size);
+
+        void setGlobal(const std::string& uniformName, const Texture& texture);
         /// @}
 
         /**
@@ -57,6 +59,7 @@ namespace lava::magma {
          */
         /// @{
         const MaterialUbo& ubo() const { return m_ubo; }
+        const Attributes& globalAttributes() const { return s_globalAttributes.at(m_hrid); }
         const Attributes& attributes() const { return m_attributes; }
 
         const glm::vec4& get_vec4(const std::string& uniformName) const;
@@ -64,18 +67,24 @@ namespace lava::magma {
 
     private:
         void initFromMaterialInfo(const std::string& hrid);
+        void initAttributes(Attributes& attributes, const UniformDefinitions& uniformDefinitions);
 
         Attribute& findAttribute(const std::string& uniformName);
         const Attribute& findAttribute(const std::string& uniformName) const;
 
+        Attribute& findGlobalAttribute(const std::string& uniformName);
+        const Attribute& findGlobalAttribute(const std::string& uniformName) const;
+
     private:
         // ----- References
         Scene& m_scene;
+        std::string m_hrid = "";
 
         // ----- Shader data
         MaterialUbo m_ubo;
 
         // ----- Attributes
+        static std::unordered_map<std::string, Attributes> s_globalAttributes;
         Attributes m_attributes;
     };
 }

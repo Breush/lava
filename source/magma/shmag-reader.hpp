@@ -11,8 +11,11 @@ namespace lava::magma {
         /// The shader processed as a string.
         const std::string& processedString() const { return m_processedString; }
 
-        /// The extract uniform definitions.
+        /// The extracted uniform definitions.
         const UniformDefinitions& uniformDefinitions() const { return m_uniformDefinitions; }
+
+        /// The extracted global uniform definitions.
+        const UniformDefinitions& globalUniformDefinitions() const { return m_globalUniformDefinitions; }
 
         /// Whether the parse has errored (warnings logged).
         bool errored() const { return m_errorsCount > 0u; }
@@ -21,6 +24,7 @@ namespace lava::magma {
         enum class GBufferType {
             Unknown,
             Float,
+            Vec2,
             Vec3,
             NormalizedVec3,
             Vec4,
@@ -43,18 +47,18 @@ namespace lava::magma {
         using GBufferDeclarations = std::vector<GBufferDeclaration>;
 
     protected:
-        // GBuffer
+        // Global
         void parseGBuffer();
         void parseGBufferDeclarations();
         GBufferDeclaration parseGBufferDeclaration();
+        UniformDefinitions parseUniform(uint32_t& baseOffset, uint32_t& textureOffset);
+        UniformDefinition parseUniformDefinition(uint32_t& baseOffset, uint32_t& textureOffset);
 
         // Generic
         void parseBlock(std::stringstream& adaptedCode, bool expectSemicolon = false);
 
         // Geometry
         void parseGeometry(std::stringstream& adaptedCode);
-        UniformDefinitions parseGeometryUniform();
-        UniformDefinition parseGeometryUniformDefinition();
         void parseGeometryMain(std::stringstream& adaptedCode);
 
         void injectGeometryUniformDefinitions(std::stringstream& adaptedCode);
@@ -67,6 +71,7 @@ namespace lava::magma {
         void injectEpiphanyGBufferDataExtraction(std::stringstream& adaptedCode);
 
         // Common
+        void injectGlobalUniformDefinitions(std::stringstream& adaptedCode);
         void injectGBufferDefinitions(std::stringstream& adaptedCode);
 
         void parseToken(chamber::TokenType tokenType);
@@ -82,6 +87,8 @@ namespace lava::magma {
         glm::vec4 parseVec4();
 
         std::string parseCurrentIdentifier();
+        void remapBlock(std::stringstream& adaptedCode, const std::unordered_map<std::string, std::string>& extraMap,
+                        std::function<void(void)> onReturn);
 
         std::optional<chamber::Lexer::Token> getNotToken(chamber::TokenType tokenType);
 
@@ -92,6 +99,7 @@ namespace lava::magma {
     private:
         std::string m_processedString;
         UniformDefinitions m_uniformDefinitions;
+        UniformDefinitions m_globalUniformDefinitions;
 
         // Resources
         fs::Path m_path;

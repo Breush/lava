@@ -1,0 +1,4 @@
+#softdefine MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX
+#softdefine MATERIAL_GLOBAL_SAMPLERS_SIZE
+
+layout(set = MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX, binding = 0) uniform sampler2D materialGlobalSamplers[MATERIAL_SAMPLERS_SIZE];

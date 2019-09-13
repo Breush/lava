@@ -54,6 +54,7 @@ namespace lava::magma {
         UniformType type = UniformType::Unknown;
         UniformFallback fallback;
         uint32_t arraySize = 0u; // 0u means not an array.
+        uint32_t offset = 0u;
     };
 
     using UniformDefinitions = std::vector<UniformDefinition>;

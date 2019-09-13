@@ -81,7 +81,9 @@ namespace lava::magma {
         const vulkan::DescriptorHolder& lightsDescriptorHolder() const { return m_lightsDescriptorHolder; }
         const vulkan::DescriptorHolder& shadowsDescriptorHolder() const { return m_shadowsDescriptorHolder; }
         const vulkan::DescriptorHolder& materialDescriptorHolder() const { return m_materialDescriptorHolder; }
+        const vulkan::DescriptorHolder& materialGlobalDescriptorHolder() const { return m_materialGlobalDescriptorHolder; }
         const vulkan::DescriptorHolder& environmentDescriptorHolder() const { return m_environmentDescriptorHolder; }
+        vk::DescriptorSet materialGlobalDescriptorSet() const { return m_materialGlobalDescriptorSet; }
         /// @}
 
         /**
@@ -145,7 +147,9 @@ namespace lava::magma {
         vulkan::DescriptorHolder m_lightsDescriptorHolder;
         vulkan::DescriptorHolder m_shadowsDescriptorHolder;
         vulkan::DescriptorHolder m_materialDescriptorHolder;
+        vulkan::DescriptorHolder m_materialGlobalDescriptorHolder;
         vulkan::DescriptorHolder m_environmentDescriptorHolder;
+        vk::DescriptorSet m_materialGlobalDescriptorSet = nullptr;
 
         // ----- Environment
         Environment m_environment;

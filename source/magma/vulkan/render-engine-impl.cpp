@@ -110,6 +110,7 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     // to be able to switch-case them or so in other renderer shaders.
 
     ShmagReader shmagReader(shaderPath);
+    auto globalUniformDefinitions = shmagReader.globalUniformDefinitions();
     auto uniformDefinitions = shmagReader.uniformDefinitions();
     auto shaderImplementation = shmagReader.processedString();
     if (shmagReader.errored()) {
@@ -122,6 +123,7 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     const auto watchId = m_shadersWatcher.watch(shaderPath);
     auto& materialInfo = m_materialInfos[hrid];
     materialInfo.id = materialId;
+    materialInfo.globalUniformDefinitions = globalUniformDefinitions;
     materialInfo.uniformDefinitions = uniformDefinitions;
     materialInfo.sourcePath = shaderPath;
     materialInfo.watchId = watchId;

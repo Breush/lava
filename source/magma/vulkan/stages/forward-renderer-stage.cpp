@@ -107,6 +107,11 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_opaquePipelineHolder.pipeline());
 
+    // Bind material global
+    auto materialGlobalDescriptorSet = m_scene.aft().materialGlobalDescriptorSet();
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_opaquePipelineHolder.pipelineLayout(),
+                                     MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX, 1u, &materialGlobalDescriptorSet, 0u, nullptr);
+
     // Bind lights
     for (auto light : m_scene.lights()) {
         light->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), LIGHTS_DESCRIPTOR_SET_INDEX);
@@ -243,6 +248,7 @@ void ForwardRendererStage::initOpaquePass()
     // @note Ordering is important
     m_opaquePipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
+    m_opaquePipelineHolder.add(m_scene.aft().materialGlobalDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
     m_opaquePipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
@@ -284,6 +290,7 @@ void ForwardRendererStage::initDepthlessPass()
     // @note Ordering is important
     m_depthlessPipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
     m_depthlessPipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
+    m_depthlessPipelineHolder.add(m_scene.aft().materialGlobalDescriptorHolder().setLayout());
     m_depthlessPipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
     m_depthlessPipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
@@ -329,6 +336,7 @@ void ForwardRendererStage::initWireframePass()
     m_wireframePipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
     m_wireframePipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
     // @note Useful, so that the pipelines are all compatible
+    m_wireframePipelineHolder.add(m_scene.aft().materialGlobalDescriptorHolder().setLayout());
     m_wireframePipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
     m_wireframePipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
@@ -373,6 +381,7 @@ void ForwardRendererStage::initTranslucentPass()
     // @note Ordering is important
     m_translucentPipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
+    m_translucentPipelineHolder.add(m_scene.aft().materialGlobalDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
     m_translucentPipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
 
@@ -420,6 +429,7 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["ENVIRONMENT_DESCRIPTOR_SET_INDEX"] = std::to_string(ENVIRONMENT_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT"] = std::to_string(ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
@@ -429,6 +439,7 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     moduleOptions.defines["LIGHT_TYPE_DIRECTIONAL"] = std::to_string(static_cast<uint32_t>(LightType::Directional));
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);
     moduleOptions.defines["MATERIAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);
+    moduleOptions.defines["MATERIAL_GLOBAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
     if (firstTime) moduleOptions.updateCallback = [this]() { updatePassShaders(false); };
 

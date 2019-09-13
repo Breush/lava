@@ -39,13 +39,17 @@ void MaterialAft::init()
 
 void MaterialAft::update()
 {
-    if (!m_uboDirty) return;
+    if (m_uboDirty) {
+        // :InternalFrameId @note The idea is to be sure that the material's UBO is not in use
+        // while we update it. We do that by updating it into a different uboHolder/descriptorSet.
+        m_currentFrameId = (m_currentFrameId + 1u) % FRAME_IDS_COUNT;
 
-    // :InternalFrameId @note The idea is to be sure that the material's UBO is not in use
-    // while we update it. We do that by updating it into a different uboHolder/descriptorSet.
-    m_currentFrameId = (m_currentFrameId + 1u) % FRAME_IDS_COUNT;
+        updateBindings();
+    }
 
-    updateBindings();
+    if (m_globalUboDirty) {
+        updateGlobalBindings();
+    }
 }
 
 void MaterialAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const
@@ -62,7 +66,7 @@ void MaterialAft::updateBindings()
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    auto& descriptorSet = m_descriptorSets[m_currentFrameId];
+    auto descriptorSet = m_descriptorSets[m_currentFrameId];
 
     // MaterialUbo
     m_uboHolders[m_currentFrameId].copy(0, m_fore.ubo());
@@ -121,5 +125,41 @@ void MaterialAft::updateBindings()
 
             vulkan::updateDescriptorSet(engine.device(), descriptorSet, cubeImageView, sampler, imageLayout, binding + 1);
         }
+    }
+}
+
+void MaterialAft::updateGlobalBindings()
+{
+    m_globalUboDirty = false;
+
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    auto descriptorSet = m_scene.aft().materialGlobalDescriptorSet();
+
+    const auto& engine = m_scene.engine().impl();
+    const auto& sampler = engine.dummySampler();
+    const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto& descriptorHolder = m_scene.aft().materialGlobalDescriptorHolder();
+    const auto binding = descriptorHolder.combinedImageSamplerBindingOffset();
+    auto imageView = engine.dummyImageView();
+
+    for (const auto& attributePair : m_fore.globalAttributes()) {
+        const auto& attribute = attributePair.second;
+        if (attribute.type != UniformType::Texture) continue;
+
+        if (attribute.texture) {
+            imageView = attribute.texture->aft().imageView();
+        }
+        else if (attribute.fallback.textureTypeValue == UniformTextureType::White) {
+            imageView = engine.dummyImageView();
+        }
+        else if (attribute.fallback.textureTypeValue == UniformTextureType::Normal) {
+            imageView = engine.dummyNormalImageView();
+        }
+        else if (attribute.fallback.textureTypeValue == UniformTextureType::Invisible) {
+            imageView = engine.dummyInvisibleImageView();
+        }
+
+        vulkan::updateDescriptorSet(engine.device(), descriptorSet, imageView, sampler, imageLayout, binding, attribute.offset);
     }
 }

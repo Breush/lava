@@ -7,6 +7,7 @@ namespace lava::magma {
         uint32_t id;
         uint32_t watchId;
         fs::Path sourcePath;
+        UniformDefinitions globalUniformDefinitions;
         UniformDefinitions uniformDefinitions;
     };
 }
