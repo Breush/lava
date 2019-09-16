@@ -122,6 +122,9 @@ std::optional<Lexer::Token> Lexer::nextToken()
             case '&': m_token.type = TokenType::BitwiseAnd; break;
             case '|': m_token.type = TokenType::BitwiseOr; break;
             case '#': m_token.type = TokenType::Sharp; break;
+            case '%': m_token.type = TokenType::Percent; break;
+            case '?': m_token.type = TokenType::QuestionMark; break;
+            case ':': m_token.type = TokenType::Colon; break;
             default: logger.warning("chamber.lexer") << "Unhandled single character token '" << character << "'." << std::endl;
             }
         }
