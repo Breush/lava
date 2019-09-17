@@ -26,7 +26,10 @@ void setupCamera(GameState& gameState)
     gameState.camera = &cameraComponent;
 
     // Behavior for user control
-    behaviorComponent.onUpdate([&input, &cameraComponent](float /* dt */) {
+    behaviorComponent.onUpdate([&input, &cameraComponent, &gameState](float /* dt */) {
+        // @fixme Better have a "pushLockCamera" function, something callable from anywhere.
+        if (gameState.state == State::Editor && gameState.editor.state != EditorState::Idle) return;
+
         if (input.axisChanged("zoom")) {
             cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("zoom") / 10.f);
         }

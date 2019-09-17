@@ -17,6 +17,9 @@ namespace lava::dike {
 
         void gravity(const glm::vec3& gravity);
 
+        /// Allows the enabled/disabled the physics engine.
+        void enabled(bool enabled) { m_enabled = enabled; }
+
         /**
          * @name Makers
          * Make a new resource and add it to the engine.
@@ -54,6 +57,8 @@ namespace lava::dike {
 
     private:
         Impl* m_impl = nullptr;
+
+        bool m_enabled = true;
     };
 }
 

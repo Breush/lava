@@ -135,7 +135,7 @@ namespace lava::magma {
         Extent2d m_extent = {800u, 600u};
         float m_fovY = glm::radians(45.f);
         float m_nearClip = 0.1f;
-        float m_farClip = 100.f;
+        float m_farClip = 1000.f;
 
         // ----- Transforms
         glm::mat4 m_viewTransform = glm::mat4(1.f);

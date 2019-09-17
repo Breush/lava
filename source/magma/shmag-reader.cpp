@@ -705,7 +705,7 @@ glm::vec3 ShmagReader::parseVec3()
         vector[i] = parseFloat();
         parseToken(chamber::TokenType::Comma);
     }
-    vector[3u] = parseFloat();
+    vector[2u] = parseFloat();
 
     parseToken(chamber::TokenType::RightParenthesis);
 

@@ -31,10 +31,10 @@ std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellat
         addRowStrip(indices, tessellation, positions.size());
 
         // This is a circle at a fixed latitude.
-        addCirclePoints(positions, uvs, tessellation, length, radius, -length / 2.f);
+        addCirclePoints(positions, uvs, tessellation, length, radius, options.offset - length / 2.f);
 
         // Last row of points
-        addCirclePoints(positions, uvs, tessellation, length, radius, length / 2.f);
+        addCirclePoints(positions, uvs, tessellation, length, radius, options.offset + length / 2.f);
 
         // Normals
         std::vector<glm::vec3> normals;
@@ -52,6 +52,21 @@ std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellat
             tangents.emplace_back(glm::normalize(glm::vec3(-position.y, position.x, 0.f)), 1.f);
         }
         tangents.emplace_back(1.f, 0.f, 0.f, 1.f);
+
+        // Apply baked transform if any
+        if (options.transform != glm::mat4(1.f)) {
+            for (auto& position : positions) {
+                position = glm::vec3(options.transform * glm::vec4(position, 1));
+            }
+
+            for (auto& normal : normals) {
+                normal = glm::vec3(options.transform * glm::vec4(normal, 0));
+            }
+
+            for (auto& tangent : tangents) {
+                tangent = glm::vec4(glm::vec3(options.transform * glm::vec4(glm::vec3(tangent), 0)), tangent.w);
+            }
+        }
 
         // @note Might refer to wrong normals
         if (options.doubleSided) {

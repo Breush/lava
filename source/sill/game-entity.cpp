@@ -31,6 +31,16 @@ $pimpl_method(GameEntity, void, parent, GameEntity*, parent);
 $pimpl_method(GameEntity, void, addChild, GameEntity&, child);
 $pimpl_method_const(GameEntity, const std::vector<GameEntity*>&, children);
 
+uint32_t GameEntity::childIndex(const GameEntity& child) const
+{
+    const auto& childrenList = children();
+    for (auto i = 0u; i < childrenList.size(); ++i) {
+        if (childrenList[i] == &child) return i;
+    }
+
+    return -1u;
+}
+
 // Components
 $pimpl_method_const(GameEntity, bool, hasComponent, const std::string&, hrid);
 $pimpl_method(GameEntity, IComponent&, getComponent, const std::string&, hrid);

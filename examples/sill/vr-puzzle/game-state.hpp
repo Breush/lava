@@ -14,6 +14,11 @@ enum class State {
     TeleportBeam,
 };
 
+enum class EditorState {
+    Idle,
+    MoveAlongAxis,
+};
+
 struct GameState {
     State state = State::Idle;
 
@@ -35,5 +40,11 @@ struct GameState {
 
     struct {
         lava::sill::GameEntity* selectedEntity = nullptr;
+        lava::sill::GameEntity* gizmoEntity = nullptr;
+        EditorState state = EditorState::Idle;
+
+        // Used when moving along an axis
+        glm::vec3 axis = {0.f, 0.f, 1.f};
+        float axisOffset = 0.f;
     } editor;
 };

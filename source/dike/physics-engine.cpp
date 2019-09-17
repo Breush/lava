@@ -6,7 +6,13 @@ using namespace lava::dike;
 
 $pimpl_class(PhysicsEngine);
 
-$pimpl_method(PhysicsEngine, void, update, float, dt);
+void PhysicsEngine::update(float dt)
+{
+    if (!m_enabled) return;
+
+    m_impl->update(dt);
+}
+
 $pimpl_method(PhysicsEngine, void, gravity, const glm::vec3&, gravity);
 
 void PhysicsEngine::add(std::unique_ptr<RigidBody>&& rigidBody)

@@ -1,0 +1,26 @@
+/**
+ * Rendering puzzle panels.
+ */
+
+struct {
+    vec3 color;
+} gBuffer;
+
+geometry {
+
+    uniform {
+        vec3 color = vec3(1, 1, 1);
+    };
+
+    bool main() {
+        gBuffer.color = color;
+
+        return false;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        return vec4(gBuffer.color, 1);
+    }
+}
