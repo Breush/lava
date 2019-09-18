@@ -24,17 +24,21 @@ struct GameState {
 
     lava::sill::GameEngine* engine = nullptr;
     lava::sill::CameraComponent* camera = nullptr;
-    uint32_t levelId = 0u;
 
     lava::sill::GameEntity* rayPickingEntity = nullptr;
     lava::sill::GameEntity* teleportBeamEntity = nullptr;
     lava::sill::GameEntity* teleportAreaEntity = nullptr;
     lava::Ray pickingRay;
-
-    // Bricks
-    std::vector<std::unique_ptr<Panel>> panels;
-    std::vector<std::unique_ptr<Brick>> bricks;
     Brick* pointedBrick = nullptr;
+
+    struct {
+        std::string name;
+        std::string path;
+
+        std::vector<std::unique_ptr<Panel>> panels;
+        std::vector<std::unique_ptr<Brick>> bricks;
+        std::vector<lava::sill::GameEntity*> entities;
+    } level;
 
     struct {
         lava::sill::GameEntity* selectedEntity = nullptr;

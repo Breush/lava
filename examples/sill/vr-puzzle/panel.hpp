@@ -26,10 +26,13 @@ public:
     Panel(GameState& gameState);
     ~Panel();
 
+    const lava::sill::AnimationComponent& animation() const { return m_entity->get<lava::sill::AnimationComponent>(); };
     lava::sill::AnimationComponent& animation() { return m_entity->get<lava::sill::AnimationComponent>(); };
+    const lava::sill::TransformComponent& transform() const { return m_entity->get<lava::sill::TransformComponent>(); };
     lava::sill::TransformComponent& transform() { return m_entity->get<lava::sill::TransformComponent>(); };
 
     /// Update extent and associated materials visuals. This also resets all rules.
+    const glm::uvec2& extent() const { return m_extent; }
     void extent(const glm::uvec2& extent);
 
     /// 'from' and 'to' should be at distance 1.

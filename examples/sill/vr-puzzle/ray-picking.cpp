@@ -13,7 +13,7 @@ namespace {
         Brick* pickedBrick = nullptr;
 
         float minDistance = 50.f;
-        for (auto& brick : gameState.bricks) {
+        for (auto& brick : gameState.level.bricks) {
             for (auto& block : brick->blocks()) {
                 float distance = block.entity->distanceFrom(ray);
                 if (distance > 0.f && distance < minDistance) {
@@ -29,12 +29,12 @@ namespace {
     void showPointedBrick(GameState& gameState)
     {
         // Reset color for all bricks first
-        for (auto& brick : gameState.bricks) {
+        for (auto& brick : gameState.level.bricks) {
             brick->apparentColor(brick->color());
         }
 
         // @fixme Green is ugly, would love better highlight system that does not hide previous color (halo?)
-        if (gameState.pointedBrick != nullptr) {
+        if (gameState.state == State::Idle && gameState.pointedBrick != nullptr) {
             gameState.pointedBrick->apparentColor({0, 1, 0});
         }
     }

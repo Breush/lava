@@ -6,6 +6,8 @@
 #include <lava/dike.hpp>
 #include <lava/magma.hpp>
 
+#include "./serializer.hpp"
+
 using namespace lava;
 using namespace lava::chamber;
 
@@ -30,6 +32,10 @@ void setupEditor(GameState& gameState)
 {
     auto& engine = *gameState.engine;
 
+    // Inputs
+
+    engine.input().bindAction("save", {Key::LeftControl, Key::S});
+
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
     auto& editorBehavior = editorEntity.make<sill::BehaviorComponent>();
 
@@ -48,8 +54,9 @@ void setupEditor(GameState& gameState)
             options.transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
             options.transform = glm::rotate(options.transform, math::PI_OVER_TWO, axis);
             options.offset = 0.25f;
-            sill::makers::cylinderMeshMaker(8u, 0.02f, 0.5f, options)(axisMeshComponent); // @fixme orient
+            sill::makers::cylinderMeshMaker(8u, 0.02f, 0.5f, options)(axisMeshComponent);
             axisMeshComponent.node(0).mesh->primitive(0).material(axisMaterial);
+            axisMeshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
 
             gizmoEntity.addChild(axisEntity);
         }
@@ -105,6 +112,9 @@ void setupEditor(GameState& gameState)
                 }
 
                 gameState.editor.selectedEntity = selectedEntity;
+            }
+            else if (engine.input().justDown("save")) {
+                serializeLevel(gameState, gameState.level.path);
             }
         }
 

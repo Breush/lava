@@ -143,7 +143,7 @@ bool Panel::checkSolveStatus(bool* solveStatusChanged)
 
         // Find the brick that has 'from'.
         const Brick* fromBrick = nullptr;
-        for (const auto& brick : m_gameState.bricks) {
+        for (const auto& brick : m_gameState.level.bricks) {
             for (const auto& block : brick->blocks()) {
                 if (brick->snapCoordinates().x + block.coordinates.x == from.x
                     && brick->snapCoordinates().y + block.coordinates.y == from.y) {
@@ -185,7 +185,7 @@ void Panel::updateFromSnappedBricks()
         }
     }
 
-    for (auto& brick : m_gameState.bricks) {
+    for (auto& brick : m_gameState.level.bricks) {
         if (!brick->snapped()) continue;
         if (&brick->snapPanel() != this) continue;
 

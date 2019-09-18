@@ -17,7 +17,7 @@ namespace {
     bool checkLevelSolveStatus(GameState& gameState)
     {
         bool allPanelsSolved = true;
-        for (auto& panel : gameState.panels) {
+        for (auto& panel : gameState.level.panels) {
             bool panelSolveStatusChanged = false;
             bool panelSolved = panel->checkSolveStatus(&panelSolveStatusChanged);
             allPanelsSolved = allPanelsSolved && panelSolved;
@@ -85,13 +85,7 @@ namespace {
 
         // Checking if the level is solved.
         if (checkLevelSolveStatus(gameState)) {
-            // Dropping all bricks
-            // @fixme Add a timer before dropping everything!
-            for (auto& brick : gameState.bricks) {
-                brick->unsnap();
-            }
-
-            loadLevel(gameState, gameState.levelId + 1);
+            levelSolved(gameState); // @fixme Have better logic
         }
 
         grabbedBrick = nullptr;
@@ -146,7 +140,7 @@ namespace {
 
         // If the hand is close to a snapping point, we snap to it.
         grabbedBrick->unsnap();
-        for (auto& panel : gameState.panels) {
+        for (auto& panel : gameState.level.panels) {
             if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform[3])) {
                 targetTransform = snappingPoint->worldTransform;
                 targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
@@ -186,7 +180,7 @@ namespace {
         // If the cursor is over a snapping point, we snap to it.
         bool brickLooksSnapped = false;
         grabbedBrick->unsnap();
-        for (auto& panel : gameState.panels) {
+        for (auto& panel : gameState.level.panels) {
             // @todo We should find out which panel is the closest!
             Panel::SnappingInfo snappingInfo = panel->rayHitSnappingPoint(*grabbedBrick, gameState.pickingRay);
             if (snappingInfo.point != nullptr) {

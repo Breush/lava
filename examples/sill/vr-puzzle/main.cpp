@@ -48,7 +48,7 @@ int main(void)
     setupEditor(gameState);
 
     // Load first level
-    loadLevel(gameState, 0);
+    loadLevel(gameState, "./examples/sill/vr-puzzle/level-intro.json");
 
     engine.run();
 

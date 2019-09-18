@@ -25,7 +25,9 @@ public:
     Brick(GameState& gameState);
     ~Brick();
 
+    const lava::sill::AnimationComponent& animation() const { return m_entity->get<lava::sill::AnimationComponent>(); }
     lava::sill::AnimationComponent& animation() { return m_entity->get<lava::sill::AnimationComponent>(); }
+    const lava::sill::TransformComponent& transform() const { return m_entity->get<lava::sill::TransformComponent>(); }
     lava::sill::TransformComponent& transform() { return m_entity->get<lava::sill::TransformComponent>(); }
 
     // The pairs of all blocks making this brick,
