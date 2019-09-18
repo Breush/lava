@@ -33,6 +33,9 @@ $pimpl_method(GameEngine, void, run);
 
 // ----- Tools
 
+$pimpl_method(GameEngine, std::vector<std::unique_ptr<GameEntity>>&, entities);
+$pimpl_method_const(GameEngine, const std::vector<std::unique_ptr<GameEntity>>&, entities);
+
 GameEntity* GameEngine::pickEntity(Ray ray, PickPrecision pickPrecision) const
 {
     GameEntity* pickedEntity = nullptr;
@@ -48,4 +51,14 @@ GameEntity* GameEngine::pickEntity(Ray ray, PickPrecision pickPrecision) const
     }
 
     return pickedEntity;
+}
+
+GameEntity* GameEngine::findEntityByName(const std::string& name) const
+{
+    for (auto& entity : entities()) {
+        if (entity->name() == name) {
+            return entity.get();
+        }
+    }
+    return nullptr;
 }

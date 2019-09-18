@@ -1,14 +1,42 @@
 #include "./environment.hpp"
 
 #include <cmath>
+#include <fstream>
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
+#include <lava/chamber/logger.hpp>
+#include <nlohmann/json.hpp>
 #include <sstream>
 
 #include "./brick.hpp"
 #include "./symbols.hpp"
 
 using namespace lava;
+using namespace lava::chamber;
+
+namespace {
+    glm::mat4 parseMat4(const nlohmann::json& json)
+    {
+        glm::mat4 matrix;
+        matrix[0u][0u] = json[0u];
+        matrix[0u][1u] = json[1u];
+        matrix[0u][2u] = json[2u];
+        matrix[0u][3u] = json[3u];
+        matrix[1u][0u] = json[4u];
+        matrix[1u][1u] = json[5u];
+        matrix[1u][2u] = json[6u];
+        matrix[1u][3u] = json[7u];
+        matrix[2u][0u] = json[8u];
+        matrix[2u][1u] = json[9u];
+        matrix[2u][2u] = json[10u];
+        matrix[2u][3u] = json[11u];
+        matrix[3u][0u] = json[12u];
+        matrix[3u][1u] = json[13u];
+        matrix[3u][2u] = json[14u];
+        matrix[3u][3u] = json[15u];
+        return matrix;
+    }
+}
 
 void setupEnvironment(GameState& gameState)
 {
@@ -43,57 +71,79 @@ void loadLevel(GameState& gameState, uint32_t levelId)
 {
     gameState.levelId = levelId;
 
-    std::cout << "Loading level " << levelId << std::endl;
-
     if (levelId == 0) {
-        // Waking hall
-        {
-            auto& entity = gameState.engine->make<sill::GameEntity>("waking-hall");
-            auto& meshComponent = entity.make<sill::MeshComponent>();
-            sill::makers::glbMeshMaker("./assets/models/vr-puzzle/waking-hall.glb")(meshComponent);
-            entity.get<sill::TransformComponent>().rotate({0, 0, 1}, 3.14156f * 0.5f);
-            entity.ensure<sill::SoundEmitterComponent>().add("open-clock", "./assets/sounds/vr-puzzle/open-clock.wav");
-            gameState.wakingHall = &entity;
+        // Unserializing level
+        std::ifstream levelFile("./examples/sill/vr-puzzle/level-intro.json");
+        if (!levelFile.is_open()) {
+            logger.error("vr-puzzle") << "Unable to read level file." << std::endl;
+            return;
         }
 
-        /**
-         *  - 3x3 void panel
-         *      - 1 L3 brick
-         *      - 1 T4 brick
-         *      - 1 I2 brick
-         */
-        gameState.panels.resize(1);
+        const auto levelJson = nlohmann::json::parse(levelFile);
 
-        gameState.panels[0] = std::make_unique<Panel>(gameState);
-        gameState.panels[0]->transform().worldTransform(glm::rotate(glm::mat4(1.f), 3.14156f, {0, 0, 1}));
-        gameState.panels[0]->extent({3, 3});
-        gameState.panels[0]->transform().translate({1, 0.8f, 0});
-        gameState.panels[0]->transform().rotate({0, 0, 1}, 3.14156f * 0.5f);
+        logger.info("vr-puzzle") << "Loading level '" << levelJson["name"].get<std::string>() << "'..." << std::endl;
+
+        // ----- Loading entities
+
+        for (auto& entityJson : levelJson["entities"]) {
+            auto& entity = gameState.engine->make<sill::GameEntity>(entityJson["name"].get<std::string>());
+            entity.ensure<sill::TransformComponent>().worldTransform(parseMat4(entityJson["transform"]));
+
+            for (auto& componentJson : entityJson["components"].items()) {
+                if (componentJson.key() == "mesh") {
+                    auto& meshComponent = entity.ensure<sill::MeshComponent>();
+
+                    auto path = componentJson.value()["path"].get<std::string>();
+                    sill::makers::glbMeshMaker(path)(meshComponent);
+                }
+                else if (componentJson.key() == "sound-emitter") {
+                    auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
+
+                    const auto& sounds = componentJson.value()["sounds"];
+                    for (const auto& sound : sounds) {
+                        soundEmitterComponent.add(sound["hrid"], sound["path"]);
+                    }
+                }
+                else {
+                    logger.warning("vr-puzzle") << "Unhandled component '" << componentJson.key() << "'." << std::endl;
+                }
+            }
+        }
+
+        // ----- Loading bricks
 
         gameState.bricks.clear();
-
-        // L3 brick
-        {
+        for (auto& brickJson : levelJson["bricks"]) {
             auto brick = std::make_unique<Brick>(gameState);
-            brick->blocks({{0, 0}, {1, 0}, {0, 1}});
-            brick->color({0, 1, 1});
+            brick->transform().worldTransform(parseMat4(brickJson["transform"]));
+
+            std::vector<glm::ivec2> blocks;
+            for (auto& blockJson : brickJson["blocks"]) {
+                glm::ivec2 block(blockJson[0], blockJson[1]);
+                blocks.emplace_back(block);
+            }
+            brick->blocks(blocks);
+
+            auto& colorJson = brickJson["color"];
+            glm::vec3 color(colorJson[0], colorJson[1], colorJson[2]);
+            brick->color(color);
+
             gameState.bricks.emplace_back(std::move(brick));
         }
 
-        // T4 brick
-        {
-            auto brick = std::make_unique<Brick>(gameState);
-            brick->blocks({{0, 0}, {-1, 0}, {1, 0}, {0, 1}});
-            brick->color({1, 1, 0});
-            gameState.bricks.emplace_back(std::move(brick));
-        }
+        // ----- Loading panels
 
-        // I2 brick
-        {
-            auto brick = std::make_unique<Brick>(gameState);
-            brick->blocks({{0, 0}, {0, 1}});
-            brick->color({0, 0, 1});
-            gameState.bricks.emplace_back(std::move(brick));
+        gameState.panels.clear();
+        for (auto& panelJson : levelJson["panels"]) {
+            auto panel = std::make_unique<Panel>(gameState);
+
+            panel->transform().worldTransform(parseMat4(panelJson["transform"]));
+
+            auto& extentJson = panelJson["extent"];
+            glm::uvec2 extent(extentJson[0], extentJson[1]);
+            panel->extent(extent);
+
+            gameState.panels.emplace_back(std::move(panel));
         }
     }
     else if (levelId == 1) {
@@ -115,8 +165,9 @@ void loadLevel(GameState& gameState, uint32_t levelId)
 
         // Open clock
         // @fixme Have panel logic more than level logic.
-        gameState.wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
-        gameState.wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
+        auto wakingHall = gameState.engine->findEntityByName("waking-hall");
+        wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
+        wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
     }
     else if (levelId == 2) {
         /**

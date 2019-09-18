@@ -36,8 +36,6 @@ struct GameState {
     std::vector<std::unique_ptr<Brick>> bricks;
     Brick* pointedBrick = nullptr;
 
-    lava::sill::GameEntity* wakingHall = nullptr;
-
     struct {
         lava::sill::GameEntity* selectedEntity = nullptr;
         lava::sill::GameEntity* gizmoEntity = nullptr;

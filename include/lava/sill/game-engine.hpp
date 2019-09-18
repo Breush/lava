@@ -87,8 +87,14 @@ namespace lava::sill {
          * @name Tools
          */
         /// @{
+        std::vector<std::unique_ptr<GameEntity>>& entities();
+        const std::vector<std::unique_ptr<GameEntity>>& entities() const;
+
         /// Find the closest entity that crosses the ray.
         GameEntity* pickEntity(Ray ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
+
+        /// Find an entity by its name (will stop after the first one).
+        GameEntity* findEntityByName(const std::string& name) const;
         /// @}
 
         /// Main loop.

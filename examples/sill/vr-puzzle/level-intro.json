@@ -1,0 +1,83 @@
+{
+    "file": {
+        "type": "LEVEL",
+        "version": 0
+    },
+    "name": "intro",
+    "panels": [
+        {
+            "transform": [
+                -0.000049,
+                -1.0,
+                0.0,
+                0.0,
+                1.0,
+                -0.000049,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                1.0,
+                0.8,
+                0.0,
+                1.0
+            ],
+            "extent": [3, 3]
+        }
+    ],
+    "bricks": [
+        {
+            "transform": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "blocks": [[0, 0], [1, 0], [0, 1]],
+            "color": [0, 1, 1]
+        },
+        {
+            "transform": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "blocks": [[0, 0], [-1, 0], [1, 0], [0, 1]],
+            "color": [1, 1, 0]
+        },
+        {
+            "transform": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "blocks": [[0, 0], [0, 1]],
+            "color": [0, 0, 1]
+        }
+    ],
+    "entities": [
+        {
+            "name": "waking-hall",
+            "transform": [
+                0.000016,
+                1.0,
+                0.0,
+                0.0,
+                -1.0,
+                0.000016,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/waking-hall.glb"
+                },
+                "sound-emitter": {
+                    "sounds": [
+                        {
+                            "hrid": "open-clock",
+                            "path": "./assets/sounds/vr-puzzle/open-clock.wav"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
