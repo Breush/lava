@@ -50,7 +50,12 @@ void InputManager::Impl::bindAction(const std::string& actionName, VrButton vrBu
 
 void InputManager::Impl::bindAction(const std::string& actionName, Key key)
 {
-    m_actions[actionName].keys.emplace(key);
+    m_actions[actionName].keys.emplace_back(std::set({key}));
+}
+
+void InputManager::Impl::bindAction(const std::string& actionName, const std::set<Key>& keys)
+{
+    m_actions[actionName].keys.emplace_back(keys);
 }
 
 void InputManager::Impl::bindAxis(const std::string& axisName, InputAxis inputAxis)
@@ -93,18 +98,28 @@ void InputManager::Impl::update(WsEvent& event)
 
     // Keys
     else if (event.type == WsEventType::KeyPressed) {
+        m_keysPressed[event.key.which] = true;
+
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
-            if (action.keys.find(event.key.which) != action.keys.end()) {
-                action.activeness += 1u;
+            for (const auto& keys : action.keys) {
+                if (keys.find(event.key.which) != keys.end()) {
+                    if (keysPressed(keys)) {
+                        action.activeness += 1u;
+                    }
+                }
             }
         }
     }
     else if (event.type == WsEventType::KeyReleased) {
+        m_keysPressed[event.key.which] = false;
+
         for (auto& iAction : m_actions) {
             auto& action = iAction.second;
-            if (action.keys.find(event.key.which) != action.keys.end() && action.activeness != 0u) {
-                action.activeness -= 1u;
+            for (const auto& keys : action.keys) {
+                if (keys.find(event.key.which) != keys.end() && action.activeness != 0u) {
+                    action.activeness -= 1u;
+                }
             }
         }
     }
@@ -190,4 +205,14 @@ void InputManager::Impl::update(VrEvent& event)
             }
         }
     }
+}
+
+bool InputManager::Impl::keysPressed(const std::set<Key>& keys) const
+{
+    for (auto key : keys) {
+        if (m_keysPressed.find(key) == m_keysPressed.end() || !m_keysPressed.at(key)) {
+            return false;
+        }
+    }
+    return true;
 }

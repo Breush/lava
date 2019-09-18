@@ -17,11 +17,16 @@ namespace lava::sill {
         void bindAction(const std::string& actionName, MouseButton mouseButton);
         void bindAction(const std::string& actionName, VrButton vrButton, VrDeviceType hand);
         void bindAction(const std::string& actionName, Key key);
+        void bindAction(const std::string& actionName, const std::set<Key>& keys);
         void bindAxis(const std::string& axisName, InputAxis inputAxis);
 
         void updateReset();
         void update(WsEvent& event);
         void update(VrEvent& event);
+
+    private:
+        // Check whether all keys are pressed.
+        bool keysPressed(const std::set<Key>& keys) const;
 
     private:
         struct VrControllerButton {
@@ -34,7 +39,7 @@ namespace lava::sill {
             uint8_t previousActiveness = 0u; //!< Number of keys or buttons down in the previous update block.
             std::set<MouseButton> mouseButtons;
             std::vector<VrControllerButton> vrControllerButtons;
-            std::set<Key> keys;
+            std::vector<std::set<Key>> keys; //!< Vector represents OR, set represents AND.
         };
 
         struct Axis {
@@ -45,6 +50,7 @@ namespace lava::sill {
     private:
         std::unordered_map<std::string, Action> m_actions;
         std::unordered_map<std::string, Axis> m_axes;
+        std::unordered_map<Key, bool> m_keysPressed;
 
         glm::vec2 m_mouseCoordinates; // Last known mouse position.
         bool m_initializingMousePosition = true;

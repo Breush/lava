@@ -17,6 +17,7 @@ $pimpl_method_const(InputManager, const glm::vec2&, mouseCoordinates);
 $pimpl_method(InputManager, void, bindAction, const std::string&, actionName, MouseButton, mouseButton);
 $pimpl_method(InputManager, void, bindAction, const std::string&, actionName, VrButton, vrButton, VrDeviceType, hand);
 $pimpl_method(InputManager, void, bindAction, const std::string&, actionName, Key, key);
+$pimpl_method(InputManager, void, bindAction, const std::string&, actionName, const std::set<Key>&, keys);
 $pimpl_method(InputManager, void, bindAxis, const std::string&, axisName, InputAxis, inputAxis);
 
 $pimpl_method(InputManager, void, updateReset);

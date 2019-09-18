@@ -3,6 +3,7 @@
 #include <lava/core/input-axis.hpp>
 #include <lava/core/vr-event.hpp>
 #include <lava/core/ws-event.hpp>
+#include <set>
 #include <string>
 
 namespace lava::sill {
@@ -40,6 +41,7 @@ namespace lava::sill {
         void bindAction(const std::string& actionName, MouseButton mouseButton);
         void bindAction(const std::string& actionName, VrButton vrButton, VrDeviceType hand);
         void bindAction(const std::string& actionName, Key key);
+        void bindAction(const std::string& actionName, const std::set<Key>& keys);
 
         void bindAxis(const std::string& axisName, InputAxis inputAxis);
         /// @}
