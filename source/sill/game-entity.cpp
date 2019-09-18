@@ -49,6 +49,7 @@ $pimpl_method_const(GameEntity, const IComponent&, getComponent, const std::stri
 void GameEntity::add(const std::string& hrid, std::unique_ptr<IComponent>&& component)
 {
     m_impl->add(hrid, std::move(component));
+    m_componentsHrids.emplace_back(hrid);
 }
 
 $pimpl_method(GameEntity, void, removeComponent, const std::string&, hrid);

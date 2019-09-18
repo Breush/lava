@@ -82,6 +82,8 @@ namespace {
         case 0xff54: return Key::Down;
         case 0xffe9: return Key::LeftAlt;
         case 0xffea: return Key::RightAlt;
+        case 0xffe3: return Key::LeftControl;
+        case 0xffe4: return Key::RightControl;
         }
 
         return Key::Unknown;

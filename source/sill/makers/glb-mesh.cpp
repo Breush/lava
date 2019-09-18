@@ -330,6 +330,8 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
     return [=](MeshComponent& meshComponent) {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
+        meshComponent.path(fileName);
+
         // ----- Resources pre-allocation
 
         // Caching

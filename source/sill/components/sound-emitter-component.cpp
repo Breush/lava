@@ -10,5 +10,10 @@ $pimpl_class_base(SoundEmitterComponent, IComponent, GameEntity&, entity);
 $pimpl_method(SoundEmitterComponent, void, update, float, dt);
 
 // SoundEmitterComponent
-$pimpl_method(SoundEmitterComponent, void, add, const std::string&, hrid, const std::string&, path);
+void SoundEmitterComponent::add(const std::string& hrid, const std::string& path)
+{
+    m_sounds[hrid] = path;
+    m_impl->add(hrid, path);
+}
+
 $pimpl_method(SoundEmitterComponent, void, start, const std::string&, hrid);

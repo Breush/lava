@@ -44,11 +44,17 @@ namespace lava::sill {
         bool boundingSpheresVisible() const;
         void boundingSpheresVisible(bool boundingSpheresVisible);
 
+        /// Path of the file if read from any.
+        const std::string& path() const { return m_path; }
+        void path(const std::string& path) { m_path = path; }
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }
 
     private:
         Impl* m_impl = nullptr;
+
+        std::string m_path = "";
     };
 }

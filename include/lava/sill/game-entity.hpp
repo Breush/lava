@@ -57,6 +57,9 @@ namespace lava::sill {
          * @name Components
          */
         /// @{
+        /// The list of all components.
+        const std::vector<std::string>& componentsHrids() const { return m_componentsHrids; }
+
         /// Check if the specified component exists within the entity.
         template <class ComponentClass>
         bool has() const;
@@ -100,6 +103,7 @@ namespace lava::sill {
         Impl* m_impl = nullptr;
 
         std::string m_name = "Unknown";
+        std::vector<std::string> m_componentsHrids;
     };
 }
 
