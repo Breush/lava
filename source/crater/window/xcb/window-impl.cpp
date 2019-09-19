@@ -80,10 +80,12 @@ namespace {
         case 0xff52: return Key::Up;
         case 0xff53: return Key::Right;
         case 0xff54: return Key::Down;
-        case 0xffe9: return Key::LeftAlt;
-        case 0xffea: return Key::RightAlt;
+        case 0xffe1: return Key::LeftShift;
+        case 0xffe2: return Key::RightShift;
         case 0xffe3: return Key::LeftControl;
         case 0xffe4: return Key::RightControl;
+        case 0xffe9: return Key::LeftAlt;
+        case 0xffea: return Key::RightAlt;
         }
 
         return Key::Unknown;
