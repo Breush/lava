@@ -73,7 +73,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
 
     logger.info("vr-puzzle") << "Loading level '" << gameState.level.name << "'..." << std::endl;
 
-    // ----- Unserializing entities
+    // ----- Entities
 
     gameState.level.entities.clear();
     for (auto& entityJson : levelJson["entities"]) {
@@ -103,7 +103,22 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         gameState.level.entities.emplace_back(&entity);
     }
 
-    // ----- Unserializing bricks
+    // ----- Panels
+
+    gameState.level.panels.clear();
+    for (auto& panelJson : levelJson["panels"]) {
+        auto panel = std::make_unique<Panel>(gameState);
+
+        panel->transform().worldTransform(unserializeMat4(panelJson["transform"]));
+
+        auto& extentJson = panelJson["extent"];
+        glm::uvec2 extent(extentJson[0], extentJson[1]);
+        panel->extent(extent);
+
+        gameState.level.panels.emplace_back(std::move(panel));
+    }
+
+    // ----- Bricks
 
     gameState.level.bricks.clear();
     for (auto& brickJson : levelJson["bricks"]) {
@@ -120,25 +135,18 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         glm::vec3 color(colorJson[0], colorJson[1], colorJson[2]);
         brick->color(color);
 
+        brick->baseRotationLevel(brickJson["rotationLevel"]);
+
+        auto& snapPanelJson = brickJson["snapPanel"];
+        if (!snapPanelJson.is_null()) {
+            glm::uvec2 snapCoordinates(brickJson["snapCoordinates"][0], brickJson["snapCoordinates"][1]);
+            brick->snap(*gameState.level.panels[snapPanelJson], snapCoordinates);
+        }
+
         // @fixme Keep last because of a bug, blocks won't be moved otherwise.
         brick->transform().worldTransform(unserializeMat4(brickJson["transform"]));
 
         gameState.level.bricks.emplace_back(std::move(brick));
-    }
-
-    // ----- Unserializing panels
-
-    gameState.level.panels.clear();
-    for (auto& panelJson : levelJson["panels"]) {
-        auto panel = std::make_unique<Panel>(gameState);
-
-        panel->transform().worldTransform(unserializeMat4(panelJson["transform"]));
-
-        auto& extentJson = panelJson["extent"];
-        glm::uvec2 extent(extentJson[0], extentJson[1]);
-        panel->extent(extent);
-
-        gameState.level.panels.emplace_back(std::move(panel));
     }
 }
 
@@ -173,14 +181,34 @@ void serializeLevel(GameState& gameState, const std::string& path)
 
         auto blocks = nlohmann::json::array();
         for (auto block : brick.blocks()) {
-            blocks.emplace_back(nlohmann::json::array({block.coordinates.x, block.coordinates.y}));
+            blocks.emplace_back(nlohmann::json::array({block.nonRotatedCoordinates.x, block.nonRotatedCoordinates.y}));
         }
 
         levelJson["bricks"][i] = {
             {"transform", serializeMat4(brick.transform().worldTransform())},
             {"blocks", blocks},
             {"color", nlohmann::json::array({brick.color().r, brick.color().g, brick.color().b})},
+            {"rotationLevel", brick.rotationLevel()},
         };
+
+        uint32_t panelIndex = -1u;
+        if (brick.snapped()) {
+            for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
+                if (gameState.level.panels[i].get() == &brick.snapPanel()) {
+                    panelIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (panelIndex != -1u) {
+            levelJson["bricks"][i]["snapPanel"] = panelIndex;
+            levelJson["bricks"][i]["snapCoordinates"] =
+                nlohmann::json::array({brick.snapCoordinates().x, brick.snapCoordinates().y});
+        }
+        else {
+            levelJson["bricks"][i]["snapPanel"] = {}; // null
+        }
     }
 
     // ----- Entities
