@@ -6,6 +6,7 @@
 #include <lava/dike.hpp>
 #include <lava/magma.hpp>
 
+#include "./environment.hpp"
 #include "./serializer.hpp"
 
 using namespace lava;
@@ -35,6 +36,7 @@ void setupEditor(GameState& gameState)
     // Inputs
 
     engine.input().bindAction("save", {Key::LeftControl, Key::S});
+    engine.input().bindAction("reload-level", {Key::LeftControl, Key::R});
 
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
     auto& editorBehavior = editorEntity.make<sill::BehaviorComponent>();
@@ -82,6 +84,13 @@ void setupEditor(GameState& gameState)
         if (gameState.state != State::Editor) return;
 
         if (gameState.editor.state == EditorState::Idle) {
+            if (engine.input().justDown("reload-level")) {
+                loadLevel(gameState, gameState.level.path);
+                gameState.editor.selectedEntity = nullptr;
+                gameState.editor.gizmoEntity->get<sill::TransformComponent>().scaling(glm::vec3(0.f));
+                return;
+            }
+
             if (engine.input().justDown("left-fire")) {
                 // Check for gizmo hit (above all other entities).
                 for (auto gizmoChild : gameState.editor.gizmoEntity->children()) {
