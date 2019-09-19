@@ -28,7 +28,7 @@ int main(void)
         auto& sphereEntity = engine.make<sill::GameEntity>();
         auto& sphereMeshComponent = sphereEntity.make<sill::MeshComponent>();
         sill::makers::sphereMeshMaker(32u, 1.f)(sphereMeshComponent);
-        sphereMeshComponent.node(0u).mesh->primitive(0u).material(material);
+        sphereMeshComponent.primitive(0, 0).material(material);
 
         sphereEntity.get<sill::TransformComponent>().translate({x, 0.f, 0.});
         x += 1.f;

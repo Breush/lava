@@ -10,10 +10,15 @@ geometry {
 
     uniform {
         vec3 color = vec3(1, 1, 1);
+        bool highlight = false;
     };
 
     bool main() {
-        gBuffer.color = color;
+        if (highlight) {
+            gBuffer.color = color;
+        } else {
+            gBuffer.color = 0.6 * color;
+        }
 
         return false;
     }

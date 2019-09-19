@@ -32,7 +32,7 @@ void setupEnvironment(GameState& gameState)
         auto& skyboxMaterial = engine.scene().make<magma::Material>("skybox");
         skyboxMaterial.set("useEnvironmentMap", true);
         skyboxMaterial.set("lod", 1u);
-        skyMeshComponent.node(0).mesh->primitive(0).material(skyboxMaterial);
+        skyMeshComponent.primitive(0, 0).material(skyboxMaterial);
     }
 
     // Invisible but physically present ground
@@ -61,4 +61,10 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
     }
 
     unserializeLevel(gameState, levelPath);
+
+    if (gameState.level.name == "intro") {
+        auto& clockMeshComponent = gameState.engine->findEntityByName("clock")->get<sill::MeshComponent>();
+        clockMeshComponent.startAnimation("seconds-tick", -1u);
+        clockMeshComponent.startAnimation("seconds-bar-tick", -1u);
+    }
 }

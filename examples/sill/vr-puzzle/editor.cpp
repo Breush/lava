@@ -38,6 +38,11 @@ void setupEditor(GameState& gameState)
     engine.input().bindAction("save", {Key::LeftControl, Key::S});
     engine.input().bindAction("reload-level", {Key::LeftControl, Key::R});
 
+    // @fixme This is for debug for now
+    engine.input().bindAction("rotate-z", Key::R);
+    engine.input().bindAction("scale-up", Key::S);
+    engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
+
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
     auto& editorBehavior = editorEntity.make<sill::BehaviorComponent>();
 
@@ -57,8 +62,8 @@ void setupEditor(GameState& gameState)
             options.transform = glm::rotate(options.transform, math::PI_OVER_TWO, axis);
             options.offset = 0.25f;
             sill::makers::cylinderMeshMaker(8u, 0.02f, 0.5f, options)(axisMeshComponent);
-            axisMeshComponent.node(0).mesh->primitive(0).material(axisMaterial);
-            axisMeshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
+            axisMeshComponent.primitive(0, 0).material(axisMaterial);
+            axisMeshComponent.primitive(0, 0).shadowsCastable(false);
 
             gizmoEntity.addChild(axisEntity);
         }
@@ -84,6 +89,32 @@ void setupEditor(GameState& gameState)
         if (gameState.state != State::Editor) return;
 
         if (gameState.editor.state == EditorState::Idle) {
+            // ----- Gizmos
+
+            float minGizmoAxisDistance = INFINITY;
+            sill::GameEntity* selectedGizmoAxis = nullptr;
+            for (auto gizmoChild : gameState.editor.gizmoEntity->children()) {
+                float gizmoChildDistance = gizmoChild->distanceFrom(gameState.pickingRay);
+                if (gizmoChildDistance <= 0.f) continue;
+
+                if (gizmoChildDistance < minGizmoAxisDistance && gizmoChild->name() == "gizmo-axis") {
+                    minGizmoAxisDistance = gizmoChildDistance;
+                    selectedGizmoAxis = gizmoChild;
+                    break;
+                }
+            }
+
+            // Display highlight for gizmos
+            if (gameState.editor.selectedGizmoAxis) {
+                gameState.editor.selectedGizmoAxis->get<sill::MeshComponent>().material(0, 0)->set("highlight", false);
+            }
+            gameState.editor.selectedGizmoAxis = selectedGizmoAxis;
+            if (selectedGizmoAxis) {
+                selectedGizmoAxis->get<sill::MeshComponent>().material(0, 0)->set("highlight", true);
+            }
+
+            // ----- Reload
+
             if (engine.input().justDown("reload-level")) {
                 loadLevel(gameState, gameState.level.path);
                 gameState.editor.selectedEntity = nullptr;
@@ -91,20 +122,20 @@ void setupEditor(GameState& gameState)
                 return;
             }
 
-            if (engine.input().justDown("left-fire")) {
-                // Check for gizmo hit (above all other entities).
-                for (auto gizmoChild : gameState.editor.gizmoEntity->children()) {
-                    if (gizmoChild->distanceFrom(gameState.pickingRay) > 0.f && gizmoChild->name() == "gizmo-axis") {
-                        uint32_t axisIndex = gameState.editor.gizmoEntity->childIndex(*gizmoChild);
-                        gameState.editor.state = EditorState::MoveAlongAxis;
-                        gameState.editor.axis = g_axes[axisIndex];
+            // ----- Left click
 
-                        Ray axisRay;
-                        axisRay.origin = gameState.editor.selectedEntity->get<sill::TransformComponent>().translation();
-                        axisRay.direction = gameState.editor.axis;
-                        gameState.editor.axisOffset = projectOn(axisRay, gameState.pickingRay);
-                        return;
-                    }
+            if (engine.input().justDown("left-fire")) {
+                // Go the gizmo mode if needed
+                if (gameState.editor.selectedGizmoAxis) {
+                    uint32_t axisIndex = gameState.editor.gizmoEntity->childIndex(*gameState.editor.selectedGizmoAxis);
+                    gameState.editor.state = EditorState::MoveAlongAxis;
+                    gameState.editor.axis = g_axes[axisIndex];
+
+                    Ray axisRay;
+                    axisRay.origin = gameState.editor.selectedEntity->get<sill::TransformComponent>().translation();
+                    axisRay.direction = gameState.editor.axis;
+                    gameState.editor.axisOffset = projectOn(axisRay, gameState.pickingRay);
+                    return;
                 }
 
                 // Select entity on left click if any.
@@ -124,16 +155,19 @@ void setupEditor(GameState& gameState)
             }
             else if (engine.input().justDown("save")) {
                 serializeLevel(gameState, gameState.level.path);
+                return;
             }
         }
+
+        // ----- Selected entity control
 
         if (!gameState.editor.selectedEntity) return;
 
         const auto& translation = gameState.editor.selectedEntity->get<sill::TransformComponent>().translation();
         gameState.editor.gizmoEntity->get<sill::TransformComponent>().translation(translation);
 
-        // @fixme Adapt size given distance to camera!
-        gameState.editor.gizmoEntity->get<sill::TransformComponent>().scaling(glm::vec3(1.f));
+        const auto gizmoDistanceToCamera = std::sqrt(glm::length(gameState.camera->origin() - translation));
+        gameState.editor.gizmoEntity->get<sill::TransformComponent>().scaling(glm::vec3(gizmoDistanceToCamera));
 
         // Move entity if needed.
         if (gameState.editor.state == EditorState::MoveAlongAxis) {
@@ -146,6 +180,17 @@ void setupEditor(GameState& gameState)
                 const Ray axisRay = {.origin = translation, .direction = gameState.editor.axis};
                 const auto delta = projectOn(axisRay, gameState.pickingRay) - gameState.editor.axisOffset;
                 gameState.editor.selectedEntity->get<sill::TransformComponent>().translate(-delta * gameState.editor.axis);
+            }
+        }
+        else if (gameState.editor.state == EditorState::Idle) {
+            if (engine.input().justDown("rotate-z")) {
+                gameState.editor.selectedEntity->get<sill::TransformComponent>().rotate({0, 0, 1}, math::PI_OVER_FOUR);
+            }
+            if (engine.input().justDown("scale-down")) {
+                gameState.editor.selectedEntity->get<sill::TransformComponent>().scale(0.9f);
+            }
+            if (engine.input().justDown("scale-up")) {
+                gameState.editor.selectedEntity->get<sill::TransformComponent>().scale(1.1f);
             }
         }
     });

@@ -45,12 +45,12 @@ namespace {
         gameState.teleportBeamEntity->get<sill::TransformComponent>().worldTransform(
             glm::rotate(glm::translate(glm::mat4(1.f), translation), angles.z, {0, 0, 1}));
 
-        auto& teleportBeamMesh = gameState.teleportBeamEntity->get<sill::MeshComponent>().node(0).mesh->primitive(0);
+        auto& teleportBeamPrimitive = gameState.teleportBeamEntity->get<sill::MeshComponent>().primitive(0, 0);
 
         // @fixme Have state info to prevent useless updates
         // ---> Can this be a mechanic inside material() ?
         bool invalid = (angles.x < math::PI * 0.15f) || (angles.x > math::PI * 0.75f);
-        teleportBeamMesh.material()->set("invalid", invalid);
+        teleportBeamPrimitive.material()->set("invalid", invalid);
 
         constexpr const float velocityPower = 8.f;
         const float velocityFactor = (angles.x - math::PI_OVER_TWO) / math::PI_OVER_FOUR;
@@ -63,7 +63,7 @@ namespace {
         glm::vec3 originRight = {beamWidth / 2.f, 0.f, 0.f};
 
         // Dynamically update the teleport beam.
-        static std::vector<glm::vec3> positions(teleportBeamMesh.verticesCount());
+        static std::vector<glm::vec3> positions(teleportBeamPrimitive.verticesCount());
         for (auto i = 0u; i < 32u; ++i) {
             if (invalid && i > 2) break;
 
@@ -74,7 +74,7 @@ namespace {
             positions[i] = originLeft + delta;
             positions[i + 32u] = originRight + delta;
         }
-        teleportBeamMesh.verticesPositions(positions);
+        teleportBeamPrimitive.verticesPositions(positions);
 
         if (invalid) {
             gameState.teleportAreaEntity->get<sill::TransformComponent>().scaling({0, 0, 0});
@@ -127,9 +127,9 @@ void setupTeleportBeam(GameState& gameState)
     teleportBeamEntity.get<sill::TransformComponent>().scaling({0, 0, 0});
     auto& teleportBeamMaterial = engine.scene().make<magma::Material>("teleport-beam");
     teleportBeamMaterial.set("length", 32.f);
-    meshComponent.node(0).mesh->primitive(0).material(teleportBeamMaterial);
-    meshComponent.node(0).mesh->primitive(0).category(RenderCategory::Translucent);
-    meshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
+    meshComponent.primitive(0, 0).material(teleportBeamMaterial);
+    meshComponent.primitive(0, 0).category(RenderCategory::Translucent);
+    meshComponent.primitive(0, 0).shadowsCastable(false);
 
     // Area
     auto& teleportAreaEntity = engine.make<sill::GameEntity>("teleport-area");
@@ -139,9 +139,9 @@ void setupTeleportBeam(GameState& gameState)
     teleportAreaEntity.get<sill::TransformComponent>().scaling({0, 0, 0});
     auto& teleportAreaMaterial = engine.scene().make<magma::Material>("teleport-area");
     sill::makers::cylinderMeshMaker(32u, 0.75f, 0.25f, {.doubleSided = true})(teleportAreaMeshComponent);
-    teleportAreaMeshComponent.node(0).mesh->primitive(0).material(teleportAreaMaterial);
-    teleportAreaMeshComponent.node(0).mesh->primitive(0).category(RenderCategory::Translucent);
-    teleportAreaMeshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
+    teleportAreaMeshComponent.primitive(0, 0).material(teleportAreaMaterial);
+    teleportAreaMeshComponent.primitive(0, 0).category(RenderCategory::Translucent);
+    teleportAreaMeshComponent.primitive(0, 0).shadowsCastable(false);
 
     // Update
     auto& behaviorComponent = teleportBeamEntity.make<sill::BehaviorComponent>();

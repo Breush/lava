@@ -43,6 +43,7 @@ struct GameState {
     struct {
         lava::sill::GameEntity* selectedEntity = nullptr;
         lava::sill::GameEntity* gizmoEntity = nullptr;
+        lava::sill::GameEntity* selectedGizmoAxis = nullptr;
         EditorState state = EditorState::Idle;
 
         // Used when moving along an axis

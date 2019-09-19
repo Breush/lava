@@ -68,7 +68,7 @@ namespace lava::ashe {
             auto& skyboxMaterial = m_engine.scene().make<magma::Material>("skybox");
             skyboxMaterial.set("useEnvironmentMap", true);
             skyboxMaterial.set("lod", 1u);
-            skyMeshComponent.node(0).mesh->primitive(0).material(skyboxMaterial);
+            skyMeshComponent.primitive(0, 0).material(skyboxMaterial);
         }
 
         sill::GameEngine& engine() { return m_engine; }

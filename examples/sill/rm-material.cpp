@@ -21,7 +21,7 @@ int main(void)
 
     auto& meshComponent = entity.make<sill::MeshComponent>();
     sill::makers::sphereMeshMaker(32u, 1.f)(meshComponent);
-    meshComponent.node(0u).mesh->primitive(0u).material(material);
+    meshComponent.primitive(0, 0).material(material);
 
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     behaviorComponent.onUpdate([&](float dt) {

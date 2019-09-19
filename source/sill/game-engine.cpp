@@ -18,12 +18,19 @@ $pimpl_method(GameEngine, magma::Scene&, scene);
 $pimpl_method(GameEngine, Font&, font, const std::string&, hrid);
 
 // ----- Adders
-void GameEngine::add(std::unique_ptr<GameEntity>&& gameEntity)
+void GameEngine::add(std::unique_ptr<GameEntity>&& entity)
 {
-    m_impl->add(std::move(gameEntity));
+    m_entities.emplace_back(entity.get());
+
+    m_impl->add(std::move(entity));
 }
 
-$pimpl_method(GameEngine, void, remove, const GameEntity&, entity);
+void GameEngine::remove(const GameEntity& entity)
+{
+    m_entities.erase(std::find(m_entities.begin(), m_entities.end(), &entity));
+
+    m_impl->remove(entity);
+}
 
 // ----- Materials
 $pimpl_method(GameEngine, void, environmentTexture, const fs::Path&, imagesPath);
@@ -32,9 +39,6 @@ $pimpl_method(GameEngine, void, registerMaterialFromFile, const std::string&, hr
 $pimpl_method(GameEngine, void, run);
 
 // ----- Tools
-
-$pimpl_method(GameEngine, std::vector<std::unique_ptr<GameEntity>>&, entities);
-$pimpl_method_const(GameEngine, const std::vector<std::unique_ptr<GameEntity>>&, entities);
 
 GameEntity* GameEngine::pickEntity(Ray ray, PickPrecision pickPrecision) const
 {
@@ -55,9 +59,9 @@ GameEntity* GameEngine::pickEntity(Ray ray, PickPrecision pickPrecision) const
 
 GameEntity* GameEngine::findEntityByName(const std::string& name) const
 {
-    for (auto& entity : entities()) {
+    for (auto entity : m_entities) {
         if (entity->name() == name) {
-            return entity.get();
+            return entity;
         }
     }
     return nullptr;

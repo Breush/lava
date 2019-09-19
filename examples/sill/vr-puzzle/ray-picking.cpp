@@ -94,7 +94,7 @@ void setupRayPicking(GameState& gameState)
         boxMeshOptions.origin = sill::BoxOrigin::Bottom;
         // @todo Could be cylinder, and disable shadows
         sill::makers::boxMeshMaker({0.005f, 0.005f, 50.f}, boxMeshOptions)(meshComponent);
-        meshComponent.node(0).mesh->primitive(0).shadowsCastable(false);
+        meshComponent.primitive(0, 0).shadowsCastable(false);
     }
 
     auto& behaviorComponent = rayPickingEntity.make<sill::BehaviorComponent>();

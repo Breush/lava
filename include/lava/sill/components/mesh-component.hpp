@@ -28,6 +28,18 @@ namespace lava::sill {
         const std::vector<MeshNode>& nodes() const;
         void nodes(std::vector<MeshNode>&& nodes);
 
+        // Helper to access a primitive directly.
+        magma::Mesh& primitive(uint32_t nodeIndex, uint32_t primitiveIndex)
+        {
+            return node(nodeIndex).mesh->primitive(primitiveIndex);
+        }
+
+        // Helper to access a material directly.
+        magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex)
+        {
+            return node(nodeIndex).mesh->primitive(primitiveIndex).material();
+        }
+
         // Animations
         void add(const std::string& hrid, const MeshAnimation& animation);
         /// Start an animation. Use -1u for loops to get infinite looping.

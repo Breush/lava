@@ -70,9 +70,9 @@ namespace lava::sill {
          * Its ownership goes to the engine.
          */
         /// @{
-        void add(std::unique_ptr<GameEntity>&& gameEntity);
+        void add(std::unique_ptr<GameEntity>&& entity);
 
-        void remove(const GameEntity& gameEntity);
+        void remove(const GameEntity& entity);
         /// @}
 
         /**
@@ -87,8 +87,8 @@ namespace lava::sill {
          * @name Tools
          */
         /// @{
-        std::vector<std::unique_ptr<GameEntity>>& entities();
-        const std::vector<std::unique_ptr<GameEntity>>& entities() const;
+        std::vector<GameEntity*>& entities() { return m_entities; }
+        const std::vector<GameEntity*>& entities() const { return m_entities; }
 
         /// Find the closest entity that crosses the ray.
         GameEntity* pickEntity(Ray ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
@@ -108,6 +108,8 @@ namespace lava::sill {
         Impl* m_impl = nullptr;
 
         VrManager m_vrManager{*this};
+
+        std::vector<GameEntity*> m_entities;
     };
 }
 
