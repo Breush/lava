@@ -85,7 +85,7 @@ namespace {
 
         // Checking if the level is solved.
         if (checkLevelSolveStatus(gameState)) {
-            levelSolved(gameState); // @fixme Have better logic
+            levelSolved(gameState);
         }
 
         grabbedBrick = nullptr;

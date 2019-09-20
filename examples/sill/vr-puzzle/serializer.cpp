@@ -109,6 +109,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     for (auto& panelJson : levelJson["panels"]) {
         auto panel = std::make_unique<Panel>(gameState);
 
+        panel->name(panelJson["name"]);
         panel->transform().worldTransform(unserializeMat4(panelJson["transform"]));
 
         auto& extentJson = panelJson["extent"];
@@ -168,6 +169,7 @@ void serializeLevel(GameState& gameState, const std::string& path)
     for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
         const auto& panel = *gameState.level.panels[i];
         levelJson["panels"][i] = {
+            {"name", panel.name()},
             {"transform", serializeMat4(panel.transform().worldTransform())},
             {"extent", nlohmann::json::array({panel.extent().x, panel.extent().y})},
         };

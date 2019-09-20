@@ -31,6 +31,9 @@ public:
     const lava::sill::TransformComponent& transform() const { return m_entity->get<lava::sill::TransformComponent>(); };
     lava::sill::TransformComponent& transform() { return m_entity->get<lava::sill::TransformComponent>(); };
 
+    const std::string& name() const { return m_name; }
+    void name(const std::string& name) { m_name = name; }
+
     /// Update extent and associated materials visuals. This also resets all rules.
     const glm::uvec2& extent() const { return m_extent; }
     void extent(const glm::uvec2& extent);
@@ -46,6 +49,9 @@ public:
 
     /// Check and update if panel is completely solved.
     bool checkSolveStatus(bool* solveStatusChanged);
+
+    /// Be warn whenever this panel goes from unsolve to solve status after a checkSolveStatus().
+    void onSolve(std::function<void()> callback);
 
     // @fixme As said above, table stand should not be of our concern in the end.
     lava::magma::Material& tableMaterial() { return *m_tableMaterial; }
@@ -63,6 +69,7 @@ private:
     bool m_lastKnownSolveStatus = true;
 
     // Configuration
+    std::string m_name;
     glm::uvec2 m_extent = {0u, 0u};
     std::vector<std::pair<glm::uvec2, glm::uvec2>> m_links;
 
@@ -76,4 +83,8 @@ private:
     lava::magma::Material* m_material = nullptr;
 
     lava::magma::Material* m_tableMaterial = nullptr;
+
+    std::vector<std::function<void()>> m_solveCallbacks;
 };
+
+Panel& findPanelByName(GameState& gameState, const std::string& name);

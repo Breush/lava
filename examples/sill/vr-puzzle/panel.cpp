@@ -172,8 +172,19 @@ bool Panel::checkSolveStatus(bool* solveStatusChanged)
     }
 
     if (solveStatusChanged) *solveStatusChanged = (m_lastKnownSolveStatus != true);
+    if (*solveStatusChanged) {
+        for (auto& callback : m_solveCallbacks) {
+            callback();
+        }
+    }
+
     m_lastKnownSolveStatus = true;
     return true;
+}
+
+void Panel::onSolve(std::function<void()> callback)
+{
+    m_solveCallbacks.emplace_back(callback);
 }
 
 void Panel::updateFromSnappedBricks()
@@ -283,4 +294,17 @@ bool Panel::isSnappingPointValid(const Brick& brick, const SnappingPoint& snappi
     }
 
     return true;
+}
+
+// -----
+
+Panel& findPanelByName(GameState& gameState, const std::string& name)
+{
+    for (const auto& panel : gameState.level.panels) {
+        if (panel->name() == name) {
+            return *panel;
+        }
+    }
+
+    exit(1);
 }

@@ -44,13 +44,10 @@ void setupEnvironment(GameState& gameState)
     }
 }
 
-void levelSolved(GameState& gameState)
+void levelSolved(GameState& /*gameState*/)
 {
-    // Open clock
-    // @fixme Have panel logic more than level logic.
-    auto wakingHall = gameState.engine->findEntityByName("waking-hall");
-    wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
-    wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
+    // @note Nothing to do, really?
+    // All panels have been solved!
 }
 
 void loadLevel(GameState& gameState, const std::string& levelPath)
@@ -66,5 +63,11 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
         auto& clockMeshComponent = gameState.engine->findEntityByName("clock")->get<sill::MeshComponent>();
         clockMeshComponent.startAnimation("seconds-tick", -1u);
         clockMeshComponent.startAnimation("seconds-bar-tick", -1u);
+
+        findPanelByName(gameState, "intro.waking-hall-clock-controller").onSolve([&gameState]() {
+            auto wakingHall = gameState.engine->findEntityByName("waking-hall");
+            wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
+            wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
+        });
     }
 }
