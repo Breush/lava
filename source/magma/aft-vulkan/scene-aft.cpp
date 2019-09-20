@@ -49,7 +49,7 @@ void SceneAft::init()
 
     m_materialDescriptorHolder.uniformBufferSizes({1});
     m_materialDescriptorHolder.combinedImageSamplerSizes({MATERIAL_SAMPLERS_SIZE, 1}); // samplers, cubeSampler
-    m_materialDescriptorHolder.init(128, vk::ShaderStageFlagBits::eFragment);
+    m_materialDescriptorHolder.init(1024, vk::ShaderStageFlagBits::eFragment);
 
     m_materialGlobalDescriptorHolder.combinedImageSamplerSizes({MATERIAL_SAMPLERS_SIZE});
     m_materialGlobalDescriptorHolder.init(1, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);

@@ -42,12 +42,15 @@ namespace lava::sill {
          */
         GameEntity* parent();
         const GameEntity* parent() const;
-        void parent(GameEntity& parent);
-        void parent(GameEntity* parent);
+        void parent(GameEntity& parent, bool updateParent = true);
+        void parent(GameEntity* parent, bool updateParent = true);
 
-        /// Sets an entity to be our child, and link us as their parent.
-        void addChild(GameEntity& child);
+        /// Sets an entity to be our child, and link us as their parent if specified.
+        void addChild(GameEntity& child, bool updateChild = true);
         const std::vector<GameEntity*>& children() const;
+
+        /// Forget a child of ours.
+        void forgetChild(GameEntity& child, bool updateChild = true);
 
         /// Index of the child within the children list. Returns -1u if not in list.
         uint32_t childIndex(const GameEntity& child) const;

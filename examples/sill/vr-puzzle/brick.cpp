@@ -34,14 +34,14 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
     m_entity->get<sill::ColliderComponent>().clearShapes();
 
     // Create blocks
-    auto brickMaker = sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-brick.glb");
+    static auto blockMaker = sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-brick.glb");
     for (auto i = 0u; i < blocks.size(); ++i) {
         m_blocks[i].nonRotatedCoordinates = blocks[i];
 
         // Allocate block
         auto& entity = m_gameState.engine->make<sill::GameEntity>("block");
         auto& meshComponent = entity.make<sill::MeshComponent>();
-        brickMaker(meshComponent);
+        blockMaker(meshComponent);
         entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});
 
         m_blocks[i].entity = &entity;
@@ -57,6 +57,48 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
 
     updateBlocksColor();
     updateBlocksFromRotationLevel();
+}
+
+void Brick::addBlockV(int32_t x, bool positive)
+{
+    std::vector<glm::ivec2> blocks;
+
+    int32_t y = 0;
+    for (auto block : m_blocks) {
+        blocks.emplace_back(block.nonRotatedCoordinates);
+        if (block.nonRotatedCoordinates.x != x) continue;
+        if (positive && block.nonRotatedCoordinates.y >= y) {
+            y = block.nonRotatedCoordinates.y + 1;
+        }
+        else if (!positive && block.nonRotatedCoordinates.y <= y) {
+            y = block.nonRotatedCoordinates.y - 1;
+        }
+    }
+
+    blocks.emplace_back(x, y);
+
+    this->blocks(blocks);
+}
+
+void Brick::addBlockH(int32_t y, bool positive)
+{
+    std::vector<glm::ivec2> blocks;
+
+    int32_t x = 0;
+    for (auto block : m_blocks) {
+        blocks.emplace_back(block.nonRotatedCoordinates);
+        if (block.nonRotatedCoordinates.y != y) continue;
+        if (positive && block.nonRotatedCoordinates.x >= x) {
+            x = block.nonRotatedCoordinates.x + 1;
+        }
+        else if (!positive && block.nonRotatedCoordinates.x <= x) {
+            x = block.nonRotatedCoordinates.x - 1;
+        }
+    }
+
+    blocks.emplace_back(x, y);
+
+    this->blocks(blocks);
 }
 
 void Brick::color(const glm::vec3& color)
@@ -134,4 +176,17 @@ void Brick::updateBlocksFromRotationLevel()
             block.coordinates.x = -block.coordinates.x;
         }
     }
+}
+
+// -----
+
+Brick& findBrick(GameState& gameState, const sill::GameEntity& entity)
+{
+    for (const auto& brick : gameState.level.bricks) {
+        if (&brick->entity() == &entity) {
+            return *brick;
+        }
+    }
+
+    exit(1);
 }

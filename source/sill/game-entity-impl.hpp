@@ -9,6 +9,7 @@ namespace lava::sill {
     class GameEntity::Impl {
     public:
         Impl(GameEntity& entity, GameEngine& engine);
+        ~Impl();
 
         GameEntity& entity() { return m_entity; }
         const GameEntity& entity() const { return m_entity; }
@@ -16,9 +17,10 @@ namespace lava::sill {
         // GameEntity hierarchy
         GameEntity* parent() { return m_parent; }
         const GameEntity* parent() const { return m_parent; }
-        void parent(GameEntity& parent) { this->parent(&parent); }
-        void parent(GameEntity* parent);
-        void addChild(GameEntity& child);
+        void parent(GameEntity& parent, bool updateParent) { this->parent(&parent, updateParent); }
+        void parent(GameEntity* parent, bool updateParent);
+        void addChild(GameEntity& child, bool updateChild);
+        void forgetChild(GameEntity& child, bool updateChild);
         const std::vector<GameEntity*>& children() const { return m_children; }
 
         // GameEntity components

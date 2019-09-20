@@ -9,6 +9,20 @@ GameEntity::Impl::Impl(GameEntity& entity, GameEngine& engine)
 {
 }
 
+GameEntity::Impl::~Impl()
+{
+    // Remove from parent if any
+    if (m_parent) {
+        m_parent->forgetChild(m_entity, false);
+        m_parent = nullptr;
+    }
+
+    // Forget all children
+    for (auto child : m_children) {
+        child->parent(nullptr, false);
+    }
+}
+
 void GameEntity::Impl::update(float dt)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
@@ -29,18 +43,38 @@ void GameEntity::Impl::update(float dt)
 
 // ----- GameEntity hierarchy
 
-void GameEntity::Impl::parent(GameEntity* parent)
+void GameEntity::Impl::parent(GameEntity* parent, bool updateParent)
 {
-    // @todo We should remove ourselves from parent's children
-    // list if m_parent was previously not-null.
+    if (m_parent) {
+        m_parent->forgetChild(m_entity, false);
+    }
 
     m_parent = parent;
+
+    if (updateParent && m_parent) {
+        m_parent->addChild(m_entity, false);
+    }
 }
 
-void GameEntity::Impl::addChild(GameEntity& child)
+void GameEntity::Impl::addChild(GameEntity& child, bool updateChild)
 {
     m_children.emplace_back(&child);
-    child.parent(entity());
+
+    if (updateChild) {
+        child.parent(m_entity, false);
+    }
+}
+
+void GameEntity::Impl::forgetChild(GameEntity& child, bool updateChild)
+{
+    auto iChild = std::find(m_children.begin(), m_children.end(), &child);
+    if (iChild != m_children.end()) {
+        m_children.erase(iChild);
+    }
+
+    if (updateChild) {
+        child.parent(nullptr, false);
+    }
 }
 
 // ----- GameEntity components

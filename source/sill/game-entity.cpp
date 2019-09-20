@@ -26,10 +26,12 @@ GameEntity::~GameEntity()
 // Hierarchy
 $pimpl_method(GameEntity, GameEntity*, parent);
 $pimpl_method_const(GameEntity, const GameEntity*, parent);
-$pimpl_method(GameEntity, void, parent, GameEntity&, parent);
-$pimpl_method(GameEntity, void, parent, GameEntity*, parent);
-$pimpl_method(GameEntity, void, addChild, GameEntity&, child);
+$pimpl_method(GameEntity, void, parent, GameEntity&, parent, bool, updateParent);
+$pimpl_method(GameEntity, void, parent, GameEntity*, parent, bool, updateParent);
+$pimpl_method(GameEntity, void, addChild, GameEntity&, child, bool, updateChild);
 $pimpl_method_const(GameEntity, const std::vector<GameEntity*>&, children);
+
+$pimpl_method(GameEntity, void, forgetChild, GameEntity&, child, bool, updateChild);
 
 uint32_t GameEntity::childIndex(const GameEntity& child) const
 {

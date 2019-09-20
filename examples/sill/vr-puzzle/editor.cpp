@@ -6,6 +6,7 @@
 #include <lava/dike.hpp>
 #include <lava/magma.hpp>
 
+#include "./brick.hpp"
 #include "./environment.hpp"
 #include "./serializer.hpp"
 
@@ -35,10 +36,16 @@ void setupEditor(GameState& gameState)
 
     // Inputs
 
+    engine.input().bindAction("up", Key::Up);
+    engine.input().bindAction("down", Key::Down);
+    engine.input().bindAction("left", Key::Left);
+    engine.input().bindAction("right", Key::Right);
     engine.input().bindAction("save", {Key::LeftControl, Key::S});
     engine.input().bindAction("reload-level", {Key::LeftControl, Key::R});
 
     // @fixme This is for debug for now
+    engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
+    engine.input().bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
     engine.input().bindAction("rotate-z", Key::R);
     engine.input().bindAction("scale-up", Key::S);
     engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
@@ -111,6 +118,22 @@ void setupEditor(GameState& gameState)
             gameState.editor.selectedGizmoAxis = selectedGizmoAxis;
             if (selectedGizmoAxis) {
                 selectedGizmoAxis->get<sill::MeshComponent>().material(0, 0)->set("highlight", true);
+            }
+
+            // ----- Add
+
+            if (engine.input().justDown("add-panel")) {
+                auto panel = std::make_unique<Panel>(gameState);
+                panel->extent({3, 3});
+                gameState.level.panels.emplace_back(std::move(panel));
+                return;
+            }
+            else if (engine.input().justDown("add-brick")) {
+                auto brick = std::make_unique<Brick>(gameState);
+                brick->blocks({{0, 0}});
+                brick->color({1, 0, 0});
+                gameState.level.bricks.emplace_back(std::move(brick));
+                return;
             }
 
             // ----- Reload
@@ -191,6 +214,21 @@ void setupEditor(GameState& gameState)
             }
             if (engine.input().justDown("scale-up")) {
                 gameState.editor.selectedEntity->get<sill::TransformComponent>().scale(1.1f);
+            }
+
+            if (gameState.editor.selectedEntity->name() == "brick") {
+                if (engine.input().justDown("up")) {
+                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockV(0, true);
+                }
+                if (engine.input().justDown("down")) {
+                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockV(0, false);
+                }
+                if (engine.input().justDown("right")) {
+                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockH(0, true);
+                }
+                if (engine.input().justDown("left")) {
+                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockH(0, false);
+                }
             }
         }
     });

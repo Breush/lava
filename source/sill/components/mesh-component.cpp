@@ -70,6 +70,10 @@ float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
                 auto e10 = p1 - p0;
                 auto e20 = p2 - p0;
 
+                // Ignore triangles with opposite normals
+                auto c = glm::cross(e10, e20);
+                if (glm::dot(c, ray.origin) < 0.f) continue;
+
                 // Ray might be parallel to triangle
                 auto q = glm::cross(ray.direction, e20);
                 auto a = glm::dot(e10, q);
