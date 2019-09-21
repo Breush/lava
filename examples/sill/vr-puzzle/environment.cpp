@@ -5,6 +5,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
 #include <lava/chamber/logger.hpp>
+#include <lava/chamber/math.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
@@ -60,9 +61,29 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
     unserializeLevel(gameState, levelPath);
 
     if (gameState.level.name == "intro") {
-        auto& clockMeshComponent = gameState.engine->findEntityByName("clock")->get<sill::MeshComponent>();
+        auto& clockEntity = *gameState.engine->findEntityByName("clock");
+        auto& clockMeshComponent = clockEntity.get<sill::MeshComponent>();
         clockMeshComponent.startAnimation("seconds-tick", -1u);
         clockMeshComponent.startAnimation("seconds-bar-tick", -1u);
+
+        auto baseTransform = clockMeshComponent.node(2).transform();
+
+        clockEntity.make<sill::BehaviorComponent>().onUpdate([&clockMeshComponent, baseTransform](float dt) {
+            static float timePassed = 60.f;
+            timePassed += dt;
+
+            // We effectively update the clock each minute.
+            if (timePassed >= 60.f) {
+                timePassed -= 60.f;
+
+                auto theTime = time(NULL);
+                auto aTime = localtime(&theTime); // @note Don't free, according to spec'.
+                auto minutes = 60 * aTime->tm_hour + aTime->tm_min;
+                float rotation = (minutes / 720.f) * math::TWO_PI;
+
+                clockMeshComponent.node(2).transform(glm::rotate(baseTransform, rotation, {0, 0, 1}));
+            }
+        });
 
         findPanelByName(gameState, "intro.waking-hall-clock-controller").onSolve([&gameState]() {
             auto wakingHall = gameState.engine->findEntityByName("waking-hall");
