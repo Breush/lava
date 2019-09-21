@@ -55,6 +55,7 @@ namespace lava::sill {
         // Debug
         bool boundingSpheresVisible() const;
         void boundingSpheresVisible(bool boundingSpheresVisible);
+        void printHierarchy(std::ostream& s) const;
 
         /// Path of the file if read from any.
         const std::string& path() const { return m_path; }

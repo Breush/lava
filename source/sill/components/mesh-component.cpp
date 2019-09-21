@@ -5,6 +5,25 @@
 using namespace lava;
 using namespace lava::sill;
 
+namespace {
+    void printNodeHierarchy(const MeshNode& node, std::ostream& s, uint32_t tabs)
+    {
+        for (auto i = 0u; i < tabs; ++i) {
+            s << "    ";
+        }
+
+        s << "[MeshNode] " << node.name;
+        if (node.mesh) {
+            s << " (mesh)";
+        }
+        s << std::endl;
+
+        for (auto child : node.children) {
+            printNodeHierarchy(*child, s, tabs + 1u);
+        }
+    }
+}
+
 $pimpl_class_base(MeshComponent, IComponent, GameEntity&, entity);
 
 // IComponent
@@ -27,6 +46,15 @@ $pimpl_method(MeshComponent, void, onAnimationLoopStart, const std::string&, hri
 $pimpl_method(MeshComponent, void, category, RenderCategory, category);
 $pimpl_method_const(MeshComponent, BoundingSphere, boundingSphere);
 $pimpl_property_v(MeshComponent, bool, boundingSpheresVisible);
+
+void MeshComponent::printHierarchy(std::ostream& s) const
+{
+    s << "[MeshComponent]" << std::endl;
+
+    if (nodes().size() > 0) {
+        printNodeHierarchy(nodes()[0], s, 1u);
+    }
+}
 
 float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
 {
