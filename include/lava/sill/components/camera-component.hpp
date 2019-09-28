@@ -33,6 +33,9 @@ namespace lava::sill {
         void radiusAdd(float radiusDistance);
         void orbitAdd(float longitudeAngle, float latitudeAngle);
 
+        void goForward(float distance, const glm::vec3& constraints = {1, 1, 1});
+        void goRight(float distance, const glm::vec3& constraints = {1, 1, 1});
+
         const glm::mat4& viewTransform() const;
         const glm::mat4& projectionTransform() const;
 

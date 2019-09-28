@@ -20,6 +20,20 @@ $pimpl_method(CameraComponent, void, strafe, float, x, float, y);
 $pimpl_method(CameraComponent, void, radiusAdd, float, radiusDistance);
 $pimpl_method(CameraComponent, void, orbitAdd, float, longitudeAngle, float, latitudeAngle);
 
+void CameraComponent::goForward(float distance, const glm::vec3& constraints)
+{
+    auto offset = distance * glm::normalize(constraints * (target() - origin()));
+    origin(origin() + offset);
+    target(target() + offset);
+}
+
+void CameraComponent::goRight(float distance, const glm::vec3& constraints)
+{
+    auto offset = distance * glm::normalize(constraints * glm::cross(target() - origin(), {0, 0, 1}));
+    origin(origin() + offset);
+    target(target() + offset);
+}
+
 $pimpl_method_const(CameraComponent, const glm::mat4&, viewTransform);
 $pimpl_method_const(CameraComponent, const glm::mat4&, projectionTransform);
 
