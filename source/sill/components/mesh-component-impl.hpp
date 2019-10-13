@@ -21,6 +21,8 @@ namespace lava::sill {
         std::vector<MeshNode>& nodes() { return m_nodes; }
         const std::vector<MeshNode>& nodes() const { return m_nodes; }
         void nodes(std::vector<MeshNode>&& nodes);
+        MeshNode& addNode();
+
         void add(const std::string& hrid, const MeshAnimation& animation);
         void startAnimation(const std::string& hrid, uint32_t loops);
         void category(RenderCategory category);

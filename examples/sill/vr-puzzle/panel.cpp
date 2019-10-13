@@ -18,31 +18,25 @@ Panel::Panel(GameState& gameState)
     // @fixme This panel should be more abstract and not
     // hold the table stand mesh.
 
-    // Set up panel material
-    m_material = &engine.scene().make<magma::Material>("panel");
-
-    // Load and get table info
+    // Create panel
     m_entity = &engine.make<sill::GameEntity>("panel");
     auto& meshComponent = m_entity->make<sill::MeshComponent>();
-    sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-table.glb")(meshComponent);
+    sill::makers::PlaneMeshOptions options{.rootNodeHasGeometry = false};
+    sill::makers::planeMeshMaker({blockExtent.x, blockExtent.y}, options)(meshComponent);
+    m_material = &engine.scene().make<magma::Material>("panel");
+    meshComponent.primitive(1, 0).material(*m_material);
+
+    // Create border
+    auto& meshNode = meshComponent.addNode();
+    meshNode.name = "border";
+    meshNode.mesh = std::make_unique<sill::Mesh>(*m_gameState.engine);
+    meshNode.parent = &meshComponent.node(0);
+    meshComponent.node(0).children.emplace_back(&meshNode);
+    m_borderMaterial = &engine.scene().make<magma::Material>("roughness-metallic");
+    meshNode.mesh->addPrimitive().material(*m_borderMaterial);
+
     m_entity->make<sill::AnimationComponent>();
     m_entity->get<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
-
-    for (auto& node : meshComponent.nodes()) {
-        if (node.name == "table") {
-            // @todo As said above, we don't hold table stand material
-            // because it should not even be our job creating it.
-            m_tableMaterial = node.mesh->primitive(0).material();
-            continue;
-        }
-
-        // Setting panel material
-        if (node.name == "panel") {
-            m_meshNode = &node;
-            node.mesh->primitive(0).material(*m_material);
-            continue;
-        }
-    }
 }
 
 Panel::~Panel()
@@ -54,6 +48,12 @@ void Panel::extent(const glm::uvec2& extent)
 {
     m_extent = extent;
     m_material->set("extent", extent);
+    m_entity->get<sill::MeshComponent>().node(1).transform(glm::scale(glm::mat4(1.f), {m_extent.x, m_extent.y, 1}));
+
+    updateBorderMeshPrimitive();
+
+    // @fixme NEEDED to refresh node transforms.
+    m_entity->get<sill::TransformComponent>().worldTransform(m_entity->get<sill::TransformComponent>().worldTransform());
 
     // Reset rules
     m_lastKnownSolveStatus = true;
@@ -210,19 +210,104 @@ void Panel::updateFromSnappedBricks()
 
 // Internal
 
+void Panel::updateBorderMeshPrimitive()
+{
+    auto& meshComponent = m_entity->get<sill::MeshComponent>();
+
+    constexpr const float thickness = 0.1f;
+
+    const float halfWidth = blockExtent.x * m_extent.x / 2.f;
+    const float halfHeight = blockExtent.y * m_extent.y / 2.f;
+    const float halfDepth = blockExtent.z / 2.f;
+
+    // @note Points are duplicated so that normals look nice.
+    std::vector<glm::vec3> positions = {
+        // BACK: Outer
+        {-halfWidth - thickness, -halfHeight - thickness, -halfDepth},
+        {halfWidth + thickness, -halfHeight - thickness, -halfDepth},
+        {halfWidth + thickness, halfHeight + thickness, -halfDepth},
+        {-halfWidth - thickness, halfHeight + thickness, -halfDepth},
+        // FRONT: Inner
+        {-halfWidth, -halfHeight, halfDepth},
+        {halfWidth, -halfHeight, halfDepth},
+        {halfWidth, halfHeight, halfDepth},
+        {-halfWidth, halfHeight, halfDepth},
+        // FRONT: Outer
+        {-halfWidth - thickness, -halfHeight - thickness, halfDepth},
+        {halfWidth + thickness, -halfHeight - thickness, halfDepth},
+        {halfWidth + thickness, halfHeight + thickness, halfDepth},
+        {-halfWidth - thickness, halfHeight + thickness, halfDepth},
+        // LEFT: Outer
+        {-halfWidth - thickness, -halfHeight - thickness, halfDepth},
+        {-halfWidth - thickness, halfHeight + thickness, halfDepth},
+        {-halfWidth - thickness, halfHeight + thickness, -halfDepth},
+        {-halfWidth - thickness, -halfHeight - thickness, -halfDepth},
+        // LEFT: Inner
+        {-halfWidth, -halfHeight, halfDepth},
+        {-halfWidth, halfHeight, halfDepth},
+        {-halfWidth, halfHeight, -halfDepth},
+        {-halfWidth, -halfHeight, -halfDepth},
+        // TOP: Outer
+        {-halfWidth - thickness, halfHeight + thickness, halfDepth},
+        {halfWidth + thickness, halfHeight + thickness, halfDepth},
+        {halfWidth + thickness, halfHeight + thickness, -halfDepth},
+        {-halfWidth - thickness, halfHeight + thickness, -halfDepth},
+        // TOP: Inner
+        {-halfWidth, halfHeight, halfDepth},
+        {halfWidth, halfHeight, halfDepth},
+        {halfWidth, halfHeight, -halfDepth},
+        {-halfWidth, halfHeight, -halfDepth},
+        // RIGHT: Outer
+        {halfWidth + thickness, -halfHeight - thickness, -halfDepth},
+        {halfWidth + thickness, halfHeight + thickness, -halfDepth},
+        {halfWidth + thickness, halfHeight + thickness, halfDepth},
+        {halfWidth + thickness, -halfHeight - thickness, halfDepth},
+        // RIGHT: Inner
+        {halfWidth, -halfHeight, -halfDepth},
+        {halfWidth, halfHeight, -halfDepth},
+        {halfWidth, halfHeight, halfDepth},
+        {halfWidth, -halfHeight, halfDepth},
+        // BOTTOM: Outer
+        {-halfWidth - thickness, -halfHeight - thickness, -halfDepth},
+        {halfWidth + thickness, -halfHeight - thickness, -halfDepth},
+        {halfWidth + thickness, -halfHeight - thickness, halfDepth},
+        {-halfWidth - thickness, -halfHeight - thickness, halfDepth},
+        // BOTTOM: Inner
+        {-halfWidth, -halfHeight, -halfDepth},
+        {halfWidth, -halfHeight, -halfDepth},
+        {halfWidth, -halfHeight, halfDepth},
+        {-halfWidth, -halfHeight, halfDepth},
+
+    };
+
+    std::vector<uint16_t> indices = {// BACK
+                                     2, 1, 0, 0, 3, 2,
+                                     // FRONT
+                                     9, 5, 4, 4, 8, 9, 10, 6, 5, 5, 9, 10, 11, 7, 6, 6, 10, 11, 8, 4, 7, 7, 11, 8,
+                                     // LEFT
+                                     12, 13, 14, 14, 15, 12, 18, 17, 16, 16, 19, 18,
+                                     // TOP
+                                     20, 21, 22, 22, 23, 20, 26, 25, 24, 24, 27, 26,
+                                     // RIGHT
+                                     28, 29, 30, 30, 31, 28, 34, 33, 32, 32, 35, 34,
+                                     // BOTTOM
+                                     36, 37, 38, 38, 39, 36, 42, 41, 40, 40, 43, 42};
+
+    auto& primitive = meshComponent.primitive(2, 0);
+    primitive.verticesCount(positions.size());
+    primitive.verticesPositions(positions);
+    primitive.indices(indices);
+    primitive.computeFlatNormals();
+    primitive.computeTangents();
+}
+
 void Panel::updateSnappingPoints()
 {
     if (m_extent.x == 0 || m_extent.y == 0) return;
 
     // Update snappingPoints
     glm::vec3 fextent(1.f - glm::vec2(m_extent), 0.f);
-
-    // Setting local transform for the brick to snap nicely
-    glm::mat4 originTransform = glm::mat4(1.f);
-    originTransform[3] = {0, 0, 1.205f, 1}; // @note Panel height, as defined within model
-    originTransform = glm::rotate(originTransform, 3.14156f * 0.5f, {0, 0, 1});
-    originTransform = glm::rotate(originTransform, 3.14156f * 0.375f, {1, 0, 0});
-    originTransform = glm::translate(originTransform, fextent * blockExtent / 2.f);
+    glm::mat4 originTransform = glm::translate(glm::mat4(1.f), fextent * blockExtent / 2.f);
 
     m_snappingPoints.resize(m_extent.x);
     for (auto i = 0u; i < m_extent.x; ++i) {

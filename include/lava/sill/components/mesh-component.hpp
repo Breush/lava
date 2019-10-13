@@ -27,6 +27,7 @@ namespace lava::sill {
         std::vector<MeshNode>& nodes();
         const std::vector<MeshNode>& nodes() const;
         void nodes(std::vector<MeshNode>&& nodes);
+        MeshNode& addNode(); // Emplace back a node.
 
         // Helper to access a primitive directly.
         magma::Mesh& primitive(uint32_t nodeIndex, uint32_t primitiveIndex)

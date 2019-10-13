@@ -149,6 +149,32 @@ void MeshComponent::Impl::nodes(std::vector<MeshNode>&& nodes)
     onWorldTransformChanged();
 }
 
+MeshNode& MeshComponent::Impl::addNode()
+{
+    MeshNode* rootNode = nullptr;
+    if (m_nodes.size() > 0u) {
+        rootNode = &m_nodes.at(0u);
+    }
+
+    m_nodes.emplace_back();
+
+    // @note As m_nodes might have reallocated some buffer,
+    // we update all previous pointers if needed.
+    if (rootNode != &m_nodes.at(0u)) {
+        for (auto i = 0u; i < m_nodes.size() - 1u; ++i) {
+            auto& node = m_nodes.at(i);
+            if (node.parent) {
+                node.parent = &m_nodes.at(node.parent - rootNode);
+            }
+            for (auto j = 0u; j < node.children.size(); ++j) {
+                node.children.at(j) = &m_nodes.at(node.children.at(j) - rootNode);
+            }
+        }
+    }
+
+    return m_nodes.back();
+}
+
 void MeshComponent::Impl::add(const std::string& hrid, const MeshAnimation& animation)
 {
     auto& animationInfo = m_animationsInfos[hrid];

@@ -53,10 +53,10 @@ public:
     /// Be warn whenever this panel goes from unsolve to solve status after a checkSolveStatus().
     void onSolve(std::function<void()> callback);
 
-    // @fixme As said above, table stand should not be of our concern in the end.
-    lava::magma::Material& tableMaterial() { return *m_tableMaterial; }
+    lava::magma::Material& borderMaterial() { return *m_borderMaterial; }
 
 protected:
+    void updateBorderMeshPrimitive();
     void updateSnappingPoints();
     void updateUniformData();
     void updateFromSnappedBricks();
@@ -79,10 +79,9 @@ private:
 
     // Mesh
     lava::sill::GameEntity* m_entity = nullptr;
-    lava::sill::MeshNode* m_meshNode = nullptr;
     lava::magma::Material* m_material = nullptr;
 
-    lava::magma::Material* m_tableMaterial = nullptr;
+    lava::magma::Material* m_borderMaterial = nullptr;
 
     std::vector<std::function<void()>> m_solveCallbacks;
 };

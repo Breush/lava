@@ -25,13 +25,13 @@ namespace {
             // Visual feedback: unsolved panels are white, and solved panels green.
             if (panelSolveStatusChanged) {
                 if (!panelSolved) {
-                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor", 0.5f);
-                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor",
+                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor", 0.5f);
+                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor",
                                               glm::vec4{1.f, 1.f, 1.f, 1.f});
                 }
                 else {
-                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor", 0.1f);
-                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->tableMaterial(), "albedoColor",
+                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor", 0.1f);
+                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor",
                                               glm::vec4{0.46, 0.95, 0.46, 1.f});
                 }
             }

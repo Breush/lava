@@ -254,7 +254,7 @@ epiphany {
 
         // ----- Shadow
 
-        color *= (1.0 - shadow);
+        // color *= (1.0 - shadow);
 
         // ----- Emissive
 

@@ -73,7 +73,17 @@ std::function<void(MeshComponent&)> makers::planeMeshMaker(const glm::vec2& dime
         primitive.indices(indices);
 
         std::vector<MeshNode> nodes(1u);
-        nodes[0u].mesh = std::move(mesh);
+
+        if (options.rootNodeHasGeometry) {
+            nodes[0u].mesh = std::move(mesh);
+        }
+        else {
+            nodes.emplace_back();
+            nodes[1u].mesh = std::move(mesh);
+            nodes[1u].parent = &nodes[0u];
+            nodes[0u].children.emplace_back(&nodes[1u]);
+        }
+
         meshComponent.nodes(std::move(nodes));
     };
 }

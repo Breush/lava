@@ -46,7 +46,9 @@ void setupEditor(GameState& gameState)
     // @fixme This is for debug for now
     engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
     engine.input().bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
+    engine.input().bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
     engine.input().bindAction("rotate-z", Key::R);
+    engine.input().bindAction("rotate-x", {Key::LeftShift, Key::R});
     engine.input().bindAction("scale-up", Key::S);
     engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
 
@@ -135,6 +137,25 @@ void setupEditor(GameState& gameState)
                 gameState.level.bricks.emplace_back(std::move(brick));
                 return;
             }
+            else if (engine.input().justDown("add-mesh")) {
+                std::cout << "Available meshes:" << std::endl;
+                for (const auto& entry : std::filesystem::directory_iterator("./assets/models/vr-puzzle/")) {
+                    if (entry.path().extension() == ".glb") {
+                        std::cout << entry.path() << std::endl;
+                    }
+                }
+
+                std::string fileName;
+                std::cout << "Please enter a .glb file name (without path nor extension):" << std::endl;
+                std::cin >> fileName;
+                auto filePath = "./assets/models/vr-puzzle/" + fileName + ".glb";
+
+                auto& entity = gameState.engine->make<sill::GameEntity>(fileName);
+                auto& meshComponent = entity.make<sill::MeshComponent>();
+                sill::makers::glbMeshMaker(filePath)(meshComponent);
+                gameState.level.entities.emplace_back(&entity);
+                return;
+            }
 
             // ----- Reload
 
@@ -206,8 +227,11 @@ void setupEditor(GameState& gameState)
             }
         }
         else if (gameState.editor.state == EditorState::Idle) {
-            if (engine.input().justDown("rotate-z")) {
+            if (engine.input().justDown("rotate-z") && !engine.input().down("rotate-x")) { // R but not when Shift + R
                 gameState.editor.selectedEntity->get<sill::TransformComponent>().rotate({0, 0, 1}, math::PI_OVER_FOUR);
+            }
+            if (engine.input().justDown("rotate-x")) {
+                gameState.editor.selectedEntity->get<sill::TransformComponent>().rotate({1, 0, 0}, math::PI_OVER_FOUR);
             }
             if (engine.input().justDown("scale-down")) {
                 gameState.editor.selectedEntity->get<sill::TransformComponent>().scale(0.9f);
