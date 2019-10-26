@@ -405,9 +405,11 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
+    moduleOptions.defines["MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);
     moduleOptions.defines["MATERIAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);
+    moduleOptions.defines["MATERIAL_GLOBAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
     if (firstTime) moduleOptions.updateCallback = [this]() { updateGeometryPassShaders(false); };
 
