@@ -33,7 +33,7 @@ end
 if not fileExists("./include/openvr/openvr.h") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
 
-    os.execute("bash ../scripts/setup/openvr.sh " .. VERSION)
+    os.execute("bash ../scripts/setup/openvr.sh")
 end
 
 -- Use hook

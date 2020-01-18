@@ -21,7 +21,8 @@ Panel::Panel(GameState& gameState)
     // Create panel
     m_entity = &engine.make<sill::GameEntity>("panel");
     auto& meshComponent = m_entity->make<sill::MeshComponent>();
-    sill::makers::PlaneMeshOptions options{.rootNodeHasGeometry = false};
+    sill::makers::PlaneMeshOptions options;
+    options.rootNodeHasGeometry = false;
     sill::makers::planeMeshMaker({blockExtent.x, blockExtent.y}, options)(meshComponent);
     m_material = &engine.scene().make<magma::Material>("panel");
     meshComponent.primitive(1, 0).material(*m_material);

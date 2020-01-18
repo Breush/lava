@@ -5,12 +5,6 @@
 
 cd $(dirname "$0")/..
 
-# Find program indentified by the make alias
-MAKE="make"
-if [ `uname -o` == "Msys" ]; then
-    MAKE="mingw32-make"
-fi
-
 # These are needed for Vulkan validation layers to work
 export LD_LIBRARY_PATH=`pwd`/external/lib:${LD_LIBRARY_PATH}
 export VK_LAYER_PATH=`pwd`/external/etc/vulkan/explicit_layer.d
@@ -23,7 +17,7 @@ else
 fi
 
 # Find a make target that match the name
-TARGETS=$(${MAKE} help | grep -P '^   (?!all|clean|lava-)' | grep "$1")
+TARGETS=$(make help | grep -P '^   (?!all|clean|lava-)' | grep "$1")
 TARGETS=($TARGETS)
 TARGETS_COUNT=${#TARGETS[@]}
 
@@ -40,9 +34,9 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
     echo -e "\e[35mBuilding ${TARGET}...\e[39m"
 
     if [ "$2" == "slow" ]; then
-        ${MAKE} config=${CONFIG} ${TARGET}
+        make config=${CONFIG} ${TARGET}
     else
-        ${MAKE} config=${CONFIG} -j 3 ${TARGET}
+        make config=${CONFIG} -j 3 ${TARGET}
     fi
 
     # Run

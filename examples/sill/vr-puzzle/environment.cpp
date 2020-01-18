@@ -26,7 +26,8 @@ void setupEnvironment(GameState& gameState)
 
         auto& skyboxEntity = engine.make<sill::GameEntity>("skybox");
         auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
-        sill::makers::BoxMeshOptions options{.siding = sill::BoxSiding::In};
+        sill::makers::BoxMeshOptions options;
+        options.siding = sill::BoxSiding::In;
         sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
         skyMeshComponent.category(RenderCategory::Depthless);
 

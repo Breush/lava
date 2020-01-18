@@ -52,7 +52,7 @@ void Texture::loadCubeFromMemory(const std::array<const uint8_t*, 6u>& imagesPix
     aft().foreLoadCubeFromMemory(imagesPixels, width, height);
 }
 
-void Texture::loadCubeFromFiles(const std::string& imagesPath)
+void Texture::loadCubeFromFiles(const fs::Path& imagesPath)
 {
     std::vector<std::string> fileNames = {"right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg"};
 
@@ -61,8 +61,8 @@ void Texture::loadCubeFromFiles(const std::string& imagesPath)
 
     int32_t width, height;
     for (auto i = 0u; i < 6u; ++i) {
-        auto imagePath = imagesPath + fileNames[i];
-        std::ifstream file(imagePath, std::ios::binary);
+        auto imagePath = imagesPath / fileNames[i];
+        std::ifstream file(imagePath.string(), std::ios::binary);
 
         if (!file.is_open()) {
             logger.warning("magma.texture") << "Unable to find file " << imagePath << "." << std::endl;

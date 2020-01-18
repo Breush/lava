@@ -4,6 +4,8 @@
 
 #if defined(LAVA_FLOW_AUDIO_PULSE)
 #include "./backends/pulse/sound-impl.hpp"
+#else
+#include "./backends/dummy/sound-impl.hpp"
 #endif
 
 using namespace lava::flow;

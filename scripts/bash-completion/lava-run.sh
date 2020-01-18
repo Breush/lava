@@ -10,21 +10,15 @@ _lava_run()
 
     if (( $COMP_CWORD == 1 )); then
 
-        # Find program indentified by the make alias
-        local MAKE="make"
-        if [ `uname -o` == "Msys" ]; then
-            MAKE="mingw32-make"
-        fi
-
         # Find a make target that match the name
-        local TARGETS=$(${MAKE} help | grep -P '^   (?!all|clean|lava-)' | grep "$WORD")
+        local TARGETS=$(make help | grep -P '^   (?!all|clean|lava-)' | grep "$WORD")
 
         COMPREPLY=($TARGETS)
 
     elif (( $COMP_CWORD == 2 )); then
 
         COMPREPLY=( $(compgen -W "debug" -- $WORD) )
-  
+
     fi
 
     return 0

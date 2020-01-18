@@ -33,7 +33,7 @@ namespace lava::magma {
         /// Order or filenames must be right, left, top, bottom, front, back.
         /// @note All cubes are currently required to have 4 channels.
         void loadCubeFromMemory(const std::array<const uint8_t*, 6u>& imagesPixels, uint32_t width, uint32_t height);
-        void loadCubeFromFiles(const std::string& imagesPath);
+        void loadCubeFromFiles(const fs::Path& imagesPath);
         /// @}
 
     private:

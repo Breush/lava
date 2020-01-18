@@ -7,7 +7,7 @@ local VERSION = "1.1.121.1"
 
 local localFile = "./.tmp/vulkan-sdk_" .. VERSION .. ".tar.gz";
 if not fileValid(localFile) then
-    checkProgramsAny({"make", "mingw32-make"}, NAME)
+    checkProgram("make", NAME)
     checkProgram("cmake", NAME)
     checkProgram("python", NAME)
 
@@ -59,9 +59,9 @@ function useVulkanSdk()
     if os.host() == "windows" then
         links { "vulkan-1" }
         links {
-            "shadercd", "shaderc_utild",
+            "shaderc", "shaderc_util",
             "glslangd", "OSDependentd", "OGLCompilerd",
-            "SPIRVd", "HLSLd", "SPIRV-Tools-optd", "SPIRV-Toolsd",
+            "SPIRVd", "HLSLd", "SPIRV-Tools-opt", "SPIRV-Tools",
         }
     else
         links { "vulkan" }

@@ -3,13 +3,11 @@
 cd "$(dirname "$0")"
 ROOT_DIR="$(pwd)/../../external"
 
-VERSION="$1"
+VERSION=$(cat "$ROOT_DIR/vulkan-sdk.lua" | grep VERSION -m 1 | cut -d '"' -f 2)
 
 #===== Windows
 
 if [ `uname -o` == "Msys" ]; then
-    MAKE="mingw32-make"
-
     #===== Vulkan SDK
 
     cd "${ROOT_DIR}/.tmp"
@@ -25,8 +23,8 @@ if [ `uname -o` == "Msys" ]; then
     cd "${ROOT_DIR}/.tmp/${FOLDER}"
     mkdir -p build
     cd build
-    CXXFLAGS=-fPIC cmake .. -G"Unix Makefiles" -DCMAKE_MAKE_PROGRAM="${MAKE}" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    ${MAKE} -j 2 shaderc
+    CXXFLAGS=-fPIC cmake .. -G"Unix Makefiles" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    make -j 2 shaderc
 
     cd "${ROOT_DIR}/.tmp"
     cp -R ${FOLDER}/libshaderc/include/* ../include
@@ -35,8 +33,6 @@ if [ `uname -o` == "Msys" ]; then
 #===== Linux based
 
 else
-    MAKE="make"
-
     cd "${ROOT_DIR}/.tmp"
     tar -zxvf vulkan-sdk_${VERSION}.tar.gz
 

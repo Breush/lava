@@ -3,12 +3,7 @@
 cd "$(dirname "$0")"
 ROOT_DIR="$(pwd)/../../external"
 
-VERSION="$1"
-
-MAKE="make"
-if [ `uname -o` == "Msys" ]; then
-    MAKE="mingw32-make"
-fi
+VERSION=$(cat "$ROOT_DIR/openvr.lua" | grep VERSION -m 1 | cut -d '"' -f 2)
 
 # Setting up
 cd "${ROOT_DIR}/.tmp"
@@ -21,3 +16,4 @@ cd "${FOLDER}"
 mkdir -p ../../include/openvr
 cp -R headers/* ../../include/openvr
 cp -R lib/linux64/* ../../lib
+cp -R lib/win64/* ../../lib

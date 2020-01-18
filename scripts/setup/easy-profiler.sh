@@ -5,11 +5,6 @@ ROOT_DIR="$(pwd)/../../external"
 
 VERSION="$1"
 
-MAKE="make"
-if [ `uname -o` == "Msys" ]; then
-    MAKE="mingw32-make"
-fi
-
 # Setting up
 cd "${ROOT_DIR}/.tmp"
 unzip -n easy_profiler_${VERSION}.zip
@@ -20,8 +15,8 @@ FOLDER=`pwd`
 cd "${FOLDER}"
 mkdir -p build
 cd build
-cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_MAKE_PROGRAM="${MAKE}" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-${MAKE} -j 2
+cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+make -j 2
 
 # Copying libs
 cd "${FOLDER}"
