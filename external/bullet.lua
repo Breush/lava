@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Bullet"
-local VERSION = "2.88"
+local VERSION = "2.89"
 
 -- Download
 
