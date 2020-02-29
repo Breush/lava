@@ -34,7 +34,7 @@ namespace {
      */
     inline bool deviceExtensionsSupported(vk::PhysicalDevice physicalDevice, const std::vector<const char*>& deviceExtensions)
     {
-        auto extensions = physicalDevice.enumerateDeviceExtensionProperties();
+        auto extensions = physicalDevice.enumerateDeviceExtensionProperties().value;
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
         for (const auto& extension : extensions) {
@@ -134,7 +134,7 @@ void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* pSu
     logger.info("magma.vulkan.device-holder") << "Picking the right GPU." << std::endl;
     logger.log().tab(1);
 
-    auto physicalDevices = instance.enumeratePhysicalDevices();
+    auto physicalDevices = instance.enumeratePhysicalDevices().value;
     logger.info("magma.vulkan.device-holder") << "Found " << physicalDevices.size() << " GPUs." << std::endl;
 
     if (physicalDevices.size() == 0) {
@@ -163,7 +163,8 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
     float queuePriority = 1.0f;
     m_queueFamilyIndices = findQueueFamilies(m_physicalDevice, pSurface);
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::set<int> uniqueQueueFamilies = {m_queueFamilyIndices.graphics, m_queueFamilyIndices.transfer, m_queueFamilyIndices.present};
+    std::set<int> uniqueQueueFamilies = {m_queueFamilyIndices.graphics, m_queueFamilyIndices.transfer,
+                                         m_queueFamilyIndices.present};
 
     for (int queueFamily : uniqueQueueFamilies) {
         vk::DeviceQueueCreateInfo queueCreateInfo = {};
@@ -210,6 +211,7 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
         logger.error("magma.vulkan.device-holder") << "Unable to create logical device. " << std::endl;
     };
 
+    std::cout << m_queueFamilyIndices.graphics << std::endl;
     m_graphicsQueue = m_device.vk().getQueue(m_queueFamilyIndices.graphics, 0);
     m_transferQueue = m_device.vk().getQueue(m_queueFamilyIndices.transfer, 0);
     m_presentQueue = m_device.vk().getQueue(m_queueFamilyIndices.present, 0);

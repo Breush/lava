@@ -2,8 +2,6 @@
 
 #include <lava/magma/render-image.hpp>
 
-#include <vulkan/vulkan.hpp>
-
 namespace lava::magma {
     class Camera;
     class Scene;

@@ -55,7 +55,7 @@ namespace {
 
     bool layersSupported(const std::vector<const char*>& layers)
     {
-        auto availableLayers = vk::enumerateInstanceLayerProperties();
+        auto availableLayers = vk::enumerateInstanceLayerProperties().value;
 
         for (auto layerName : layers) {
             bool layerFound = false;
@@ -133,7 +133,7 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
 {
     // Logging all available extensions
     bool debugUtilsExtensionAvailable = false;
-    auto extensions = vk::enumerateInstanceExtensionProperties();
+    auto extensions = vk::enumerateInstanceExtensionProperties().value;
     logger.info("magma.vulkan.instance-holder") << "Available extensions:" << std::endl;
     logger.log().tab(1);
     for (const auto& extension : extensions) {

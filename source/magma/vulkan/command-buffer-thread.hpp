@@ -2,7 +2,6 @@
 
 #include <lava/chamber/thread.hpp>
 #include <lava/magma/render-engine.hpp>
-#include <vulkan/vulkan.hpp>
 
 #include "./stages/i-renderer-stage.hpp"
 #include "./wrappers.hpp"

@@ -130,7 +130,7 @@ void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& wind
     m_swapchain = newSwapchain;
 
     // Retrieving image handles (we need to request the real image count as the implementation can require more)
-    m_images = m_engine.device().getSwapchainImagesKHR(m_swapchain);
+    m_images = m_engine.device().getSwapchainImagesKHR(m_swapchain).value;
 
     for (const auto& image : m_images) {
         m_engine.deviceHolder().debugObjectName(image, "magma.vulkan.swapchain-holder.image");

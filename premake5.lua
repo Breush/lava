@@ -28,7 +28,7 @@ workspace "lava-renderer"
     warnings "Extra"
 
     filter { "toolset:gcc" }
-        buildoptions { "-fmax-errors=3" }
+        buildoptions { "-fmax-errors=3 -fno-exceptions" }
 
     filter { "toolset:clang"}
         buildoptions { "-ferror-limit=3" }

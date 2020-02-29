@@ -68,8 +68,8 @@ function useVulkanSdk()
         links { "shaderc_shared" }
     end
 
-
     linkoptions("-pthread")
+    defines { "VULKAN_HPP_NO_EXCEPTIONS" }
 
     filter { not "configurations:release" }
         linkoptions("-Wl,-rpath," .. externalPath .. "/lib")

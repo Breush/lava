@@ -193,7 +193,7 @@ namespace {
             meshPrimitive.category(translucent ? RenderCategory::Translucent : RenderCategory::Opaque);
         }
 
-        return std::move(meshData);
+        return meshData;
     }
 
     MeshNode* loadNode(GameEntity& entity, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
