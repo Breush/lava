@@ -90,7 +90,7 @@ namespace lava::magma {
         // GBuffer
         vulkan::DescriptorHolder m_gBufferInputDescriptorHolder;
         vk::DescriptorSet m_gBufferInputDescriptorSet = nullptr;
-        std::vector<vulkan::ImageHolder> m_gBufferInputNodeImageHolders;
+        std::vector<std::unique_ptr<vulkan::ImageHolder>> m_gBufferInputNodeImageHolders;
 
         vulkan::DescriptorHolder m_gBufferSsboDescriptorHolder;
         vk::DescriptorSet m_gBufferSsboDescriptorSet = nullptr;

@@ -483,9 +483,9 @@ void DeepDeferredStage::createResources()
     m_gBufferInputNodeImageHolders.reserve(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     auto gBufferHeaderFormat = vk::Format::eR32G32B32A32Uint;
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
-        m_gBufferInputNodeImageHolders.emplace_back(m_scene.engine().impl());
-        m_gBufferInputNodeImageHolders[i].create(gBufferHeaderFormat, m_extent, vk::ImageAspectFlagBits::eColor);
-        m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet, m_gBufferInputNodeImageHolders[i].view(),
+        m_gBufferInputNodeImageHolders.emplace_back(std::make_unique<vulkan::ImageHolder>(m_scene.engine().impl()));
+        m_gBufferInputNodeImageHolders[i]->create(gBufferHeaderFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+        m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet, m_gBufferInputNodeImageHolders[i]->view(),
                                                  vk::ImageLayout::eShaderReadOnlyOptimal, i);
     }
 
@@ -520,20 +520,20 @@ void DeepDeferredStage::createFramebuffers()
 
     // Geometry
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
-        attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
+        attachments.emplace_back(m_gBufferInputNodeImageHolders[i]->view());
     }
     attachments.emplace_back(m_depthImageHolder.view());
 
     // Depthless
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
-        attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
+        attachments.emplace_back(m_gBufferInputNodeImageHolders[i]->view());
     }
     attachments.emplace_back(m_depthImageHolder.view());
 
     // Epiphany
     attachments.emplace_back(m_finalImageHolder.view());
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
-        attachments.emplace_back(m_gBufferInputNodeImageHolders[i].view());
+        attachments.emplace_back(m_gBufferInputNodeImageHolders[i]->view());
     }
 
     // Framebuffer
