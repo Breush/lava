@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "OpenVR"
-local VERSION = "1.7.15"
+local VERSION = "1.9.16"
 
 -- Download
 
