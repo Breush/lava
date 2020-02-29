@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "EasyProfiler"
-local VERSION = "2.0.1"
+local VERSION = "2.1.0"
 
 -- Download
 
