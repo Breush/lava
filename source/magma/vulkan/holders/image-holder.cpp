@@ -21,8 +21,7 @@ ImageHolder::ImageHolder(const RenderEngine::Impl& engine)
 ImageHolder::ImageHolder(const RenderEngine::Impl& engine, const std::string& name)
     : ImageHolder(engine)
 {
-    engine.deviceHolder().debugObjectName(m_image, name);
-    engine.deviceHolder().debugObjectName(m_view, name);
+    m_name = name;
 }
 
 void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect, uint8_t layersCount,
@@ -174,6 +173,11 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
+
+    if (!m_name.empty()) {
+        m_engine.deviceHolder().debugObjectName(m_image, m_name);
+        m_engine.deviceHolder().debugObjectName(m_view, m_name);
+    }
 }
 
 void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffset)

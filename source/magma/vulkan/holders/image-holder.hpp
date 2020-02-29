@@ -56,6 +56,7 @@ namespace lava::magma::vulkan {
     private:
         // References
         const RenderEngine::Impl& m_engine;
+        std::string m_name;
 
         // Resources
         vk::Extent2D m_extent;
