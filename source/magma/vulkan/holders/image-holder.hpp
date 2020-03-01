@@ -48,10 +48,19 @@ namespace lava::magma::vulkan {
         void setup(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels, uint8_t layersCount = 1u);
 
         /// Adds to commands to the commandBuffer to change the layout. This won't change the return value of layout().
+        void changeLayoutQuietly(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) const;
+
+        /// Adds to commands to the commandBuffer to change the layout. This WILL change the return value of layout().
         void changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
 
         /// Generate a RenderImage from available information.
         RenderImage renderImage(uint32_t uuid) const;
+
+        /// Save the image as a PNG file.
+        void savePng(const fs::Path& path, uint8_t layerOffset = 0u, uint8_t mipLevel = 0u) const;
+
+    protected:
+        uint32_t extractPixelValue(const void* data, uint64_t width, uint64_t i, uint64_t j) const;
 
     private:
         // References
@@ -59,10 +68,13 @@ namespace lava::magma::vulkan {
         std::string m_name;
 
         // Resources
+        vk::Format m_format;
         vk::Extent2D m_extent;
         uint8_t m_layersCount = 1u;
         uint8_t m_mipLevelsCount = 1u;
         uint32_t m_imageBytesLength = 0u;
+        uint8_t m_channels = 4u;
+        uint8_t m_channelBytesLength = 1u;
         $attribute(vulkan::Image, image);
         $attribute(vulkan::DeviceMemory, memory);
         $attribute(vulkan::ImageView, view);

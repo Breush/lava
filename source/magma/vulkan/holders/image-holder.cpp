@@ -29,6 +29,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
 {
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
+    m_format = format;
     m_extent = extent;
     m_aspect = imageAspect;
     m_layersCount = layersCount;
@@ -36,24 +37,29 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
 
     switch (format) {
     case vk::Format::eR8Unorm: {
-        m_imageBytesLength = m_extent.width * m_extent.height;
+        m_channels = 1u;
+        m_channelBytesLength = 1u;
         break;
     }
     case vk::Format::eD16Unorm: {
-        m_imageBytesLength = m_extent.width * m_extent.height * 2u;
+        m_channels = 1u;
+        m_channelBytesLength = 2u;
         break;
     }
     case vk::Format::eD32Sfloat:
     case vk::Format::eR8G8B8A8Unorm: {
-        m_imageBytesLength = m_extent.width * m_extent.height * 4u;
+        m_channels = 4u;
+        m_channelBytesLength = 1u;
         break;
     }
     case vk::Format::eR16G16B16A16Sfloat: {
-        m_imageBytesLength = m_extent.width * m_extent.height * 8u;
+        m_channels = 4u;
+        m_channelBytesLength = 2u;
         break;
     }
     case vk::Format::eR32G32B32A32Uint: {
-        m_imageBytesLength = m_extent.width * m_extent.height * 16u;
+        m_channels = 4u;
+        m_channelBytesLength = 4u;
         break;
     }
     default: {
@@ -61,6 +67,8 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
             << "Unknown format for image holder: " << vk::to_string(format) << "." << std::endl;
     }
     }
+
+    m_imageBytesLength = m_extent.width * m_extent.height * m_channels * m_channelBytesLength;
 
     vk::ImageAspectFlags aspectFlags;
     vk::ImageUsageFlags usageFlags;
@@ -215,9 +223,9 @@ void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffse
     bufferImageCopy.imageExtent = vk::Extent3D{m_extent.width, m_extent.height, 1};
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
-    changeLayout(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
+    changeLayoutQuietly(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
     commandBuffer.copyBufferToImage(stagingBuffer, m_image, vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
-    changeLayout(m_layout, commandBuffer);
+    changeLayoutQuietly(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
 
@@ -247,10 +255,10 @@ void ImageHolder::copy(vk::Image sourceImage, uint8_t layerOffset, uint8_t mipLe
     imageCopy.extent.depth = 1;
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
-    changeLayout(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
+    changeLayoutQuietly(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
     commandBuffer.copyImage(sourceImage, vk::ImageLayout::eTransferSrcOptimal, m_image, vk::ImageLayout::eTransferDstOptimal, 1,
                             &imageCopy);
-    changeLayout(m_layout, commandBuffer);
+    changeLayoutQuietly(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
 
@@ -291,7 +299,7 @@ void ImageHolder::setup(const uint8_t* pixels, uint32_t width, uint32_t height, 
     copy(pixels);
 }
 
-void ImageHolder::changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
+void ImageHolder::changeLayoutQuietly(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) const
 {
     // @note Not sure what this is for...
     vk::PipelineStageFlags stageMask = vk::PipelineStageFlagBits::eTopOfPipe;
@@ -307,6 +315,12 @@ void ImageHolder::changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer co
     commandBuffer.pipelineBarrier(stageMask, stageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
+void ImageHolder::changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
+{
+    changeLayoutQuietly(imageLayout, commandBuffer);
+    m_layout = imageLayout;
+}
+
 RenderImage ImageHolder::renderImage(uint32_t uuid) const
 {
     RenderImage renderImage;
@@ -315,4 +329,83 @@ RenderImage ImageHolder::renderImage(uint32_t uuid) const
     renderImage.impl().view(m_view);
     renderImage.impl().layout(m_layout);
     return renderImage;
+}
+
+void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mipLevel) const
+{
+    auto width = m_extent.width;
+    auto height = m_extent.height;
+    for (auto i = 0u; i < mipLevel; ++i) {
+        width /= 2;
+        height /= 2;
+    }
+
+    vk::DeviceSize size = width * height * m_channels * m_channelBytesLength;
+
+    //----- Staging buffer
+
+    Buffer stagingBuffer(m_engine.device());
+    DeviceMemory stagingBufferMemory(m_engine.device());
+
+    vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferDst;
+    vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+
+    createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
+                 stagingBufferMemory);
+
+    //----- Copy from device
+
+    vk::BufferImageCopy bufferImageCopy;
+    bufferImageCopy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+    bufferImageCopy.imageSubresource.layerCount = 1;
+    bufferImageCopy.imageSubresource.baseArrayLayer = layerOffset;
+    bufferImageCopy.imageSubresource.mipLevel = mipLevel;
+    bufferImageCopy.imageExtent = vk::Extent3D{width, height, 1};
+
+    auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
+    changeLayoutQuietly(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
+    commandBuffer.copyImageToBuffer(m_image, vk::ImageLayout::eTransferSrcOptimal, stagingBuffer, 1, &bufferImageCopy);
+    changeLayoutQuietly(m_layout, commandBuffer);
+    endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
+
+    //----- Export as PNG
+
+    std::vector<uint32_t> pixels(width * height);
+
+    void* data;
+    vk::MemoryMapFlags memoryMapFlags;
+    m_engine.device().mapMemory(stagingBufferMemory, 0, size, memoryMapFlags, &data);
+
+    for (uint64_t j = 0u; j < height; ++j) {
+        for (uint64_t i = 0u; i < width; ++i) {
+            pixels[j * width + i] = extractPixelValue(data, width, i, j);
+        }
+    }
+
+    stbi_write_png(path.c_str(), width, height, 4u, pixels.data(), 0u);
+
+    m_engine.device().unmapMemory(stagingBufferMemory);
+}
+
+// ----- Internal
+
+// Normalized as RGBA
+uint32_t ImageHolder::extractPixelValue(const void* data, uint64_t width, uint64_t i, uint64_t j) const
+{
+    uint32_t value = 0u;
+    uint64_t offset = (j * width + i) * m_channels * m_channelBytesLength; // In bytes
+
+    if (m_format == vk::Format::eR8G8B8A8Unorm) {
+        auto rgba = reinterpret_cast<const uint8_t*>(data) + offset;
+        value = rgba[3];
+        value = (value << 8u) + rgba[2];
+        value = (value << 8u) + rgba[1];
+        value = (value << 8u) + rgba[0];
+    }
+    else {
+        logger.error("magma.vulkan.image-holder")
+            << "Unsupported extracting pixel value with " << vk::to_string(m_format) << " image format. " << std::endl;
+    }
+
+    return value;
 }

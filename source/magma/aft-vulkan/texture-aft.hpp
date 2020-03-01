@@ -13,6 +13,7 @@ namespace lava::magma {
         TextureAft(Texture& fore, Scene& scene);
 
         vk::ImageView imageView() const { return m_imageHolder.view(); }
+        const vulkan::ImageHolder& imageHolder() const { return m_imageHolder; }
 
         // ----- Fore
         void foreLoadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);

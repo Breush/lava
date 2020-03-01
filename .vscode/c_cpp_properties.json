@@ -21,7 +21,8 @@
                 "LAVA_CHAMBER_CALLSTACK_GCC",
                 "LAVA_CRATER_WINDOW_XCB",
                 "LAVA_FLOW_AUDIO_PULSE",
-                "VK_USE_PLATFORM_XCB_KHR"
+                "VK_USE_PLATFORM_XCB_KHR",
+                "VULKAN_HPP_NO_EXCEPTIONS"
             ],
             "intelliSenseMode": "clang-x64",
             "browse": {

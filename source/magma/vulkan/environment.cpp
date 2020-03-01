@@ -185,11 +185,11 @@ void Environment::createResources()
     m_basicDescriptorSet = m_scene.aft().environmentDescriptorHolder().allocateSet("environment.non-prefiltered");
 
     // Radiance
-    m_radianceImageHolder.create(vk::Format::eR16G16B16A16Sfloat, {ENVIRONMENT_RADIANCE_SIZE, ENVIRONMENT_RADIANCE_SIZE},
+    m_radianceImageHolder.create(vk::Format::eR8G8B8A8Unorm, {ENVIRONMENT_RADIANCE_SIZE, ENVIRONMENT_RADIANCE_SIZE},
                                  vk::ImageAspectFlagBits::eColor, 6u, ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
 
     // Irradiance
-    m_irradianceImageHolder.create(vk::Format::eR16G16B16A16Sfloat, {ENVIRONMENT_IRRADIANCE_SIZE, ENVIRONMENT_IRRADIANCE_SIZE},
+    m_irradianceImageHolder.create(vk::Format::eR8G8B8A8Unorm, {ENVIRONMENT_IRRADIANCE_SIZE, ENVIRONMENT_IRRADIANCE_SIZE},
                                    vk::ImageAspectFlagBits::eColor, 6u);
 
     // BRDF look-up texture

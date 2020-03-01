@@ -15,9 +15,7 @@ int main(void)
 
     auto& entity = engine.make<sill::GameEntity>();
     auto& meshComponent = entity.make<sill::MeshComponent>();
-    std::cout << "BEF MAKER" << std::endl;
     sill::makers::glbMeshMaker("./assets/models/sponza.glb")(meshComponent);
-    std::cout << "AFTER MAKER" << std::endl;
 
     engine.run();
 

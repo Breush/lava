@@ -170,7 +170,7 @@ void EnvironmentPrefilteringStage::initPass()
     //----- Attachments
 
     vulkan::PipelineHolder::ColorAttachment colorAttachment;
-    colorAttachment.format = vk::Format::eR16G16B16A16Sfloat;
+    colorAttachment.format = vk::Format::eR8G8B8A8Unorm;
     colorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
     m_pipelineHolder.add(colorAttachment);
 
@@ -182,7 +182,7 @@ void EnvironmentPrefilteringStage::initPass()
 
 void EnvironmentPrefilteringStage::createResources()
 {
-    auto format = vk::Format::eR16G16B16A16Sfloat;
+    auto format = vk::Format::eR8G8B8A8Unorm;
     m_imageHolder.create(format, m_extent, vk::ImageAspectFlagBits::eColor, 6u);
 }
 

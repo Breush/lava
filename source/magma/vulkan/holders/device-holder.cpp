@@ -211,7 +211,6 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
         logger.error("magma.vulkan.device-holder") << "Unable to create logical device. " << std::endl;
     };
 
-    std::cout << m_queueFamilyIndices.graphics << std::endl;
     m_graphicsQueue = m_device.vk().getQueue(m_queueFamilyIndices.graphics, 0);
     m_transferQueue = m_device.vk().getQueue(m_queueFamilyIndices.transfer, 0);
     m_presentQueue = m_device.vk().getQueue(m_queueFamilyIndices.present, 0);

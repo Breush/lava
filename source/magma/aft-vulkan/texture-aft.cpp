@@ -24,15 +24,10 @@ void TextureAft::foreLoadCubeFromMemory(const std::array<const uint8_t*, 6u>& im
     extent.width = width;
     extent.height = height;
 
-    bool firstTime = true;
+    m_imageHolder.create(vk::Format::eR8G8B8A8Unorm, extent, vk::ImageAspectFlagBits::eColor, 6u);
+
     for (auto layer = 0u; layer < 6u; ++layer) {
         auto pixels = imagesPixels[layer];
-
-        if (firstTime) {
-            firstTime = false;
-            m_imageHolder.create(vk::Format::eR8G8B8A8Unorm, extent, vk::ImageAspectFlagBits::eColor, 6u);
-        }
-
         m_imageHolder.copy(pixels, 1u, layer);
     }
 }

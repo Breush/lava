@@ -25,7 +25,6 @@
     "C_Cpp.clang_format_style": "{ FixNamespaceComments: false, ColumnLimit: 130, IndentWidth: 4, AccessModifierOffset: -4, NamespaceIndentation: All, BinPackArguments: true, BinPackParameters: true, BreakConstructorInitializersBeforeComma: true, AlignAfterOpenBracket: Align, AlwaysBreakBeforeMultilineStrings: false, AlwaysBreakTemplateDeclarations: true, AllowShortBlocksOnASingleLine: false, BreakBeforeBinaryOperators: NonAssignment, AllowShortFunctionsOnASingleLine: Inline, AllowShortCaseLabelsOnASingleLine: true, AllowShortIfStatementsOnASingleLine: true, AllowShortLoopsOnASingleLine: true, BreakBeforeBraces: Custom, BraceWrapping: { AfterClass: false, AfterControlStatement: false, AfterEnum : false, AfterFunction : true, AfterNamespace : false, AfterStruct : false, AfterUnion : false, BeforeCatch : false, BeforeElse : true, IndentBraces : false }, PointerAlignment: Left, PenaltyReturnTypeOnItsOwnLine: 10000, SortIncludes: true }",
     "files.insertFinalNewline": true,
     "files.associations": {
-        "*.shmag": "glsl",
         "*.mod": "glsl",
         "*.set": "glsl",
         "*.smod": "glsl",
@@ -33,6 +32,8 @@
         ".shader.tmp": "glsl",
         "*.simpl": "glsl",
         "*.sfunc": "glsl",
+        "*.shmag": "glsl",
+        "*.C": "cpp",
         "functional": "cpp",
         "array": "cpp",
         "initializer_list": "cpp",
@@ -96,6 +97,18 @@
         "csignal": "cpp",
         "list": "cpp",
         "unordered_set": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "shared_mutex": "cpp",
+        "bit": "cpp",
+        "cassert": "cpp",
+        "cerrno": "cpp",
+        "cfloat": "cpp",
+        "ciso646": "cpp",
+        "climits": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "cstdbool": "cpp"
     }
 }
