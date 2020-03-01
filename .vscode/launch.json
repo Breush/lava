@@ -9,9 +9,18 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceRoot}/external/lib:${LD_LIBRARY_PATH}"
+                },
+                {
+                    "name": "VK_LAYER_PATH",
+                    "value": "${workspaceRoot}/external/etc/vulkan/explicit_layer.d"
+                }
+            ],
             "externalConsole": false,
-            "preLaunchTask": "build",
+            "preLaunchTask": "build-debug",
         }
     ]
 }

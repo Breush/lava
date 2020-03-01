@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <lava/core/macros/aft.hpp>
+#include <lava/core/filesystem.hpp>
 
 namespace lava::magma {
     class TextureAft;
