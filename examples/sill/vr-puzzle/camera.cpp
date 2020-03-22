@@ -13,8 +13,7 @@ void setupCamera(GameState& gameState)
     input.bindAxis("zoom", InputAxis::MouseWheelVertical);
 
     input.bindAction("left-fire", MouseButton::Left);
-    input.bindAction("left-fire", MouseButton::Middle);
-
+    input.bindAction("middle-fire", MouseButton::Middle);
     input.bindAction("right-fire", MouseButton::Right);
 
     input.bindAction("move-forward", Key::Z);

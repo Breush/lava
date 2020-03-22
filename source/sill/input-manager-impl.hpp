@@ -10,6 +10,7 @@ namespace lava::sill {
         bool up(const std::string& actionName) const;
         bool justDown(const std::string& actionName) const;
         bool justUp(const std::string& actionName) const;
+        bool justDownUp(const std::string& actionName) const;
         bool axisChanged(const std::string& axisName) const;
         float axis(const std::string& axisName) const;
         const glm::vec2& mouseCoordinates() const { return m_mouseCoordinates; }
@@ -51,6 +52,8 @@ namespace lava::sill {
         std::unordered_map<std::string, Action> m_actions;
         std::unordered_map<std::string, Axis> m_axes;
         std::unordered_map<Key, bool> m_keysPressed;
+        std::set<std::string> m_previousUpdatedBindings;
+        std::set<std::string> m_updatedBindings;
 
         glm::vec2 m_mouseCoordinates; // Last known mouse position.
         bool m_initializingMousePosition = true;

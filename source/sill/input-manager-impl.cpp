@@ -26,6 +26,13 @@ bool InputManager::Impl::justUp(const std::string& actionName) const
     return action.activeness == 0 && action.previousActiveness != 0;
 }
 
+bool InputManager::Impl::justDownUp(const std::string& actionName) const
+{
+    const auto& action = m_actions.at(actionName);
+    return action.activeness == 0 && action.previousActiveness != 0 &&
+           m_previousUpdatedBindings.find("action." + actionName) != m_previousUpdatedBindings.end();
+}
+
 bool InputManager::Impl::axisChanged(const std::string& axisName) const
 {
     const auto& axis = m_axes.at(axisName);
@@ -65,6 +72,11 @@ void InputManager::Impl::bindAxis(const std::string& axisName, InputAxis inputAx
 
 void InputManager::Impl::updateReset()
 {
+    if (!m_updatedBindings.empty()) {
+        m_previousUpdatedBindings = m_updatedBindings;
+        m_updatedBindings.clear();
+    }
+
     for (auto& iAction : m_actions) {
         auto& action = iAction.second;
         action.previousActiveness = action.activeness;
@@ -84,6 +96,7 @@ void InputManager::Impl::update(WsEvent& event)
             auto& action = iAction.second;
             if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end()) {
                 action.activeness += 1u;
+                m_updatedBindings.emplace("action." + iAction.first);
             }
         }
     }
@@ -92,6 +105,7 @@ void InputManager::Impl::update(WsEvent& event)
             auto& action = iAction.second;
             if (action.mouseButtons.find(event.mouseButton.which) != action.mouseButtons.end() && action.activeness != 0u) {
                 action.activeness -= 1u;
+                m_updatedBindings.emplace("action." + iAction.first);
             }
         }
     }
@@ -106,6 +120,7 @@ void InputManager::Impl::update(WsEvent& event)
                 if (keys.find(event.key.which) != keys.end()) {
                     if (keysPressed(keys)) {
                         action.activeness += 1u;
+                        m_updatedBindings.emplace("action." + iAction.first);
                     }
                 }
             }
@@ -119,6 +134,7 @@ void InputManager::Impl::update(WsEvent& event)
             for (const auto& keys : action.keys) {
                 if (keys.find(event.key.which) != keys.end() && action.activeness != 0u) {
                     action.activeness -= 1u;
+                    m_updatedBindings.emplace("action." + iAction.first);
                 }
             }
         }
@@ -139,9 +155,11 @@ void InputManager::Impl::update(WsEvent& event)
             auto& axis = iAxis.second;
             if (axis.inputAxes.find(InputAxis::MouseX) != axis.inputAxes.end()) {
                 axis.value += event.mouseMove.x - m_mouseCoordinates.x;
+                m_updatedBindings.emplace("axis." + iAxis.first);
             }
             if (axis.inputAxes.find(InputAxis::MouseY) != axis.inputAxes.end()) {
                 axis.value += event.mouseMove.y - m_mouseCoordinates.y;
+                m_updatedBindings.emplace("axis." + iAxis.first);
             }
         }
 
@@ -156,6 +174,7 @@ void InputManager::Impl::update(WsEvent& event)
                 auto& axis = iAxis.second;
                 if (axis.inputAxes.find(InputAxis::MouseWheelVertical) != axis.inputAxes.end()) {
                     axis.value += event.mouseWheel.delta;
+                    m_updatedBindings.emplace("axis." + iAxis.first);
                 }
             }
         }
@@ -164,6 +183,7 @@ void InputManager::Impl::update(WsEvent& event)
                 auto& axis = iAxis.second;
                 if (axis.inputAxes.find(InputAxis::MouseWheelHorizontal) != axis.inputAxes.end()) {
                     axis.value += event.mouseWheel.delta;
+                    m_updatedBindings.emplace("axis." + iAxis.first);
                 }
             }
         }
@@ -185,6 +205,7 @@ void InputManager::Impl::update(VrEvent& event)
                     && ((actionVrControllerButton.hand == VrDeviceType::UnknownHand)
                         || (actionVrControllerButton.hand == vrControllerButton.hand))) {
                     action.activeness += 1u;
+                    m_updatedBindings.emplace("action." + iAction.first);
                 }
             }
         }
@@ -201,6 +222,7 @@ void InputManager::Impl::update(VrEvent& event)
                     && ((actionVrControllerButton.hand == VrDeviceType::UnknownHand)
                         || (actionVrControllerButton.hand == vrControllerButton.hand))) {
                     action.activeness -= 1u;
+                    m_updatedBindings.emplace("action." + iAction.first);
                 }
             }
         }

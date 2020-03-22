@@ -10,6 +10,7 @@ $pimpl_method_const(InputManager, bool, down, const std::string&, actionName);
 $pimpl_method_const(InputManager, bool, up, const std::string&, actionName);
 $pimpl_method_const(InputManager, bool, justDown, const std::string&, actionName);
 $pimpl_method_const(InputManager, bool, justUp, const std::string&, actionName);
+$pimpl_method_const(InputManager, bool, justDownUp, const std::string&, actionName);
 $pimpl_method_const(InputManager, bool, axisChanged, const std::string&, axisName);
 $pimpl_method_const(InputManager, float, axis, const std::string&, axisName);
 $pimpl_method_const(InputManager, const glm::vec2&, mouseCoordinates);

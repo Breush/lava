@@ -25,6 +25,11 @@ namespace lava::sill {
         /// Whether the specified action has gone from down to up in last update block.
         bool justUp(const std::string& actionName) const;
 
+        /// Whether the specified action has gone from up to down in last update block,
+        /// and the action occured without any other change (i.e. no other input from user).
+        /// This is basically a one-time key/button push without holding.
+        bool justDownUp(const std::string& actionName) const;
+
         /// Whether the specified axis has changed.
         bool axisChanged(const std::string& axisName) const;
 

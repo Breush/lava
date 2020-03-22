@@ -44,7 +44,7 @@ void setupEditor(GameState& gameState)
     engine.input().bindAction("reload-level", {Key::LeftControl, Key::R});
 
     // @fixme This is for debug for now
-    engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
+    engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P}); // @fixme Should all be prefixed "editor."
     engine.input().bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
     engine.input().bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
     engine.input().bindAction("rotate-z", Key::R);
@@ -82,10 +82,11 @@ void setupEditor(GameState& gameState)
         gizmoEntity.make<sill::TransformComponent>().scaling(glm::vec3(0.f));
     }
 
-    engine.input().bindAction("editorToggle", Key::E);
+    engine.input().bindAction("toggle-editor", Key::E);
+    engine.input().bindAction("editor.switch-gizmo", MouseButton::Middle);
 
     editorBehavior.onUpdate([&](float /* dt */) {
-        if ((gameState.state == State::Idle || gameState.state == State::Editor) && engine.input().justDown("editorToggle")) {
+        if ((gameState.state == State::Idle || gameState.state == State::Editor) && engine.input().justDown("toggle-editor")) {
             gameState.state = (gameState.state == State::Editor) ? State::Idle : State::Editor;
             gameState.editor.state = EditorState::Idle;
 
@@ -166,10 +167,17 @@ void setupEditor(GameState& gameState)
                 return;
             }
 
+            // ----- Saving
+
+            if (engine.input().justDown("save")) {
+                serializeLevel(gameState, gameState.level.path);
+                return;
+            }
+
             // ----- Left click
 
+            // Go the gizmo mode if needed
             if (engine.input().justDown("left-fire")) {
-                // Go the gizmo mode if needed
                 if (gameState.editor.selectedGizmoAxis) {
                     uint32_t axisIndex = gameState.editor.gizmoEntity->childIndex(*gameState.editor.selectedGizmoAxis);
                     gameState.editor.state = EditorState::MoveAlongAxis;
@@ -181,8 +189,10 @@ void setupEditor(GameState& gameState)
                     gameState.editor.axisOffset = projectOn(axisRay, gameState.pickingRay);
                     return;
                 }
+            }
 
-                // Select entity on left click if any.
+            // Select entity on left click if any.
+            if (engine.input().justDownUp("left-fire")) {
                 auto* selectedEntity = engine.pickEntity(gameState.pickingRay);
 
                 if (selectedEntity) {
@@ -196,10 +206,6 @@ void setupEditor(GameState& gameState)
                 }
 
                 gameState.editor.selectedEntity = selectedEntity;
-            }
-            else if (engine.input().justDown("save")) {
-                serializeLevel(gameState, gameState.level.path);
-                return;
             }
         }
 
@@ -227,6 +233,10 @@ void setupEditor(GameState& gameState)
             }
         }
         else if (gameState.editor.state == EditorState::Idle) {
+            if (engine.input().justDown("editor.switch-gizmo")) {
+                std::cout << "Switching gizmo" << std::endl;
+            }
+
             if (engine.input().justDown("rotate-z") && !engine.input().down("rotate-x")) { // R but not when Shift + R
                 gameState.editor.selectedEntity->get<sill::TransformComponent>().rotate({0, 0, 1}, math::PI_OVER_FOUR);
             }
