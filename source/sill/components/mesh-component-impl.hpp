@@ -10,6 +10,9 @@ namespace lava::sill {
 
 namespace lava::sill {
     class MeshComponent::Impl : public ComponentImpl {
+    protected:
+        struct AnimationInfo;
+
     public:
         Impl(GameEntity& entity);
 
@@ -36,6 +39,7 @@ namespace lava::sill {
     private:
         // Internal
         void onWorldTransformChanged();
+        void resetAnimationInfo(AnimationInfo& animationInfo) const;
 
     protected:
         struct AnimationChannelInfo {

@@ -59,14 +59,8 @@ void MeshComponent::Impl::update(float dt)
             if (animationInfo.loops != -1u) animationInfo.loops -= 1u;
             if (animationInfo.loops == 0u) continue;
 
-            time = 0.f;
-            animationInfo.pausedChannelsCount = 0u;
-            for (auto& channelsInfosPair : animationInfo.channelsInfos) {
-                for (auto& channelInfo : channelsInfosPair.second) {
-                    channelInfo.paused = false;
-                    channelInfo.step = 0u;
-                }
-            }
+            resetAnimationInfo(animationInfo);
+            continue;
         }
 
         for (auto& channelsInfosPair : animationInfo.channelsInfos) {
@@ -192,9 +186,9 @@ void MeshComponent::Impl::add(const std::string& hrid, const MeshAnimation& anim
 
 void MeshComponent::Impl::startAnimation(const std::string& hrid, uint32_t loops)
 {
-    m_animationsInfos.at(hrid).loops = loops;
-    m_animationsInfos.at(hrid).pausedChannelsCount = 0u;
-    m_animationsInfos.at(hrid).time = 0.f;
+    auto& animationInfo = m_animationsInfos.at(hrid);
+    animationInfo.loops = loops;
+    resetAnimationInfo(animationInfo);
 }
 
 // ----- Callbacks
@@ -262,5 +256,17 @@ void MeshComponent::Impl::onWorldTransformChanged()
     for (auto& node : m_nodes) {
         if (node.parent != nullptr) continue;
         updateNodeTransforms(node, modelTransform);
+    }
+}
+
+void MeshComponent::Impl::resetAnimationInfo(AnimationInfo& animationInfo) const
+{
+    animationInfo.time = 0.f;
+    animationInfo.pausedChannelsCount = 0u;
+    for (auto& channelsInfosPair : animationInfo.channelsInfos) {
+        for (auto& channelInfo : channelsInfosPair.second) {
+            channelInfo.paused = false;
+            channelInfo.step = 0u;
+        }
     }
 }
