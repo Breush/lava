@@ -34,4 +34,16 @@ namespace lava {
             return 0.f;
         }
     }
+
+    // Outputs the parametrization of the intersection of ray with the plane defined by its origin/normal.
+    inline float intersectPlane(const Ray& ray, const Ray& planeRay)
+    {
+        float denom = glm::dot(planeRay.direction, ray.direction);
+        if (glm::abs(denom) > 0.001f) {
+            return glm::dot(planeRay.origin - ray.origin, planeRay.direction) / denom;
+        }
+
+        // Parallel
+        return 0.f;
+    }
 }

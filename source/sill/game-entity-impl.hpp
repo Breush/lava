@@ -14,6 +14,10 @@ namespace lava::sill {
         GameEntity& entity() { return m_entity; }
         const GameEntity& entity() const { return m_entity; }
 
+        // Attributes
+        const std::string& name() const { return m_name; }
+        void name(const std::string& name) { m_name = name; }
+
         // GameEntity hierarchy
         GameEntity* parent() { return m_parent; }
         const GameEntity* parent() const { return m_parent; }
@@ -40,6 +44,7 @@ namespace lava::sill {
         // References
         GameEntity& m_entity;
         GameEngine::Impl& m_engine;
+        std::string m_name = "<unknown>";
 
         // Storage
         GameEntity* m_parent = nullptr; // Keep nullptr to be top-level.

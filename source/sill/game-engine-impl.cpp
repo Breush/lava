@@ -112,7 +112,7 @@ void GameEngine::Impl::run()
 
 void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
 {
-    logger.info("sill.game-engine") << "Adding entity " << &gameEntity->impl() << "." << std::endl;
+    logger.info("sill.game-engine") << "Adding entity " << &gameEntity->impl() << " '" << gameEntity->name() << "'." << std::endl;
 
     m_pendingAddedEntities.emplace_back(std::move(gameEntity));
 }

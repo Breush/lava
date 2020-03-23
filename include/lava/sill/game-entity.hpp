@@ -27,8 +27,8 @@ namespace lava::sill {
          * @name Attributes
          */
         /// @{
-        const std::string& name() const { return m_name; }
-        void name(const std::string& name) { m_name = name; }
+        const std::string& name() const;
+        void name(const std::string& name);
         /// @}
 
         /**
@@ -105,7 +105,6 @@ namespace lava::sill {
         GameEngine& m_engine;
         Impl* m_impl = nullptr;
 
-        std::string m_name = "Unknown";
         std::vector<std::string> m_componentsHrids;
     };
 }

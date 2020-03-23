@@ -23,6 +23,9 @@ GameEntity::~GameEntity()
     delete m_impl;
 }
 
+// Attributes
+$pimpl_property(GameEntity, std::string, name);
+
 // Hierarchy
 $pimpl_method(GameEntity, GameEntity*, parent);
 $pimpl_method_const(GameEntity, const GameEntity*, parent);

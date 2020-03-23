@@ -4,6 +4,7 @@
 #include <glm/gtx/matrix_interpolation.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 inline std::ostream& operator<<(std::ostream& os, const glm::vec3& v)
 {

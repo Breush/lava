@@ -16,7 +16,14 @@ enum class State {
 
 enum class EditorState {
     Idle,
-    MoveAlongAxis,
+    TranslateAlongAxis,
+    RotateAlongAxis,
+};
+
+enum class GizmoTool {
+    Translation,
+    Rotation,
+    // @todo Scaling, not implemented yet
 };
 
 struct GameState {
@@ -42,12 +49,17 @@ struct GameState {
 
     struct {
         lava::sill::GameEntity* selectedEntity = nullptr;
-        lava::sill::GameEntity* gizmoEntity = nullptr;
+        lava::sill::GameEntity* gizmoEntity = nullptr; // Holding all tool gizmos (translation/rotation/scaling)
+        lava::sill::GameEntity* gizmoActiveToolEntity = nullptr; // One below, in sync with gizmoTool
+        lava::sill::GameEntity* gizmoTranslationEntity = nullptr;
+        lava::sill::GameEntity* gizmoRotationEntity = nullptr;
         lava::sill::GameEntity* selectedGizmoAxis = nullptr;
+        GizmoTool gizmoTool = GizmoTool::Translation;
         EditorState state = EditorState::Idle;
 
         // Used when moving along an axis
         glm::vec3 axis = {0.f, 0.f, 1.f};
+        glm::vec3 nextAxis = {1.f, 0.f, 0.f};
         float axisOffset = 0.f;
     } editor;
 };

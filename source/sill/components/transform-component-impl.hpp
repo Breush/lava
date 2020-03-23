@@ -24,7 +24,7 @@ namespace lava::sill {
         void rotation(const glm::quat& rotation, ChangeReasonFlag changeReasonFlag);
         void rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag)
         {
-            rotation(glm::rotate(m_rotation, angle, axis), changeReasonFlag);
+            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_rotation, changeReasonFlag);
         }
 
         const glm::vec3& scaling() const { return m_scaling; }

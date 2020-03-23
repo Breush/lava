@@ -44,7 +44,10 @@ namespace lava::magma {
 
         const glm::quat& rotation() const { return m_rotation; }
         void rotation(const glm::quat& rotation);
-        void rotate(const glm::vec3& axis, float delta);
+        void rotate(const glm::vec3& axis, float angle)
+        {
+            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_rotation);
+        }
 
         const glm::vec3& scaling() const { return m_scaling; }
         void scaling(const glm::vec3& scaling);

@@ -62,11 +62,6 @@ void Mesh::rotation(const glm::quat& rotation)
     updateTransform();
 }
 
-void Mesh::rotate(const glm::vec3& axis, float delta)
-{
-    rotation(glm::rotate(m_rotation, delta, axis));
-}
-
 void Mesh::scaling(const glm::vec3& scaling)
 {
     m_scaling = scaling;
