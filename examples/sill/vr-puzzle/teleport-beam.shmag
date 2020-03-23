@@ -1,5 +1,5 @@
 struct {
-    float invalid; // @fixme Don't we have bool there?
+    bool invalid;
 } gBuffer;
 
 geometry {
@@ -11,7 +11,7 @@ geometry {
 
     bool main() {
         if (!invalid) {
-            gBuffer.invalid = 0.;
+            gBuffer.invalid = false;
             float intensity = 2 * abs(fract(uv.y * length * 0.5  - time * 3) - 0.5);
             intensity = smoothstep(0.4, 0.6, intensity);
 
@@ -19,7 +19,7 @@ geometry {
                 discard;
             }
         } else {
-            gBuffer.invalid = 1.;
+            gBuffer.invalid = true;
             if (uv.y > 1.5 / length) {
                 discard;
             }
@@ -31,7 +31,7 @@ geometry {
 
 epiphany {
     vec4 main() {
-        if (gBuffer.invalid > 0.5) {
+        if (gBuffer.invalid) {
             return vec4(1, 0.3, 0.3, 0.75);
         }
         return vec4(0.5, 1, 0.8, 0.75);

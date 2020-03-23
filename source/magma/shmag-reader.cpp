@@ -81,7 +81,10 @@ ShmagReader::GBufferDeclaration ShmagReader::parseGBufferDeclaration()
     // Type
     auto type = parseCurrentIdentifier();
 
-    if (type == "float") {
+    if (type == "bool") {
+        gBufferDeclaration.type = GBufferType::Bool;
+    }
+    else if (type == "float") {
         gBufferDeclaration.type = GBufferType::Float;
     }
     else if (type == "vec2") {
@@ -97,7 +100,7 @@ ShmagReader::GBufferDeclaration ShmagReader::parseGBufferDeclaration()
         gBufferDeclaration.type = GBufferType::Vec4;
     }
     else {
-        errorExpected("type: float, vec3, nvec3, vec4");
+        errorExpected("type: bool, float, vec3, nvec3, vec4");
     }
 
     // Optional range
@@ -383,7 +386,10 @@ void ShmagReader::injectGeometryGBufferDataInsertion(std::stringstream& adaptedC
     adaptedCode << "// [shmag-reader] Injected final G-Buffer data insertion." << std::endl;
     for (auto& gBufferDeclaration : m_gBufferDeclarations) {
         auto name = "gBuffer." + gBufferDeclaration.name;
-        if (gBufferDeclaration.type == GBufferType::Float) {
+        if (gBufferDeclaration.type == GBufferType::Bool) {
+            adaptedCode << "gBufferData.data[" << dataOffset++ << "] = (" << name << ") ? 1 : 0;" << std::endl;
+        }
+        else if (gBufferDeclaration.type == GBufferType::Float) {
             adaptedCode << "gBufferData.data[" << dataOffset++ << "] = floatBitsToUint(" << name << ");" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec2) {
@@ -528,7 +534,10 @@ void ShmagReader::injectEpiphanyGBufferDataExtraction(std::stringstream& adapted
     adaptedCode << "// [shmag-reader] Injected G-Buffer data extraction." << std::endl;
     for (auto& gBufferDeclaration : m_gBufferDeclarations) {
         auto name = "gBuffer." + gBufferDeclaration.name;
-        if (gBufferDeclaration.type == GBufferType::Float) {
+        if (gBufferDeclaration.type == GBufferType::Bool) {
+            adaptedCode << name << " = (gBufferData.data[" << dataOffset++ << "] == 1) ? true : false;" << std::endl;
+        }
+        else if (gBufferDeclaration.type == GBufferType::Float) {
             adaptedCode << name << " = uintBitsToFloat(gBufferData.data[" << dataOffset++ << "]);" << std::endl;
         }
         else if (gBufferDeclaration.type == GBufferType::Vec2) {
@@ -589,7 +598,9 @@ void ShmagReader::injectGBufferDefinitions(std::stringstream& adaptedCode)
     adaptedCode << "// [shmag-reader] Injected G-Buffer definitions." << std::endl;
     adaptedCode << "struct {" << std::endl;
     for (auto& gBufferDeclaration : m_gBufferDeclarations) {
-        if (gBufferDeclaration.type == GBufferType::Float)
+        if (gBufferDeclaration.type == GBufferType::Bool)
+            adaptedCode << "bool " << gBufferDeclaration.name << ";" << std::endl;
+        else if (gBufferDeclaration.type == GBufferType::Float)
             adaptedCode << "float " << gBufferDeclaration.name << ";" << std::endl;
         else if (gBufferDeclaration.type == GBufferType::Vec2)
             adaptedCode << "vec2 " << gBufferDeclaration.name << ";" << std::endl;

@@ -23,6 +23,7 @@ namespace lava::magma {
     protected:
         enum class GBufferType {
             Unknown,
+            Bool,
             Float,
             Vec2,
             Vec3,
