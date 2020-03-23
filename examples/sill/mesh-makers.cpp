@@ -25,11 +25,12 @@ int main(void)
     {
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
-        sill::makers::planeMeshMaker({1, 1})(meshComponent);
+        sill::makers::PlaneMeshOptions options = {.doubleSided = true};
+        sill::makers::planeMeshMaker({1, 1}, options)(meshComponent);
         entity.get<sill::TransformComponent>().translate({0.f, 1.2f, 0.f});
     }
 
-    // Cube mesh maker
+    // Box mesh maker
     {
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
@@ -43,6 +44,23 @@ int main(void)
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::sphereMeshMaker(32u, 1.f)(meshComponent);
         entity.get<sill::TransformComponent>().translate({-1.2f, 0.f, 0.f});
+    }
+
+    // Cylinder mesh maker
+    {
+        auto& entity = engine.make<sill::GameEntity>();
+        auto& meshComponent = entity.make<sill::MeshComponent>();
+        sill::makers::CylinderMeshOptions options = {.doubleSided = true};
+        sill::makers::cylinderMeshMaker(32u, 1.f, 1.f, options)(meshComponent);
+        entity.get<sill::TransformComponent>().translate({0.f, 0.f, -1.2f});
+    }
+
+    // Tore mesh maker
+    {
+        auto& entity = engine.make<sill::GameEntity>();
+        auto& meshComponent = entity.make<sill::MeshComponent>();
+        sill::makers::toreMeshMaker(32u, 0.75f, 16u, 0.25f)(meshComponent);
+        entity.get<sill::TransformComponent>().translate({0.f, 0.f, 1.2f});
     }
 
     app.engine().run();
