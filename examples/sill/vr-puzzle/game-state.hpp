@@ -1,5 +1,6 @@
 #pragma once
 
+#include "./barrier.hpp"
 #include "./brick.hpp"
 #include "./panel.hpp"
 
@@ -38,12 +39,15 @@ struct GameState {
     lava::Ray pickingRay;
     Brick* pointedBrick = nullptr;
 
+    lava::magma::Material* barrierMaterial = nullptr;
+
     struct {
         std::string name;
         std::string path;
 
         std::vector<std::unique_ptr<Panel>> panels;
         std::vector<std::unique_ptr<Brick>> bricks;
+        std::vector<std::unique_ptr<Barrier>> barriers;
         std::vector<lava::sill::GameEntity*> entities;
     } level;
 

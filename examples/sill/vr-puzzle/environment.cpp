@@ -44,6 +44,11 @@ void setupEnvironment(GameState& gameState)
         entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
         entity.get<sill::PhysicsComponent>().dynamic(false);
     }
+
+    // Shared materials
+    {
+        gameState.barrierMaterial = &engine.scene().make<magma::Material>("barrier");
+    }
 }
 
 void levelSolved(GameState& /*gameState*/)

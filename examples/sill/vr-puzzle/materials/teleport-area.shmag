@@ -1,0 +1,17 @@
+struct {
+    float intensity;
+} gBuffer;
+
+geometry {
+    bool main() {
+        gBuffer.intensity = uv.y * uv.y;
+
+        return true;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        return vec4(0.5, 1, 0.8, gBuffer.intensity);
+    }
+}

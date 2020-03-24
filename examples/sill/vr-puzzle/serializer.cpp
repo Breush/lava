@@ -103,6 +103,17 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         gameState.level.entities.emplace_back(&entity);
     }
 
+    // ----- Barriers
+
+    gameState.level.barriers.clear();
+    for (auto& barrierJson : levelJson["barriers"]) {
+        auto barrier = std::make_unique<Barrier>(gameState);
+
+        barrier->transform().worldTransform(unserializeMat4(barrierJson["transform"]));
+
+        gameState.level.barriers.emplace_back(std::move(barrier));
+    }
+
     // ----- Panels
 
     gameState.level.panels.clear();
@@ -162,6 +173,16 @@ void serializeLevel(GameState& gameState, const std::string& path)
         {"type", "LEVEL"},
         {"version", 0},
     };
+
+    // ----- Barriers
+
+    levelJson["barriers"] = nlohmann::json::array();
+    for (auto i = 0u; i < gameState.level.barriers.size(); ++i) {
+        const auto& barrier = *gameState.level.barriers[i];
+        levelJson["barriers"][i] = {
+            {"transform", serializeMat4(barrier.transform().worldTransform())},
+        };
+    }
 
     // ----- Panels
 

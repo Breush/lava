@@ -24,10 +24,11 @@ int main(void)
     gameState.engine = &engine;
 
     engine.registerMaterialFromFile("skybox", "./data/shaders/materials/skybox-material.shmag");
-    engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/panel-material.shmag");
-    engine.registerMaterialFromFile("gizmo", "./examples/sill/vr-puzzle/gizmo.shmag");
-    engine.registerMaterialFromFile("teleport-beam", "./examples/sill/vr-puzzle/teleport-beam.shmag");
-    engine.registerMaterialFromFile("teleport-area", "./examples/sill/vr-puzzle/teleport-area.shmag");
+    engine.registerMaterialFromFile("barrier", "./examples/sill/vr-puzzle/materials/barrier.shmag");
+    engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/materials/panel.shmag");
+    engine.registerMaterialFromFile("gizmo", "./examples/sill/vr-puzzle/materials/gizmo.shmag");
+    engine.registerMaterialFromFile("teleport-beam", "./examples/sill/vr-puzzle/materials/teleport-beam.shmag");
+    engine.registerMaterialFromFile("teleport-area", "./examples/sill/vr-puzzle/materials/teleport-area.shmag");
 
     // Camera (for companion window)
     setupCamera(gameState);

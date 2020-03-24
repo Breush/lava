@@ -89,6 +89,7 @@ void setupEditor(GameState& gameState)
     // @fixme This is for debug for now
     engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P}); // @fixme Should all be prefixed "editor."
     engine.input().bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
+    engine.input().bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     engine.input().bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
     engine.input().bindAction("scale-up", Key::S);
     engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
@@ -208,6 +209,11 @@ void setupEditor(GameState& gameState)
                 brick->blocks({{0, 0}});
                 brick->color({1, 0, 0});
                 gameState.level.bricks.emplace_back(std::move(brick));
+                return;
+            }
+            else if (engine.input().justDown("add-barrier")) {
+                auto barrier = std::make_unique<Barrier>(gameState);
+                gameState.level.barriers.emplace_back(std::move(barrier));
                 return;
             }
             else if (engine.input().justDown("add-mesh")) {
