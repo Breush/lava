@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <lava/chamber/math.hpp>
 #include <iostream>
 
 #include "./environment.hpp"
@@ -159,7 +160,7 @@ namespace {
         auto& engine = *gameState.engine;
 
         // For mouse, the user uses click to grab then click to drop.
-        if (engine.input().justDown("left-fire")) {
+        if (engine.input().justDownUp("left-fire")) {
             if (gameState.state == State::Idle && gameState.pointedBrick) {
                 grabBrick(gameState, gameState.pointedBrick);
             }
@@ -171,7 +172,7 @@ namespace {
         if (gameState.state != State::GrabbedBrick) return;
 
         // Update entity to us whenever it is in grabbing state.
-        if (engine.input().justDown("right-fire")) {
+        if (engine.input().justDownUp("right-fire")) {
             rotateGrabbedBrick();
         }
 
@@ -207,14 +208,11 @@ namespace {
 
             const auto& extent = gameState.camera->extent();
             auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};
-            targetTransform = gameState.camera->transformAtCoordinates(coordinates, 0.5f);
+            auto screenMatrix = gameState.camera->transformAtCoordinates(coordinates, 0.5f);
+            screenMatrix = glm::rotate(screenMatrix, chamber::math::PI_OVER_TWO, {0, 1, 0});
+            screenMatrix = glm::scale(screenMatrix, glm::vec3{0.02f});
 
-            auto screenMatrix = glm::mat4(1.f);
-            screenMatrix = glm::scale(screenMatrix, {0.2f, 0.2f, 0.2f});
-            screenMatrix = glm::rotate(screenMatrix, 3.14156f * 0.5f, {1, 0, 0});
-            screenMatrix = glm::rotate(screenMatrix, -3.14156f * 0.5f, {0, 1, 0});
-
-            targetTransform *= screenMatrix * baseRotationLevelMatrix();
+            targetTransform = screenMatrix * baseRotationLevelMatrix();
         }
 
         grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);

@@ -43,7 +43,7 @@ $pimpl_method_const(CameraComponent, glm::vec3, unproject, const glm::vec2&, coo
 glm::mat4 CameraComponent::transformAtCoordinates(const glm::vec2& coordinates, float depth) const
 {
     auto targetFront = unproject(coordinates, depth);
-    auto furtherFront = unproject(coordinates, 0.f);
+    auto furtherFront = unproject(coordinates, depth + 1.f);
     auto targetLeft = unproject(coordinates - glm::vec2{0.5f, 0.f}, depth);
     auto targetUp = unproject(coordinates - glm::vec2{0.f, 0.5f}, depth);
 
@@ -53,8 +53,8 @@ glm::mat4 CameraComponent::transformAtCoordinates(const glm::vec2& coordinates, 
 
     auto transform = glm::mat4(1.f);
     transform[0] = glm::vec4(front, 0.f);
-    transform[1] = glm::vec4(left, 0.f);
-    transform[2] = glm::vec4(up, 0.f);
+    transform[1] = glm::vec4(up, 0.f);
+    transform[2] = glm::vec4(left, 0.f);
     transform[3] = glm::vec4(targetFront, 1.f);
 
     return transform;

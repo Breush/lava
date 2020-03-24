@@ -115,8 +115,7 @@ void AnimationComponent::Impl::updateInterpolation(AnimationFlag flag, Animation
         const auto& targetValue = std::get<glm::mat4>(animationInfo.targetValue);
 
         glm::mat4 value = targetValue;
-        // @fixme Matrix interpolation should be added to chamber/interpolation-tools.hpp
-        if (animationInfo.needUpdate) value = glm::interpolate(startValue, targetValue, timeRatio);
+        if (animationInfo.needUpdate) value = chamber::interpolateLinear(startValue, targetValue, timeRatio);
         m_entity.get<TransformComponent>().worldTransform(value, TransformComponent::ChangeReasonFlag::Animation);
     }
     else if (flag == AnimationFlag::MaterialUniform) {
@@ -125,7 +124,7 @@ void AnimationComponent::Impl::updateInterpolation(AnimationFlag flag, Animation
             const auto& targetValue = std::get<glm::vec4>(animationInfo.targetValue);
 
             glm::vec4 value = targetValue;
-            if (animationInfo.needUpdate) value = glm::mix(startValue, targetValue, timeRatio);
+            if (animationInfo.needUpdate) value = chamber::interpolateLinear(startValue, targetValue, timeRatio);
             animationInfo.material->set(animationInfo.uniformName, value);
         }
     }
