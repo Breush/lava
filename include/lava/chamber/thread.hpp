@@ -26,6 +26,7 @@ namespace lava::chamber {
 
     private:
         bool m_destroying = false;
+        bool m_newJob = false;
         std::thread m_thread;
         std::function<void()> m_job;
         std::mutex m_jobMutex;

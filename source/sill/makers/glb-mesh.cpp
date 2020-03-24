@@ -19,7 +19,9 @@ using namespace lava::chamber;
 using namespace lava::sill;
 
 namespace {
+
     struct CacheData {
+        ThreadPool threadPool;
         std::unordered_map<uint32_t, magma::Texture*> textures;
         std::unordered_map<uint32_t, magma::Material*> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
@@ -42,21 +44,24 @@ namespace {
             glb::Texture texture(json["textures"][textureIndex]);
             glb::Image image(json["images"][texture.source]);
 
-            int texWidth, texHeight;
             glb::BufferView imageBufferView(json["bufferViews"][image.bufferView]);
             auto imageVectorView = imageBufferView.get(binChunk.data);
 
-            // @todo We might want to choose the number of channels one day...
-            auto pixels = stbi_load_from_memory(imageVectorView.data(), imageVectorView.size(), &texWidth, &texHeight, nullptr,
-                                                STBI_rgb_alpha);
-            if (pixelsCallback) pixelsCallback(pixels, texWidth, texHeight);
-
             auto& rmTexture = engine.scene().make<magma::Texture>();
-            rmTexture.loadFromMemory(pixels, texWidth, texHeight, 4u);
-            material.set(uniformName, rmTexture);
-
             cacheData.textures[textureIndex] = &rmTexture;
-            stbi_image_free(pixels);
+
+            cacheData.threadPool.job([&rmTexture, imageVectorView, pixelsCallback, &material, uniformName] {
+                // @todo We might want to choose the number of channels one day...
+                int texWidth, texHeight;
+                auto pixels = stbi_load_from_memory(imageVectorView.data(), imageVectorView.size(), &texWidth, &texHeight, nullptr,
+                                                    STBI_rgb_alpha);
+
+                if (pixelsCallback) pixelsCallback(pixels, texWidth, texHeight);
+                rmTexture.loadFromMemory(pixels, texWidth, texHeight, 4u);
+                material.set(uniformName, rmTexture);
+
+                stbi_image_free(pixels);
+            });
         }
     }
 
@@ -366,6 +371,9 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
         rootNode.transform(rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY));
 
         meshComponent.nodes(std::move(meshNodes));
+
+        // @todo We might want to be non-blocking globally.
+        cacheData.threadPool.wait();
 
         logger.info("sill.makers.glb-mesh") << "Generated mesh component for " << fileName << std::endl;
     };

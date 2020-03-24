@@ -270,6 +270,9 @@ void ImageHolder::setup(const std::vector<uint8_t>& pixels, uint32_t width, uint
 
 void ImageHolder::setup(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels, uint8_t layersCount)
 {
+    static std::mutex mutex;
+    std::scoped_lock lock(mutex);
+
     vk::Format format = vk::Format::eUndefined;
     if (channels == 1u) {
         format = vk::Format::eR8Unorm;

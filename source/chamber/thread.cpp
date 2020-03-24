@@ -23,6 +23,7 @@ void Thread::job(std::function<void()> job)
 {
     std::lock_guard<std::mutex> lock(m_jobMutex);
     m_job = std::move(job);
+    m_newJob = true;
     m_condition.notify_one();
 }
 
@@ -37,18 +38,26 @@ void Thread::run()
     while (true) {
         {
             std::unique_lock<std::mutex> lock(m_jobMutex);
-            m_condition.wait(lock, [this] { return (m_job != nullptr) || m_destroying; });
-            if (m_destroying) {
-                break;
+            if (!m_newJob) {
+                m_condition.wait(lock, [this] { return m_newJob || m_destroying; });
+                if (m_destroying) {
+                    break;
+                }
             }
+            m_newJob = false;
         }
 
+        // That m_newJob thing allows us to have a new job rescheduled
+        // during this one. This is used by ThreadPool to reuse this thread
+        // as soon as it finishes.
         m_job();
 
         {
             std::lock_guard<std::mutex> lock(m_jobMutex);
-            m_job = nullptr;
-            m_condition.notify_one();
+            if (!m_newJob) {
+                m_job = nullptr;
+                m_condition.notify_one();
+            }
         }
     }
 }
