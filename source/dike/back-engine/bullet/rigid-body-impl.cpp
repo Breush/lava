@@ -11,6 +11,8 @@ RigidBody::Impl::Impl(PhysicsEngine& engine)
 
 RigidBody::Impl::~Impl()
 {
+    if (m_rigidBody == nullptr) return;
+
     if (m_enabled) {
         m_engine.dynamicsWorld().removeRigidBody(m_rigidBody.get());
     }
@@ -22,6 +24,7 @@ void RigidBody::Impl::enabled(bool enabled)
 {
     if (m_enabled == enabled) return;
     m_enabled = enabled;
+    if (m_rigidBody == nullptr) return;
 
     if (!enabled) {
         m_engine.dynamicsWorld().removeRigidBody(m_rigidBody.get());

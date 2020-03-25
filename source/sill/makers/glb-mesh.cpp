@@ -21,7 +21,7 @@ using namespace lava::sill;
 namespace {
 
     struct CacheData {
-        ThreadPool threadPool;
+        std::unique_ptr<ThreadPool> threadPool;
         std::unordered_map<uint32_t, magma::Texture*> textures;
         std::unordered_map<uint32_t, magma::Material*> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
@@ -50,7 +50,12 @@ namespace {
             auto& rmTexture = engine.scene().make<magma::Texture>();
             cacheData.textures[textureIndex] = &rmTexture;
 
-            cacheData.threadPool.job([&rmTexture, imageVectorView, pixelsCallback, &material, uniformName] {
+
+            if (!cacheData.threadPool) {
+                cacheData.threadPool = std::make_unique<ThreadPool>();
+            }
+
+            cacheData.threadPool->job([&rmTexture, imageVectorView, pixelsCallback, &material, uniformName] {
                 // @todo We might want to choose the number of channels one day...
                 int texWidth, texHeight;
                 auto pixels = stbi_load_from_memory(imageVectorView.data(), imageVectorView.size(), &texWidth, &texHeight, nullptr,
@@ -373,7 +378,9 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
         meshComponent.nodes(std::move(meshNodes));
 
         // @todo We might want to be non-blocking globally.
-        cacheData.threadPool.wait();
+        if (cacheData.threadPool) {
+            cacheData.threadPool->wait();
+        }
 
         logger.info("sill.makers.glb-mesh") << "Generated mesh component for " << fileName << std::endl;
     };
