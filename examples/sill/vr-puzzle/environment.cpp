@@ -91,7 +91,7 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
             }
         });
 
-        findPanelByName(gameState, "intro.waking-hall-clock-controller").onSolve([&gameState]() {
+        findPanelByName(gameState, "intro.waking-hall-clock-controller")->onSolve([&gameState]() {
             auto wakingHall = gameState.engine->findEntityByName("waking-hall");
             wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
             wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");

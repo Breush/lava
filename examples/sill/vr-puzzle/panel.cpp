@@ -45,6 +45,19 @@ Panel::~Panel()
     m_gameState.engine->remove(*m_entity);
 }
 
+bool Panel::userInteractionAllowed() const
+{
+    auto headPosition = glm::vec2(m_gameState.camera->origin()); // @fixme Not working in VR!
+    for (auto barrier : m_barriers) {
+        auto barrierPosition = glm::vec2(barrier->transform().translation());
+        if (glm::distance(headPosition, barrierPosition) >= barrier->diameter() / 2.f) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void Panel::extent(const glm::uvec2& extent)
 {
     m_extent = extent;
@@ -384,13 +397,35 @@ bool Panel::isSnappingPointValid(const Brick& brick, const SnappingPoint& snappi
 
 // -----
 
-Panel& findPanelByName(GameState& gameState, const std::string& name)
+Panel* findPanelByName(GameState& gameState, const std::string& name)
 {
     for (const auto& panel : gameState.level.panels) {
         if (panel->name() == name) {
-            return *panel;
+            return panel.get();
         }
     }
 
-    exit(1);
+    return nullptr;
+}
+
+Panel* findPanel(GameState& gameState, const sill::GameEntity& entity)
+{
+    for (const auto& panel : gameState.level.panels) {
+        if (&panel->entity() == &entity) {
+            return panel.get();
+        }
+    }
+
+    return nullptr;
+}
+
+uint32_t findPanelIndex(GameState& gameState, const sill::GameEntity& entity)
+{
+    for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
+        if (&gameState.level.panels[i]->entity() == &entity) {
+            return i;
+        }
+    }
+
+    return -1u;
 }

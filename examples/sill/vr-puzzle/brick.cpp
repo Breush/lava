@@ -101,6 +101,19 @@ void Brick::addBlockH(int32_t y, bool positive)
     this->blocks(blocks);
 }
 
+bool Brick::userInteractionAllowed() const
+{
+    auto headPosition = glm::vec2(m_gameState.camera->origin()); // @fixme Not working in VR!
+    for (auto barrier : m_barriers) {
+        auto barrierPosition = glm::vec2(barrier->transform().translation());
+        if (glm::distance(headPosition, barrierPosition) >= barrier->diameter() / 2.f) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void Brick::color(const glm::vec3& color)
 {
     m_color = color;
@@ -180,13 +193,24 @@ void Brick::updateBlocksFromRotationLevel()
 
 // -----
 
-Brick& findBrick(GameState& gameState, const sill::GameEntity& entity)
+Brick* findBrick(GameState& gameState, const sill::GameEntity& entity)
 {
     for (const auto& brick : gameState.level.bricks) {
         if (&brick->entity() == &entity) {
-            return *brick;
+            return brick.get();
         }
     }
 
-    exit(1);
+    return nullptr;
+}
+
+uint32_t findBrickIndex(GameState& gameState, const sill::GameEntity& entity)
+{
+    for (auto i = 0u; i < gameState.level.bricks.size(); ++i) {
+        if (&gameState.level.bricks[i]->entity() == &entity) {
+            return i;
+        }
+    }
+
+    return -1u;
 }

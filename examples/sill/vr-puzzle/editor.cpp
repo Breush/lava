@@ -87,12 +87,15 @@ void setupEditor(GameState& gameState)
     engine.input().bindAction("reload-level", {Key::LeftControl, Key::R});
 
     // @fixme This is for debug for now
-    engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P}); // @fixme Should all be prefixed "editor."
+    engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
     engine.input().bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
     engine.input().bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     engine.input().bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
-    engine.input().bindAction("scale-up", Key::S);
-    engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
+    engine.input().bindAction("bind-modifier", {Key::LeftControl});
+    engine.input().bindAction("bind-modifier", {Key::RightControl});
+    // @fixme Disabling, need gizmo
+    // engine.input().bindAction("scale-up", Key::S);
+    // engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
     // @todo Make action to switch to rotation gizmo on R
 
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
@@ -280,6 +283,25 @@ void setupEditor(GameState& gameState)
             // Select entity on left click if any.
             if (engine.input().justDownUp("left-fire")) {
                 auto* pickedEntity = engine.pickEntity(gameState.pickingRay);
+
+                // Bind with a barrier
+                if (engine.input().down("bind-modifier") &&
+                    pickedEntity && gameState.editor.selectedEntity &&
+                    pickedEntity->name() == "barrier") {
+                    if (gameState.editor.selectedEntity->name() == "brick") {
+                        auto& brick = *findBrick(gameState, *gameState.editor.selectedEntity);
+                        brick.addBarrier(*findBarrier(gameState, *pickedEntity));
+                        std::cout << "Bound brick to barrier." << std::endl;
+                        return;
+                    }
+                    else if (gameState.editor.selectedEntity->name() == "panel") {
+                        auto& panel = *findPanel(gameState, *gameState.editor.selectedEntity);
+                        panel.addBarrier(*findBarrier(gameState, *pickedEntity));
+                        std::cout << "Bound panel to barrier." << std::endl;
+                        return;
+                    }
+                }
+
                 selectEntity(gameState, pickedEntity);
             }
         }
@@ -331,25 +353,27 @@ void setupEditor(GameState& gameState)
                 }
             }
 
-            if (engine.input().justDown("scale-down")) {
-                gameState.editor.selectedEntity->get<sill::TransformComponent>().scale(0.9f);
-            }
-            if (engine.input().justDown("scale-up")) {
-                gameState.editor.selectedEntity->get<sill::TransformComponent>().scale(1.1f);
-            }
-
             if (gameState.editor.selectedEntity->name() == "brick") {
+                auto brick = findBrick(gameState, *gameState.editor.selectedEntity);
                 if (engine.input().justDown("up")) {
-                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockV(0, true);
+                    brick->addBlockV(0, true);
                 }
                 if (engine.input().justDown("down")) {
-                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockV(0, false);
+                    brick->addBlockV(0, false);
                 }
                 if (engine.input().justDown("right")) {
-                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockH(0, true);
+                    brick->addBlockH(0, true);
                 }
                 if (engine.input().justDown("left")) {
-                    findBrick(gameState, *gameState.editor.selectedEntity).addBlockH(0, false);
+                    brick->addBlockH(0, false);
+                }
+            } else if (gameState.editor.selectedEntity->name() == "barrier") {
+                auto barrier = findBarrier(gameState, *gameState.editor.selectedEntity);
+                if (engine.input().justDown("up")) {
+                    barrier->diameter(barrier->diameter() + 0.5f);
+                }
+                if (engine.input().justDown("down")) {
+                    barrier->diameter(barrier->diameter() - 0.5f);
                 }
             }
         }

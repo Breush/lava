@@ -13,6 +13,9 @@ public:
     Barrier(GameState& gameState);
     ~Barrier();
 
+    void diameter(float diameter);
+    float diameter() const { return m_diameter; }
+
     const lava::sill::GameEntity& entity() const { return *m_entity; }
     lava::sill::GameEntity& entity() { return *m_entity; }
 
@@ -22,4 +25,9 @@ public:
 private:
     GameState& m_gameState;
     lava::sill::GameEntity* m_entity = nullptr;
+
+    float m_diameter = 1.f;
 };
+
+Barrier* findBarrier(GameState& gameState, const lava::sill::GameEntity& entity);
+uint32_t findBarrierIndex(GameState& gameState, const lava::sill::GameEntity& entity);

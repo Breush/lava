@@ -7,6 +7,7 @@
 #include <vector>
 
 class Brick;
+class Barrier;
 struct GameState;
 
 class Panel {
@@ -26,6 +27,9 @@ public:
     Panel(GameState& gameState);
     ~Panel();
 
+    const lava::sill::GameEntity& entity() const { return *m_entity; }
+    lava::sill::GameEntity& entity() { return *m_entity; }
+
     const lava::sill::AnimationComponent& animation() const { return m_entity->get<lava::sill::AnimationComponent>(); };
     lava::sill::AnimationComponent& animation() { return m_entity->get<lava::sill::AnimationComponent>(); };
     const lava::sill::TransformComponent& transform() const { return m_entity->get<lava::sill::TransformComponent>(); };
@@ -37,6 +41,13 @@ public:
     /// Update extent and associated materials visuals. This also resets all rules.
     const glm::uvec2& extent() const { return m_extent; }
     void extent(const glm::uvec2& extent);
+
+    /// All barriers that allow the panel to be active.
+    const std::set<Barrier*>& barriers() const { return m_barriers; }
+    void addBarrier(Barrier& barrier) { m_barriers.emplace(&barrier); }
+
+    /// Checks whether the user is allowed to snap brick to this panel.
+    bool userInteractionAllowed() const;
 
     /// 'from' and 'to' should be at distance 1.
     void addLink(const glm::uvec2& from, const glm::uvec2& to);
@@ -71,6 +82,7 @@ private:
     // Configuration
     std::string m_name;
     glm::uvec2 m_extent = {0u, 0u};
+    std::set<Barrier*> m_barriers;
     std::vector<std::pair<glm::uvec2, glm::uvec2>> m_links;
 
     // Data
@@ -86,4 +98,6 @@ private:
     std::vector<std::function<void()>> m_solveCallbacks;
 };
 
-Panel& findPanelByName(GameState& gameState, const std::string& name);
+Panel* findPanelByName(GameState& gameState, const std::string& name);
+Panel* findPanel(GameState& gameState, const lava::sill::GameEntity& entity);
+uint32_t findPanelIndex(GameState& gameState, const lava::sill::GameEntity& entity);

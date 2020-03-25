@@ -110,6 +110,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         auto barrier = std::make_unique<Barrier>(gameState);
 
         barrier->transform().worldTransform(unserializeMat4(barrierJson["transform"]));
+        barrier->diameter(barrierJson["diameter"]);
 
         gameState.level.barriers.emplace_back(std::move(barrier));
     }
@@ -122,6 +123,11 @@ void unserializeLevel(GameState& gameState, const std::string& path)
 
         panel->name(panelJson["name"]);
         panel->transform().worldTransform(unserializeMat4(panelJson["transform"]));
+
+        auto& barriersJson = panelJson["barriers"];
+        for (auto& barrierJson : barriersJson) {
+            panel->addBarrier(*gameState.level.barriers[barrierJson]);
+        }
 
         auto& extentJson = panelJson["extent"];
         glm::uvec2 extent(extentJson[0], extentJson[1]);
@@ -142,6 +148,11 @@ void unserializeLevel(GameState& gameState, const std::string& path)
             blocks.emplace_back(block);
         }
         brick->blocks(blocks);
+
+        auto& barriersJson = brickJson["barriers"];
+        for (auto& barrierJson : barriersJson) {
+            brick->addBarrier(*gameState.level.barriers[barrierJson]);
+        }
 
         auto& colorJson = brickJson["color"];
         glm::vec3 color(colorJson[0], colorJson[1], colorJson[2]);
@@ -181,6 +192,7 @@ void serializeLevel(GameState& gameState, const std::string& path)
         const auto& barrier = *gameState.level.barriers[i];
         levelJson["barriers"][i] = {
             {"transform", serializeMat4(barrier.transform().worldTransform())},
+            {"diameter", barrier.diameter()},
         };
     }
 
@@ -193,7 +205,12 @@ void serializeLevel(GameState& gameState, const std::string& path)
             {"name", panel.name()},
             {"transform", serializeMat4(panel.transform().worldTransform())},
             {"extent", nlohmann::json::array({panel.extent().x, panel.extent().y})},
+            {"barriers", nlohmann::json::array()},
         };
+
+        for (const auto& barrier : panel.barriers()) {
+            levelJson["panels"][i]["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
+        }
     }
 
     // ----- Bricks
@@ -210,9 +227,14 @@ void serializeLevel(GameState& gameState, const std::string& path)
         levelJson["bricks"][i] = {
             {"transform", serializeMat4(brick.transform().worldTransform())},
             {"blocks", blocks},
+            {"barriers", nlohmann::json::array()},
             {"color", nlohmann::json::array({brick.color().r, brick.color().g, brick.color().b})},
             {"rotationLevel", brick.rotationLevel()},
         };
+
+        for (const auto& barrier : brick.barriers()) {
+            levelJson["bricks"][i]["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
+        }
 
         uint32_t panelIndex = -1u;
         if (brick.snapped()) {

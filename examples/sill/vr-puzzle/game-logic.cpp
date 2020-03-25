@@ -182,6 +182,8 @@ namespace {
         bool brickLooksSnapped = false;
         grabbedBrick->unsnap();
         for (auto& panel : gameState.level.panels) {
+            if (!panel->userInteractionAllowed()) continue;
+
             // @todo We should find out which panel is the closest!
             Panel::SnappingInfo snappingInfo = panel->rayHitSnappingPoint(*grabbedBrick, gameState.pickingRay);
             if (snappingInfo.point != nullptr) {
