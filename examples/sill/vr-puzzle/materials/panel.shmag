@@ -3,17 +3,29 @@
  */
 
 struct {
-    vec4 color;
+    vec3 color;
 } gBuffer;
 
 geometry {
 
     uniform {
-        vec4 backgroundColor = vec4(1, 1, 1, 1);
         vec2 extent = vec2(3, 3);
         uint symbols[16];
-        texture2d backgroundMap = "white";
     };
+
+    float filteredGrid(in vec2 p, in vec2 dpdx, in vec2 dpdy)
+    {
+        const float N = 50.0;
+        const float blur = 4.0;
+        p += 1.0 / (2.0 * N); // Recenter
+
+        vec2 w = blur * max(abs(dpdx), abs(dpdy));
+        vec2 a = p + 0.5 * w;
+        vec2 b = p - 0.5 * w;
+        vec2 i = (floor(a) + min(fract(a) * N, 1.0) -
+                  floor(b) - min(fract(b) * N, 1.0)) / (N * w);
+        return ((1.0 - i.x) * (1.0 - i.y));
+    }
 
     bool main() {
         #define LINK_FLAG 0x01
@@ -21,8 +33,6 @@ geometry {
         #define LINK_NORTH_FLAG 0x00000200
         #define LINK_WEST_FLAG 0x00000400
         #define LINK_SOUTH_FLAG 0x00000800
-
-        vec4 backgroundMapColor = texture(backgroundMap, uv);
 
         // @fixme Somehow uv.x is reversed in mesh model,
         // we should fix that upstream to prevent this fix.
@@ -33,44 +43,42 @@ geometry {
 
         uint symbol = symbols[uint(extent.y) * square.x + square.y];
 
-        // LINK
+        // ----- Links
+        vec3 symbolsColor = vec3(1);
         if ((symbol & LINK_FLAG) != 0) {
             // Central square
             if (squareUv.x > 0.4 && squareUv.x < 0.6 && squareUv.y > 0.4 && squareUv.y < 0.6) {
-                backgroundColor = vec4(0, 0, 0, 1);
+                symbolsColor = vec3(0);
             }
 
             // East link
             if ((symbol & LINK_EAST_FLAG) != 0 && squareUv.y > 0.45 && squareUv.y < 0.55 && squareUv.x > 0.5) {
-                backgroundColor = vec4(0, 0, 0, 1);
+                symbolsColor = vec3(0);
             }
             // North link
             if ((symbol & LINK_NORTH_FLAG) != 0 && squareUv.x > 0.45 && squareUv.x < 0.55 && squareUv.y > 0.5) {
-                backgroundColor = vec4(0, 0, 0, 1);
+                symbolsColor = vec3(0);
             }
             // West link
             if ((symbol & LINK_WEST_FLAG) != 0 && squareUv.y > 0.45 && squareUv.y < 0.55 && squareUv.x < 0.5) {
-                backgroundColor = vec4(0, 0, 0, 1);
+                symbolsColor = vec3(0);
             }
             // South link
             if ((symbol & LINK_SOUTH_FLAG) != 0 && squareUv.x > 0.45 && squareUv.x < 0.55 && squareUv.y < 0.5) {
-                backgroundColor = vec4(0, 0, 0, 1);
+                symbolsColor = vec3(0);
             }
         }
 
         // Overall grid
-        if (squareUv.x < 0.01 || squareUv.x > 0.99 || squareUv.y < 0.01 || squareUv.y > 0.99) {
-            backgroundColor = vec4(0, 0, 0, 1);
-        }
+        vec3 gridColor = vec3(filteredGrid(panelUv.xy * extent, dFdx(panelUv.xy), dFdy(panelUv.xy)));
 
-        gBuffer.color = backgroundMapColor * backgroundColor;
-
-        return gBuffer.color.a < 1.0;
+        gBuffer.color = gridColor * symbolsColor;
+        return true;
     }
 }
 
 epiphany {
     vec4 main() {
-        return gBuffer.color;
+        return vec4(gBuffer.color, 1);
     }
 }
