@@ -44,11 +44,6 @@ void setupEnvironment(GameState& gameState)
         entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
         entity.get<sill::PhysicsComponent>().dynamic(false);
     }
-
-    // Shared materials
-    {
-        gameState.barrierMaterial = &engine.scene().make<magma::Material>("barrier");
-    }
 }
 
 void levelSolved(GameState& /*gameState*/)
@@ -91,10 +86,14 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
             }
         });
 
+        // @fixme Have these stored in JSON somehow?
         findPanelByName(gameState, "intro.waking-hall-clock-controller")->onSolve([&gameState]() {
             auto wakingHall = gameState.engine->findEntityByName("waking-hall");
             wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
             wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
+        });
+        findPanelByName(gameState, "intro.easy-solo")->onSolve([&gameState]() {
+            findBarrierByName(gameState, "intro.duo")->powered(true);
         });
     }
 }

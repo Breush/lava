@@ -2,6 +2,8 @@
     "barriers": [
         {
             "diameter": 3.0,
+            "name": "intro.easy-solo",
+            "powered": true,
             "transform": [
                 3.0,
                 0.0,
@@ -23,6 +25,8 @@
         },
         {
             "diameter": 5.5,
+            "name": "intro.duo",
+            "powered": false,
             "transform": [
                 5.5,
                 0.0,

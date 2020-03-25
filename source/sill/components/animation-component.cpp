@@ -16,4 +16,6 @@ $pimpl_method(AnimationComponent, void, start, AnimationFlags, flags, magma::Mat
 $pimpl_method(AnimationComponent, void, stop, AnimationFlags, flags);
 $pimpl_method(AnimationComponent, void, target, AnimationFlag, flag, const glm::mat4&, target);
 $pimpl_method(AnimationComponent, void, target, AnimationFlag, flag, magma::Material&, material, const std::string&, uniformName,
+              float, target);
+$pimpl_method(AnimationComponent, void, target, AnimationFlag, flag, magma::Material&, material, const std::string&, uniformName,
               const glm::vec4&, target);

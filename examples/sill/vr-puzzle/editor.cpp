@@ -375,6 +375,9 @@ void setupEditor(GameState& gameState)
                 if (engine.input().justDown("down")) {
                     barrier->diameter(barrier->diameter() - 0.5f);
                 }
+                if (engine.input().justDown("left") || engine.input().justDown("right")) {
+                    barrier->powered(!barrier->powered());
+                }
             }
         }
     });

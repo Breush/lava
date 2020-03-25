@@ -17,26 +17,21 @@ namespace lava::sill {
         void start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time);
         void stop(AnimationFlags flags);
         void target(AnimationFlag flag, const glm::mat4& target);
+        void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, float target);
         void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, const glm::vec4& target);
 
     protected:
-        enum class UniformType {
-            Unknown,
-            Float,
-            Vec4,
-        };
-
         struct AnimationInfo {
             bool needUpdate = true; // When timeSpent < totalTime or if target or time has changed since last update.
             float timeSpent = 0.f;
             float totalTime = 0.f;
-            std::variant<glm::mat4, glm::vec4> startValue;
-            std::variant<glm::mat4, glm::vec4> targetValue;
+            std::variant<glm::mat4, lava::magma::UniformFallback> startValue;
+            std::variant<glm::mat4, lava::magma::UniformFallback> targetValue;
 
             // For AnimationFlag::MaterialUniform
             magma::Material* material;
             std::string uniformName;
-            UniformType uniformType;
+            lava::magma::UniformType uniformType;
         };
 
     protected:

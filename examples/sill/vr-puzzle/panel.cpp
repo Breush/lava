@@ -49,6 +49,8 @@ bool Panel::userInteractionAllowed() const
 {
     auto headPosition = glm::vec2(m_gameState.camera->origin()); // @fixme Not working in VR!
     for (auto barrier : m_barriers) {
+        if (!barrier->powered()) return false;
+
         auto barrierPosition = glm::vec2(barrier->transform().translation());
         if (glm::distance(headPosition, barrierPosition) >= barrier->diameter() / 2.f) {
             return false;

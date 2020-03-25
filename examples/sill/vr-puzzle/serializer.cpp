@@ -109,8 +109,10 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     for (auto& barrierJson : levelJson["barriers"]) {
         auto barrier = std::make_unique<Barrier>(gameState);
 
+        barrier->name(barrierJson["name"]);
         barrier->transform().worldTransform(unserializeMat4(barrierJson["transform"]));
         barrier->diameter(barrierJson["diameter"]);
+        barrier->powered(barrierJson["powered"]);
 
         gameState.level.barriers.emplace_back(std::move(barrier));
     }
@@ -191,7 +193,9 @@ void serializeLevel(GameState& gameState, const std::string& path)
     for (auto i = 0u; i < gameState.level.barriers.size(); ++i) {
         const auto& barrier = *gameState.level.barriers[i];
         levelJson["barriers"][i] = {
+            {"name", barrier.name()},
             {"transform", serializeMat4(barrier.transform().worldTransform())},
+            {"powered", barrier.powered()},
             {"diameter", barrier.diameter()},
         };
     }

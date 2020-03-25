@@ -41,10 +41,12 @@ void AnimationComponent::Impl::start(AnimationFlags flags, float time)
 void AnimationComponent::Impl::start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time)
 {
     if (flags & AnimationFlag::MaterialUniform) {
+        const auto& attribute = material.attributes().at(uniformName);
         auto& animationInfo = findOrCreateAnimationInfo(AnimationFlag::MaterialUniform, material, uniformName);
         animationInfo.timeSpent = 0.f;
         animationInfo.totalTime = time;
-        animationInfo.startValue = material.get_vec4(uniformName);
+        animationInfo.startValue = attribute.value;
+        animationInfo.uniformType = attribute.type;
         animationInfo.targetValue = animationInfo.startValue;
         animationInfo.needUpdate = true;
     }
@@ -69,7 +71,14 @@ void AnimationComponent::Impl::target(AnimationFlag flag, magma::Material& mater
 {
     auto& animationInfo = findOrCreateAnimationInfo(flag, material, uniformName);
     animationInfo.targetValue = target;
-    animationInfo.uniformType = UniformType::Vec4;
+    animationInfo.needUpdate = true;
+}
+
+void AnimationComponent::Impl::target(AnimationFlag flag, magma::Material& material, const std::string& uniformName,
+                                      float target)
+{
+    auto& animationInfo = findOrCreateAnimationInfo(flag, material, uniformName);
+    animationInfo.targetValue = target;
     animationInfo.needUpdate = true;
 }
 
@@ -119,11 +128,19 @@ void AnimationComponent::Impl::updateInterpolation(AnimationFlag flag, Animation
         m_entity.get<TransformComponent>().worldTransform(value, TransformComponent::ChangeReasonFlag::Animation);
     }
     else if (flag == AnimationFlag::MaterialUniform) {
-        if (animationInfo.uniformType == UniformType::Vec4) {
-            const auto& startValue = std::get<glm::vec4>(animationInfo.startValue);
-            const auto& targetValue = std::get<glm::vec4>(animationInfo.targetValue);
+        if (animationInfo.uniformType == magma::UniformType::Float) {
+            auto startValue = std::get<magma::UniformFallback>(animationInfo.startValue).floatValue;
+            auto targetValue = std::get<magma::UniformFallback>(animationInfo.targetValue).floatValue;
 
-            glm::vec4 value = targetValue;
+            auto value = targetValue;
+            if (animationInfo.needUpdate) value = chamber::interpolateLinear(startValue, targetValue, timeRatio);
+            animationInfo.material->set(animationInfo.uniformName, value);
+        }
+        else if (animationInfo.uniformType == magma::UniformType::Vec4) {
+            const auto& startValue = std::get<magma::UniformFallback>(animationInfo.startValue).vec4Value;
+            const auto& targetValue = std::get<magma::UniformFallback>(animationInfo.targetValue).vec4Value;
+
+            auto value = targetValue;
             if (animationInfo.needUpdate) value = chamber::interpolateLinear(startValue, targetValue, timeRatio);
             animationInfo.material->set(animationInfo.uniformName, value);
         }

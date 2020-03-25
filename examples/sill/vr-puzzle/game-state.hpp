@@ -39,8 +39,6 @@ struct GameState {
     lava::Ray pickingRay;
     Brick* pointedBrick = nullptr;
 
-    lava::magma::Material* barrierMaterial = nullptr;
-
     struct {
         std::string name;
         std::string path;

@@ -32,6 +32,7 @@ namespace lava::sill {
         void start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time);
         void stop(AnimationFlags flags);
         void target(AnimationFlag flag, const glm::mat4& target);
+        void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, float target);
         void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, const glm::vec4& target);
 
     public:

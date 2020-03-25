@@ -24,6 +24,7 @@ namespace lava::chamber {
     glm::quat interpolate(const std::vector<glm::quat>& values, uint32_t step, float t, float timeRange, InterpolationType type);
 
     /// With this interface, linear interpolation is done between m0 and m1.
+    inline float interpolateLinear(float f0, float f1, float t) { return f0 + t * (f1 - f0); }
     inline glm::vec3 interpolateLinear(const glm::vec3& v0, const glm::vec3& v1, float t) { return v0 + t * (v1 - v0); }
     inline glm::vec4 interpolateLinear(const glm::vec4& v0, const glm::vec4& v1, float t) { return v0 + t * (v1 - v0); }
     inline glm::quat interpolateLinear(const glm::quat& q0, const glm::quat& q1, float t) { return glm::slerp(q0, q1, t); }
