@@ -31,12 +31,11 @@ namespace {
     {
         // Reset color for all bricks first
         for (auto& brick : gameState.level.bricks) {
-            brick->apparentColor(brick->color());
+            brick->selectionHighlighted(false);
         }
 
-        // @fixme Green is ugly, would love better highlight system that does not hide previous color (halo?)
         if (gameState.state == State::Idle && gameState.pointedBrick != nullptr) {
-            gameState.pointedBrick->apparentColor({0, 1, 0});
+            gameState.pointedBrick->selectionHighlighted(true);
         }
     }
 

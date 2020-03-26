@@ -193,11 +193,11 @@ namespace {
 
                 // Set the coordinates of snapped snapping point.
                 if (snappingInfo.validForBrick) {
-                    grabbedBrick->apparentColor({0, 0.8, 0});
+                    grabbedBrick->errorHighlighted(false);
                     grabbedBrick->snap(*panel, snappingInfo.point->coordinates);
                 }
                 else {
-                    grabbedBrick->apparentColor({1, 0, 0});
+                    grabbedBrick->errorHighlighted(true);
                 }
 
                 break;
@@ -206,7 +206,7 @@ namespace {
 
         // If the brick is not snapped, we move the brick to the lower right corner of the screen.
         if (!brickLooksSnapped) {
-            grabbedBrick->apparentColor(grabbedBrick->color());
+            grabbedBrick->errorHighlighted(false);
 
             const auto& extent = gameState.camera.component->extent();
             auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};

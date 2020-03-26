@@ -160,6 +160,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         glm::vec3 color(colorJson[0], colorJson[1], colorJson[2]);
         brick->color(color);
 
+        brick->fixed(brickJson["fixed"]);
         brick->baseRotationLevel(brickJson["rotationLevel"]);
 
         auto& snapPanelJson = brickJson["snapPanel"];
@@ -233,6 +234,7 @@ void serializeLevel(GameState& gameState, const std::string& path)
             {"blocks", blocks},
             {"barriers", nlohmann::json::array()},
             {"color", nlohmann::json::array({brick.color().r, brick.color().g, brick.color().b})},
+            {"fixed", brick.fixed()},
             {"rotationLevel", brick.rotationLevel()},
         };
 

@@ -103,6 +103,8 @@ void Brick::addBlockH(int32_t y, bool positive)
 
 bool Brick::userInteractionAllowed() const
 {
+    if (m_fixed) return false;
+
     auto headPosition = glm::vec2(m_gameState.camera.component->origin()); // @fixme Not working in VR!
     for (auto barrier : m_barriers) {
         if (!barrier->powered()) return false;
@@ -119,15 +121,27 @@ bool Brick::userInteractionAllowed() const
 void Brick::color(const glm::vec3& color)
 {
     m_color = color;
-    m_apparentColor = color;
 
     updateBlocksColor();
 }
 
-void Brick::apparentColor(const glm::vec3& color)
-{
-    if (m_apparentColor == color) return;
-    m_apparentColor = color;
+void Brick::selectionHighlighted(bool selectionHighlighted) {
+    if (m_selectionHighlighted == selectionHighlighted) return;
+    m_selectionHighlighted = selectionHighlighted;
+
+    updateBlocksColor();
+}
+
+void Brick::errorHighlighted(bool errorHighlighted) {
+    if (m_errorHighlighted == errorHighlighted) return;
+    m_errorHighlighted = errorHighlighted;
+
+    updateBlocksColor();
+}
+
+void Brick::fixed(bool fixed) {
+    if (m_fixed == fixed) return;
+    m_fixed = fixed;
 
     updateBlocksColor();
 }
@@ -175,8 +189,20 @@ void Brick::extraRotationLevel(uint32_t extraRotationLevel)
 
 void Brick::updateBlocksColor()
 {
+    auto color = m_color;
+
+    if (m_fixed) {
+        color = glm::vec3(0.8f);
+    }
+    else if (m_errorHighlighted) {
+        color = glm::mix(color, glm::vec3(0.95f, 0.2f, 0.2f), 0.75f);
+    }
+    else if (m_selectionHighlighted) {
+        color = glm::mix(color, glm::vec3(0.4f, 0.4f, 0.95f), 0.75f);
+    }
+
     for (auto& block : m_blocks) {
-        block.entity->get<sill::MeshComponent>().material(1, 0)->set("albedoColor", m_apparentColor);
+        block.entity->get<sill::MeshComponent>().material(1, 0)->set("albedoColor", color);
     }
 }
 

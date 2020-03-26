@@ -54,7 +54,18 @@ public:
 
     const glm::vec3& color() const { return m_color; }
     void color(const glm::vec3& color);
-    void apparentColor(const glm::vec3& color);
+
+    /// Brick is hovered to be grabbed.
+    bool selectionHighlighted() const { return m_selectionHighlighted; }
+    void selectionHighlighted(bool selectionHighlighted);
+
+    /// Brick is in error state.
+    bool errorHighlighted() const { return m_errorHighlighted; }
+    void errorHighlighted(bool errorHighlighted);
+
+    /// Brick is locked and cannot be moved by player.
+    bool fixed() const { return m_fixed; }
+    void fixed(bool fixed);
 
     // Whether the entity is snapped to snapping point and its coordinates if it is.
     bool snapped() const { return m_snapPanel != nullptr; }
@@ -82,12 +93,14 @@ private:
 
     std::vector<Block> m_blocks;
     std::set<Barrier*> m_barriers;
-    glm::vec3 m_color = {1, 1, 1};         //!< Saved color.
-    glm::vec3 m_apparentColor = {1, 1, 1}; //!< Currently displayed color.
+    glm::vec3 m_color = {0.992, 0.992, 0.588};
 
     const Panel* m_snapPanel = nullptr;
     glm::uvec2 m_snapCoordinates = {0, 0};
 
+    bool m_fixed = false;
+    bool m_errorHighlighted = false;
+    bool m_selectionHighlighted = false;
     uint32_t m_rotationLevel = 0u;
     uint32_t m_baseRotationLevel = 0u;
     uint32_t m_extraRotationLevel = 0u;

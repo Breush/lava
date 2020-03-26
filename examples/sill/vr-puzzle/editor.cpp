@@ -214,7 +214,6 @@ void setupEditor(GameState& gameState)
             else if (engine.input().justDown("add-brick")) {
                 auto brick = std::make_unique<Brick>(gameState);
                 brick->blocks({{0, 0}});
-                brick->color({1, 0, 0});
                 gameState.level.bricks.emplace_back(std::move(brick));
                 return;
             }
