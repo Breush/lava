@@ -370,7 +370,8 @@ void setupEditor(GameState& gameState)
                 if (engine.input().justDown("left")) {
                     brick->addBlockH(0, false);
                 }
-            } else if (gameState.editor.selectedEntity->name() == "barrier") {
+            }
+            else if (gameState.editor.selectedEntity->name() == "barrier") {
                 auto barrier = findBarrier(gameState, *gameState.editor.selectedEntity);
                 if (engine.input().justDown("up")) {
                     barrier->diameter(barrier->diameter() + 0.5f);
@@ -380,6 +381,21 @@ void setupEditor(GameState& gameState)
                 }
                 if (engine.input().justDown("left") || engine.input().justDown("right")) {
                     barrier->powered(!barrier->powered());
+                }
+            }
+            else if (gameState.editor.selectedEntity->name() == "panel") {
+                auto panel = findPanel(gameState, *gameState.editor.selectedEntity);
+                if (engine.input().justDown("up")) {
+                    panel->extent(panel->extent() + glm::uvec2(0, 1));
+                }
+                if (engine.input().justDown("down")) {
+                    panel->extent(panel->extent() - glm::uvec2(0, 1));
+                }
+                if (engine.input().justDown("right")) {
+                    panel->extent(panel->extent() + glm::uvec2(1, 0));
+                }
+                if (engine.input().justDown("left")) {
+                    panel->extent(panel->extent() - glm::uvec2(1, 0));
                 }
             }
         }
