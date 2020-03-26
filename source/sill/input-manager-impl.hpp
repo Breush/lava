@@ -56,6 +56,5 @@ namespace lava::sill {
         std::set<std::string> m_updatedBindings;
 
         glm::vec2 m_mouseCoordinates; // Last known mouse position.
-        bool m_initializingMousePosition = true;
     };
 }

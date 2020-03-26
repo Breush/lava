@@ -27,6 +27,15 @@ namespace lava::crater {
         bool fullscreen() const;
         void fullscreen(bool fullscreen);
 
+        /// Hide the mouse cursor when inside the window.
+        bool mouseHidden() const;
+        void mouseHidden(bool mouseHidden);
+
+        /// Keep the mouse cursor centered in the window.
+        /// Mouse positions become almost useless, use deltas instead.
+        bool mouseKeptCentered() const;
+        void mouseKeptCentered(bool mouseKeptCentered);
+
     public:
         class Impl;
         Impl& impl() { return *m_impl; }

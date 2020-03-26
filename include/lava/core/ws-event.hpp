@@ -27,6 +27,8 @@ namespace lava {
         struct MouseMoveData {
             int16_t x;
             int16_t y;
+            int16_t dx;
+            int16_t dy;
         };
 
         struct MouseWheelData {

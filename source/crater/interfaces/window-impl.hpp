@@ -17,6 +17,11 @@ namespace lava::crater {
         virtual WsHandle handle() const = 0;
         virtual bool fullscreen() const = 0;
         virtual void fullscreen(bool fullscreen) = 0;
+         /* @todo Missing implementations for DWM/Wayland. Could be pure virtual otherwise. */
+        virtual bool mouseHidden() const { return false; }
+        virtual void mouseHidden(bool /* mouseHidden */) {}
+        virtual bool mouseKeptCentered() const { return false; }
+        virtual void mouseKeptCentered(bool /* mouseKeptCentered */) {}
         const VideoMode& videoMode() const { return m_videoMode; }
 
     protected:

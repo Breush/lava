@@ -23,6 +23,11 @@
 using namespace lava;
 
 namespace {
+    constexpr uint32_t EVENT_MASK_FLAGS = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS |
+                                          XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY |
+                                          XCB_EVENT_MASK_POINTER_MOTION |
+                                          XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
+
     xcb_key_symbols_t* g_keySymbols = nullptr;
 
     inline xcb_intern_atom_reply_t* internAtomHelper(xcb_connection_t* conn, bool only_if_exists, const char* str)
@@ -152,9 +157,33 @@ void Window::Impl::fullscreen(bool fullscreen)
     }
 }
 
-WsHandle Window::Impl::handle() const
+void Window::Impl::mouseHidden(bool mouseHidden)
 {
-    return {m_connection, m_window};
+    if (m_mouseHidden == mouseHidden) return;
+    m_mouseHidden = mouseHidden;
+
+    if (m_emptyCursor == XCB_NONE) {
+        m_emptyCursor = xcb_generate_id(m_connection);
+        xcb_pixmap_t pixmap = xcb_generate_id(m_connection);
+        xcb_create_pixmap(m_connection, 1, pixmap, m_window, 1, 1);
+        xcb_create_cursor(m_connection, m_emptyCursor, pixmap, pixmap,
+                          0, 0, 0, 0, 0, 0, 0, 0);
+        xcb_free_pixmap(m_connection, pixmap);
+    }
+
+    const uint32_t values = (mouseHidden) ? m_emptyCursor : XCB_NONE;
+    xcb_change_window_attributes(m_connection, m_window, XCB_CW_CURSOR, &values);
+    xcb_flush(m_connection);
+}
+
+void Window::Impl::mouseKeptCentered(bool mouseKeptCentered)
+{
+    if (m_mouseKeptCentered == mouseKeptCentered) return;
+    m_mouseKeptCentered = mouseKeptCentered;
+
+    m_mouseCurrentlyCentered = false;
+    m_mouseMoveAccumulator.x = 0;
+    m_mouseMoveAccumulator.y = 0;
 }
 
 // ----- Internal
@@ -185,9 +214,7 @@ void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
 
     value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     value_list[0] = m_screen->black_pixel;
-    value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE
-                    | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_PRESS
-                    | XCB_EVENT_MASK_BUTTON_RELEASE;
+    value_list[1] = EVENT_MASK_FLAGS;
     value_list[2] = 0;
 
     xcb_create_window(m_connection, XCB_COPY_FROM_PARENT, m_window, m_screen->root, 0, 0, mode.width, mode.height, 0,
@@ -210,19 +237,38 @@ void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
     xcb_flush(m_connection);
 }
 
+void Window::Impl::mouseMoveIgnored(bool ignored) const
+{
+    uint32_t eventMaskValues = EVENT_MASK_FLAGS;
+    if (ignored) {
+        eventMaskValues ^= XCB_EVENT_MASK_POINTER_MOTION;
+    }
+    xcb_change_window_attributes(m_connection, m_window, XCB_CW_EVENT_MASK, &eventMaskValues);
+}
+
 void Window::Impl::processEvents()
 {
+    xcb_flush(m_connection);
+
     xcb_generic_event_t* event;
     while ((event = xcb_poll_for_event(m_connection))) {
         processEvent(*event);
         free(event);
     }
+
+    if (m_mouseKeptCentered && !m_mouseCurrentlyCentered) {
+        mouseMoveIgnored(true);
+        xcb_warp_pointer(m_connection, XCB_NONE, m_window, 0, 0, 0, 0,
+                         m_extent.width / 2, m_extent.height / 2);
+        mouseMoveIgnored(false);
+
+        m_mouseCurrentlyCentered = true;
+        m_mousePositionToReset = true; // Won't emit delta for the centering
+    }
 }
 
-bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
+void Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 {
-    xcb_flush(m_connection);
-
     switch (windowEvent.response_type & 0x7f) {
     case XCB_DESTROY_NOTIFY: {
         break;
@@ -329,8 +375,25 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 
         WsEvent event;
         event.type = WsEventType::MouseMoved;
+
+        // @note To prevent big deltas when moving
+        // the mouse the first time, we use this flag.
+        if (m_mousePositionToReset) {
+            m_mousePosition.x = motionEvent.event_x;
+            m_mousePosition.y = motionEvent.event_y;
+            m_mousePositionToReset = false;
+            return;
+        }
+
         event.mouseMove.x = motionEvent.event_x;
         event.mouseMove.y = motionEvent.event_y;
+        event.mouseMove.dx = event.mouseMove.x - m_mousePosition.x;
+        event.mouseMove.dy = event.mouseMove.y - m_mousePosition.y;
+
+        m_mouseCurrentlyCentered = false;
+        m_mousePosition.x = motionEvent.event_x;
+        m_mousePosition.y = motionEvent.event_y;
+
         pushEvent(event);
         break;
     }
@@ -355,6 +418,4 @@ bool Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 
     default: break;
     }
-
-    return true;
 }

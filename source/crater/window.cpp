@@ -27,6 +27,8 @@ Window::~Window()
 $pimpl_attribute_v(Window, lava::WsHandle, handle);
 $pimpl_attribute(Window, VideoMode, videoMode);
 $pimpl_property_v(Window, bool, fullscreen);
+$pimpl_property_v(Window, bool, mouseHidden);
+$pimpl_property_v(Window, bool, mouseKeptCentered);
 
 lava::Extent2d Window::extent() const
 {

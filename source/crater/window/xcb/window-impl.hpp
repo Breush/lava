@@ -16,21 +16,29 @@ namespace lava::crater {
         ~Impl();
 
         // IWindowImpl
-        WsHandle handle() const override final;
+        WsHandle handle() const final { return {m_connection, m_window}; }
 
-        bool fullscreen() const override final { return m_fullscreen; }
-        void fullscreen(bool fullscreen) override final;
+        bool fullscreen() const final { return m_fullscreen; }
+        void fullscreen(bool fullscreen) final;
+        bool mouseHidden() const final { return m_mouseHidden; }
+        void mouseHidden(bool mouseHidden) final;
+        bool mouseKeptCentered() const final { return m_mouseKeptCentered; }
+        void mouseKeptCentered(bool mouseKeptCentered) final;
 
     protected:
         // IWindowImpl
-        virtual void processEvents() override final;
+        virtual void processEvents() final;
 
         void initXcbConnection();
         void setupWindow(VideoMode mode, const std::string& title);
-        bool processEvent(xcb_generic_event_t& windowEvent);
+        void processEvent(xcb_generic_event_t& windowEvent);
+
+        void mouseMoveIgnored(bool ignored) const;
 
     private:
         bool m_fullscreen = false;
+        bool m_mouseHidden = false;
+        bool m_mouseKeptCentered = false;
 
         xcb_window_t m_window = -1u;
         xcb_connection_t* m_connection = nullptr;
@@ -41,5 +49,16 @@ namespace lava::crater {
 
         Extent2d m_extent;
         Extent2d m_extentBeforeFullscreen;
+        WsEvent::MouseMoveData m_mousePosition;
+        bool m_mousePositionToReset = true;
+
+        std::vector<uint32_t> m_ignoredSequences;
+
+        // Mouse hidden mode
+        xcb_cursor_t m_emptyCursor = XCB_NONE;
+
+        // Keep cursor centered mode
+        bool m_mouseCurrentlyCentered = false;
+        WsEvent::MouseMoveData m_mouseMoveAccumulator; // Used in centerCursor @fixme Rename infinite mode
     };
 }

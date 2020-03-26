@@ -48,6 +48,8 @@ int main(void)
             case WsEventType::MouseMoved: {
                 std::cout << "    x: " << event->mouseMove.x << std::endl;
                 std::cout << "    y: " << event->mouseMove.y << std::endl;
+                std::cout << "    dx: " << event->mouseMove.dx << std::endl;
+                std::cout << "    dy: " << event->mouseMove.dy << std::endl;
                 break;
             }
             case WsEventType::KeyPressed: {
