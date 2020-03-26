@@ -101,7 +101,7 @@ void setupRayPicking(GameState& gameState)
     auto& behaviorComponent = rayPickingEntity.make<sill::BehaviorComponent>();
     behaviorComponent.onUpdate([&](float /* dt */) {
         const auto& mouseCoordinates = engine.input().mouseCoordinates();
-        gameState.pickingRay = gameState.camera->coordinatesToRay(mouseCoordinates);
+        gameState.pickingRay = gameState.camera.component->coordinatesToRay(mouseCoordinates);
 
         if (!g_rayPickingEnabled) return;
 

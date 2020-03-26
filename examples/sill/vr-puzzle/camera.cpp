@@ -1,5 +1,8 @@
 #include "./camera.hpp"
 
+#include <iostream>
+#include <lava/crater.hpp>
+
 using namespace lava;
 
 void setupCamera(GameState& gameState)
@@ -27,30 +30,14 @@ void setupCamera(GameState& gameState)
     auto& cameraComponent = entity.make<sill::CameraComponent>();
     cameraComponent.origin({-2.f, 0.f, 1.7f});
     cameraComponent.target({0.f, 0.f, 1.7f});
-    gameState.camera = &cameraComponent;
+    gameState.camera.component = &cameraComponent;
+
+    setCameraMode(gameState, CameraMode::FirstPerson);
 
     // Behavior for user control
     behaviorComponent.onUpdate([&input, &cameraComponent, &gameState](float dt) {
         // @fixme Better have a "pushLockCamera" function, something callable from anywhere.
         if (gameState.state == State::Editor && gameState.editor.state != EditorState::Idle) return;
-
-        if (input.axisChanged("zoom")) {
-            cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("zoom") / 10.f);
-        }
-
-        if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
-            glm::vec2 delta(input.axis("main-x") / 100.f, input.axis("main-y") / 100.f);
-
-            // Right click is maintained to translate the camera
-            if (input.down("right-fire")) {
-                cameraComponent.strafe(delta.x / 10.f, delta.y / 10.f);
-            }
-
-            // Left click is maintained to orbit
-            if (input.down("left-fire")) {
-                cameraComponent.orbitAdd(-delta.x, delta.y);
-            }
-        }
 
         // Going forward/backward
 
@@ -83,5 +70,39 @@ void setupCamera(GameState& gameState)
             cameraComponent.goRight(rightImpulse * dt, {1, 1, 0});
             rightImpulse = 0.9f * rightImpulse;
         }
+
+        if (gameState.camera.mode == CameraMode::FirstPerson) {
+            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
+                glm::vec2 delta(input.axis("main-x") / 100.f, input.axis("main-y") / 100.f);
+                cameraComponent.rotateAtOrigin(-delta.x, -delta.y);
+            }
+        }
+        else if (gameState.camera.mode == CameraMode::Orbit) {
+            if (input.axisChanged("zoom")) {
+                cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("zoom") / 10.f);
+            }
+
+            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
+                glm::vec2 delta(input.axis("main-x") / 100.f, input.axis("main-y") / 100.f);
+
+                // Right click is maintained to translate the camera
+                if (input.down("right-fire")) {
+                    cameraComponent.strafe(delta.x / 10.f, delta.y / 10.f);
+                }
+
+                // Left click is maintained to orbit
+                if (input.down("left-fire")) {
+                    cameraComponent.orbitAdd(-delta.x, delta.y);
+                }
+            }
+        }
+
     });
+}
+
+void setCameraMode(GameState& gameState, CameraMode mode)
+{
+    gameState.camera.mode = mode;
+    gameState.engine->window().mouseKeptCentered(mode == CameraMode::FirstPerson);
+    gameState.engine->window().mouseHidden(mode == CameraMode::FirstPerson);
 }

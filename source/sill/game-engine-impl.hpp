@@ -25,6 +25,7 @@ namespace lava::sill {
         InputManager& input() { return m_inputManager; }
         dike::PhysicsEngine& physicsEngine() { return *m_physicsEngine; }
         flow::AudioEngine& audioEngine() { return *m_audioEngine; }
+        crater::Window& window() { return *m_window; }
 
         // Fonts
         Font& font(const std::string& hrid) { return m_fontManager.font(hrid); }

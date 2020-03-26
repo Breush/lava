@@ -8,6 +8,10 @@
 #include <lava/magma/scene.hpp>
 #include <memory>
 
+namespace lava::crater {
+    class Window;
+}
+
 namespace lava::dike {
     class PhysicsEngine;
 }
@@ -46,6 +50,9 @@ namespace lava::sill {
         /// Access the render engine.
         magma::RenderEngine& renderEngine();
         magma::Scene& scene();
+
+        /// Access the windowing system.
+        crater::Window& window();
 
         /**
          * @name Fonts

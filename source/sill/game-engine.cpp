@@ -13,6 +13,7 @@ $pimpl_method(GameEngine, InputManager&, input);
 $pimpl_method(GameEngine, dike::PhysicsEngine&, physicsEngine);
 $pimpl_method(GameEngine, magma::RenderEngine&, renderEngine);
 $pimpl_method(GameEngine, magma::Scene&, scene);
+$pimpl_method(GameEngine, crater::Window&, window);
 
 // ----- Fonts
 $pimpl_method(GameEngine, Font&, font, const std::string&, hrid);

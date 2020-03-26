@@ -48,6 +48,9 @@ namespace lava::magma {
 
         /// Orbit around the target point by a certain delta. Keeps radius and target, changes origin.
         void orbitAdd(float longitudeAngle, float latitudeAngle);
+
+        /// Rotate around the origin by a certain delta. Keeps radius and origin, changes target.
+        void rotateAtOrigin(float longitudeAngle, float latitudeAngle);
         /// @}
 
     protected:

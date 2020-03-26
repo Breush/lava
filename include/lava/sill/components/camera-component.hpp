@@ -32,6 +32,7 @@ namespace lava::sill {
         void strafe(float x, float y);
         void radiusAdd(float radiusDistance);
         void orbitAdd(float longitudeAngle, float latitudeAngle);
+        void rotateAtOrigin(float longitudeAngle, float latitudeAngle);
 
         void goForward(float distance, const glm::vec3& constraints = {1, 1, 1});
         void goRight(float distance, const glm::vec3& constraints = {1, 1, 1});

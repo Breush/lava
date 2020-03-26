@@ -47,7 +47,7 @@ Panel::~Panel()
 
 bool Panel::userInteractionAllowed() const
 {
-    auto headPosition = glm::vec2(m_gameState.camera->origin()); // @fixme Not working in VR!
+    auto headPosition = glm::vec2(m_gameState.camera.component->origin()); // @fixme Not working in VR!
     for (auto barrier : m_barriers) {
         if (!barrier->powered()) return false;
 

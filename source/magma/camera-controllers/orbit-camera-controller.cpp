@@ -70,6 +70,24 @@ void OrbitCameraController::orbitAdd(float longitudeAngle, float latitudeAngle)
     origin(m_origin + longitudeDelta + latitudeDelta);
 }
 
+void OrbitCameraController::rotateAtOrigin(float longitudeAngle, float latitudeAngle)
+{
+    auto relativePosition = m_target - m_origin;
+    auto axis = glm::vec3(relativePosition.y, -relativePosition.x, 0);
+
+    auto currentLatitudeAngle = std::asin(relativePosition.z / glm::length(relativePosition));
+    if (currentLatitudeAngle + latitudeAngle > math::PI_OVER_TWO - 0.01) {
+        latitudeAngle = math::PI_OVER_TWO - 0.01 - currentLatitudeAngle;
+    }
+    else if (currentLatitudeAngle + latitudeAngle < -math::PI_OVER_TWO + 0.01) {
+        latitudeAngle = -math::PI_OVER_TWO + 0.01 - currentLatitudeAngle;
+    }
+
+    auto longitudeDelta = glm::rotateZ(relativePosition, longitudeAngle) - relativePosition;
+    auto latitudeDelta = glm::rotate(relativePosition, latitudeAngle, axis) - relativePosition;
+    target(m_target + longitudeDelta + latitudeDelta);
+}
+
 // ----- Updates
 
 void OrbitCameraController::updateCameraViewTransform()

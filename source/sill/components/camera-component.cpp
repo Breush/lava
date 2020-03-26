@@ -19,6 +19,7 @@ $pimpl_property_v(CameraComponent, float, radius);
 $pimpl_method(CameraComponent, void, strafe, float, x, float, y);
 $pimpl_method(CameraComponent, void, radiusAdd, float, radiusDistance);
 $pimpl_method(CameraComponent, void, orbitAdd, float, longitudeAngle, float, latitudeAngle);
+$pimpl_method(CameraComponent, void, rotateAtOrigin, float, longitudeAngle, float, latitudeAngle);
 
 void CameraComponent::goForward(float distance, const glm::vec3& constraints)
 {

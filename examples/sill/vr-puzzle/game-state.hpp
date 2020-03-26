@@ -21,6 +21,11 @@ enum class EditorState {
     RotateAlongAxis,
 };
 
+enum class CameraMode {
+    FirstPerson,
+    Orbit,
+};
+
 enum class GizmoTool {
     Translation,
     Rotation,
@@ -31,13 +36,17 @@ struct GameState {
     State state = State::Idle;
 
     lava::sill::GameEngine* engine = nullptr;
-    lava::sill::CameraComponent* camera = nullptr;
 
     lava::sill::GameEntity* rayPickingEntity = nullptr;
     lava::sill::GameEntity* teleportBeamEntity = nullptr;
     lava::sill::GameEntity* teleportAreaEntity = nullptr;
     lava::Ray pickingRay;
     Brick* pointedBrick = nullptr;
+
+    struct {
+        lava::sill::CameraComponent* component = nullptr;
+        CameraMode mode = CameraMode::FirstPerson;
+    } camera;
 
     struct {
         std::string name;

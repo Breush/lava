@@ -28,6 +28,7 @@ namespace lava::sill {
         void strafe(float x, float y) { m_cameraController.strafe(x, y); }
         void radiusAdd(float radiusDistance) { m_cameraController.radiusAdd(radiusDistance); }
         void orbitAdd(float longitudeAngle, float latitudeAngle) { m_cameraController.orbitAdd(longitudeAngle, latitudeAngle); }
+        void rotateAtOrigin(float longitudeAngle, float latitudeAngle) { m_cameraController.rotateAtOrigin(longitudeAngle, latitudeAngle); }
 
         const glm::mat4& viewTransform() const { return m_camera->viewTransform(); }
         const glm::mat4& projectionTransform() const { return m_camera->projectionTransform(); }

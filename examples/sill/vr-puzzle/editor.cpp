@@ -8,6 +8,7 @@
 #include <lava/magma.hpp>
 
 #include "./brick.hpp"
+#include "./camera.hpp"
 #include "./environment.hpp"
 #include "./serializer.hpp"
 
@@ -170,6 +171,9 @@ void setupEditor(GameState& gameState)
             unselectAllEntities(gameState);
 
             std::cout << "Editor: " << (gameState.state == State::Editor) << std::endl;
+
+            if (gameState.state == State::Editor) setCameraMode(gameState, CameraMode::Orbit);
+            else setCameraMode(gameState, CameraMode::FirstPerson);
         }
 
         if (gameState.state != State::Editor) return;
@@ -313,7 +317,7 @@ void setupEditor(GameState& gameState)
         const auto& translation = gameState.editor.selectedEntity->get<sill::TransformComponent>().translation();
         gameState.editor.gizmoEntity->get<sill::TransformComponent>().translation(translation);
 
-        const auto gizmoDistanceToCamera = std::sqrt(glm::length(gameState.camera->origin() - translation));
+        const auto gizmoDistanceToCamera = std::sqrt(glm::length(gameState.camera.component->origin() - translation));
         gameState.editor.gizmoEntity->get<sill::TransformComponent>().scaling(glm::vec3(gizmoDistanceToCamera));
 
         // Move entity if needed.
