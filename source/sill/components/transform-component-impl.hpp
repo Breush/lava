@@ -34,7 +34,7 @@ namespace lava::sill {
         void scale(float factor, ChangeReasonFlag changeReasonFlag) { scaling(m_scaling * factor, changeReasonFlag); }
 
         // TransformComponent world transform
-        const glm::mat4& worldTransform() const { return m_worldTransform; } // @todo Concept of nodes/worldTransform
+        const glm::mat4& worldTransform() const { return m_worldTransform; }
         void worldTransform(const glm::mat4& transform, ChangeReasonFlag changeReasonFlag);
 
         // TransformComponent callbacks

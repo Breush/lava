@@ -61,18 +61,21 @@ struct GameState {
     } level;
 
     struct {
-        lava::sill::GameEntity* selectedEntity = nullptr;
-        lava::sill::GameEntity* gizmoEntity = nullptr; // Holding all tool gizmos (translation/rotation/scaling)
-        lava::sill::GameEntity* gizmoActiveToolEntity = nullptr; // One below, in sync with gizmoTool
-        lava::sill::GameEntity* gizmoTranslationEntity = nullptr;
-        lava::sill::GameEntity* gizmoRotationEntity = nullptr;
-        lava::sill::GameEntity* selectedGizmoAxis = nullptr;
-        GizmoTool gizmoTool = GizmoTool::Translation;
         EditorState state = EditorState::Idle;
+        std::vector<lava::sill::GameEntity*> selectedEntities;
 
-        // Used when moving along an axis
-        glm::vec3 axis = {0.f, 0.f, 1.f};
-        glm::vec3 nextAxis = {1.f, 0.f, 0.f};
-        float axisOffset = 0.f;
+        struct {
+            GizmoTool tool = GizmoTool::Translation;
+            lava::sill::GameEntity* entity = nullptr; // Holding all tool gizmos (translation/rotation/scaling)
+            lava::sill::GameEntity* toolEntity = nullptr; // One tool from list below
+            lava::sill::GameEntity* translationToolEntity = nullptr;
+            lava::sill::GameEntity* rotationToolEntity = nullptr;
+            lava::sill::GameEntity* selectedToolAxis = nullptr;
+
+            // Used when moving along an axis
+            glm::vec3 axis = {0.f, 0.f, 1.f};
+            glm::vec3 nextAxis = {1.f, 0.f, 0.f};
+            float axisOffset = 0.f;
+        } gizmo;
     } editor;
 };
