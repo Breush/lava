@@ -2,15 +2,16 @@
 
 #include <iostream>
 #include <lava/crater.hpp>
+#include <lava/chamber/math.hpp>
 
 using namespace lava;
 
 void setupCamera(GameState& gameState)
 {
-    // Initializing inputs
     auto& engine = *gameState.engine;
     auto& input = engine.input();
 
+    // Initializing inputs
     input.bindAxis("main-x", InputAxis::MouseX);
     input.bindAxis("main-y", InputAxis::MouseY);
     input.bindAxis("zoom", InputAxis::MouseWheelVertical);
@@ -31,8 +32,6 @@ void setupCamera(GameState& gameState)
     cameraComponent.origin({-2.f, 0.f, 1.7f});
     cameraComponent.target({0.f, 0.f, 1.7f});
     gameState.camera.component = &cameraComponent;
-
-    setCameraMode(gameState, CameraMode::FirstPerson);
 
     // Behavior for user control
     behaviorComponent.onUpdate([&input, &cameraComponent, &gameState](float dt) {
@@ -96,13 +95,48 @@ void setupCamera(GameState& gameState)
                 }
             }
         }
-
     });
+
+    // Reticle in first-person camera mode
+    auto& reticleEntity = engine.make<sill::GameEntity>("reticle");
+    auto& reticleTransformComponent = reticleEntity.make<sill::TransformComponent>();
+
+    auto& reticleMaterial = engine.scene().make<magma::Material>("reticle");
+    auto& reticleMeshComponent = reticleEntity.make<sill::MeshComponent>();
+    sill::makers::planeMeshMaker({1.f, 1.f})(reticleMeshComponent);
+    reticleMeshComponent.primitive(0u, 0u).shadowsCastable(false);
+    reticleMeshComponent.primitive(0u, 0u).material(reticleMaterial);
+    reticleMeshComponent.primitive(0u, 0u).category(RenderCategory::Translucent);
+
+    reticleEntity.make<sill::BehaviorComponent>().onUpdate([&gameState, &reticleTransformComponent](float /* dt */) {
+        if (!gameState.camera.reticleUpdateNeeded) return;
+
+        const auto& extent = gameState.camera.component->extent();
+        auto coordinates = glm::vec2{0.5f * extent.width, 0.5f * extent.height};
+        auto screenMatrix = gameState.camera.component->transformAtCoordinates(coordinates, 0.001f);
+        screenMatrix = glm::rotate(screenMatrix, chamber::math::PI_OVER_TWO, {0, 1, 0});
+        screenMatrix = glm::scale(screenMatrix, glm::vec3{0.01f});
+        reticleTransformComponent.worldTransform(screenMatrix);
+    });
+
+    gameState.camera.reticleEntity = &reticleEntity;
+
+    // Initial setup
+    setCameraMode(gameState, CameraMode::FirstPerson);
 }
 
 void setCameraMode(GameState& gameState, CameraMode mode)
 {
     gameState.camera.mode = mode;
+
+    bool firstPersonModeEnabled = (mode == CameraMode::FirstPerson);
+
+    // @todo This reticle thingy update would be useless if we had a dedicated screen-space UI pass.
+    gameState.camera.reticleUpdateNeeded = firstPersonModeEnabled;
+    if (!firstPersonModeEnabled) {
+        gameState.camera.reticleEntity->get<sill::TransformComponent>().scaling(glm::vec3(0.f));
+    }
+
     gameState.engine->window().mouseKeptCentered(mode == CameraMode::FirstPerson);
     gameState.engine->window().mouseHidden(mode == CameraMode::FirstPerson);
 }

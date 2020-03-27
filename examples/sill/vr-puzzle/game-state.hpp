@@ -44,8 +44,10 @@ struct GameState {
     Brick* pointedBrick = nullptr;
 
     struct {
-        lava::sill::CameraComponent* component = nullptr;
         CameraMode mode = CameraMode::FirstPerson;
+        lava::sill::CameraComponent* component = nullptr;
+        lava::sill::GameEntity* reticleEntity = nullptr;
+        bool reticleUpdateNeeded = true;
     } camera;
 
     struct {

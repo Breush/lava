@@ -1,0 +1,27 @@
+/**
+ * Rendering puzzle panels.
+ */
+
+struct {
+    float intensity;
+} gBuffer;
+
+geometry {
+
+    bool main() {
+        float centerDistance = 1 - distance(uv.xy, vec2(0.5));
+        gBuffer.intensity = smoothstep(0.99 - 0.03, 0.99, centerDistance);
+
+        if (gBuffer.intensity < 0.01) {
+            discard;
+        }
+
+        return gBuffer.intensity == 1;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        return vec4(vec3(1), gBuffer.intensity);
+    }
+}
