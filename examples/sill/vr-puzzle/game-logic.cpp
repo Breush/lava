@@ -78,6 +78,8 @@ namespace {
     {
         gameState.state = State::Idle;
         grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
+        grabbedBrick->selectionHighlighted(false);
+        grabbedBrick->errorHighlighted(false);
 
         if (grabbedBrick->snapped()) {
             grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());

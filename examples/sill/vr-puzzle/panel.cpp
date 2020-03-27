@@ -10,13 +10,14 @@
 
 using namespace lava;
 
+namespace {
+    constexpr const float thickness = 0.1f;
+}
+
 Panel::Panel(GameState& gameState)
     : m_gameState(gameState)
 {
     auto& engine = *gameState.engine;
-
-    // @fixme This panel should be more abstract and not
-    // hold the table stand mesh.
 
     // Create panel
     m_entity = &engine.make<sill::GameEntity>("panel");
@@ -36,6 +37,8 @@ Panel::Panel(GameState& gameState)
     m_borderMaterial = &engine.scene().make<magma::Material>("roughness-metallic");
     meshNode.mesh->addPrimitive().material(*m_borderMaterial);
 
+    m_entity->make<sill::ColliderComponent>();
+    m_entity->get<sill::PhysicsComponent>().dynamic(false);
     m_entity->make<sill::AnimationComponent>();
     m_entity->get<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
 }
@@ -65,6 +68,12 @@ void Panel::extent(const glm::uvec2& extent)
     m_extent = extent;
     m_material->set("extent", extent);
     m_entity->get<sill::MeshComponent>().node(1).transform(glm::scale(glm::mat4(1.f), {m_extent.x, m_extent.y, 1}));
+
+    m_entity->get<sill::ColliderComponent>().clearShapes();
+    m_entity->get<sill::ColliderComponent>().addBoxShape({0.f, 0.f, 0.f},
+        {m_extent.x * blockExtent.x + 2.f * thickness,
+         m_extent.y * blockExtent.y + 2.f * thickness,
+         blockExtent.z});
 
     updateBorderMeshPrimitive();
 
@@ -229,8 +238,6 @@ void Panel::updateFromSnappedBricks()
 void Panel::updateBorderMeshPrimitive()
 {
     auto& meshComponent = m_entity->get<sill::MeshComponent>();
-
-    constexpr const float thickness = 0.1f;
 
     const float halfWidth = blockExtent.x * m_extent.x / 2.f;
     const float halfHeight = blockExtent.y * m_extent.y / 2.f;
