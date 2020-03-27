@@ -10,7 +10,7 @@ geometry {
 
     uniform {
         vec2 extent = vec2(3, 3);
-        uint symbols[36];
+        uint symbols[49];
     };
 
     float filteredGrid(in vec2 p, in vec2 dpdx, in vec2 dpdy)

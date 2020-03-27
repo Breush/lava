@@ -94,6 +94,7 @@ void setupEditor(GameState& gameState)
     engine.input().bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
     engine.input().bindAction("bind-modifier", {Key::LeftControl});
     engine.input().bindAction("bind-modifier", {Key::RightControl});
+    engine.input().bindAction("brick.toggle-fixed", {Key::LeftShift, Key::F});
     // @fixme Disabling, need gizmo
     // engine.input().bindAction("scale-up", Key::S);
     // engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
@@ -369,6 +370,9 @@ void setupEditor(GameState& gameState)
                 }
                 if (engine.input().justDown("left")) {
                     brick->addBlockH(0, false);
+                }
+                if (engine.input().justDown("brick.toggle-fixed")) {
+                    brick->fixed(!brick->fixed());
                 }
             }
             else if (gameState.editor.selectedEntity->name() == "barrier") {
