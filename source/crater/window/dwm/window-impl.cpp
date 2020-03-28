@@ -60,6 +60,7 @@ namespace {
         case VK_DOWN: return Key::Down;
         case VK_LMENU: return Key::LeftAlt;
         case VK_RMENU: return Key::RightAlt;
+        case VK_DELETE: return Key::Delete;
         }
 
         return Key::Unknown;

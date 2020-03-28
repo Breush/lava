@@ -91,6 +91,7 @@ namespace {
         case 0xffe4: return Key::RightControl;
         case 0xffe9: return Key::LeftAlt;
         case 0xffea: return Key::RightAlt;
+        case 0xffff: return Key::Delete;
         }
 
         return Key::Unknown;
