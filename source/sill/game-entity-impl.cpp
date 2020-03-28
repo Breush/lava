@@ -45,7 +45,7 @@ void GameEntity::Impl::update(float dt)
 
 void GameEntity::Impl::parent(GameEntity* parent, bool updateParent)
 {
-    if (m_parent) {
+    if (updateParent && m_parent) {
         m_parent->forgetChild(m_entity, false);
     }
 
