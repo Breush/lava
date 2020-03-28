@@ -32,6 +32,11 @@ $pimpl_method(TransformComponent, void, scaling, const glm::vec3&, scaling, Chan
 $pimpl_method(TransformComponent, void, scale, const glm::vec3&, factors, ChangeReasonFlag, changeReasonFlag);
 $pimpl_method(TransformComponent, void, scale, float, factor, ChangeReasonFlag, changeReasonFlag);
 
+void TransformComponent::scaling(float scaling, ChangeReasonFlag changeReasonFlag)
+{
+    m_impl->scaling(glm::vec3{scaling, scaling, scaling}, changeReasonFlag);
+}
+
 // World transform
 $pimpl_method_const(TransformComponent, const glm::mat4&, worldTransform);
 $pimpl_method(TransformComponent, void, worldTransform, const glm::mat4&, transform, ChangeReasonFlag, changeReasonFlag);

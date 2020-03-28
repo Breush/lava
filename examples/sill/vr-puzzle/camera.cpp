@@ -122,7 +122,7 @@ void setupCamera(GameState& gameState)
     gameState.camera.reticleEntity = &reticleEntity;
 
     // Initial setup
-    setCameraMode(gameState, CameraMode::FirstPerson);
+    setCameraMode(gameState, (gameState.engine->vr().enabled()) ? CameraMode::Orbit : CameraMode::FirstPerson);
 }
 
 void setCameraMode(GameState& gameState, CameraMode mode)
@@ -134,7 +134,7 @@ void setCameraMode(GameState& gameState, CameraMode mode)
     // @todo This reticle thingy update would be useless if we had a dedicated screen-space UI pass.
     gameState.camera.reticleUpdateNeeded = firstPersonModeEnabled;
     if (!firstPersonModeEnabled) {
-        gameState.camera.reticleEntity->get<sill::TransformComponent>().scaling(glm::vec3(0.f));
+        gameState.camera.reticleEntity->get<sill::TransformComponent>().scaling(0.f);
     }
 
     gameState.engine->window().mouseKeptCentered(mode == CameraMode::FirstPerson);

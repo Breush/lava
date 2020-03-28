@@ -46,6 +46,7 @@ namespace lava::sill {
 
         const glm::vec3& scaling() const;
         void scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void scaling(float scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void scale(float factor, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         /// }

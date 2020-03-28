@@ -38,10 +38,19 @@ struct GameState {
     lava::sill::GameEngine* engine = nullptr;
 
     lava::sill::GameEntity* rayPickingEntity = nullptr;
-    lava::sill::GameEntity* teleportBeamEntity = nullptr;
-    lava::sill::GameEntity* teleportAreaEntity = nullptr;
     lava::Ray pickingRay;
     Brick* pointedBrick = nullptr;
+
+    struct {
+        glm::vec3 position; // Camera in FPS, headset in VR.
+    } player;
+
+    struct {
+        lava::sill::GameEntity* beamEntity = nullptr;
+        lava::sill::GameEntity* areaEntity = nullptr;
+        glm::vec3 target = glm::vec3(0.f);
+        bool valid = true;
+    } teleport;
 
     struct {
         CameraMode mode = CameraMode::FirstPerson;

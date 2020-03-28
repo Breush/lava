@@ -1,17 +1,23 @@
 struct {
-    bool invalid;
+    bool valid;
 } gBuffer;
 
 geometry {
     uniform {
         float length = 1;
         float time = 0;
-        bool invalid = false;
+        bool anglesValid = true;
+        bool placeValid = true;
     };
 
     bool main() {
-        if (!invalid) {
-            gBuffer.invalid = false;
+        gBuffer.valid = anglesValid && placeValid;
+
+        if (!placeValid) {
+            time = 0;
+        }
+
+        if (anglesValid) {
             float intensity = 2 * abs(fract(uv.y * length * 0.5  - time * 3) - 0.5);
             intensity = smoothstep(0.4, 0.6, intensity);
 
@@ -19,7 +25,6 @@ geometry {
                 discard;
             }
         } else {
-            gBuffer.invalid = true;
             if (uv.y > 1.5 / length) {
                 discard;
             }
@@ -31,9 +36,9 @@ geometry {
 
 epiphany {
     vec4 main() {
-        if (gBuffer.invalid) {
-            return vec4(1, 0.3, 0.3, 0.75);
+        if (gBuffer.valid) {
+            return vec4(0.5, 1, 0.8, 0.75);
         }
-        return vec4(0.5, 1, 0.8, 0.75);
+        return vec4(1, 0.3, 0.3, 0.75);
     }
 }

@@ -45,7 +45,7 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
         auto& meshComponent = entity.make<sill::MeshComponent>();
         blockMaker(meshComponent);
         entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});
-        entity.get<sill::TransformComponent>().scale(glm::vec3{blockScaling});
+        entity.get<sill::TransformComponent>().scale(blockScaling);
 
         m_blocks[i].entity = &entity;
         m_entity->addChild(entity);
@@ -108,12 +108,12 @@ bool Brick::userInteractionAllowed() const
 {
     if (m_fixed) return false;
 
-    auto headPosition = glm::vec2(m_gameState.camera.component->origin()); // @fixme Not working in VR!
+    auto playerPosition = glm::vec2(m_gameState.player.position);
     for (auto barrier : m_barriers) {
         if (!barrier->powered()) return false;
 
         auto barrierPosition = glm::vec2(barrier->transform().translation());
-        if (glm::distance(headPosition, barrierPosition) >= barrier->diameter() / 2.f) {
+        if (glm::distance(playerPosition, barrierPosition) >= barrier->diameter() / 2.f) {
             return false;
         }
     }

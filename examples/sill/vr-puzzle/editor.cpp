@@ -45,19 +45,19 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
 
     if (gameState.editor.gizmo.tool == GizmoTool::Translation) {
         gameState.editor.gizmo.toolEntity = gameState.editor.gizmo.translationToolEntity;
-        gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(glm::vec3(1.f));
-        gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(glm::vec3(0.f));
+        gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(1.f);
+        gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(0.f);
     }
     else if (gameState.editor.gizmo.tool == GizmoTool::Rotation) {
         gameState.editor.gizmo.toolEntity = gameState.editor.gizmo.rotationToolEntity;
-        gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(glm::vec3(0.f));
-        gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(glm::vec3(1.f));
+        gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(0.f);
+        gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(1.f);
     }
 }
 
 void unselectAllEntities(GameState& gameState) {
     gameState.editor.selectedEntities.clear();
-    gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(glm::vec3(0.f));
+    gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(0.f);
 }
 
 void selectEntity(GameState& gameState, sill::GameEntity* entity, bool addToSelection) {
@@ -232,7 +232,7 @@ void setupEditor(GameState& gameState)
 
         // @fixme There's an engine bug where doing that before adding children,
         // won't update children's transforms.
-        gizmoEntity.get<sill::TransformComponent>().scaling(glm::vec3(0.f));
+        gizmoEntity.get<sill::TransformComponent>().scaling(0.f);
         setGizmoTool(gameState, GizmoTool::Translation);
     }
 
@@ -375,7 +375,7 @@ void setupEditor(GameState& gameState)
 
         gameState.editor.gizmo.entity->get<sill::TransformComponent>().translation(barycenter);
         const auto gizmoDistanceToCamera = std::sqrt(glm::length(gameState.camera.component->origin() - barycenter));
-        gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(glm::vec3(gizmoDistanceToCamera));
+        gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(gizmoDistanceToCamera);
 
         // Move entity if needed.
         if (gameState.editor.state == EditorState::TranslateAlongAxis) {

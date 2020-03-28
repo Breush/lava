@@ -71,11 +71,11 @@ void rayPickingEnabled(GameState& gameState, bool enabled)
     g_rayPickingEnabled = enabled;
 
     if (enabled) {
-        gameState.rayPickingEntity->get<sill::TransformComponent>().scaling({1, 1, 1});
+        gameState.rayPickingEntity->get<sill::TransformComponent>().scaling(1.f);
     }
     else {
         gameState.pointedBrick = nullptr;
-        gameState.rayPickingEntity->get<sill::TransformComponent>().scaling({0, 0, 0});
+        gameState.rayPickingEntity->get<sill::TransformComponent>().scaling(0.f);
         showPointedBrick(gameState);
     }
 }

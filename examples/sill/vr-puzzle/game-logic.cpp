@@ -70,7 +70,7 @@ namespace {
         // Update the panel filling information.
         checkLevelSolveStatus(gameState);
 
-        // We will animate the world transform over 300ms.
+        // Animate the world transform.
         grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.2f);
     }
 
@@ -112,6 +112,8 @@ namespace {
     {
         auto& engine = *gameState.engine;
         if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
+
+        gameState.player.position = engine.vr().deviceTransform(VrDeviceType::Head)[3];
 
         auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
@@ -160,6 +162,8 @@ namespace {
     void onUpdateMouse(GameState& gameState)
     {
         auto& engine = *gameState.engine;
+
+        gameState.player.position = gameState.camera.component->origin();
 
         // For mouse, the user uses click to grab then click to drop.
         if (engine.input().justDownUp("left-fire")) {
