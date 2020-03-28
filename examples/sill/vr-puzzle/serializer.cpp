@@ -5,7 +5,6 @@
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
 #include <lava/chamber/logger.hpp>
-#include <nlohmann/json.hpp>
 #include <sstream>
 
 #include "./brick.hpp"
@@ -14,6 +13,21 @@ using namespace lava;
 using namespace lava::chamber;
 
 namespace {
+    glm::ivec2 unserializeIvec2(const nlohmann::json& json)
+    {
+        return glm::ivec2{json[0], json[1]};
+    }
+
+    glm::uvec2 unserializeUvec2(const nlohmann::json& json)
+    {
+        return glm::uvec2{json[0], json[1]};
+    }
+
+    glm::vec3 unserializeVec3(const nlohmann::json& json)
+    {
+        return glm::vec3{json[0], json[1], json[2]};
+    }
+
     glm::mat4 unserializeMat4(const nlohmann::json& json)
     {
         glm::mat4 matrix;
@@ -36,7 +50,22 @@ namespace {
         return matrix;
     }
 
-    nlohmann::json serializeMat4(const glm::mat4& matrix)
+    nlohmann::json serialize(const glm::ivec2& vector)
+    {
+        return nlohmann::json::array({vector.x, vector.y});
+    }
+
+    nlohmann::json serialize(const glm::uvec2& vector)
+    {
+        return nlohmann::json::array({vector.x, vector.y});
+    }
+
+    nlohmann::json serialize(const glm::vec3& vector)
+    {
+        return nlohmann::json::array({vector.r, vector.g, vector.b});
+    }
+
+    nlohmann::json serialize(const glm::mat4& matrix)
     {
         nlohmann::json json = nlohmann::json::array();
         json[0u] = matrix[0u][0u];
@@ -73,106 +102,28 @@ void unserializeLevel(GameState& gameState, const std::string& path)
 
     logger.info("vr-puzzle") << "Loading level '" << gameState.level.name << "'..." << std::endl;
 
-    // ----- Entities
-
-    gameState.level.entities.clear();
-    for (auto& entityJson : levelJson["entities"]) {
-        auto& entity = gameState.engine->make<sill::GameEntity>(entityJson["name"].get<std::string>());
-        entity.ensure<sill::TransformComponent>().worldTransform(unserializeMat4(entityJson["transform"]));
-
-        for (auto& componentJson : entityJson["components"].items()) {
-            if (componentJson.key() == "mesh") {
-                auto& meshComponent = entity.ensure<sill::MeshComponent>();
-
-                auto path = componentJson.value()["path"].get<std::string>();
-                sill::makers::glbMeshMaker(path)(meshComponent);
-            }
-            else if (componentJson.key() == "sound-emitter") {
-                auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
-
-                const auto& sounds = componentJson.value()["sounds"];
-                for (const auto& sound : sounds) {
-                    soundEmitterComponent.add(sound["hrid"], sound["path"]);
-                }
-            }
-            else {
-                logger.warning("vr-puzzle") << "Unhandled component '" << componentJson.key() << "'." << std::endl;
-            }
-        }
-
-        gameState.level.entities.emplace_back(&entity);
-    }
-
-    // ----- Barriers
-
     gameState.level.barriers.clear();
     for (auto& barrierJson : levelJson["barriers"]) {
-        auto barrier = std::make_unique<Barrier>(gameState);
-
-        barrier->name(barrierJson["name"]);
-        barrier->transform().worldTransform(unserializeMat4(barrierJson["transform"]));
-        barrier->diameter(barrierJson["diameter"]);
-        barrier->powered(barrierJson["powered"]);
-
+        auto barrier = unserializeBarrier(gameState, barrierJson);
         gameState.level.barriers.emplace_back(std::move(barrier));
     }
 
-    // ----- Panels
-
     gameState.level.panels.clear();
     for (auto& panelJson : levelJson["panels"]) {
-        auto panel = std::make_unique<Panel>(gameState);
-
-        panel->name(panelJson["name"]);
-        panel->transform().worldTransform(unserializeMat4(panelJson["transform"]));
-
-        auto& barriersJson = panelJson["barriers"];
-        for (auto& barrierJson : barriersJson) {
-            panel->addBarrier(*gameState.level.barriers[barrierJson]);
-        }
-
-        auto& extentJson = panelJson["extent"];
-        glm::uvec2 extent(extentJson[0], extentJson[1]);
-        panel->extent(extent);
-
+        auto panel = unserializePanel(gameState, panelJson);
         gameState.level.panels.emplace_back(std::move(panel));
     }
 
-    // ----- Bricks
-
     gameState.level.bricks.clear();
-    for (auto& brickJson : levelJson["bricks"]) {
-        auto brick = std::make_unique<Brick>(gameState);
-
-        std::vector<glm::ivec2> blocks;
-        for (auto& blockJson : brickJson["blocks"]) {
-            glm::ivec2 block(blockJson[0], blockJson[1]);
-            blocks.emplace_back(block);
-        }
-        brick->blocks(blocks);
-
-        auto& barriersJson = brickJson["barriers"];
-        for (auto& barrierJson : barriersJson) {
-            brick->addBarrier(*gameState.level.barriers[barrierJson]);
-        }
-
-        auto& colorJson = brickJson["color"];
-        glm::vec3 color(colorJson[0], colorJson[1], colorJson[2]);
-        brick->color(color);
-
-        brick->fixed(brickJson["fixed"]);
-        brick->baseRotationLevel(brickJson["rotationLevel"]);
-
-        auto& snapPanelJson = brickJson["snapPanel"];
-        if (!snapPanelJson.is_null()) {
-            glm::uvec2 snapCoordinates(brickJson["snapCoordinates"][0], brickJson["snapCoordinates"][1]);
-            brick->snap(*gameState.level.panels[snapPanelJson], snapCoordinates);
-        }
-
-        // @fixme Keep last because of a bug, blocks won't be moved otherwise.
-        brick->transform().worldTransform(unserializeMat4(brickJson["transform"]));
-
+    for (const auto& brickJson : levelJson["bricks"]) {
+        auto brick = unserializeBrick(gameState, brickJson);
         gameState.level.bricks.emplace_back(std::move(brick));
+    }
+
+    gameState.level.entities.clear();
+    for (auto& entityJson : levelJson["entities"]) {
+        auto& entity = unserializeEntity(gameState, entityJson);
+        gameState.level.entities.emplace_back(&entity);
     }
 }
 
@@ -188,115 +139,28 @@ void serializeLevel(GameState& gameState, const std::string& path)
         {"version", 0},
     };
 
-    // ----- Barriers
-
     levelJson["barriers"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.barriers.size(); ++i) {
         const auto& barrier = *gameState.level.barriers[i];
-        levelJson["barriers"][i] = {
-            {"name", barrier.name()},
-            {"transform", serializeMat4(barrier.transform().worldTransform())},
-            {"powered", barrier.powered()},
-            {"diameter", barrier.diameter()},
-        };
+        levelJson["barriers"][i] = serialize(gameState, barrier);
     }
-
-    // ----- Panels
 
     levelJson["panels"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
         const auto& panel = *gameState.level.panels[i];
-        levelJson["panels"][i] = {
-            {"name", panel.name()},
-            {"transform", serializeMat4(panel.transform().worldTransform())},
-            {"extent", nlohmann::json::array({panel.extent().x, panel.extent().y})},
-            {"barriers", nlohmann::json::array()},
-        };
-
-        for (const auto& barrier : panel.barriers()) {
-            levelJson["panels"][i]["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
-        }
+        levelJson["panels"][i] = serialize(gameState, panel);
     }
-
-    // ----- Bricks
 
     levelJson["bricks"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.bricks.size(); ++i) {
         const auto& brick = *gameState.level.bricks[i];
-
-        auto blocks = nlohmann::json::array();
-        for (auto block : brick.blocks()) {
-            blocks.emplace_back(nlohmann::json::array({block.nonRotatedCoordinates.x, block.nonRotatedCoordinates.y}));
-        }
-
-        levelJson["bricks"][i] = {
-            {"transform", serializeMat4(brick.transform().worldTransform())},
-            {"blocks", blocks},
-            {"barriers", nlohmann::json::array()},
-            {"color", nlohmann::json::array({brick.color().r, brick.color().g, brick.color().b})},
-            {"fixed", brick.fixed()},
-            {"rotationLevel", brick.rotationLevel()},
-        };
-
-        for (const auto& barrier : brick.barriers()) {
-            levelJson["bricks"][i]["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
-        }
-
-        uint32_t panelIndex = -1u;
-        if (brick.snapped()) {
-            for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
-                if (gameState.level.panels[i].get() == &brick.snapPanel()) {
-                    panelIndex = i;
-                    break;
-                }
-            }
-        }
-
-        if (panelIndex != -1u) {
-            levelJson["bricks"][i]["snapPanel"] = panelIndex;
-            levelJson["bricks"][i]["snapCoordinates"] =
-                nlohmann::json::array({brick.snapCoordinates().x, brick.snapCoordinates().y});
-        }
-        else {
-            levelJson["bricks"][i]["snapPanel"] = {}; // null
-        }
+        levelJson["bricks"][i] = serialize(gameState, brick);
     }
-
-    // ----- Entities
 
     levelJson["entities"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.entities.size(); ++i) {
         const auto& entity = *gameState.level.entities[i];
-        levelJson["entities"][i] = {
-            {"name", entity.name()},
-            {"transform", serializeMat4(entity.get<sill::TransformComponent>().worldTransform())},
-            {"components", nlohmann::json()},
-        };
-
-        auto& componentsJson = levelJson["entities"][i]["components"];
-        for (const auto& componentHrid : entity.componentsHrids()) {
-            if (componentHrid == "mesh") {
-                componentsJson[componentHrid] = {{"path", entity.get<sill::MeshComponent>().path()}};
-            }
-            else if (componentHrid == "sound-emitter") {
-                auto sounds = nlohmann::json::array();
-                for (const auto& sound : entity.get<sill::SoundEmitterComponent>().sounds()) {
-                    sounds.emplace_back(nlohmann::json({
-                        {"hrid", sound.first},
-                        {"path", sound.second},
-                    }));
-                }
-
-                componentsJson[componentHrid] = {{"sounds", sounds}};
-            }
-            else if (componentHrid == "transform") {
-                // Nothing to do
-            }
-            else {
-                logger.warning("vr-puzzle") << "Unhandled component '" << componentHrid << "' to serialize '" << entity.name()
-                                            << "' entity." << std::endl;
-            }
-        }
+        levelJson["entities"][i] = serialize(gameState, entity);
     }
 
     // Print out
@@ -306,4 +170,191 @@ void serializeLevel(GameState& gameState, const std::string& path)
 
     // Set the newly saved path to what we're working on.
     gameState.level.path = path;
+}
+
+// ----- Bricks
+
+std::unique_ptr<Brick> unserializeBrick(GameState& gameState, const nlohmann::json& json)
+{
+    auto brick = std::make_unique<Brick>(gameState);
+
+    std::vector<glm::ivec2> blocks;
+    for (auto& blockJson : json["blocks"]) {
+        blocks.emplace_back(unserializeIvec2(blockJson));
+    }
+    brick->blocks(blocks);
+
+    auto& barriersJson = json["barriers"];
+    for (auto& barrierJson : barriersJson) {
+        brick->addBarrier(*gameState.level.barriers[barrierJson]);
+    }
+
+    brick->color(unserializeVec3(json["color"]));
+    brick->fixed(json["fixed"]);
+    brick->baseRotationLevel(json["rotationLevel"]);
+
+    auto& snapPanelJson = json["snapPanel"];
+    if (!snapPanelJson.is_null()) {
+        auto& panel = *gameState.level.panels[snapPanelJson];
+        brick->snap(panel, unserializeUvec2(json["snapCoordinates"]));
+    }
+
+    // @fixme Keep last because of a bug, blocks won't be moved otherwise.
+    brick->transform().worldTransform(unserializeMat4(json["transform"]));
+
+    return brick;
+}
+
+nlohmann::json serialize(GameState& gameState, const Brick& brick)
+{
+    nlohmann::json json = {
+        {"transform", serialize(brick.transform().worldTransform())},
+        {"blocks", nlohmann::json::array()},
+        {"barriers", nlohmann::json::array()},
+        {"color", serialize(brick.color())},
+        {"fixed", brick.fixed()},
+        {"rotationLevel", brick.rotationLevel()},
+        {"snapPanel", {}},
+    };
+
+    for (auto block : brick.blocks()) {
+        json["blocks"].emplace_back(serialize(block.nonRotatedCoordinates));
+    }
+
+    for (auto barrier : brick.barriers()) {
+        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
+    }
+
+    if (brick.snapped()) {
+        json["snapPanel"] = findPanelIndex(gameState, brick.snapPanel().entity());
+        json["snapCoordinates"] = serialize(brick.snapCoordinates());
+    }
+
+    return json;
+}
+
+// ----- Panels
+
+std::unique_ptr<Panel> unserializePanel(GameState& gameState, const nlohmann::json& json)
+{
+    auto panel = std::make_unique<Panel>(gameState);
+
+    panel->name(json["name"]);
+    panel->extent(unserializeUvec2(json["extent"]));
+
+    auto& barriersJson = json["barriers"];
+    for (auto& barrierJson : barriersJson) {
+        panel->addBarrier(*gameState.level.barriers[barrierJson]);
+    }
+
+    panel->transform().worldTransform(unserializeMat4(json["transform"]));
+
+    return panel;
+}
+
+nlohmann::json serialize(GameState& gameState, const Panel& panel)
+{
+    nlohmann::json json = {
+        {"name", panel.name()},
+        {"transform", serialize(panel.transform().worldTransform())},
+        {"extent", serialize(panel.extent())},
+        {"barriers", nlohmann::json::array()},
+    };
+
+    for (const auto& barrier : panel.barriers()) {
+        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
+    }
+
+    return json;
+}
+
+// ----- Barriers
+
+std::unique_ptr<Barrier> unserializeBarrier(GameState& gameState, const nlohmann::json& json)
+{
+    auto barrier = std::make_unique<Barrier>(gameState);
+
+    barrier->name(json["name"]);
+    barrier->transform().worldTransform(unserializeMat4(json["transform"]));
+    barrier->diameter(json["diameter"]);
+    barrier->powered(json["powered"]);
+
+    return barrier;
+}
+
+nlohmann::json serialize(GameState& /* gameState */, const Barrier& barrier)
+{
+    nlohmann::json json = {
+        {"name", barrier.name()},
+        {"transform", serialize(barrier.transform().worldTransform())},
+        {"powered", barrier.powered()},
+        {"diameter", barrier.diameter()},
+    };
+
+    return json;
+}
+
+// ----- Entities
+
+sill::GameEntity& unserializeEntity(GameState& gameState, const nlohmann::json& json)
+{
+    auto& entity = gameState.engine->make<sill::GameEntity>(json["name"].get<std::string>());
+    entity.ensure<sill::TransformComponent>().worldTransform(unserializeMat4(json["transform"]));
+
+    for (auto& componentJson : json["components"].items()) {
+        if (componentJson.key() == "mesh") {
+            auto& meshComponent = entity.ensure<sill::MeshComponent>();
+
+            auto path = componentJson.value()["path"].get<std::string>();
+            sill::makers::glbMeshMaker(path)(meshComponent);
+        }
+        else if (componentJson.key() == "sound-emitter") {
+            auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
+
+            const auto& sounds = componentJson.value()["sounds"];
+            for (const auto& sound : sounds) {
+                soundEmitterComponent.add(sound["hrid"], sound["path"]);
+            }
+        }
+        else {
+            logger.warning("vr-puzzle") << "Unhandled component '" << componentJson.key() << "'." << std::endl;
+        }
+    }
+
+    return entity;
+}
+
+nlohmann::json serialize(GameState& /* gameState */, const sill::GameEntity& entity)
+{
+    nlohmann::json json = {
+        {"name", entity.name()},
+        {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
+        {"components", nlohmann::json()},
+    };
+
+    auto& componentsJson = json["components"];
+    for (const auto& componentHrid : entity.componentsHrids()) {
+        if (componentHrid == "mesh") {
+            componentsJson[componentHrid] = {{"path", entity.get<sill::MeshComponent>().path()}};
+        }
+        else if (componentHrid == "sound-emitter") {
+            auto sounds = nlohmann::json::array();
+            for (const auto& sound : entity.get<sill::SoundEmitterComponent>().sounds()) {
+                sounds.emplace_back(nlohmann::json({
+                    {"hrid", sound.first},
+                    {"path", sound.second},
+                }));
+            }
+            componentsJson[componentHrid] = {{"sounds", sounds}};
+        }
+        else if (componentHrid == "transform") {
+            // Nothing to do
+        }
+        else {
+            logger.warning("vr-puzzle") << "Unhandled component '" << componentHrid << "' to serialize '" << entity.name()
+                                        << "' entity." << std::endl;
+        }
+    }
+
+    return json;
 }

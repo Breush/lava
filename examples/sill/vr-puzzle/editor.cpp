@@ -95,53 +95,98 @@ void selectEntity(GameState& gameState, sill::GameEntity* entity, bool addToSele
 void updateSelectedEntity(GameState& gameState, sill::GameEntity& entity)
 {
     auto& engine = *gameState.engine;
+    auto& input = engine.input();
 
-    if (gameState.editor.selectedEntities.size() > 1u) return;
-
-    // Following actions are only interesting when there one object selected.
     if (entity.name() == "brick") {
         auto brick = findBrick(gameState, entity);
-        if (engine.input().justDown("up")) {
-            brick->addBlockV(0, true);
+
+        if (gameState.editor.selectedEntities.size() == 1u) {
+            if (input.justDown("up")) {
+                brick->addBlockV(0, true);
+            }
+            if (input.justDown("down")) {
+                brick->addBlockV(0, false);
+            }
+            if (input.justDown("right")) {
+                brick->addBlockH(0, true);
+            }
+            if (input.justDown("left")) {
+                brick->addBlockH(0, false);
+            }
+            if (input.justDown("brick.toggle-fixed")) {
+                brick->fixed(!brick->fixed());
+            }
         }
-        if (engine.input().justDown("down")) {
-            brick->addBlockV(0, false);
-        }
-        if (engine.input().justDown("right")) {
-            brick->addBlockH(0, true);
-        }
-        if (engine.input().justDown("left")) {
-            brick->addBlockH(0, false);
-        }
-        if (engine.input().justDown("brick.toggle-fixed")) {
-            brick->fixed(!brick->fixed());
-        }
-    }
-    else if (entity.name() == "barrier") {
-        auto barrier = findBarrier(gameState, entity);
-        if (engine.input().justDown("up")) {
-            barrier->diameter(barrier->diameter() + 0.5f);
-        }
-        if (engine.input().justDown("down")) {
-            barrier->diameter(barrier->diameter() - 0.5f);
-        }
-        if (engine.input().justDown("left") || engine.input().justDown("right")) {
-            barrier->powered(!barrier->powered());
+
+        if (input.justDownUp("editor.duplicate-selection")) {
+            auto json = serialize(gameState, *brick);
+            auto brick = unserializeBrick(gameState, json);
+            brick->transform().translate({0.f, 0.f, 0.5f});
+            gameState.level.bricks.emplace_back(std::move(brick));
         }
     }
     else if (entity.name() == "panel") {
         auto panel = findPanel(gameState, entity);
-        if (engine.input().justDown("up")) {
-            panel->extent(panel->extent() + glm::uvec2(0, 1));
+
+        if (gameState.editor.selectedEntities.size() == 1u) {
+            if (input.justDown("up")) {
+                panel->extent(panel->extent() + glm::uvec2(0, 1));
+            }
+            if (input.justDown("down")) {
+                panel->extent(panel->extent() - glm::uvec2(0, 1));
+            }
+            if (input.justDown("right")) {
+                panel->extent(panel->extent() + glm::uvec2(1, 0));
+            }
+            if (input.justDown("left")) {
+                panel->extent(panel->extent() - glm::uvec2(1, 0));
+            }
         }
-        if (engine.input().justDown("down")) {
-            panel->extent(panel->extent() - glm::uvec2(0, 1));
+
+        if (input.justDownUp("editor.duplicate-selection")) {
+            auto json = serialize(gameState, *panel);
+            auto panel = unserializePanel(gameState, json);
+            panel->transform().translate({0.5f, 0.f, 0.f});
+            gameState.level.panels.emplace_back(std::move(panel));
         }
-        if (engine.input().justDown("right")) {
-            panel->extent(panel->extent() + glm::uvec2(1, 0));
+    }
+    else if (entity.name() == "barrier") {
+        auto barrier = findBarrier(gameState, entity);
+
+        if (gameState.editor.selectedEntities.size() == 1u) {
+            if (input.justDown("up")) {
+                barrier->diameter(barrier->diameter() + 0.5f);
+            }
+            if (input.justDown("down")) {
+                barrier->diameter(barrier->diameter() - 0.5f);
+            }
+            if (input.justDown("left") || input.justDown("right")) {
+                barrier->powered(!barrier->powered());
+            }
         }
-        if (engine.input().justDown("left")) {
-            panel->extent(panel->extent() - glm::uvec2(1, 0));
+
+        if (input.justDownUp("editor.duplicate-selection")) {
+            auto json = serialize(gameState, *barrier);
+            auto barrier = unserializeBarrier(gameState, json);
+            barrier->transform().translate({barrier->diameter(), 0.f, 0.f});
+            gameState.level.barriers.emplace_back(std::move(barrier));
+        }
+    }
+    else {
+        // Generic entities
+        if (input.justDownUp("editor.duplicate-selection")) {
+            std::cout << "-- " << std::endl;
+            for (auto entity : gameState.level.entities) {
+                std::cout << entity << std::endl;
+            }
+            std::cout << "-- " << std::endl;
+            std::cout << &entity << std::endl;
+
+            auto json = serialize(gameState, entity);
+            auto& entity = unserializeEntity(gameState, json);
+            auto entitySize = 2.f * entity.get<sill::MeshComponent>().boundingSphere().radius;
+            entity.get<sill::TransformComponent>().translate(glm::vec3{entitySize, 0.f, 0.f});
+            gameState.level.entities.emplace_back(&entity);
         }
     }
 }
@@ -156,6 +201,7 @@ void setupEditor(GameState& gameState)
     engine.input().bindAction("editor.switch-gizmo", MouseButton::Middle);
     engine.input().bindAction("editor.multiple-selection-modifier", {Key::LeftShift});
     engine.input().bindAction("editor.multiple-selection-modifier", {Key::RightShift});
+    engine.input().bindAction("editor.duplicate-selection", {Key::LeftControl, Key::D});
 
     engine.input().bindAction("up", Key::Up);
     engine.input().bindAction("down", Key::Down);

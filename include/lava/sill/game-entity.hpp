@@ -18,6 +18,7 @@ namespace lava::sill {
     public:
         GameEntity(GameEngine& engine);
         GameEntity(GameEngine& engine, const std::string& name);
+        GameEntity(const GameEntity& entity) = delete;
         ~GameEntity();
 
         GameEngine& engine() { return m_engine; }
