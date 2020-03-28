@@ -190,13 +190,6 @@ void updateSelectedEntity(GameState& gameState, sill::GameEntity& entity)
     else {
         // Generic entities
         if (input.justDown("editor.duplicate-selection")) {
-            std::cout << "-- " << std::endl;
-            for (auto entity : gameState.level.entities) {
-                std::cout << entity << std::endl;
-            }
-            std::cout << "-- " << std::endl;
-            std::cout << &entity << std::endl;
-
             auto json = serialize(gameState, entity);
             auto& entity = unserializeEntity(gameState, json);
             auto entitySize = 2.f * entity.get<sill::MeshComponent>().boundingSphere().radius;

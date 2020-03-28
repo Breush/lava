@@ -119,6 +119,8 @@ void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
 
 void GameEngine::Impl::remove(const GameEntity& gameEntity)
 {
+    logger.info("sill.game-engine") << "Removing entity " << &gameEntity.impl() << " '" << gameEntity.name() << "'." << std::endl;
+
     m_pendingRemovedEntities.emplace_back(&gameEntity);
 }
 
