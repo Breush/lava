@@ -24,7 +24,11 @@ struct Block {
 class Brick {
 public:
     Brick(GameState& gameState);
-    ~Brick();
+
+    /// Prepare the brick to be removed.
+    /// The destructor does not destroy anything
+    /// so that shutting down the application is fast enough.
+    void clear();
 
     const lava::sill::GameEntity& entity() const { return *m_entity; }
     lava::sill::GameEntity& entity() { return *m_entity; }
@@ -48,6 +52,7 @@ public:
     /// All barriers that prevents the brick from getting out.
     const std::set<Barrier*>& barriers() const { return m_barriers; }
     void addBarrier(Barrier& barrier) { m_barriers.emplace(&barrier); }
+    void removeBarrier(Barrier& barrier);
 
     /// Checks whether the user is allowed to grab that brick or not.
     bool userInteractionAllowed() const;

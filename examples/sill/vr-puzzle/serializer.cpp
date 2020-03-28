@@ -102,25 +102,36 @@ void unserializeLevel(GameState& gameState, const std::string& path)
 
     logger.info("vr-puzzle") << "Loading level '" << gameState.level.name << "'..." << std::endl;
 
+    for (auto& barrier : gameState.level.barriers) {
+        barrier->clear();
+    }
+    for (auto& panel : gameState.level.panels) {
+        panel->clear();
+    }
+    for (auto& brick : gameState.level.bricks) {
+        brick->clear();
+    }
+    for (auto entity : gameState.level.entities) {
+        gameState.engine->remove(*entity);
+    }
+
     gameState.level.barriers.clear();
+    gameState.level.panels.clear();
+    gameState.level.bricks.clear();
+    gameState.level.entities.clear();
+
     for (auto& barrierJson : levelJson["barriers"]) {
         auto barrier = unserializeBarrier(gameState, barrierJson);
         gameState.level.barriers.emplace_back(std::move(barrier));
     }
-
-    gameState.level.panels.clear();
     for (auto& panelJson : levelJson["panels"]) {
         auto panel = unserializePanel(gameState, panelJson);
         gameState.level.panels.emplace_back(std::move(panel));
     }
-
-    gameState.level.bricks.clear();
     for (const auto& brickJson : levelJson["bricks"]) {
         auto brick = unserializeBrick(gameState, brickJson);
         gameState.level.bricks.emplace_back(std::move(brick));
     }
-
-    gameState.level.entities.clear();
     for (auto& entityJson : levelJson["entities"]) {
         auto& entity = unserializeEntity(gameState, entityJson);
         gameState.level.entities.emplace_back(&entity);

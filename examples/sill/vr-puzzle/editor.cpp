@@ -98,83 +98,98 @@ void updateSelectedEntity(GameState& gameState, sill::GameEntity& entity)
     auto& input = engine.input();
 
     if (entity.name() == "brick") {
-        auto brick = findBrick(gameState, entity);
+        auto brickIndex = findBrickIndex(gameState, entity);
+        auto& brick = *gameState.level.bricks[brickIndex];
 
         if (gameState.editor.selectedEntities.size() == 1u) {
             if (input.justDown("up")) {
-                brick->addBlockV(0, true);
+                brick.addBlockV(0, true);
             }
             if (input.justDown("down")) {
-                brick->addBlockV(0, false);
+                brick.addBlockV(0, false);
             }
             if (input.justDown("right")) {
-                brick->addBlockH(0, true);
+                brick.addBlockH(0, true);
             }
             if (input.justDown("left")) {
-                brick->addBlockH(0, false);
+                brick.addBlockH(0, false);
             }
             if (input.justDown("brick.toggle-fixed")) {
-                brick->fixed(!brick->fixed());
+                brick.fixed(!brick.fixed());
             }
         }
 
-        if (input.justDownUp("editor.duplicate-selection")) {
-            auto json = serialize(gameState, *brick);
-            auto brick = unserializeBrick(gameState, json);
-            brick->transform().translate({0.f, 0.f, 0.5f});
-            gameState.level.bricks.emplace_back(std::move(brick));
+        if (input.justDown("editor.duplicate-selection")) {
+            auto json = serialize(gameState, brick);
+            auto newBrick = unserializeBrick(gameState, json);
+            newBrick->transform().translate({0.f, 0.f, 0.5f});
+            gameState.level.bricks.emplace_back(std::move(newBrick));
+        }
+        else if (input.justDown("editor.delete-selection")) {
+            brick.clear();
+            gameState.level.bricks.erase(gameState.level.bricks.begin() + brickIndex);
         }
     }
     else if (entity.name() == "panel") {
-        auto panel = findPanel(gameState, entity);
+        auto panelIndex = findPanelIndex(gameState, entity);
+        auto& panel = *gameState.level.panels[panelIndex];
 
         if (gameState.editor.selectedEntities.size() == 1u) {
             if (input.justDown("up")) {
-                panel->extent(panel->extent() + glm::uvec2(0, 1));
+                panel.extent(panel.extent() + glm::uvec2(0, 1));
             }
             if (input.justDown("down")) {
-                panel->extent(panel->extent() - glm::uvec2(0, 1));
+                panel.extent(panel.extent() - glm::uvec2(0, 1));
             }
             if (input.justDown("right")) {
-                panel->extent(panel->extent() + glm::uvec2(1, 0));
+                panel.extent(panel.extent() + glm::uvec2(1, 0));
             }
             if (input.justDown("left")) {
-                panel->extent(panel->extent() - glm::uvec2(1, 0));
+                panel.extent(panel.extent() - glm::uvec2(1, 0));
             }
         }
 
-        if (input.justDownUp("editor.duplicate-selection")) {
-            auto json = serialize(gameState, *panel);
-            auto panel = unserializePanel(gameState, json);
-            panel->transform().translate({0.5f, 0.f, 0.f});
-            gameState.level.panels.emplace_back(std::move(panel));
+        if (input.justDown("editor.duplicate-selection")) {
+            auto json = serialize(gameState, panel);
+            auto newPanel = unserializePanel(gameState, json);
+            newPanel->transform().translate({0.5f, 0.f, 0.f});
+            gameState.level.panels.emplace_back(std::move(newPanel));
+        }
+        else if (input.justDown("editor.delete-selection")) {
+            panel.clear();
+            gameState.level.panels.erase(gameState.level.panels.begin() + panelIndex);
         }
     }
     else if (entity.name() == "barrier") {
-        auto barrier = findBarrier(gameState, entity);
+        auto barrierIndex = findBarrierIndex(gameState, entity);
+        auto& barrier = *gameState.level.barriers[barrierIndex];
 
         if (gameState.editor.selectedEntities.size() == 1u) {
             if (input.justDown("up")) {
-                barrier->diameter(barrier->diameter() + 0.5f);
+                barrier.diameter(barrier.diameter() + 0.5f);
             }
             if (input.justDown("down")) {
-                barrier->diameter(barrier->diameter() - 0.5f);
+                barrier.diameter(barrier.diameter() - 0.5f);
             }
             if (input.justDown("left") || input.justDown("right")) {
-                barrier->powered(!barrier->powered());
+                barrier.powered(!barrier.powered());
             }
         }
 
-        if (input.justDownUp("editor.duplicate-selection")) {
-            auto json = serialize(gameState, *barrier);
-            auto barrier = unserializeBarrier(gameState, json);
-            barrier->transform().translate({barrier->diameter(), 0.f, 0.f});
-            gameState.level.barriers.emplace_back(std::move(barrier));
+        if (input.justDown("editor.duplicate-selection")) {
+            auto json = serialize(gameState, barrier);
+            auto newBarrier = unserializeBarrier(gameState, json);
+            newBarrier->transform().translate({newBarrier->diameter(), 0.f, 0.f});
+            gameState.level.barriers.emplace_back(std::move(newBarrier));
+        }
+        else if (input.justDown("editor.delete-selection")) {
+            barrier.clear();
+            gameState.level.barriers.erase(gameState.level.barriers.begin() + barrierIndex);
         }
     }
     else {
         // Generic entities
-        if (input.justDownUp("editor.duplicate-selection")) {
+        if (input.justDown("editor.duplicate-selection")) {
             std::cout << "-- " << std::endl;
             for (auto entity : gameState.level.entities) {
                 std::cout << entity << std::endl;
@@ -188,38 +203,45 @@ void updateSelectedEntity(GameState& gameState, sill::GameEntity& entity)
             entity.get<sill::TransformComponent>().translate(glm::vec3{entitySize, 0.f, 0.f});
             gameState.level.entities.emplace_back(&entity);
         }
+        else if (input.justDown("editor.delete-selection")) {
+            auto entityIt = std::find(gameState.level.entities.begin(), gameState.level.entities.end(), &entity);
+            gameState.engine->remove(entity);
+            gameState.level.entities.erase(entityIt);
+        }
     }
 }
 
 void setupEditor(GameState& gameState)
 {
     auto& engine = *gameState.engine;
+    auto& input = engine.input();
 
     // Inputs
 
-    engine.input().bindAction("toggle-editor", Key::E);
-    engine.input().bindAction("editor.switch-gizmo", MouseButton::Middle);
-    engine.input().bindAction("editor.multiple-selection-modifier", {Key::LeftShift});
-    engine.input().bindAction("editor.multiple-selection-modifier", {Key::RightShift});
-    engine.input().bindAction("editor.duplicate-selection", {Key::LeftControl, Key::D});
+    input.bindAction("toggle-editor", Key::E);
+    input.bindAction("editor.switch-gizmo", MouseButton::Middle);
+    input.bindAction("editor.multiple-selection-modifier", {Key::LeftShift});
+    input.bindAction("editor.multiple-selection-modifier", {Key::RightShift});
+    input.bindAction("editor.duplicate-selection", {Key::LeftControl, Key::D});
+    input.bindAction("editor.delete-selection", {Key::Delete});
 
-    engine.input().bindAction("up", Key::Up);
-    engine.input().bindAction("down", Key::Down);
-    engine.input().bindAction("left", Key::Left);
-    engine.input().bindAction("right", Key::Right);
-    engine.input().bindAction("save", {Key::LeftControl, Key::S});
-    engine.input().bindAction("reload-level", {Key::LeftControl, Key::R});
+    input.bindAction("up", Key::Up);
+    input.bindAction("down", Key::Down);
+    input.bindAction("left", Key::Left);
+    input.bindAction("right", Key::Right);
+    input.bindAction("save", {Key::LeftControl, Key::S});
+    input.bindAction("reload-level", {Key::LeftControl, Key::R});
 
     // @fixme This is for debug for now
-    engine.input().bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
-    engine.input().bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
-    engine.input().bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
-    engine.input().bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
-    engine.input().bindAction("brick.toggle-fixed", {Key::LeftShift, Key::F});
-    engine.input().bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
+    input.bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
+    input.bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
+    input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
+    input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
+    input.bindAction("brick.toggle-fixed", {Key::LeftShift, Key::F});
+    input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
     // @fixme Disabling, need gizmo
-    // engine.input().bindAction("scale-up", Key::S);
-    // engine.input().bindAction("scale-down", {Key::LeftShift, Key::S});
+    // input.bindAction("scale-up", Key::S);
+    // input.bindAction("scale-down", {Key::LeftShift, Key::S});
     // @todo Make action to switch to rotation gizmo on R
 
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
@@ -283,7 +305,7 @@ void setupEditor(GameState& gameState)
     }
 
     editorBehavior.onUpdate([&](float /* dt */) {
-        if ((gameState.state == State::Idle || gameState.state == State::Editor) && engine.input().justDown("toggle-editor")) {
+        if ((gameState.state == State::Idle || gameState.state == State::Editor) && input.justDown("toggle-editor")) {
             gameState.state = (gameState.state == State::Editor) ? State::Idle : State::Editor;
             gameState.editor.state = EditorState::Idle;
 
@@ -323,24 +345,24 @@ void setupEditor(GameState& gameState)
 
             // ----- Add
 
-            if (engine.input().justDown("add-panel")) {
+            if (input.justDown("add-panel")) {
                 auto panel = std::make_unique<Panel>(gameState);
                 panel->extent({3, 3});
                 gameState.level.panels.emplace_back(std::move(panel));
                 return;
             }
-            else if (engine.input().justDown("add-brick")) {
+            else if (input.justDown("add-brick")) {
                 auto brick = std::make_unique<Brick>(gameState);
                 brick->blocks({{0, 0}});
                 gameState.level.bricks.emplace_back(std::move(brick));
                 return;
             }
-            else if (engine.input().justDown("add-barrier")) {
+            else if (input.justDown("add-barrier")) {
                 auto barrier = std::make_unique<Barrier>(gameState);
                 gameState.level.barriers.emplace_back(std::move(barrier));
                 return;
             }
-            else if (engine.input().justDown("add-mesh")) {
+            else if (input.justDown("add-mesh")) {
                 std::cout << "Available meshes:" << std::endl;
                 for (const auto& entry : std::filesystem::directory_iterator("./assets/models/vr-puzzle/")) {
                     if (entry.path().extension() == ".glb") {
@@ -362,7 +384,7 @@ void setupEditor(GameState& gameState)
 
             // ----- Reload
 
-            if (engine.input().justDown("reload-level")) {
+            if (input.justDown("reload-level")) {
                 loadLevel(gameState, gameState.level.path);
                 unselectAllEntities(gameState);
                 return;
@@ -370,7 +392,7 @@ void setupEditor(GameState& gameState)
 
             // ----- Saving
 
-            if (engine.input().justDown("save")) {
+            if (input.justDown("save")) {
                 serializeLevel(gameState, gameState.level.path);
                 return;
             }
@@ -378,7 +400,7 @@ void setupEditor(GameState& gameState)
             // ----- Left click
 
             // Go the gizmo mode if needed
-            if (engine.input().justDown("left-fire")) {
+            if (input.justDown("left-fire")) {
                 if (gameState.editor.gizmo.selectedToolAxis) {
                     uint32_t axisIndex = gameState.editor.gizmo.toolEntity->childIndex(*gameState.editor.gizmo.selectedToolAxis);
                     gameState.editor.gizmo.axis = g_axes[axisIndex];
@@ -402,9 +424,9 @@ void setupEditor(GameState& gameState)
             }
 
             // Select entity on left click if any.
-            if (engine.input().justDownUp("left-fire")) {
+            if (input.justDownUp("left-fire")) {
                 auto* pickedEntity = engine.pickEntity(gameState.pickingRay);
-                selectEntity(gameState, pickedEntity, engine.input().down("editor.multiple-selection-modifier"));
+                selectEntity(gameState, pickedEntity, input.down("editor.multiple-selection-modifier"));
             }
         }
 
@@ -425,12 +447,12 @@ void setupEditor(GameState& gameState)
 
         // Move entity if needed.
         if (gameState.editor.state == EditorState::TranslateAlongAxis) {
-            if (engine.input().justUp("left-fire")) {
+            if (input.justUp("left-fire")) {
                 gameState.editor.state = EditorState::Idle;
                 return;
             }
 
-            if (engine.input().axisChanged("main-x") || engine.input().axisChanged("main-y")) {
+            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
                 const Ray axisRay = {.origin = barycenter, .direction = gameState.editor.gizmo.axis};
                 const auto delta = projectOn(axisRay, gameState.pickingRay) - gameState.editor.gizmo.axisOffset;
 
@@ -441,12 +463,12 @@ void setupEditor(GameState& gameState)
         }
         // Or rotate it!
         else if (gameState.editor.state == EditorState::RotateAlongAxis) {
-            if (engine.input().justUp("left-fire")) {
+            if (input.justUp("left-fire")) {
                 gameState.editor.state = EditorState::Idle;
                 return;
             }
 
-            if (engine.input().axisChanged("main-x") || engine.input().axisChanged("main-y")) {
+            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
                 auto axisOffset = rotationAxisOffset(gameState, barycenter);
                 auto delta = axisOffset - gameState.editor.gizmo.axisOffset;
                 gameState.editor.gizmo.axisOffset = axisOffset;
@@ -457,7 +479,7 @@ void setupEditor(GameState& gameState)
             }
         }
         else if (gameState.editor.state == EditorState::Idle) {
-            if (engine.input().justDownUp("editor.switch-gizmo")) {
+            if (input.justDownUp("editor.switch-gizmo")) {
                 if (gameState.editor.gizmo.tool == GizmoTool::Translation) {
                     setGizmoTool(gameState, GizmoTool::Rotation);
                 }
@@ -468,7 +490,7 @@ void setupEditor(GameState& gameState)
 
             // If there is one barrier in the multiple selection,
             // we will be all panels and bricks to it.
-            if (engine.input().justDown("bind-to-barrier")) {
+            if (input.justDown("bind-to-barrier")) {
                 auto barriersCount = 0u;
                 sill::GameEntity* barrierEntity = nullptr;
                 for (auto entity : gameState.editor.selectedEntities) {
@@ -498,6 +520,11 @@ void setupEditor(GameState& gameState)
 
             for (auto entity : gameState.editor.selectedEntities) {
                 updateSelectedEntity(gameState, *entity);
+            }
+
+            // Entities should have been deleted now, we can unselect.
+            if (input.justDown("editor.delete-selection")) {
+                unselectAllEntities(gameState);
             }
         }
     });

@@ -43,9 +43,22 @@ Panel::Panel(GameState& gameState)
     m_entity->get<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
 }
 
-Panel::~Panel()
+void Panel::clear()
 {
+    for (auto& brick : m_gameState.level.bricks) {
+        if (brick->snapped() && &brick->snapPanel() == this) {
+            brick->unsnap();
+        }
+    }
+
     m_gameState.engine->remove(*m_entity);
+}
+
+void Panel::removeBarrier(Barrier& barrier)
+{
+    auto barrierIt = m_barriers.find(&barrier);
+    if (barrierIt == m_barriers.end()) return;
+    m_barriers.erase(barrierIt);
 }
 
 bool Panel::userInteractionAllowed() const

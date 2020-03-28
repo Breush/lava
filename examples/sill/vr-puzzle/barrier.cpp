@@ -25,8 +25,16 @@ Barrier::Barrier(GameState& gameState)
     meshComponent.primitive(0u, 0u).material(barrierMaterial);
 }
 
-Barrier::~Barrier()
+void Barrier::clear()
 {
+    for (auto& brick : m_gameState.level.bricks) {
+        brick->removeBarrier(*this);
+    }
+
+    for (auto& panel : m_gameState.level.panels) {
+        panel->removeBarrier(*this);
+    }
+
     m_gameState.engine->remove(*m_entity);
 }
 

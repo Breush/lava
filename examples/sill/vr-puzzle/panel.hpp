@@ -25,7 +25,11 @@ public:
 
 public:
     Panel(GameState& gameState);
-    ~Panel();
+
+    /// Prepare the panel to be removed.
+    /// The destructor does not destroy anything
+    /// so that shutting down the application is fast enough.
+    void clear();
 
     const lava::sill::GameEntity& entity() const { return *m_entity; }
     lava::sill::GameEntity& entity() { return *m_entity; }
@@ -45,6 +49,7 @@ public:
     /// All barriers that allow the panel to be active.
     const std::set<Barrier*>& barriers() const { return m_barriers; }
     void addBarrier(Barrier& barrier) { m_barriers.emplace(&barrier); }
+    void removeBarrier(Barrier& barrier);
 
     /// Checks whether the user is allowed to snap brick to this panel.
     bool userInteractionAllowed() const;

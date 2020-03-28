@@ -11,7 +11,11 @@ struct GameState;
 class Barrier {
 public:
     Barrier(GameState& gameState);
-    ~Barrier();
+
+    /// Prepare the barrier to be removed.
+    /// The destructor does not destroy anything
+    /// so that shutting down the application is fast enough.
+    void clear();
 
     const lava::sill::GameEntity& entity() const { return *m_entity; }
     lava::sill::GameEntity& entity() { return *m_entity; }

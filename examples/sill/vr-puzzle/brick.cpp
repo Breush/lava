@@ -1,6 +1,7 @@
 #include "./brick.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 #include "./game-state.hpp"
 
@@ -15,13 +16,13 @@ Brick::Brick(GameState& gameState)
     m_entity->make<sill::ColliderComponent>();
 }
 
-Brick::~Brick()
+void Brick::clear()
 {
-    m_gameState.engine->remove(*m_entity);
-
     for (auto& block : m_blocks) {
         m_gameState.engine->remove(*block.entity);
     }
+
+    m_gameState.engine->remove(*m_entity);
 }
 
 void Brick::blocks(std::vector<glm::ivec2> blocks)
@@ -102,6 +103,13 @@ void Brick::addBlockH(int32_t y, bool positive)
     blocks.emplace_back(x, y);
 
     this->blocks(blocks);
+}
+
+void Brick::removeBarrier(Barrier& barrier)
+{
+    auto barrierIt = m_barriers.find(&barrier);
+    if (barrierIt == m_barriers.end()) return;
+    m_barriers.erase(barrierIt);
 }
 
 bool Brick::userInteractionAllowed() const

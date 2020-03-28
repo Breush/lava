@@ -54,11 +54,6 @@ void levelSolved(GameState& /*gameState*/)
 
 void loadLevel(GameState& gameState, const std::string& levelPath)
 {
-    // Remove all previous entities from scene
-    for (auto entity : gameState.level.entities) {
-        gameState.engine->remove(*entity);
-    }
-
     unserializeLevel(gameState, levelPath);
 
     if (gameState.level.name == "intro") {
