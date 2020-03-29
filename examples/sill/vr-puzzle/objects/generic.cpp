@@ -11,12 +11,14 @@ Generic::Generic(GameState& gameState)
 
 void Generic::clear(bool removeFromLevel)
 {
-    if (removeFromLevel) {
-        auto genericIndex = findGenericIndex(m_gameState, *m_entity);
-        m_gameState.level.generics.erase(m_gameState.level.generics.begin() + genericIndex);
-    }
+    Object::clear(removeFromLevel);
 
-    Object::clear();
+    if (removeFromLevel) {
+        auto genericIt = std::find_if(m_gameState.level.generics.begin(), m_gameState.level.generics.end(), [this](const std::unique_ptr<Generic>& generic) {
+            return (generic.get() == this);
+        });
+        m_gameState.level.generics.erase(genericIt);
+    }
 }
 
 // -----

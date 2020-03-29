@@ -337,8 +337,8 @@ void setupEditor(GameState& gameState)
             // ----- Reload
 
             if (input.justDown("reload-level")) {
-                loadLevel(gameState, gameState.level.path);
                 unselectAllObjects(gameState);
+                loadLevel(gameState, gameState.level.path);
                 return;
             }
 

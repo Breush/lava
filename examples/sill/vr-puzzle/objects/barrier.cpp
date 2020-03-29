@@ -27,7 +27,7 @@ Barrier::Barrier(GameState& gameState)
 
 void Barrier::clear(bool removeFromLevel)
 {
-    Object::clear();
+    Object::clear(removeFromLevel);
 
     if (removeFromLevel) {
         for (auto& brick : m_gameState.level.bricks) {
@@ -38,8 +38,10 @@ void Barrier::clear(bool removeFromLevel)
             panel->removeBarrier(*this);
         }
 
-        auto barrierIndex = findBarrierIndex(m_gameState, *m_entity);
-        m_gameState.level.barriers.erase(m_gameState.level.barriers.begin() + barrierIndex);
+        auto barrierIt = std::find_if(m_gameState.level.barriers.begin(), m_gameState.level.barriers.end(), [this](const std::unique_ptr<Barrier>& barrier) {
+            return (barrier.get() == this);
+        });
+        m_gameState.level.barriers.erase(barrierIt);
     }
 }
 

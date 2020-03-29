@@ -45,7 +45,7 @@ Panel::Panel(GameState& gameState)
 
 void Panel::clear(bool removeFromLevel)
 {
-    Object::clear();
+    Object::clear(removeFromLevel);
 
     if (removeFromLevel) {
         for (auto& brick : m_gameState.level.bricks) {
@@ -54,8 +54,10 @@ void Panel::clear(bool removeFromLevel)
             }
         }
 
-        auto panelIndex = findPanelIndex(m_gameState, *m_entity);
-        m_gameState.level.panels.erase(m_gameState.level.panels.begin() + panelIndex);
+        auto panelIt = std::find_if(m_gameState.level.panels.begin(), m_gameState.level.panels.end(), [this](const std::unique_ptr<Panel>& panel) {
+            return (panel.get() == this);
+        });
+        m_gameState.level.panels.erase(panelIt);
     }
 }
 

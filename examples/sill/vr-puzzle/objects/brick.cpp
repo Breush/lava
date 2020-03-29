@@ -18,15 +18,17 @@ Brick::Brick(GameState& gameState)
 
 void Brick::clear(bool removeFromLevel)
 {
-    Object::clear();
+    Object::clear(removeFromLevel);
+
+    for (auto& block : m_blocks) {
+        m_gameState.engine->remove(*block.entity);
+    }
 
     if (removeFromLevel) {
-        for (auto& block : m_blocks) {
-            m_gameState.engine->remove(*block.entity);
-        }
-
-        auto brickIndex = findBrickIndex(m_gameState, *m_entity);
-        m_gameState.level.bricks.erase(m_gameState.level.bricks.begin() + brickIndex);
+        auto brickIt = std::find_if(m_gameState.level.bricks.begin(), m_gameState.level.bricks.end(), [this](const std::unique_ptr<Brick>& brick) {
+            return (brick.get() == this);
+        });
+        m_gameState.level.bricks.erase(brickIt);
     }
 }
 
