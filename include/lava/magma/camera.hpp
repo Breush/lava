@@ -50,6 +50,9 @@ namespace lava::magma {
         /// Its frustum, automatically updated.
         const Frustum& frustum() const { return m_frustum; }
 
+        /// A frustum, based on a view rectangle from [-1, -1] (top left) to [1, 1] (bottom right).
+        Frustum frustum(const glm::vec2& topLeft, const glm::vec2& bottomRight) const;
+
         /// Whether frustum culling is enabled.
         bool frustumCullingEnabled() const { return m_frustumCullingEnabled; }
         void frustumCullingEnabled(bool frustumCullingEnabled) { m_frustumCullingEnabled = frustumCullingEnabled; }

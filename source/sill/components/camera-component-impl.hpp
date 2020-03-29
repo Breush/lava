@@ -35,6 +35,7 @@ namespace lava::sill {
 
         Ray coordinatesToRay(const glm::vec2& coordinates) const;
         glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
+        magma::Frustum frustum(const glm::vec2& topLeftCoordinates, const glm::vec2& bottomRightCoordinates) const;
 
     private:
         magma::Camera* m_camera = nullptr;

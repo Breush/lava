@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/core/bounding-sphere.hpp>
 #include <glm/vec3.hpp>
 
 namespace lava::magma {
@@ -11,7 +12,8 @@ namespace lava::magma {
      * - sideNormal   Normal, going outwards the pyramid;
      * - sideDistance Distance, of the plane from the origin.
      */
-    struct Frustum {
+    class Frustum {
+    public:
         glm::vec3 leftNormal;
         float leftDistance;
         glm::vec3 rightNormal;
@@ -24,5 +26,12 @@ namespace lava::magma {
         glm::vec3 forward;
         float near;
         float far;
+
+    public:
+        /// Checks if the point is inside the frustum.
+        bool canSee(const glm::vec3& point) const;
+
+        /// Checks if any part of the bounding sphere is inside the frustum.
+        bool canSee(const BoundingSphere& boundingSphere) const;
     };
 }

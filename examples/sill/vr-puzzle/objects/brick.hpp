@@ -1,14 +1,14 @@
 #pragma once
 
+#include "./object.hpp"
+
 #include <glm/glm.hpp>
-#include <lava/sill.hpp>
 #include <vector>
 
 constexpr const glm::vec3 blockExtent = {0.22f, 0.22f, 0.0625f};
 
 class Panel;
 class Barrier;
-struct GameState;
 
 struct Block {
     // These are updated each time the rotationLevel is changed.
@@ -21,22 +21,11 @@ struct Block {
  * A brick is composed of multiple blocks.
  * Making it be something like a tetris shape.
  */
-class Brick {
+class Brick : public Object {
 public:
     Brick(GameState& gameState);
-
-    /// Prepare the brick to be removed.
-    /// The destructor does not destroy anything
-    /// so that shutting down the application is fast enough.
-    void clear();
-
-    const lava::sill::GameEntity& entity() const { return *m_entity; }
-    lava::sill::GameEntity& entity() { return *m_entity; }
-
-    const lava::sill::AnimationComponent& animation() const { return m_entity->get<lava::sill::AnimationComponent>(); }
-    lava::sill::AnimationComponent& animation() { return m_entity->get<lava::sill::AnimationComponent>(); }
-    const lava::sill::TransformComponent& transform() const { return m_entity->get<lava::sill::TransformComponent>(); }
-    lava::sill::TransformComponent& transform() { return m_entity->get<lava::sill::TransformComponent>(); }
+    void clear(bool removeFromLevel = true) final;
+    float halfSpan() const final;
 
     // The pairs of all blocks making this brick,
     // 0,0 should always be present. The pairs are expressed
@@ -93,9 +82,6 @@ protected:
     void updateBlocksFromRotationLevel();
 
 private:
-    GameState& m_gameState;
-    lava::sill::GameEntity* m_entity = nullptr;
-
     std::vector<Block> m_blocks;
     std::set<Barrier*> m_barriers;
     glm::vec3 m_color = {0.992, 0.992, 0.588};

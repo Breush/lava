@@ -5,7 +5,11 @@
 #include <glm/vec3.hpp>
 #include <lava/core/extent.hpp>
 #include <lava/core/ray.hpp>
+#include <lava/magma/frustum.hpp>
 #include <string>
+
+// @fixme Wouldn't be shocking if we had access to the underlying magma::Camera,
+// as we do use magma::Material and such directly.
 
 namespace lava::sill {
     class CameraComponent final : public IComponent {
@@ -45,6 +49,9 @@ namespace lava::sill {
 
         /// Transform screen-space coordinates to a 3D position.
         glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
+
+        /// Transform screen-space rectangle to a 3D view frustum.
+        magma::Frustum frustum(const glm::vec2& topLeftCoordinates, const glm::vec2& bottomRightCoordinates) const;
 
         /// Get the transform to front-looking show a 3D element at coordinates.
         glm::mat4 transformAtCoordinates(const glm::vec2& coordinates, float depth = 0.f) const;

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "./barrier.hpp"
-#include "./brick.hpp"
-#include "./panel.hpp"
+#include "./objects/barrier.hpp"
+#include "./objects/brick.hpp"
+#include "./objects/generic.hpp"
+#include "./objects/panel.hpp"
 
 #include <lava/core/ray.hpp>
 #include <lava/sill.hpp>
@@ -17,6 +18,7 @@ enum class State {
 
 enum class EditorState {
     Idle,
+    MultiSelection,
     TranslateAlongAxis,
     RotateAlongAxis,
 };
@@ -66,12 +68,20 @@ struct GameState {
         std::vector<std::unique_ptr<Panel>> panels;
         std::vector<std::unique_ptr<Brick>> bricks;
         std::vector<std::unique_ptr<Barrier>> barriers;
-        std::vector<lava::sill::GameEntity*> entities;
+        std::vector<std::unique_ptr<Generic>> generics;
+
+        // All objects (including panels/bricks/barriers/generics)
+        std::vector<Object*> objects;
     } level;
 
     struct {
         EditorState state = EditorState::Idle;
-        std::vector<lava::sill::GameEntity*> selectedEntities;
+
+        struct {
+            std::vector<Object*> objects;
+            glm::vec2 multiStart;
+            glm::vec2 multiEnd;
+        } selection;
 
         struct {
             GizmoTool tool = GizmoTool::Translation;

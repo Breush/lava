@@ -5,8 +5,8 @@
 #include <iostream>
 
 #include "./brick.hpp"
-#include "./game-state.hpp"
-#include "./symbols.hpp"
+#include "../game-state.hpp"
+#include "../symbols.hpp"
 
 using namespace lava;
 
@@ -15,7 +15,7 @@ namespace {
 }
 
 Panel::Panel(GameState& gameState)
-    : m_gameState(gameState)
+    : Object(gameState)
 {
     auto& engine = *gameState.engine;
 
@@ -43,15 +43,20 @@ Panel::Panel(GameState& gameState)
     m_entity->get<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
 }
 
-void Panel::clear()
+void Panel::clear(bool removeFromLevel)
 {
-    for (auto& brick : m_gameState.level.bricks) {
-        if (brick->snapped() && &brick->snapPanel() == this) {
-            brick->unsnap();
-        }
-    }
+    Object::clear();
 
-    m_gameState.engine->remove(*m_entity);
+    if (removeFromLevel) {
+        for (auto& brick : m_gameState.level.bricks) {
+            if (brick->snapped() && &brick->snapPanel() == this) {
+                brick->unsnap();
+            }
+        }
+
+        auto panelIndex = findPanelIndex(m_gameState, *m_entity);
+        m_gameState.level.panels.erase(m_gameState.level.panels.begin() + panelIndex);
+    }
 }
 
 void Panel::removeBarrier(Barrier& barrier)

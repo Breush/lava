@@ -7,7 +7,7 @@
 #include <lava/dike.hpp>
 #include <lava/magma.hpp>
 
-#include "./brick.hpp"
+#include "./game-state.hpp"
 #include "./camera.hpp"
 #include "./environment.hpp"
 #include "./serializer.hpp"
@@ -55,152 +55,108 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
     }
 }
 
-void unselectAllEntities(GameState& gameState) {
-    gameState.editor.selectedEntities.clear();
+void unselectAllObjects(GameState& gameState) {
+    gameState.editor.selection.objects.clear();
     gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(0.f);
 }
 
-void selectEntity(GameState& gameState, sill::GameEntity* entity, bool addToSelection) {
-    if (!entity) {
+void selectObject(GameState& gameState, Object* object, bool addToSelection) {
+    if (!object) {
         if (!addToSelection) {
-            unselectAllEntities(gameState);
+            unselectAllObjects(gameState);
         }
         return;
     }
 
-    // Find the "root" entity of the selected mesh.
-    while (entity->parent()) {
-        entity = entity->parent();
-    }
-
-    // If we already selected that entity, ignore
-    auto selectedEntityIt = std::find(gameState.editor.selectedEntities.begin(), gameState.editor.selectedEntities.end(), entity);
-    if (selectedEntityIt != gameState.editor.selectedEntities.end()) {
+    // If we already selected that object, ignore
+    auto objectIt = std::find(gameState.editor.selection.objects.begin(), gameState.editor.selection.objects.end(), object);
+    if (objectIt != gameState.editor.selection.objects.end()) {
         return;
     }
 
     if (!addToSelection) {
-        unselectAllEntities(gameState);
+        unselectAllObjects(gameState);
     }
 
-    gameState.editor.selectedEntities.emplace_back(entity);
+    gameState.editor.selection.objects.emplace_back(object);
+}
 
-    // @todo Leaving this message as long as we don't have a highlight on selection
-    if (gameState.editor.selectedEntities.size() > 1u) {
-        std::cout << "Selected " << gameState.editor.selectedEntities.size() << " entities." << std::endl;
+/// Update the current selection based on the multi rectangle.
+void selectMultiObjects(GameState& gameState)
+{
+    unselectAllObjects(gameState);
+
+    auto topleftCoordinates = glm::min(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
+    auto bottomRightCoordinates = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
+    auto frustum = gameState.camera.component->frustum(topleftCoordinates, bottomRightCoordinates);
+
+    for (auto object : gameState.level.objects) {
+        auto position = object->transform().translation();
+        if (frustum.canSee(position)) {
+            selectObject(gameState, object, true);
+        }
     }
 }
 
 // Specific behavior based on what it selected.
-void updateSelectedEntity(GameState& gameState, sill::GameEntity& entity)
+void updateSelectedObject(GameState& gameState, Object& object)
 {
-    auto& engine = *gameState.engine;
-    auto& input = engine.input();
+    auto& input = gameState.engine->input();
+    auto& entity = object.entity();
+
+    if (gameState.editor.selection.objects.size() != 1u) return;
 
     if (entity.name() == "brick") {
-        auto brickIndex = findBrickIndex(gameState, entity);
-        auto& brick = *gameState.level.bricks[brickIndex];
+        auto& brick = dynamic_cast<Brick&>(object);
 
-        if (gameState.editor.selectedEntities.size() == 1u) {
-            if (input.justDown("up")) {
-                brick.addBlockV(0, true);
-            }
-            if (input.justDown("down")) {
-                brick.addBlockV(0, false);
-            }
-            if (input.justDown("right")) {
-                brick.addBlockH(0, true);
-            }
-            if (input.justDown("left")) {
-                brick.addBlockH(0, false);
-            }
-            if (input.justDown("brick.toggle-fixed")) {
-                brick.fixed(!brick.fixed());
-            }
+        if (input.justDown("up")) {
+            brick.addBlockV(0, true);
         }
-
-        if (input.justDown("editor.duplicate-selection")) {
-            auto json = serialize(gameState, brick);
-            auto newBrick = unserializeBrick(gameState, json);
-            newBrick->transform().translate({0.f, 0.f, 0.5f});
-            gameState.level.bricks.emplace_back(std::move(newBrick));
+        if (input.justDown("down")) {
+            brick.addBlockV(0, false);
         }
-        else if (input.justDown("editor.delete-selection")) {
-            brick.clear();
-            gameState.level.bricks.erase(gameState.level.bricks.begin() + brickIndex);
+        if (input.justDown("right")) {
+            brick.addBlockH(0, true);
+        }
+        if (input.justDown("left")) {
+            brick.addBlockH(0, false);
+        }
+        if (input.justDown("brick.toggle-fixed")) {
+            brick.fixed(!brick.fixed());
         }
     }
     else if (entity.name() == "panel") {
-        auto panelIndex = findPanelIndex(gameState, entity);
-        auto& panel = *gameState.level.panels[panelIndex];
+        auto& panel = dynamic_cast<Panel&>(object);
 
-        if (gameState.editor.selectedEntities.size() == 1u) {
-            if (input.justDown("up")) {
-                panel.extent(panel.extent() + glm::uvec2(0, 1));
-            }
-            if (input.justDown("down")) {
-                panel.extent(panel.extent() - glm::uvec2(0, 1));
-            }
-            if (input.justDown("right")) {
-                panel.extent(panel.extent() + glm::uvec2(1, 0));
-            }
-            if (input.justDown("left")) {
-                panel.extent(panel.extent() - glm::uvec2(1, 0));
-            }
+        if (input.justDown("up")) {
+            panel.extent(panel.extent() + glm::uvec2(0, 1));
         }
-
-        if (input.justDown("editor.duplicate-selection")) {
-            auto json = serialize(gameState, panel);
-            auto newPanel = unserializePanel(gameState, json);
-            newPanel->transform().translate({0.5f, 0.f, 0.f});
-            gameState.level.panels.emplace_back(std::move(newPanel));
+        if (input.justDown("down")) {
+            panel.extent(panel.extent() - glm::uvec2(0, 1));
         }
-        else if (input.justDown("editor.delete-selection")) {
-            panel.clear();
-            gameState.level.panels.erase(gameState.level.panels.begin() + panelIndex);
+        if (input.justDown("right")) {
+            panel.extent(panel.extent() + glm::uvec2(1, 0));
+        }
+        if (input.justDown("left")) {
+            panel.extent(panel.extent() - glm::uvec2(1, 0));
         }
     }
     else if (entity.name() == "barrier") {
-        auto barrierIndex = findBarrierIndex(gameState, entity);
-        auto& barrier = *gameState.level.barriers[barrierIndex];
+        auto& barrier = dynamic_cast<Barrier&>(object);
 
-        if (gameState.editor.selectedEntities.size() == 1u) {
-            if (input.justDown("up")) {
-                barrier.diameter(barrier.diameter() + 0.5f);
-            }
-            if (input.justDown("down")) {
-                barrier.diameter(barrier.diameter() - 0.5f);
-            }
-            if (input.justDown("left") || input.justDown("right")) {
-                barrier.powered(!barrier.powered());
-            }
+        if (input.justDown("up")) {
+            barrier.diameter(barrier.diameter() + 0.5f);
         }
-
-        if (input.justDown("editor.duplicate-selection")) {
-            auto json = serialize(gameState, barrier);
-            auto newBarrier = unserializeBarrier(gameState, json);
-            newBarrier->transform().translate({newBarrier->diameter(), 0.f, 0.f});
-            gameState.level.barriers.emplace_back(std::move(newBarrier));
+        if (input.justDown("down")) {
+            barrier.diameter(barrier.diameter() - 0.5f);
         }
-        else if (input.justDown("editor.delete-selection")) {
-            barrier.clear();
-            gameState.level.barriers.erase(gameState.level.barriers.begin() + barrierIndex);
+        if (input.justDown("left") || input.justDown("right")) {
+            barrier.powered(!barrier.powered());
         }
     }
     else {
-        // Generic entities
-        if (input.justDown("editor.duplicate-selection")) {
-            auto json = serialize(gameState, entity);
-            auto& entity = unserializeEntity(gameState, json);
-            auto entitySize = 2.f * entity.get<sill::MeshComponent>().boundingSphere().radius;
-            entity.get<sill::TransformComponent>().translate(glm::vec3{entitySize, 0.f, 0.f});
-            gameState.level.entities.emplace_back(&entity);
-        }
-        else if (input.justDown("editor.delete-selection")) {
-            auto entityIt = std::find(gameState.level.entities.begin(), gameState.level.entities.end(), &entity);
-            gameState.engine->remove(entity);
-            gameState.level.entities.erase(entityIt);
-        }
+        // Nothing to do yet.
+        // auto& generic = dynamic_cast<Generic&>(object);
     }
 }
 
@@ -303,7 +259,7 @@ void setupEditor(GameState& gameState)
             gameState.editor.state = EditorState::Idle;
 
             engine.physicsEngine().enabled(gameState.state != State::Editor);
-            unselectAllEntities(gameState);
+            unselectAllObjects(gameState);
 
             if (gameState.state == State::Editor) setCameraMode(gameState, CameraMode::Orbit);
             else setCameraMode(gameState, CameraMode::FirstPerson);
@@ -371,7 +327,10 @@ void setupEditor(GameState& gameState)
                 auto& entity = gameState.engine->make<sill::GameEntity>(fileName);
                 auto& meshComponent = entity.make<sill::MeshComponent>();
                 sill::makers::glbMeshMaker(filePath)(meshComponent);
-                gameState.level.entities.emplace_back(&entity);
+
+                auto generic = std::make_unique<Generic>(gameState);
+                generic->entity(entity);
+                gameState.level.generics.emplace_back(std::move(generic));
                 return;
             }
 
@@ -379,7 +338,7 @@ void setupEditor(GameState& gameState)
 
             if (input.justDown("reload-level")) {
                 loadLevel(gameState, gameState.level.path);
-                unselectAllEntities(gameState);
+                unselectAllObjects(gameState);
                 return;
             }
 
@@ -415,30 +374,46 @@ void setupEditor(GameState& gameState)
                     return;
                 }
             }
+            // Or might be multi-selection mode
+            else if (input.down("left-fire") &&
+                     (input.axisChanged("main-x") || input.axisChanged("main-y"))) {
+                gameState.editor.state = EditorState::MultiSelection;
+                gameState.editor.selection.multiStart = input.mouseCoordinates();
+            }
 
             // Select entity on left click if any.
             if (input.justDownUp("left-fire")) {
-                auto* pickedEntity = engine.pickEntity(gameState.pickingRay);
-                selectEntity(gameState, pickedEntity, input.down("editor.multiple-selection-modifier"));
+                auto pickedEntity = engine.pickEntity(gameState.pickingRay);
+                auto pickedObject = findObject(gameState, pickedEntity);
+                selectObject(gameState, pickedObject, input.down("editor.multiple-selection-modifier"));
+            }
+        }
+        else if (gameState.editor.state == EditorState::MultiSelection) {
+            if (input.justUp("left-fire")) {
+                gameState.editor.state = EditorState::Idle;
+            }
+            else if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
+                gameState.editor.selection.multiEnd = input.mouseCoordinates();
+                selectMultiObjects(gameState);
             }
         }
 
-        // ----- Selected entities control
+        // ----- Selected objects control
 
-        if (gameState.editor.selectedEntities.empty()) return;
+        if (gameState.editor.selection.objects.empty()) return;
 
-        // Computing barycenter of selected entities, this is where the gizmo will be.
+        // Computing barycenter of selected objects, this is where the gizmo will be.
         glm::vec3 barycenter = glm::vec3{0.f};
-        for (auto entity : gameState.editor.selectedEntities) {
-            barycenter += entity->get<sill::TransformComponent>().translation();
+        for (auto object : gameState.editor.selection.objects) {
+            barycenter += object->transform().translation();
         }
-        barycenter /= gameState.editor.selectedEntities.size();
+        barycenter /= gameState.editor.selection.objects.size();
 
         gameState.editor.gizmo.entity->get<sill::TransformComponent>().translation(barycenter);
         const auto gizmoDistanceToCamera = std::sqrt(glm::length(gameState.camera.component->origin() - barycenter));
         gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(gizmoDistanceToCamera);
 
-        // Move entity if needed.
+        // Move object if needed.
         if (gameState.editor.state == EditorState::TranslateAlongAxis) {
             if (input.justUp("left-fire")) {
                 gameState.editor.state = EditorState::Idle;
@@ -449,8 +424,8 @@ void setupEditor(GameState& gameState)
                 const Ray axisRay = {.origin = barycenter, .direction = gameState.editor.gizmo.axis};
                 const auto delta = projectOn(axisRay, gameState.pickingRay) - gameState.editor.gizmo.axisOffset;
 
-                for (auto entity : gameState.editor.selectedEntities) {
-                    entity->get<sill::TransformComponent>().translate(-delta * gameState.editor.gizmo.axis);
+                for (auto object : gameState.editor.selection.objects) {
+                    object->transform().translate(-delta * gameState.editor.gizmo.axis);
                 }
             }
         }
@@ -466,8 +441,8 @@ void setupEditor(GameState& gameState)
                 auto delta = axisOffset - gameState.editor.gizmo.axisOffset;
                 gameState.editor.gizmo.axisOffset = axisOffset;
 
-                for (auto entity : gameState.editor.selectedEntities) {
-                    entity->get<sill::TransformComponent>().rotateAround(gameState.editor.gizmo.axis, -delta, barycenter);
+                for (auto object : gameState.editor.selection.objects) {
+                    object->transform().rotateAround(gameState.editor.gizmo.axis, -delta, barycenter);
                 }
             }
         }
@@ -485,11 +460,11 @@ void setupEditor(GameState& gameState)
             // we will be all panels and bricks to it.
             if (input.justDown("bind-to-barrier")) {
                 auto barriersCount = 0u;
-                sill::GameEntity* barrierEntity = nullptr;
-                for (auto entity : gameState.editor.selectedEntities) {
-                    if (entity->name() == "barrier") {
+                Object* barrierObject = nullptr;
+                for (auto object : gameState.editor.selection.objects) {
+                    if (object->entity().name() == "barrier") {
                         barriersCount += 1u;
-                        barrierEntity = entity;
+                        barrierObject = object;
                     }
                 }
 
@@ -497,27 +472,49 @@ void setupEditor(GameState& gameState)
                     // @todo Leaving this message as long as we don't have a way to visualize bindings
                     std::cout << "Binding all selected panels and bricks to selected barrier." << std::endl;
 
-                    auto& barrier = *findBarrier(gameState, *barrierEntity);
-                    for (auto entity : gameState.editor.selectedEntities) {
-                        if (entity->name() == "brick") {
-                            auto& brick = *findBrick(gameState, *entity);
+                    auto& barrier = dynamic_cast<Barrier&>(*barrierObject);
+                    for (auto object : gameState.editor.selection.objects) {
+                        if (object->entity().name() == "brick") {
+                            auto& brick = dynamic_cast<Brick&>(*object);
                             brick.addBarrier(barrier);
                         }
-                        else if (entity->name() == "panel") {
-                            auto& panel = *findPanel(gameState, *entity);
+                        else if (object->entity().name() == "panel") {
+                            auto& panel = dynamic_cast<Panel&>(*object);
                             panel.addBarrier(barrier);
                         }
                     }
                 }
             }
 
-            for (auto entity : gameState.editor.selectedEntities) {
-                updateSelectedEntity(gameState, *entity);
+            // Deleting all selected objects.
+            if (input.justDown("editor.delete-selection")) {
+                for (auto object : gameState.editor.selection.objects) {
+                    object->clear();
+                }
+                unselectAllObjects(gameState);
+                return;
+            }
+            // Duplicate all selected objects.
+            else if (input.justDown("editor.duplicate-selection")) {
+                // Have them all move as the span of all objects.
+                auto minX = 0.f;
+                auto maxX = 0.f;
+                for (auto object : gameState.editor.selection.objects) {
+                    auto origin = object->transform().translation().x - barycenter.x;
+                    auto halfSpan = object->halfSpan();
+                    minX = std::min(minX, origin - halfSpan);
+                    maxX = std::max(maxX, origin + halfSpan);
+                }
+                auto offset = maxX - minX;
+
+                for (auto object : gameState.editor.selection.objects) {
+                    auto& newObject = duplicateBySerialization(gameState, *object);
+                    newObject.transform().translate(glm::vec3{offset, 0.f, 0.f});
+                }
             }
 
-            // Entities should have been deleted now, we can unselect.
-            if (input.justDown("editor.delete-selection")) {
-                unselectAllEntities(gameState);
+            for (auto object : gameState.editor.selection.objects) {
+                updateSelectedObject(gameState, *object);
             }
         }
     });

@@ -9,7 +9,7 @@
 #include <nlohmann/json.hpp>
 #include <sstream>
 
-#include "./brick.hpp"
+#include "./game-state.hpp"
 #include "./serializer.hpp"
 #include "./symbols.hpp"
 

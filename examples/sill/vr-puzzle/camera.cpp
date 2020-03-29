@@ -89,8 +89,8 @@ void setupCamera(GameState& gameState)
                     cameraComponent.strafe(delta.x / 10.f, delta.y / 10.f);
                 }
 
-                // Left click is maintained to orbit
-                if (input.down("left-fire")) {
+                // Middle click is maintained to orbit
+                if (input.down("middle-fire")) {
                     cameraComponent.orbitAdd(-delta.x, delta.y);
                 }
             }

@@ -2,6 +2,7 @@
 
 #include "./camera-component-impl.hpp"
 
+using namespace lava;
 using namespace lava::sill;
 
 $pimpl_class_base(CameraComponent, IComponent, GameEntity&, entity);
@@ -40,6 +41,7 @@ $pimpl_method_const(CameraComponent, const glm::mat4&, projectionTransform);
 
 $pimpl_method_const(CameraComponent, lava::Ray, coordinatesToRay, const glm::vec2&, coordinates);
 $pimpl_method_const(CameraComponent, glm::vec3, unproject, const glm::vec2&, coordinates, float, depth);
+$pimpl_method_const(CameraComponent, magma::Frustum, frustum, const glm::vec2&, topLeftCoordinates, const glm::vec2&, bottomRightCoordinates);
 
 glm::mat4 CameraComponent::transformAtCoordinates(const glm::vec2& coordinates, float depth) const
 {

@@ -40,6 +40,53 @@ void Camera::polygonMode(PolygonMode polygonMode)
     aft().forePolygonModeChanged();
 }
 
+Frustum Camera::frustum(const glm::vec2& topLeftRel, const glm::vec2& bottomRightRel) const
+{
+    Frustum frustum;
+
+    // @fixme These inverses could be precomputed, as they are needed in sill::CameraComponent::Impl too.
+    auto viewTransformInverse = glm::inverse(m_viewTransform);
+    auto projectionTransformInverse = glm::inverse(m_projectionTransform);
+
+    auto topLeftLocal = projectionTransformInverse * glm::vec4(topLeftRel.x, topLeftRel.y, 0.f, 1.f);
+    auto topRightLocal = projectionTransformInverse * glm::vec4(bottomRightRel.x, topLeftRel.y, 0.f, 1.f);
+    auto bottomLeftLocal = projectionTransformInverse * glm::vec4(topLeftRel.x, bottomRightRel.y, 0.f, 1.f);
+    auto bottomRightLocal = projectionTransformInverse * glm::vec4(bottomRightRel.x, bottomRightRel.y, 0.f, 1.f);
+
+    auto topLeft = glm::vec3(viewTransformInverse * (topLeftLocal / topLeftLocal.w));
+    auto topRight = glm::vec3(viewTransformInverse * (topRightLocal / topRightLocal.w));
+    auto bottomLeft = glm::vec3(viewTransformInverse * (bottomLeftLocal / bottomLeftLocal.w));
+    auto bottomRight = glm::vec3(viewTransformInverse * (bottomRightLocal / bottomRightLocal.w));
+
+    auto translation = glm::vec3(viewTransformInverse[3]);
+
+    // Forward
+    frustum.forward = glm::normalize(glm::cross(topLeft - bottomLeft, bottomRight - bottomLeft));
+
+    // Left plane
+    frustum.leftNormal = glm::normalize(glm::cross(topLeft - translation, bottomLeft - translation));
+    frustum.leftDistance = glm::dot(translation, frustum.leftNormal);
+
+    // Right plane
+    frustum.rightNormal = glm::normalize(glm::cross(bottomRight - translation, topRight - translation));
+    frustum.rightDistance = glm::dot(translation, frustum.rightNormal);
+
+    // Bottom plane
+    frustum.bottomNormal = glm::normalize(glm::cross(bottomLeft - translation, bottomRight - translation));
+    frustum.bottomDistance = glm::dot(translation, frustum.bottomNormal);
+
+    // Top plane
+    frustum.topNormal = glm::normalize(glm::cross(topRight - translation, topLeft - translation));
+    frustum.topDistance = glm::dot(translation, frustum.topNormal);
+
+    // Forward
+    auto cameraDistance = glm::dot(translation, frustum.forward);
+    frustum.near = cameraDistance + m_nearClip;
+    frustum.far = cameraDistance + m_farClip;
+
+    return frustum;
+}
+
 // ----- Init-time configuration
 
 void Camera::extent(Extent2d extent)
@@ -91,43 +138,5 @@ void Camera::updateFrustum()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    // @fixme These inverses could be precomputed, as they are needed in sill::CameraComponent::Impl too.
-    auto viewTransformInverse = glm::inverse(m_viewTransform);
-    auto projectionTransformInverse = glm::inverse(m_projectionTransform);
-
-    auto topLeftLocal = projectionTransformInverse * glm::vec4(-1, -1, 0, 1);
-    auto topRightLocal = projectionTransformInverse * glm::vec4(1, -1, 0, 1);
-    auto bottomLeftLocal = projectionTransformInverse * glm::vec4(-1, 1, 0, 1);
-    auto bottomRightLocal = projectionTransformInverse * glm::vec4(1, 1, 0, 1);
-
-    auto topLeft = glm::vec3(viewTransformInverse * (topLeftLocal / topLeftLocal.w));
-    auto topRight = glm::vec3(viewTransformInverse * (topRightLocal / topRightLocal.w));
-    auto bottomLeft = glm::vec3(viewTransformInverse * (bottomLeftLocal / bottomLeftLocal.w));
-    auto bottomRight = glm::vec3(viewTransformInverse * (bottomRightLocal / bottomRightLocal.w));
-
-    auto translation = glm::vec3(viewTransformInverse[3]);
-
-    // Forward
-    m_frustum.forward = glm::normalize(glm::cross(topLeft - bottomLeft, bottomRight - bottomLeft));
-
-    // Left plane
-    m_frustum.leftNormal = glm::normalize(glm::cross(topLeft - translation, bottomLeft - translation));
-    m_frustum.leftDistance = glm::dot(translation, m_frustum.leftNormal);
-
-    // Right plane
-    m_frustum.rightNormal = glm::normalize(glm::cross(bottomRight - translation, topRight - translation));
-    m_frustum.rightDistance = glm::dot(translation, m_frustum.rightNormal);
-
-    // Bottom plane
-    m_frustum.bottomNormal = glm::normalize(glm::cross(bottomLeft - translation, bottomRight - translation));
-    m_frustum.bottomDistance = glm::dot(translation, m_frustum.bottomNormal);
-
-    // Top plane
-    m_frustum.topNormal = glm::normalize(glm::cross(topRight - translation, topLeft - translation));
-    m_frustum.topDistance = glm::dot(translation, m_frustum.topNormal);
-
-    // Forward
-    auto cameraDistance = glm::dot(translation, m_frustum.forward);
-    m_frustum.near = cameraDistance + m_nearClip;
-    m_frustum.far = cameraDistance + m_farClip;
+    m_frustum = frustum(glm::vec2{-1.f, -1.f}, glm::vec2{1.f, 1.f});
 }

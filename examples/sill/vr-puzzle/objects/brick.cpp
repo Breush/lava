@@ -3,12 +3,12 @@
 #include <iostream>
 #include <algorithm>
 
-#include "./game-state.hpp"
+#include "../game-state.hpp"
 
 using namespace lava;
 
 Brick::Brick(GameState& gameState)
-    : m_gameState(gameState)
+    : Object(gameState)
 {
     m_entity = &gameState.engine->make<sill::GameEntity>("brick");
     m_entity->make<sill::TransformComponent>();
@@ -16,13 +16,33 @@ Brick::Brick(GameState& gameState)
     m_entity->make<sill::ColliderComponent>();
 }
 
-void Brick::clear()
+void Brick::clear(bool removeFromLevel)
 {
-    for (auto& block : m_blocks) {
-        m_gameState.engine->remove(*block.entity);
+    Object::clear();
+
+    if (removeFromLevel) {
+        for (auto& block : m_blocks) {
+            m_gameState.engine->remove(*block.entity);
+        }
+
+        auto brickIndex = findBrickIndex(m_gameState, *m_entity);
+        m_gameState.level.bricks.erase(m_gameState.level.bricks.begin() + brickIndex);
+    }
+}
+
+float Brick::halfSpan() const
+{
+    glm::ivec2 minBlock{0};
+    glm::ivec2 maxBlock{0};
+    for (const auto& block : m_blocks) {
+        minBlock = glm::max(minBlock, block.nonRotatedCoordinates);
+        maxBlock = glm::max(maxBlock, block.nonRotatedCoordinates);
     }
 
-    m_gameState.engine->remove(*m_entity);
+    auto brickHalfSpan = std::max(blockExtent.x * (std::max(maxBlock.x, std::abs(minBlock.x)) + 1),
+                                  blockExtent.y * (std::max(maxBlock.y, std::abs(minBlock.y)) + 1));
+
+    return brickHalfSpan;
 }
 
 void Brick::blocks(std::vector<glm::ivec2> blocks)

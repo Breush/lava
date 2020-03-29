@@ -16,5 +16,7 @@ nlohmann::json serialize(GameState& gameState, const Panel& panel);
 std::unique_ptr<Barrier> unserializeBarrier(GameState& gameState, const nlohmann::json& json);
 nlohmann::json serialize(GameState& gameState, const Barrier& barrier);
 
-lava::sill::GameEntity& unserializeEntity(GameState& gameState, const nlohmann::json& json);
-nlohmann::json serialize(GameState& gameState, const lava::sill::GameEntity& entity);
+std::unique_ptr<Generic> unserializeGeneric(GameState& gameState, const nlohmann::json& json);
+nlohmann::json serialize(GameState& gameState, const Generic& generic);
+
+Object& duplicateBySerialization(GameState& gameState, const Object& object);

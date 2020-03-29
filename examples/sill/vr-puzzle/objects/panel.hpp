@@ -1,16 +1,16 @@
 #pragma once
 
+#include "./object.hpp"
+
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <lava/core/ray.hpp>
-#include <lava/sill.hpp>
 #include <vector>
 
 class Brick;
 class Barrier;
-struct GameState;
 
-class Panel {
+class Panel : public Object {
 public:
     struct SnappingPoint {
         glm::mat4 worldTransform = glm::mat4(1.f);
@@ -25,19 +25,10 @@ public:
 
 public:
     Panel(GameState& gameState);
-
-    /// Prepare the panel to be removed.
-    /// The destructor does not destroy anything
-    /// so that shutting down the application is fast enough.
-    void clear();
+    void clear(bool removeFromLevel = true) final;
 
     const lava::sill::GameEntity& entity() const { return *m_entity; }
     lava::sill::GameEntity& entity() { return *m_entity; }
-
-    const lava::sill::AnimationComponent& animation() const { return m_entity->get<lava::sill::AnimationComponent>(); };
-    lava::sill::AnimationComponent& animation() { return m_entity->get<lava::sill::AnimationComponent>(); };
-    const lava::sill::TransformComponent& transform() const { return m_entity->get<lava::sill::TransformComponent>(); };
-    lava::sill::TransformComponent& transform() { return m_entity->get<lava::sill::TransformComponent>(); };
 
     const std::string& name() const { return m_name; }
     void name(const std::string& name) { m_name = name; }
@@ -80,8 +71,6 @@ protected:
     bool isSnappingPointValid(const Brick& brick, const SnappingPoint& snappingPoint);
 
 private:
-    GameState& m_gameState;
-
     bool m_lastKnownSolveStatus = true;
 
     // Configuration
@@ -95,9 +84,7 @@ private:
     std::vector<std::vector<SnappingPoint>> m_snappingPoints;
 
     // Mesh
-    lava::sill::GameEntity* m_entity = nullptr;
     lava::magma::Material* m_material = nullptr;
-
     lava::magma::Material* m_borderMaterial = nullptr;
 
     std::vector<std::function<void()>> m_solveCallbacks;

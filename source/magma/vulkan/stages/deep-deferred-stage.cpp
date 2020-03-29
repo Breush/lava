@@ -10,7 +10,6 @@
 #include "../../aft-vulkan/light-aft.hpp"
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../aft-vulkan/scene-aft.hpp"
-#include "../../helpers/frustum.hpp"
 #include "../helpers/format.hpp"
 #include "../render-engine-impl.hpp"
 #include "../render-image-impl.hpp"
@@ -134,7 +133,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
         }
 
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -154,7 +153,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     for (auto mesh : depthlessMeshes) {
         if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);

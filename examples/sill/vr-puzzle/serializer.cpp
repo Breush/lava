@@ -7,7 +7,7 @@
 #include <lava/chamber/logger.hpp>
 #include <sstream>
 
-#include "./brick.hpp"
+#include "./game-state.hpp"
 
 using namespace lava;
 using namespace lava::chamber;
@@ -102,23 +102,15 @@ void unserializeLevel(GameState& gameState, const std::string& path)
 
     logger.info("vr-puzzle") << "Loading level '" << gameState.level.name << "'..." << std::endl;
 
-    for (auto& barrier : gameState.level.barriers) {
-        barrier->clear();
-    }
-    for (auto& panel : gameState.level.panels) {
-        panel->clear();
-    }
-    for (auto& brick : gameState.level.bricks) {
-        brick->clear();
-    }
-    for (auto entity : gameState.level.entities) {
-        gameState.engine->remove(*entity);
+    for (auto object : gameState.level.objects) {
+        object->clear(false);
     }
 
     gameState.level.barriers.clear();
     gameState.level.panels.clear();
     gameState.level.bricks.clear();
-    gameState.level.entities.clear();
+    gameState.level.generics.clear();
+    gameState.level.objects.clear();
 
     for (auto& barrierJson : levelJson["barriers"]) {
         auto barrier = unserializeBarrier(gameState, barrierJson);
@@ -132,9 +124,9 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         auto brick = unserializeBrick(gameState, brickJson);
         gameState.level.bricks.emplace_back(std::move(brick));
     }
-    for (auto& entityJson : levelJson["entities"]) {
-        auto& entity = unserializeEntity(gameState, entityJson);
-        gameState.level.entities.emplace_back(&entity);
+    for (auto& genericJson : levelJson["generics"]) {
+        auto generic = unserializeGeneric(gameState, genericJson);
+        gameState.level.generics.emplace_back(std::move(generic));
     }
 }
 
@@ -168,10 +160,10 @@ void serializeLevel(GameState& gameState, const std::string& path)
         levelJson["bricks"][i] = serialize(gameState, brick);
     }
 
-    levelJson["entities"] = nlohmann::json::array();
-    for (auto i = 0u; i < gameState.level.entities.size(); ++i) {
-        const auto& entity = *gameState.level.entities[i];
-        levelJson["entities"][i] = serialize(gameState, entity);
+    levelJson["generics"] = nlohmann::json::array();
+    for (auto i = 0u; i < gameState.level.generics.size(); ++i) {
+        const auto& generic = *gameState.level.generics[i];
+        levelJson["generics"][i] = serialize(gameState, generic);
     }
 
     // Print out
@@ -305,10 +297,12 @@ nlohmann::json serialize(GameState& /* gameState */, const Barrier& barrier)
     return json;
 }
 
-// ----- Entities
+// ----- Generics
 
-sill::GameEntity& unserializeEntity(GameState& gameState, const nlohmann::json& json)
+std::unique_ptr<Generic> unserializeGeneric(GameState& gameState, const nlohmann::json& json)
 {
+    auto generic = std::make_unique<Generic>(gameState);
+
     auto& entity = gameState.engine->make<sill::GameEntity>(json["name"].get<std::string>());
     entity.ensure<sill::TransformComponent>().worldTransform(unserializeMat4(json["transform"]));
 
@@ -332,11 +326,14 @@ sill::GameEntity& unserializeEntity(GameState& gameState, const nlohmann::json& 
         }
     }
 
-    return entity;
+    generic->entity(entity);
+    return generic;
 }
 
-nlohmann::json serialize(GameState& /* gameState */, const sill::GameEntity& entity)
+nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
 {
+    const auto& entity = generic.entity();
+
     nlohmann::json json = {
         {"name", entity.name()},
         {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
@@ -363,9 +360,39 @@ nlohmann::json serialize(GameState& /* gameState */, const sill::GameEntity& ent
         }
         else {
             logger.warning("vr-puzzle") << "Unhandled component '" << componentHrid << "' to serialize '" << entity.name()
-                                        << "' entity." << std::endl;
+                                        << "' generic entity." << std::endl;
         }
     }
 
     return json;
+}
+
+Object& duplicateBySerialization(GameState& gameState, const Object& object)
+{
+    auto& entity = object.entity();
+
+    if (entity.name() == "brick") {
+        auto json = serialize(gameState, dynamic_cast<const Brick&>(object));
+        auto newBrick = unserializeBrick(gameState, json);
+        gameState.level.bricks.emplace_back(std::move(newBrick));
+        return *gameState.level.bricks.back();
+    }
+    else if (entity.name() == "panel") {
+        auto json = serialize(gameState, dynamic_cast<const Panel&>(object));
+        auto newPanel = unserializePanel(gameState, json);
+        gameState.level.panels.emplace_back(std::move(newPanel));
+        return *gameState.level.panels.back();
+    }
+    else if (entity.name() == "barrier") {
+        auto json = serialize(gameState, dynamic_cast<const Barrier&>(object));
+        auto newBarrier = unserializeBarrier(gameState, json);
+        gameState.level.barriers.emplace_back(std::move(newBarrier));
+        return *gameState.level.barriers.back();
+    }
+
+    // Generics
+    auto json = serialize(gameState, dynamic_cast<const Generic&>(object));
+    auto newGeneric = unserializeGeneric(gameState, json);
+    gameState.level.generics.emplace_back(std::move(newGeneric));
+    return *gameState.level.generics.back();
 }

@@ -2,6 +2,7 @@
 
 #include "../game-engine-impl.hpp"
 
+using namespace lava;
 using namespace lava::sill;
 
 CameraComponent::Impl::Impl(GameEntity& entity)
@@ -57,8 +58,6 @@ lava::Ray CameraComponent::Impl::coordinatesToRay(const glm::vec2& coordinates) 
     return ray;
 }
 
-// Internal
-
 glm::vec3 CameraComponent::Impl::unproject(const glm::vec2& coordinates, float depth) const
 {
     const auto& viewTransform = m_camera->viewTransform();
@@ -77,4 +76,12 @@ glm::vec3 CameraComponent::Impl::unproject(const glm::vec2& coordinates, float d
     auto position = glm::vec3(viewTransformInverse * (localPosition / localPosition.w));
 
     return position;
+}
+
+magma::Frustum CameraComponent::Impl::frustum(const glm::vec2& topLeftCoordinates, const glm::vec2& bottomRightCoordinates) const
+{
+    // See @note in unproject about normalized coordinates.
+    auto topLeftRel = 2.f * topLeftCoordinates / glm::vec2(m_extent.width, m_extent.height) - 1.f;
+    auto bottomRightRel = 2.f * bottomRightCoordinates / glm::vec2(m_extent.width, m_extent.height) - 1.f;
+    return m_camera->frustum(topLeftRel, bottomRightRel);
 }

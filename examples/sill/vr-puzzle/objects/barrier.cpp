@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-#include "./game-state.hpp"
+#include "../game-state.hpp"
 
 using namespace lava;
 
 Barrier::Barrier(GameState& gameState)
-    : m_gameState(gameState)
+    : Object(gameState)
 {
     m_entity = &gameState.engine->make<sill::GameEntity>("barrier");
     m_entity->make<sill::TransformComponent>();
@@ -25,17 +25,22 @@ Barrier::Barrier(GameState& gameState)
     meshComponent.primitive(0u, 0u).material(barrierMaterial);
 }
 
-void Barrier::clear()
+void Barrier::clear(bool removeFromLevel)
 {
-    for (auto& brick : m_gameState.level.bricks) {
-        brick->removeBarrier(*this);
-    }
+    Object::clear();
 
-    for (auto& panel : m_gameState.level.panels) {
-        panel->removeBarrier(*this);
-    }
+    if (removeFromLevel) {
+        for (auto& brick : m_gameState.level.bricks) {
+            brick->removeBarrier(*this);
+        }
 
-    m_gameState.engine->remove(*m_entity);
+        for (auto& panel : m_gameState.level.panels) {
+            panel->removeBarrier(*this);
+        }
+
+        auto barrierIndex = findBarrierIndex(m_gameState, *m_entity);
+        m_gameState.level.barriers.erase(m_gameState.level.barriers.begin() + barrierIndex);
+    }
 }
 
 void Barrier::diameter(float diameter)

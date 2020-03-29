@@ -11,7 +11,6 @@
 #include "../../aft-vulkan/mesh-aft.hpp"
 #include "../../aft-vulkan/scene-aft.hpp"
 #include "../../g-buffer-data.hpp"
-#include "../../helpers/frustum.hpp"
 #include "../environment.hpp"
 #include "../helpers/format.hpp"
 #include "../render-engine-impl.hpp"
@@ -151,7 +150,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
         }
 
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -186,7 +185,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     // Draw all wireframed meshes
     for (auto mesh : wireframedMeshes) {
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
         }
@@ -206,7 +205,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     // https://github.com/Breush/lava/issues/36
     for (auto mesh : translucentMeshes) {
         const auto& boundingSphere = mesh->boundingSphere();
-        if (!m_camera->frustumCullingEnabled() || helpers::isVisibleInsideFrustum(boundingSphere, cameraFrustum)) {
+        if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);
