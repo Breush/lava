@@ -5,6 +5,10 @@
 
 cd $(dirname "$0")/..
 
+if [ "${LAVA_INFO_LOG_LEVEL}" == "" ]; then
+    export LAVA_INFO_LOG_LEVEL=2
+fi
+
 # These are needed for Vulkan validation layers to work
 export LD_LIBRARY_PATH=`pwd`/external/lib:${LD_LIBRARY_PATH}
 export VK_LAYER_PATH=`pwd`/external/etc/vulkan/explicit_layer.d
@@ -36,7 +40,7 @@ if [ ${TARGETS_COUNT} -eq 1 ]; then
     if [ "$2" == "slow" ]; then
         make config=${CONFIG} ${TARGET}
     else
-        make config=${CONFIG} -j 3 ${TARGET}
+        make config=${CONFIG} -j 6 ${TARGET}
     fi
 
     # Run

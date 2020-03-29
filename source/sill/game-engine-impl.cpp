@@ -112,16 +112,20 @@ void GameEngine::Impl::run()
 
 void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
 {
-    logger.info("sill.game-engine") << "Adding entity " << &gameEntity->impl() << " '" << gameEntity->name() << "'." << std::endl;
+    logger.info("sill.game-engine").tab(1) << "Adding entity " << &gameEntity->impl() << " '" << gameEntity->name() << "'." << std::endl;
 
     m_pendingAddedEntities.emplace_back(std::move(gameEntity));
+
+    logger.log().tab(-1);
 }
 
 void GameEngine::Impl::remove(const GameEntity& gameEntity)
 {
-    logger.info("sill.game-engine") << "Removing entity " << &gameEntity.impl() << " '" << gameEntity.name() << "'." << std::endl;
+    logger.info("sill.game-engine").tab(1) << "Removing entity " << &gameEntity.impl() << " '" << gameEntity.name() << "'." << std::endl;
 
     m_pendingRemovedEntities.emplace_back(&gameEntity);
+
+    logger.log().tab(-1);
 }
 
 void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath)

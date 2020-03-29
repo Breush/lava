@@ -104,7 +104,8 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     auto materialId = m_registeredMaterialsMap.size();
     m_registeredMaterialsMap[hrid] = materialId;
 
-    logger.info("magma.vulkan.render-engine") << "Registering material " << hrid << " as " << materialId << "." << std::endl;
+    logger.info("magma.vulkan.render-engine").tab(1) << "Registering material " << hrid << " as " << materialId << "." << std::endl;
+    logger.log().tab(-1);
 
     // @note ShaderManager cannot handle shmag directly, it uses @magma:impl thingy
     // to be able to switch-case them or so in other renderer shaders.

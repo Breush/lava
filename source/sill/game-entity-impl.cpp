@@ -110,9 +110,11 @@ void GameEntity::Impl::add(const std::string& hrid, std::unique_ptr<IComponent>&
         logger.error("sill.game-entity") << "Entity '" << m_name << "' already has a " << hrid << " component." << std::endl;
     }
 
-    logger.info("sill.game-entity") << "(" << this << " '" << m_name << "') Adding " << hrid << " component." << std::endl;
+    logger.info("sill.game-entity").tab(2) << "(" << this << " '" << m_name << "') Adding " << hrid << " component." << std::endl;
 
     m_pendingAddedComponents.emplace(hrid, std::move(component));
+
+    logger.log().tab(-2);
 }
 
 void GameEntity::Impl::removeComponent(const std::string& hrid)

@@ -5,7 +5,7 @@ using namespace lava::flow;
 
 WaveSoundDataImpl::WaveSoundDataImpl(const std::string& fileName)
 {
-    logger.info("flow.wave-sound-data") << "Reading '" << fileName << "'." << std::endl;
+    logger.info("flow.wave-sound-data").tab(1) << "Reading '" << fileName << "'." << std::endl;
     logger.log().tab(1);
 
     std::ifstream file(fileName, std::ifstream::binary);
@@ -50,7 +50,7 @@ WaveSoundDataImpl::WaveSoundDataImpl(const std::string& fileName)
     m_data = m_fileData.data() + 44u;
     m_size = m_fileData.size() - 44u;
 
-    logger.log().tab(-1);
+    logger.log().tab(-2);
 
     normalize();
 }

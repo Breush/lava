@@ -9,6 +9,8 @@ LoggerStream::LoggerStream(std::ostream& stream, const std::string& resetString)
     , m_stream(&stream)
     , m_resetString(resetString)
 {
+    auto infoLogLevelEnv = getenv("LAVA_INFO_LOG_LEVEL");
+    m_infoLogLevel = (infoLogLevelEnv) ? std::atoi(infoLogLevelEnv) : -1u;
 }
 
 LoggerStream& LoggerStream::operator[](uint8_t i)
@@ -32,6 +34,10 @@ std::string LoggerStream::tabsString()
 
 int LoggerStream::overflow(int c)
 {
+    if (m_kind == LoggerKind::Info && m_tabs >= m_infoLogLevel) {
+        return 0;
+    }
+
     if (c == '\n') {
         stream() << resetString();
         stream().flush();

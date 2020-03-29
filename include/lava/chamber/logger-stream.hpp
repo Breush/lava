@@ -6,6 +6,11 @@
 #include <lava/core/macros.hpp>
 
 namespace lava::chamber {
+    enum class LoggerKind {
+        Unknown,
+        Info,
+    };
+
     /**
      * Stream managing colors and reset upon line end.
      */
@@ -43,8 +48,10 @@ namespace lava::chamber {
         $property(std::string, resetString);
         $property(std::string, prefixString);
         $property(bool, autoExit, = false);
+        $property(LoggerKind, kind, = LoggerKind::Unknown);
 
         bool m_beenReset = true;
         uint8_t m_tabs = 0u;
+        uint32_t m_infoLogLevel = 0u;
     };
 }

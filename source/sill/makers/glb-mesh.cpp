@@ -320,7 +320,8 @@ void loadAnimations(MeshComponent& meshComponent, const glb::Chunk& binChunk, co
 
 std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& fileName)
 {
-    logger.info("sill.makers.glb-mesh") << "Loading file " << fileName << std::endl;
+    logger.info("sill.makers.glb-mesh").tab(3) << "Loading file " << fileName << std::endl;
+    logger.log().tab(-3);
 
     std::ifstream file(fileName, std::ifstream::binary);
 
@@ -382,6 +383,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
             cacheData.threadPool->wait();
         }
 
-        logger.info("sill.makers.glb-mesh") << "Generated mesh component for " << fileName << std::endl;
+        logger.info("sill.makers.glb-mesh").tab(3) << "Generated mesh component for " << fileName << std::endl;
+        logger.log().tab(-3);
     };
 }

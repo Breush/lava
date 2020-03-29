@@ -192,8 +192,7 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
     }
 
     // Logging all enabled extensions
-    logger.info("magma.vulkan.device-holder") << "Enabled extensions:" << std::endl;
-    logger.log().tab(1);
+    logger.info("magma.vulkan.device-holder").tab(1) << "Enabled extensions:" << std::endl;
     for (const auto& extensionName : enabledExtensions) {
         logger.log() << extensionName << std::endl;
     }

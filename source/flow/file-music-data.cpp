@@ -5,7 +5,7 @@ using namespace lava::chamber;
 
 FileMusicData::FileMusicData(const std::string& fileName)
 {
-    logger.info("flow.file-music-data") << "Reading '" << fileName << "'." << std::endl;
+    logger.info("flow.file-music-data").tab(1) << "Reading '" << fileName << "'." << std::endl;
     logger.log().tab(1);
 
     std::ifstream file(fileName, std::ifstream::binary);
@@ -26,5 +26,5 @@ FileMusicData::FileMusicData(const std::string& fileName)
 
     logger.log() << "CompressionFormat: " << m_compressionFormat << std::endl;
 
-    logger.log().tab(-1);
+    logger.log().tab(-2);
 }
