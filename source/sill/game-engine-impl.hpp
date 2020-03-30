@@ -27,6 +27,9 @@ namespace lava::sill {
         flow::AudioEngine& audioEngine() { return *m_audioEngine; }
         crater::Window& window() { return *m_window; }
 
+        bool fpsCounting() const { return m_fpsCounting; }
+        void fpsCounting(bool fpsCounting) { m_fpsCounting = fpsCounting; }
+
         // Fonts
         Font& font(const std::string& hrid) { return m_fontManager.font(hrid); }
 
@@ -81,7 +84,7 @@ namespace lava::sill {
         magma::DirectionalLightController m_lightController;
 
         // User control
-        bool m_fpsCounterEnabled = false;
+        bool m_fpsCounting = false;
         std::chrono::nanoseconds m_fpsElapsedTime;
         uint32_t m_fpsCount = 0u;
         magma::Texture* m_environmentTexture = nullptr;

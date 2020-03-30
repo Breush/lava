@@ -15,6 +15,8 @@ $pimpl_method(GameEngine, magma::RenderEngine&, renderEngine);
 $pimpl_method(GameEngine, magma::Scene&, scene);
 $pimpl_method(GameEngine, crater::Window&, window);
 
+$pimpl_property_v(GameEngine, bool, fpsCounting);
+
 // ----- Fonts
 $pimpl_method(GameEngine, Font&, font, const std::string&, hrid);
 

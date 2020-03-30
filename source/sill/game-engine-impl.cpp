@@ -74,7 +74,7 @@ void GameEngine::Impl::run()
         updateTimeLag += elapsedTime;
         currentTime += elapsedTime;
 
-        if (m_fpsCounterEnabled) {
+        if (m_fpsCounting) {
             m_fpsCount += 1u;
             m_fpsElapsedTime += elapsedTime;
 
@@ -234,22 +234,6 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
     switch (event.type) {
     case WsEventType::WindowClosed: {
         m_window->close();
-        break;
-    }
-
-    case WsEventType::KeyPressed: {
-        if (event.key.which == Key::Escape) {
-            m_window->close();
-        }
-        else if (event.key.which == Key::F11) {
-            m_window->fullscreen(!m_window->fullscreen());
-        }
-        else if (event.key.which == Key::F) {
-            // @todo Move that to ashe.
-            m_renderEngine->logTrackingOnce();
-            m_fpsCounterEnabled = true;
-        }
-
         break;
     }
 

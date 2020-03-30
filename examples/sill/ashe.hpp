@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/sill.hpp>
+#include <lava/crater.hpp>
 
 namespace lava::ashe {
     class Application {
@@ -20,11 +21,16 @@ namespace lava::ashe {
             input.bindAxis("main-y", InputAxis::MouseY);
             input.bindAxis("zoom", InputAxis::MouseWheelVertical);
 
-            input.bindAction("left-fire", MouseButton::Left);
+            input.bindAction("middle-fire", MouseButton::Middle);
+            input.bindAction("middle-fire", MouseButton::Left);
 
             input.bindAction("right-fire", MouseButton::Right);
             input.bindAction("right-fire", Key::LeftAlt);
             input.bindAction("right-fire", Key::RightAlt);
+
+            input.bindAction("window.close", Key::Escape);
+            input.bindAction("window.toggle-fullscreen", {Key::F11});
+            input.bindAction("toggle-fps-counting", {Key::LeftControl, Key::LeftAlt, Key::F});
 
             //----- Initializing camera
 
@@ -34,13 +40,23 @@ namespace lava::ashe {
             cameraComponent.target({0.f, 0.f, 0.f});
 
             auto& cameraBehaviorComponent = cameraEntity.make<sill::BehaviorComponent>();
-            cameraBehaviorComponent.onUpdate([&input, &cameraComponent](float /* dt */) {
+            cameraBehaviorComponent.onUpdate([this, &input, &cameraComponent](float /* dt */) {
+                if (input.justDown("window.close")) {
+                    m_engine.window().close();
+                }
+                if (input.justDown("window.toggle-fullscreen")) {
+                    m_engine.window().fullscreen(!m_engine.window().fullscreen());
+                }
+                if (input.justDown("toggle-fps-counting")) {
+                    m_engine.fpsCounting(!m_engine.fpsCounting());
+                }
+
                 if (input.axisChanged("zoom")) {
                     cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("zoom") / 10.f);
                 }
 
                 if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
-                    // @fixme These factors are magic.
+                    // @todo These factors are magic?
                     glm::vec2 delta(input.axis("main-x") / 100.f, input.axis("main-y") / 100.f);
 
                     // Right click is maintained to translate the camera
@@ -48,8 +64,8 @@ namespace lava::ashe {
                         cameraComponent.strafe(delta.x / 10.f, delta.y / 10.f);
                     }
 
-                    // Left click is maintained to orbit
-                    if (input.down("left-fire")) {
+                    // Middle click is maintained to orbit
+                    if (input.down("middle-fire")) {
                         cameraComponent.orbitAdd(-delta.x, delta.y);
                     }
                 }

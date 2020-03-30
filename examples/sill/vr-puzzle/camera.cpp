@@ -25,6 +25,10 @@ void setupCamera(GameState& gameState)
     input.bindAction("move-left", Key::Q);
     input.bindAction("move-right", Key::D);
 
+    input.bindAction("window.close", Key::Escape);
+    input.bindAction("window.toggle-fullscreen", {Key::F11});
+    input.bindAction("toggle-fps-counting", {Key::LeftControl, Key::LeftAlt, Key::F});
+
     // Make the entity
     auto& entity = engine.make<sill::GameEntity>("camera");
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
@@ -35,6 +39,16 @@ void setupCamera(GameState& gameState)
 
     // Behavior for user control
     behaviorComponent.onUpdate([&input, &cameraComponent, &gameState](float dt) {
+        if (gameState.state == State::Idle && input.justDown("window.close")) {
+            gameState.engine->window().close();
+        }
+        if (input.justDown("window.toggle-fullscreen")) {
+            gameState.engine->window().fullscreen(!gameState.engine->window().fullscreen());
+        }
+        if (input.justDown("toggle-fps-counting")) {
+            gameState.engine->fpsCounting(!gameState.engine->fpsCounting());
+        }
+
         // @fixme Better have a "pushLockCamera" function, something callable from anywhere.
         if (gameState.state == State::Editor && gameState.editor.state != EditorState::Idle) return;
 

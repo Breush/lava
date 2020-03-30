@@ -54,6 +54,10 @@ namespace lava::sill {
         /// Access the windowing system.
         crater::Window& window();
 
+        /// Log FPS at each second.
+        bool fpsCounting() const;
+        void fpsCounting(bool fpsCounting);
+
         /**
          * @name Fonts
          */

@@ -167,7 +167,8 @@ void setupEditor(GameState& gameState)
 
     // Inputs
 
-    input.bindAction("toggle-editor", Key::E);
+    input.bindAction("editor.toggle", Key::E);
+    input.bindAction("editor.exit", Key::Escape);
     input.bindAction("editor.switch-gizmo", MouseButton::Middle);
     input.bindAction("editor.multiple-selection-modifier", {Key::LeftShift});
     input.bindAction("editor.multiple-selection-modifier", {Key::RightShift});
@@ -254,7 +255,8 @@ void setupEditor(GameState& gameState)
     }
 
     editorBehavior.onUpdate([&](float /* dt */) {
-        if ((gameState.state == State::Idle || gameState.state == State::Editor) && input.justDown("toggle-editor")) {
+        if ((gameState.state == State::Idle || gameState.state == State::Editor) && input.justDown("editor.toggle") ||
+            (gameState.state == State::Editor) && input.justDown("editor.exit")) {
             gameState.state = (gameState.state == State::Editor) ? State::Idle : State::Editor;
             gameState.editor.state = EditorState::Idle;
 
