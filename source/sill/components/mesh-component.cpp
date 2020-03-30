@@ -88,7 +88,7 @@ float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
                 continue;
             }
 
-            auto transform = primitive->transform();
+            const auto& transform = primitive->transform();
             const auto& indices = primitive->indices();
             const auto& vertices = primitive->unlitVertices();
             for (auto i = 0u; i < indices.size(); i += 3) {
@@ -96,28 +96,28 @@ float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
                 auto p1 = glm::vec3(transform * glm::vec4(vertices[indices[i + 1]].pos, 1.f));
                 auto p2 = glm::vec3(transform * glm::vec4(vertices[indices[i + 2]].pos, 1.f));
 
-                auto e10 = p1 - p0;
-                auto e20 = p2 - p0;
+                auto e01 = p1 - p0;
+                auto e02 = p2 - p0;
 
                 // Ignore triangles with opposite normals
-                auto c = glm::cross(e10, e20);
-                if (glm::dot(c, ray.origin) < 0.f) continue;
+                auto c = glm::cross(e01, e02);
+                if (glm::dot(c, ray.direction) > 0.f) continue;
 
                 // Ray might be parallel to triangle
-                auto q = glm::cross(ray.direction, e20);
-                auto a = glm::dot(e10, q);
-                if (a > 0.0001f && a < 0.0001f) continue;
+                auto q = glm::cross(ray.direction, e02);
+                auto a = glm::dot(e01, q);
+                if (a > -0.0001f && a < 0.0001f) continue;
 
                 auto f = 1.f / a;
                 auto s = ray.origin - p0;
                 auto u = f * glm::dot(s, q);
                 if (u < 0.f) continue;
 
-                auto r = glm::cross(s, e10);
+                auto r = glm::cross(s, e01);
                 auto v = f * glm::dot(ray.direction, r);
                 if (v < 0.f || u + v > 1.f) continue;
 
-                auto t = f * glm::dot(e20, r);
+                auto t = f * glm::dot(e02, r);
                 if (t < 0.f) continue;
 
                 if (distance == 0.f || t < distance) {

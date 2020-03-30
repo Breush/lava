@@ -16,17 +16,15 @@ namespace lava {
         if (bs2.radius <= 0.0001f) return bs1;
 
         // Check if a sphere encloses another one, return it if so.
-        auto centerDiff = bs2.center - bs1.center;
-        auto centerDistanceSquared = glm::dot(centerDiff, centerDiff);
-        if (centerDistanceSquared <= bs1.radius * bs1.radius) return bs1;
-        if (centerDistanceSquared <= bs2.radius * bs2.radius) return bs2;
+        auto c12 = bs2.center - bs1.center;
+        auto d = glm::length(c12); // Distance between centers
+        if (d + bs1.radius <= bs2.radius) return bs2;
+        if (d + bs2.radius <= bs1.radius) return bs1;
 
-        // Otherwise, just a simple formula.
-        auto centerDistance = std::sqrt(centerDistanceSquared);
+        // Otherwise, take the center and compute radius.
         BoundingSphere bs;
-        bs.radius = (bs1.radius + bs2.radius + centerDistance) / 2.f;
-        bs.center = bs1.center + centerDiff * (bs.radius - bs1.radius) / centerDistance;
-
+        bs.radius = (bs1.radius + d + bs2.radius) / 2.f;
+        bs.center = bs1.center + c12 * (bs.radius - bs1.radius) / d;
         return bs;
     }
 }

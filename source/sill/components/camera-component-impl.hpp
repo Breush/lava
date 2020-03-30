@@ -33,7 +33,7 @@ namespace lava::sill {
         const glm::mat4& viewTransform() const { return m_camera->viewTransform(); }
         const glm::mat4& projectionTransform() const { return m_camera->projectionTransform(); }
 
-        Ray coordinatesToRay(const glm::vec2& coordinates) const;
+        Ray coordinatesToRay(const glm::vec2& coordinates, float depth = 0.f) const;
         glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
         magma::Frustum frustum(const glm::vec2& topLeftCoordinates, const glm::vec2& bottomRightCoordinates) const;
 

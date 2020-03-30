@@ -1,11 +1,18 @@
 #include <lava/sill/game-engine.hpp>
 
+#include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/components/transform-component.hpp>
 #include <lava/sill/game-entity.hpp>
+#include <lava/sill/makers.hpp>
 
 #include "./game-engine-impl.hpp"
 
 using namespace lava;
 using namespace lava::sill;
+
+namespace {
+    static GameEntity* g_debugEntityPickingEntity = nullptr;
+}
 
 $pimpl_class_forward(GameEngine);
 
@@ -57,7 +64,34 @@ GameEntity* GameEngine::pickEntity(Ray ray, PickPrecision pickPrecision) const
         }
     }
 
+    // Move a ball where we picked.
+    if (m_debugEntityPicking) {
+        if (pickedEntity) {
+            g_debugEntityPickingEntity->get<TransformComponent>().scaling(1.f);
+            g_debugEntityPickingEntity->get<TransformComponent>().translation(ray.origin + minDistance * ray.direction);
+        }
+        else {
+            g_debugEntityPickingEntity->get<TransformComponent>().scaling(0.f);
+        }
+    }
+
     return pickedEntity;
+}
+
+void GameEngine::debugEntityPicking(bool debugEntityPicking)
+{
+    if (m_debugEntityPicking == debugEntityPicking) return;
+    m_debugEntityPicking = debugEntityPicking;
+
+    if (m_debugEntityPicking) {
+        g_debugEntityPickingEntity = &make<GameEntity>("debug.entity-picking");
+        makers::sphereMeshMaker(32u, 0.05f)(g_debugEntityPickingEntity->ensure<MeshComponent>());
+        g_debugEntityPickingEntity->get<TransformComponent>().scaling(0.f);
+    }
+    else {
+        remove(*g_debugEntityPickingEntity);
+        g_debugEntityPickingEntity = nullptr;
+    }
 }
 
 GameEntity* GameEngine::findEntityByName(const std::string& name) const

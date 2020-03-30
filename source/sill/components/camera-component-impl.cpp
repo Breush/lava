@@ -50,11 +50,11 @@ void CameraComponent::Impl::update(float dt)
     }
 }
 
-lava::Ray CameraComponent::Impl::coordinatesToRay(const glm::vec2& coordinates) const
+lava::Ray CameraComponent::Impl::coordinatesToRay(const glm::vec2& coordinates, float depth) const
 {
     Ray ray;
-    ray.origin = unproject(coordinates);
-    ray.direction = glm::normalize(unproject(coordinates, 1.f) - ray.origin);
+    ray.origin = unproject(coordinates, depth);
+    ray.direction = glm::normalize(unproject(coordinates, depth + 1.f) - ray.origin);
     return ray;
 }
 

@@ -255,8 +255,8 @@ void setupEditor(GameState& gameState)
     }
 
     editorBehavior.onUpdate([&](float /* dt */) {
-        if ((gameState.state == State::Idle || gameState.state == State::Editor) && input.justDown("editor.toggle") ||
-            (gameState.state == State::Editor) && input.justDown("editor.exit")) {
+        if (((gameState.state == State::Idle || gameState.state == State::Editor) && input.justDown("editor.toggle")) ||
+            ((gameState.state == State::Editor) && input.justDown("editor.exit"))) {
             gameState.state = (gameState.state == State::Editor) ? State::Idle : State::Editor;
             gameState.editor.state = EditorState::Idle;
 

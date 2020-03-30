@@ -104,6 +104,10 @@ namespace lava::sill {
         /// Find the closest entity that crosses the ray.
         GameEntity* pickEntity(Ray ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
 
+        /// Moves a ball to the picking point.
+        bool debugEntityPicking() const { return m_debugEntityPicking; }
+        void debugEntityPicking(bool debugEntityPicking);
+
         /// Find an entity by its name (will stop after the first one).
         GameEntity* findEntityByName(const std::string& name) const;
         /// @}
@@ -121,6 +125,7 @@ namespace lava::sill {
         VrManager m_vrManager{*this};
 
         std::vector<GameEntity*> m_entities;
+        bool m_debugEntityPicking = false;
     };
 }
 
