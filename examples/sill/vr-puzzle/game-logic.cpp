@@ -19,22 +19,9 @@ namespace {
     {
         bool allPanelsSolved = true;
         for (auto& panel : gameState.level.panels) {
-            bool panelSolveStatusChanged = false;
-            bool panelSolved = panel->checkSolveStatus(&panelSolveStatusChanged);
-            allPanelsSolved = allPanelsSolved && panelSolved;
-
-            // Visual feedback: unsolved panels are white, and solved panels green.
-            if (panelSolveStatusChanged) {
-                if (!panelSolved) {
-                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor", 0.5f);
-                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor",
-                                              glm::vec4{1.f, 1.f, 1.f, 1.f});
-                }
-                else {
-                    panel->animation().start(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor", 0.1f);
-                    panel->animation().target(sill::AnimationFlag::MaterialUniform, panel->borderMaterial(), "albedoColor",
-                                              glm::vec4{0.46, 0.95, 0.46, 1.f});
-                }
+            allPanelsSolved = allPanelsSolved && panel->solved();
+            if (!allPanelsSolved) {
+                break;
             }
         }
 
@@ -81,7 +68,8 @@ namespace {
         grabbedBrick->selectionHighlighted(false);
         grabbedBrick->errorHighlighted(false);
 
-        if (grabbedBrick->snapped()) {
+        if (gameState.snapping.panel != nullptr) {
+            grabbedBrick->snap(*gameState.snapping.panel, gameState.snapping.coordinates);
             grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());
             grabbedBrick->extraRotationLevel(0u);
         }
@@ -144,14 +132,15 @@ namespace {
         targetTransform = targetTransform * baseRotationLevelMatrix();
 
         // If the hand is close to a snapping point, we snap to it.
-        grabbedBrick->unsnap();
+        gameState.snapping.panel = nullptr;
         for (auto& panel : gameState.level.panels) {
             if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform[3])) {
                 targetTransform = snappingPoint->worldTransform;
                 targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
 
                 // Set the coordinates of snapped snapping point.
-                grabbedBrick->snap(*panel, snappingPoint->coordinates);
+                gameState.snapping.panel = panel.get();
+                gameState.snapping.coordinates = snappingPoint->coordinates;
                 break;
             }
         }
@@ -186,7 +175,7 @@ namespace {
 
         // If the cursor is over a snapping point, we snap to it.
         bool brickLooksSnapped = false;
-        grabbedBrick->unsnap();
+        gameState.snapping.panel = nullptr;
         for (auto& panel : gameState.level.panels) {
             if (!panel->userInteractionAllowed()) continue;
 
@@ -200,7 +189,8 @@ namespace {
                 // Set the coordinates of snapped snapping point.
                 if (snappingInfo.validForBrick) {
                     grabbedBrick->errorHighlighted(false);
-                    grabbedBrick->snap(*panel, snappingInfo.point->coordinates);
+                    gameState.snapping.panel = panel.get();
+                    gameState.snapping.coordinates = snappingInfo.point->coordinates;
                 }
                 else {
                     grabbedBrick->errorHighlighted(true);

@@ -140,6 +140,16 @@ void updateSelectedObject(GameState& gameState, Object& object)
         if (input.justDown("left")) {
             panel.extent(panel.extent() - glm::uvec2(1, 0));
         }
+        if (input.justDown("rename-selection")) {
+            std::string panelName;
+            std::cout << "Renaming panel '" << panel.name() << "'. New name:" << std::endl;
+            std::cin >> panelName;
+            panel.name(panelName);
+            std::cout << "New panel name '" << panel.name() << "'." << std::endl;
+        }
+        if (input.justDown("solve-selection")) {
+            panel.pretendSolved(!panel.solved());
+        }
     }
     else if (entity.name() == "barrier") {
         auto& barrier = dynamic_cast<Barrier&>(object);
@@ -150,7 +160,14 @@ void updateSelectedObject(GameState& gameState, Object& object)
         if (input.justDown("down")) {
             barrier.diameter(barrier.diameter() - 0.5f);
         }
-        if (input.justDown("left") || input.justDown("right")) {
+        if (input.justDown("rename-selection")) {
+            std::string barrierName;
+            std::cout << "Renaming barrier '" << barrier.name() << "'. New name:" << std::endl;
+            std::cin >> barrierName;
+            barrier.name(barrierName);
+            std::cout << "New barrier name '" << barrier.name() << "'." << std::endl;
+        }
+        if (input.justDown("solve-selection")) {
             barrier.powered(!barrier.powered());
         }
     }
@@ -189,6 +206,8 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
     input.bindAction("brick.toggle-fixed", {Key::LeftShift, Key::F});
     input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
+    input.bindAction("rename-selection", {Key::F2});
+    input.bindAction("solve-selection", {Key::LeftShift, Key::S});
     // @fixme Disabling, need gizmo
     // input.bindAction("scale-up", Key::S);
     // input.bindAction("scale-down", {Key::LeftShift, Key::S});

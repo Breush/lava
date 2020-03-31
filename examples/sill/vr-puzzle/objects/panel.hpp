@@ -54,13 +54,19 @@ public:
     /// Find the closest snapping point.
     SnappingInfo rayHitSnappingPoint(const Brick& brick, const lava::Ray& ray);
 
-    /// Check and update if panel is completely solved.
-    bool checkSolveStatus(bool* solveStatusChanged);
-
     /// Be warn whenever this panel goes from unsolve to solve status after a checkSolveStatus().
     void onSolve(std::function<void()> callback);
 
+    /// Whether this panel is currently solved.
+    bool solved() const { return m_solved; }
+
+    /// Hijack the system to make the game believe the panel is solved.
+    void pretendSolved(bool pretendSolved);
+
     lava::magma::Material& borderMaterial() { return *m_borderMaterial; }
+
+    // Callback used by Brick.
+    void snappedBricksChanged() { updateSolved(); }
 
 protected:
     void updateBorderMeshPrimitive();
@@ -70,8 +76,11 @@ protected:
 
     bool isSnappingPointValid(const Brick& brick, const SnappingPoint& snappingPoint);
 
+    void updateSolved();
+
 private:
-    bool m_lastKnownSolveStatus = true;
+    bool m_solved = false;
+    bool m_pretendSolved = false;
 
     // Configuration
     std::string m_name;

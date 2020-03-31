@@ -88,7 +88,17 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
             wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
         });
         findPanelByName(gameState, "intro.easy-solo")->onSolve([&gameState]() {
-            findBarrierByName(gameState, "intro.duo")->powered(true);
+            findBarrierByName(gameState, "intro.easy-duo")->powered(true);
+        });
+        findPanelByName(gameState, "intro.easy-duo-1")->onSolve([&gameState]() {
+            if (findPanelByName(gameState, "intro.easy-duo-2")->solved()) {
+                findBarrierByName(gameState, "intro.hard-duo")->powered(true);
+            }
+        });
+        findPanelByName(gameState, "intro.easy-duo-2")->onSolve([&gameState]() {
+            if (findPanelByName(gameState, "intro.easy-duo-1")->solved()) {
+                findBarrierByName(gameState, "intro.hard-duo")->powered(true);
+            }
         });
     }
 }

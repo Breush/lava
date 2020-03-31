@@ -66,7 +66,7 @@ public:
     const Panel& snapPanel() const { return *m_snapPanel; }
     const glm::uvec2& snapCoordinates() const { return m_snapCoordinates; }
     void unsnap();
-    void snap(const Panel& panel, const glm::uvec2& snapCoordinates);
+    void snap(Panel& panel, const glm::uvec2& snapCoordinates);
 
     // 0, 1, 2 or 3. Number of 90° counter-clockwise rotations to add.
     // rotationLevel = baseRotationLevel + extraRotationLevel
@@ -86,7 +86,7 @@ private:
     std::set<Barrier*> m_barriers;
     glm::vec3 m_color = {0.992, 0.992, 0.588};
 
-    const Panel* m_snapPanel = nullptr;
+    Panel* m_snapPanel = nullptr;
     glm::uvec2 m_snapCoordinates = {0, 0};
 
     bool m_fixed = false;

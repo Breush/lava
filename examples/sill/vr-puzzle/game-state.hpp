@@ -44,6 +44,11 @@ struct GameState {
     Brick* pointedBrick = nullptr;
 
     struct {
+        Panel* panel;
+        glm::uvec2 coordinates;
+    } snapping;
+
+    struct {
         glm::vec3 position; // Camera in FPS, headset in VR.
     } player;
 

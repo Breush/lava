@@ -183,17 +183,21 @@ void Brick::unsnap()
 {
     if (m_snapPanel == nullptr) return;
 
+    auto snapPanel = m_snapPanel;
     m_snapPanel = nullptr;
     m_entity->get<sill::PhysicsComponent>().enabled(true);
+
+    snapPanel->snappedBricksChanged();
 }
 
-void Brick::snap(const Panel& panel, const glm::uvec2& snapCoordinates)
+void Brick::snap(Panel& panel, const glm::uvec2& snapCoordinates)
 {
     if (m_snapPanel == &panel && m_snapCoordinates == snapCoordinates) return;
 
     m_snapPanel = &panel;
     m_snapCoordinates = snapCoordinates;
     m_entity->get<sill::PhysicsComponent>().enabled(false);
+    m_snapPanel->snappedBricksChanged();
 }
 
 uint32_t Brick::incrementBaseRotationLevel()

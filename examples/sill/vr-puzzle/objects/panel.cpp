@@ -101,19 +101,17 @@ void Panel::extent(const glm::uvec2& extent)
     m_entity->get<sill::TransformComponent>().worldTransform(m_entity->get<sill::TransformComponent>().worldTransform());
 
     // Reset rules
-    m_lastKnownSolveStatus = true;
     m_links.clear();
 
     m_uniformData.resize(extent.x * extent.y);
     updateUniformData();
 
+    updateSolved();
     updateSnappingPoints();
-    updateFromSnappedBricks();
 }
 
 void Panel::addLink(const glm::uvec2& from, const glm::uvec2& to)
 {
-    m_lastKnownSolveStatus = true;
     m_links.emplace_back(from, to);
     updateUniformData();
 }
@@ -166,70 +164,17 @@ Panel::SnappingInfo Panel::rayHitSnappingPoint(const Brick& brick, const lava::R
     return snappingInfo;
 }
 
-bool Panel::checkSolveStatus(bool* solveStatusChanged)
-{
-    updateFromSnappedBricks();
-
-    // Check that the panel is filled.
-    for (auto i = 0u; i < m_extent.x; ++i) {
-        for (auto j = 0u; j < m_extent.y; ++j) {
-            if (!m_snappingPoints[i][j].hasBrickSnapped) {
-                if (solveStatusChanged) *solveStatusChanged = (m_lastKnownSolveStatus != false);
-                m_lastKnownSolveStatus = false;
-                return false;
-            }
-        }
-    }
-
-    // Check that all links are correct.
-    for (const auto& link : m_links) {
-        const auto& from = link.first;
-        const auto& to = link.second;
-
-        // Find the brick that has 'from'.
-        const Brick* fromBrick = nullptr;
-        for (const auto& brick : m_gameState.level.bricks) {
-            for (const auto& block : brick->blocks()) {
-                if (brick->snapCoordinates().x + block.coordinates.x == from.x
-                    && brick->snapCoordinates().y + block.coordinates.y == from.y) {
-                    fromBrick = brick.get();
-                    break;
-                }
-            }
-        }
-
-        // Check that it also has 'to'.
-        bool foundTo = false;
-        for (const auto& block : fromBrick->blocks()) {
-            if (fromBrick->snapCoordinates().x + block.coordinates.x == to.x
-                && fromBrick->snapCoordinates().y + block.coordinates.y == to.y) {
-                foundTo = true;
-                break;
-            }
-        }
-
-        if (!foundTo) {
-            // @fixme Add visual feedback, explaining why this has failed
-            if (solveStatusChanged) *solveStatusChanged = (m_lastKnownSolveStatus != false);
-            m_lastKnownSolveStatus = false;
-            return false;
-        }
-    }
-
-    if (solveStatusChanged) *solveStatusChanged = (m_lastKnownSolveStatus != true);
-    if (*solveStatusChanged) {
-        for (auto& callback : m_solveCallbacks) {
-            callback();
-        }
-    }
-
-    m_lastKnownSolveStatus = true;
-    return true;
-}
-
 void Panel::onSolve(std::function<void()> callback)
 {
     m_solveCallbacks.emplace_back(callback);
+}
+
+void Panel::pretendSolved(bool pretendSolved)
+{
+    if (m_pretendSolved == pretendSolved) return;
+    m_pretendSolved = pretendSolved;
+
+    updateSolved();
 }
 
 void Panel::updateFromSnappedBricks()
@@ -405,6 +350,75 @@ void Panel::updateUniformData()
     }
 
     m_material->set("symbols", m_uniformData.data(), m_uniformData.size());
+}
+
+void Panel::updateSolved()
+{
+    updateFromSnappedBricks();
+
+    bool solved = true;
+
+    if (!m_pretendSolved) {
+        // Check that the panel is filled.
+        for (auto i = 0u; i < m_extent.x; ++i) {
+            for (auto j = 0u; j < m_extent.y; ++j) {
+                if (!m_snappingPoints[i][j].hasBrickSnapped) {
+                    solved = false;
+                    break;
+                }
+            }
+        }
+
+        // Check that all links are correct.
+        for (const auto& link : m_links) {
+            const auto& from = link.first;
+            const auto& to = link.second;
+
+            // Find the brick that has 'from'.
+            const Brick* fromBrick = nullptr;
+            for (const auto& brick : m_gameState.level.bricks) {
+                for (const auto& block : brick->blocks()) {
+                    if (brick->snapCoordinates().x + block.coordinates.x == from.x
+                        && brick->snapCoordinates().y + block.coordinates.y == from.y) {
+                        fromBrick = brick.get();
+                        break;
+                    }
+                }
+            }
+
+            // Check that it also has 'to'.
+            bool foundTo = false;
+            for (const auto& block : fromBrick->blocks()) {
+                if (fromBrick->snapCoordinates().x + block.coordinates.x == to.x
+                    && fromBrick->snapCoordinates().y + block.coordinates.y == to.y) {
+                    foundTo = true;
+                    break;
+                }
+            }
+
+            if (!foundTo) {
+                // @fixme Add visual feedback, explaining why this has failed
+                solved = false;
+            }
+        }
+    }
+
+    if (m_solved == solved) return;
+    m_solved = solved;
+
+    if (m_solved) {
+        // Visual feedback: unsolved panels are white, and solved panels green.
+        animation().start(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", 0.1f);
+        animation().target(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", glm::vec4{0.46, 0.95, 0.46, 1.f});
+
+        for (auto& callback : m_solveCallbacks) {
+            callback();
+        }
+    }
+    else {
+        animation().start(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", 0.5f);
+        animation().target(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", glm::vec4{1.f});
+    }
 }
 
 bool Panel::isSnappingPointValid(const Brick& brick, const SnappingPoint& snappingPoint)
