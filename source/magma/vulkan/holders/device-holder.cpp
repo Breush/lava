@@ -147,6 +147,16 @@ void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* pSu
 
         auto properties = m_physicalDevice.getProperties();
         logger.log() << "Picked GPU: " << properties.deviceName << "." << std::endl;
+
+        auto sampleCountsFlags = properties.limits.framebufferColorSampleCounts & properties.limits.framebufferDepthSampleCounts;
+        if (sampleCountsFlags & vk::SampleCountFlagBits::e64) { m_maxSampleCount = vk::SampleCountFlagBits::e64; }
+        else if (sampleCountsFlags & vk::SampleCountFlagBits::e32) { m_maxSampleCount = vk::SampleCountFlagBits::e32; }
+        else if (sampleCountsFlags & vk::SampleCountFlagBits::e16) { m_maxSampleCount = vk::SampleCountFlagBits::e16; }
+        else if (sampleCountsFlags & vk::SampleCountFlagBits::e8) { m_maxSampleCount = vk::SampleCountFlagBits::e8; }
+        else if (sampleCountsFlags & vk::SampleCountFlagBits::e4) { m_maxSampleCount = vk::SampleCountFlagBits::e4; }
+        else if (sampleCountsFlags & vk::SampleCountFlagBits::e2) { m_maxSampleCount = vk::SampleCountFlagBits::e2; }
+        logger.log() << "Max sample count: " << vk::to_string(m_maxSampleCount) << "." << std::endl;
+
         break;
     }
 

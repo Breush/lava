@@ -20,6 +20,8 @@ namespace lava::magma {
      * Deep deferred renderer.
      *
      * Constructs a deeply-linked-list for its GBuffer.
+     *
+     * @note Does not handle MSAA.
      */
     class DeepDeferredStage final : public IRendererStage {
         constexpr static const uint32_t DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH = 3u;
@@ -52,8 +54,12 @@ namespace lava::magma {
 
         // IRendererStage
         void init(const Camera& camera) final;
-        void update(vk::Extent2D extent, vk::PolygonMode polygonMode) final;
+        void rebuild() final;
         void render(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
+
+        void extent(vk::Extent2D extent) final;
+        void sampleCount(vk::SampleCountFlagBits /* sampleCount */) final { /* Not handled */ }
+        void polygonMode(vk::PolygonMode polygonMode) final;
 
         RenderImage renderImage() const final;
         RenderImage depthRenderImage() const final;
@@ -78,7 +84,14 @@ namespace lava::magma {
         // References
         Scene& m_scene;
         const Camera* m_camera = nullptr;
+
+        bool m_rebuildRenderPass = true;
+        bool m_rebuildPipelines = true;
+        bool m_rebuildResources = true;
+
+        // Configuration
         vk::Extent2D m_extent;
+        vk::PolygonMode m_polygonMode = vk::PolygonMode::eFill;
 
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;

@@ -29,6 +29,7 @@ namespace lava::magma::vulkan {
         const vk::Queue& presentQueue() const { return m_presentQueue; }
         uint32_t graphicsQueueFamilyIndex() const { return m_queueFamilyIndices.graphics; }
         uint32_t presentQueueFamilyIndex() const { return m_queueFamilyIndices.present; }
+        vk::SampleCountFlagBits maxSampleCount() const { return m_maxSampleCount; }
 
         const std::vector<const char*>& extensions() const { return m_extensions; }
 
@@ -47,6 +48,7 @@ namespace lava::magma::vulkan {
         vk::Queue m_transferQueue = nullptr;
         vk::Queue m_presentQueue = nullptr;
         QueueFamilyIndices m_queueFamilyIndices;
+        vk::SampleCountFlagBits m_maxSampleCount = vk::SampleCountFlagBits::e1;
 
         const std::vector<const char*> m_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
         bool m_debugEnabled = false; // Should be in sync with InstanceHolder.

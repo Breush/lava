@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/magma/render-image.hpp>
+#include <lava/magma/msaa.hpp>
 
 #include "../vulkan/command-buffer-thread.hpp"
 #include "../vulkan/environment.hpp"
@@ -105,13 +106,16 @@ namespace lava::magma {
         void foreRemove(const Texture& texture);
         void foreRemove(const Mesh& mesh);
         void foreEnvironmentTexture(const Texture* texture) { m_environment.set(texture); }
+        void foreMsaaChanged();
 
     protected:
         void initStages();
         void initResources();
-        void updateStages(const Camera& camera);
+        void rebuildStages(const Camera& camera);
         /// :ShadowsLightCameraPair
         void updateLightBundleFromCameras(const Light& light);
+
+        vk::SampleCountFlagBits sampleCount() const;
 
     protected:
         /// This bundle is for lights, allowing us to create shadow map.

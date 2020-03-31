@@ -30,8 +30,12 @@ namespace lava::magma {
 
         // IRendererStage
         void init(const Camera& camera) final;
-        void update(vk::Extent2D extent, vk::PolygonMode polygonMode) final;
+        void rebuild() final;
         void render(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
+
+        void extent(vk::Extent2D extent) final;
+        void sampleCount(vk::SampleCountFlagBits sampleCount) final;
+        void polygonMode(vk::PolygonMode polygonMode) final;
 
         RenderImage renderImage() const final;
         RenderImage depthRenderImage() const final;
@@ -54,8 +58,16 @@ namespace lava::magma {
         // References
         Scene& m_scene;
         const Camera* m_camera = nullptr;
+
+        bool m_rebuildRenderPass = true;
+        bool m_rebuildPipelines = true;
+        bool m_rebuildResources = true;
+
+        // Configuration
+        bool m_msaaEnabled = false;
         vk::Extent2D m_extent;
         vk::PolygonMode m_polygonMode = vk::PolygonMode::eFill;
+        vk::SampleCountFlagBits m_sampleCount = vk::SampleCountFlagBits::e1;
 
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;
@@ -66,6 +78,7 @@ namespace lava::magma {
 
         // Resources
         vulkan::ImageHolder m_finalImageHolder;
+        vulkan::ImageHolder m_finalResolveImageHolder;
         vulkan::ImageHolder m_depthImageHolder;
         vulkan::Framebuffer m_framebuffer;
     };

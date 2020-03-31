@@ -31,6 +31,10 @@ namespace lava::magma::vulkan {
             vk::Format format;
         };
 
+        struct ResolveAttachment {
+            vk::Format format;
+        };
+
         struct VertexInput {
             struct Attribute {
                 vk::Format format;
@@ -66,11 +70,18 @@ namespace lava::magma::vulkan {
         /// Register an input attachment.
         void add(const InputAttachment& inputAttachment);
 
+        /// Set the resolve attachment.
+        void set(const ResolveAttachment& resolveAttachment);
+
         /// Set the vertex input.
         void set(const VertexInput& vertexInput) { m_vertexInput = vertexInput; }
 
         /// Set the cull mode.
         void set(vk::CullModeFlags cullMode) { m_cullMode = cullMode; }
+
+        /// Set the rasterization samples count.
+        vk::SampleCountFlagBits sampleCount() const { return m_sampleCount; }
+        void set(vk::SampleCountFlagBits sampleCount) { m_sampleCount = sampleCount; }
 
         /// Add a push constants range.
         void addPushConstantRange(uint32_t size);
@@ -88,8 +99,10 @@ namespace lava::magma::vulkan {
         //----- Getters
 
         const std::vector<ColorAttachment>& colorAttachments() const { return m_colorAttachments; }
-        const std::unique_ptr<DepthStencilAttachment>& depthStencilAttachment() const { return m_depthStencilAttachment; }
+        const std::optional<DepthStencilAttachment>& depthStencilAttachment() const { return m_depthStencilAttachment; }
         const std::vector<InputAttachment>& inputAttachments() const { return m_inputAttachments; }
+        const std::optional<ResolveAttachment>& resolveAttachment() const { return m_resolveAttachment; }
+        void resetResolveAttachment() { m_resolveAttachment = std::nullopt; }
         bool selfDependent() const { return m_selfDependent; }
 
         // Internal API
@@ -112,11 +125,13 @@ namespace lava::magma::vulkan {
         std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
         std::vector<vk::PipelineShaderStageCreateInfo> m_shaderStages;
         std::vector<ColorAttachment> m_colorAttachments;
-        std::unique_ptr<DepthStencilAttachment> m_depthStencilAttachment;
+        std::optional<DepthStencilAttachment> m_depthStencilAttachment;
+        std::optional<ResolveAttachment> m_resolveAttachment;
         std::vector<InputAttachment> m_inputAttachments;
         vk::PushConstantRange m_pushConstantRange = {vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, 0};
         VertexInput m_vertexInput;
         vk::CullModeFlags m_cullMode;
+        vk::SampleCountFlagBits m_sampleCount = vk::SampleCountFlagBits::e1;
         bool m_selfDependent = false;
         bool m_dynamicViewportEnabled = false;
     };

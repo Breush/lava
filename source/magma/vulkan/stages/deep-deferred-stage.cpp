@@ -53,22 +53,30 @@ void DeepDeferredStage::init(const Camera& camera)
     m_renderPassHolder.add(m_geometryPipelineHolder);
     m_renderPassHolder.add(m_depthlessPipelineHolder);
     m_renderPassHolder.add(m_epiphanyPipelineHolder);
-    m_renderPassHolder.init();
 
     logger.log().tab(-1);
 }
 
-void DeepDeferredStage::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
+void DeepDeferredStage::rebuild()
 {
-    m_extent = extent;
+    if (m_rebuildRenderPass) {
+        m_renderPassHolder.init();
+        m_rebuildRenderPass = false;
+    }
 
-    m_clearPipelineHolder.update(extent);
-    m_geometryPipelineHolder.update(extent, polygonMode);
-    m_depthlessPipelineHolder.update(extent, polygonMode);
-    m_epiphanyPipelineHolder.update(extent);
+    if (m_rebuildPipelines) {
+        m_clearPipelineHolder.update(m_extent);
+        m_geometryPipelineHolder.update(m_extent, m_polygonMode);
+        m_depthlessPipelineHolder.update(m_extent, m_polygonMode);
+        m_epiphanyPipelineHolder.update(m_extent);
+        m_rebuildPipelines = false;
+    }
 
-    createResources();
-    createFramebuffers();
+    if (m_rebuildResources) {
+        createResources();
+        createFramebuffers();
+        m_rebuildResources = false;
+    }
 }
 
 void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId)
@@ -192,6 +200,21 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     commandBuffer.endRenderPass();
 
     deviceHolder.debugEndRegion(commandBuffer);
+}
+
+void DeepDeferredStage::extent(vk::Extent2D extent)
+{
+    if (m_extent == extent) return;
+    m_extent = extent;
+    m_rebuildPipelines = true;
+    m_rebuildResources = true;
+}
+
+void DeepDeferredStage::polygonMode(vk::PolygonMode polygonMode)
+{
+    if (m_polygonMode == polygonMode) return;
+    m_polygonMode = polygonMode;
+    m_rebuildPipelines = true;
 }
 
 RenderImage DeepDeferredStage::renderImage() const

@@ -27,6 +27,7 @@ GameEngine::Impl::Impl(GameEngine& engine)
 
     m_scene = &m_renderEngine->make<magma::Scene>();
     m_scene->rendererType(magma::RendererType::Forward);
+    m_scene->msaa(magma::Msaa::Max);
 
     if (m_renderEngine->vrEnabled()) {
         m_vrRenderTarget = &m_renderEngine->make<magma::VrRenderTarget>();

@@ -3,6 +3,7 @@
 #include <lava/chamber/bucket-allocator.hpp>
 #include <lava/core/extent.hpp>
 #include <lava/core/macros/aft.hpp>
+#include <lava/magma/msaa.hpp>
 #include <lava/magma/renderer-type.hpp>
 
 namespace lava::magma {
@@ -45,6 +46,10 @@ namespace lava::magma {
          */
         RendererType rendererType() const { return m_rendererType; }
         void rendererType(RendererType rendererType) { m_rendererType = rendererType; }
+
+        /// Sample count for MSAA (multi-samples anti-aliasing).
+        Msaa msaa() const { return m_msaa; }
+        void msaa(Msaa msaa);
         /// @}
 
         /**
@@ -143,6 +148,7 @@ namespace lava::magma {
 
         // ----- Rendering
         RendererType m_rendererType = RendererType::Unknown;
+        Msaa m_msaa = Msaa::Max;
 
         // ----- Fallbacks
         Material* m_fallbackMaterial = nullptr;

@@ -27,6 +27,7 @@ ForwardRendererStage::ForwardRendererStage(Scene& scene)
     , m_wireframePipelineHolder(m_scene.engine().impl())
     , m_translucentPipelineHolder(m_scene.engine().impl())
     , m_finalImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.final-image")
+    , m_finalResolveImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.final-resolve-image")
     , m_depthImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.depth-image")
     , m_framebuffer(m_scene.engine().impl().device())
 {
@@ -51,23 +52,30 @@ void ForwardRendererStage::init(const Camera& camera)
     m_renderPassHolder.add(m_depthlessPipelineHolder);
     m_renderPassHolder.add(m_wireframePipelineHolder);
     m_renderPassHolder.add(m_translucentPipelineHolder);
-    m_renderPassHolder.init();
 
     logger.log().tab(-1);
 }
 
-void ForwardRendererStage::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
+void ForwardRendererStage::rebuild()
 {
-    m_extent = extent;
-    m_polygonMode = polygonMode;
+    if (m_rebuildRenderPass) {
+        m_renderPassHolder.init();
+        m_rebuildRenderPass = false;
+    }
 
-    m_opaquePipelineHolder.update(extent, polygonMode);
-    m_depthlessPipelineHolder.update(extent, polygonMode);
-    m_wireframePipelineHolder.update(extent, vk::PolygonMode::eLine);
-    m_translucentPipelineHolder.update(extent, polygonMode);
+    if (m_rebuildPipelines) {
+        m_opaquePipelineHolder.update(m_extent, m_polygonMode);
+        m_depthlessPipelineHolder.update(m_extent, m_polygonMode);
+        m_wireframePipelineHolder.update(m_extent, vk::PolygonMode::eLine);
+        m_translucentPipelineHolder.update(m_extent, m_polygonMode);
+        m_rebuildPipelines = false;
+    }
 
-    createResources();
-    createFramebuffers();
+    if (m_rebuildResources) {
+        createResources();
+        createFramebuffers();
+        m_rebuildResources = false;
+    }
 }
 
 void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId)
@@ -221,20 +229,76 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
     deviceHolder.debugEndRegion(commandBuffer);
 }
 
+void ForwardRendererStage::extent(vk::Extent2D extent)
+{
+    if (m_extent == extent) return;
+    m_extent = extent;
+    m_rebuildPipelines = true;
+    m_rebuildResources = true;
+}
+
+void ForwardRendererStage::polygonMode(vk::PolygonMode polygonMode)
+{
+    if (m_polygonMode == polygonMode) return;
+    m_polygonMode = polygonMode;
+    m_rebuildPipelines = true;
+}
+
+void ForwardRendererStage::sampleCount(vk::SampleCountFlagBits sampleCount)
+{
+    if (m_sampleCount == sampleCount) return;
+    m_sampleCount = sampleCount;
+    m_msaaEnabled = (sampleCount != vk::SampleCountFlagBits::e1);
+
+    m_opaquePipelineHolder.set(sampleCount);
+    m_depthlessPipelineHolder.set(sampleCount);
+    m_wireframePipelineHolder.set(sampleCount);
+    m_translucentPipelineHolder.set(sampleCount);
+
+    // @note Do that only during the last subpass
+    if (m_msaaEnabled) {
+        vulkan::PipelineHolder::ResolveAttachment finalResolveAttachment;
+        finalResolveAttachment.format = vk::Format::eR8G8B8A8Unorm;
+        m_translucentPipelineHolder.set(finalResolveAttachment);
+    }
+    else {
+        m_translucentPipelineHolder.resetResolveAttachment();
+    }
+
+    m_rebuildRenderPass = true;
+    m_rebuildPipelines = true;
+    m_rebuildResources = true;
+}
+
 RenderImage ForwardRendererStage::renderImage() const
 {
     auto cameraId = m_scene.aft().cameraId(*m_camera);
+
+    if (m_msaaEnabled) {
+        return m_finalResolveImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
+    }
+
     return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
 }
 
 RenderImage ForwardRendererStage::depthRenderImage() const
 {
     auto cameraId = m_scene.aft().cameraId(*m_camera);
+
+    if (m_msaaEnabled) {
+        logger.warning("magma.vulkan.stages.forward-renderer") << "Requesting depth render image with active MSAA is not supported." << std::endl;
+        return m_finalResolveImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
+    }
+
     return m_depthImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA_DEPTH + cameraId);
 }
 
 void ForwardRendererStage::changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
 {
+    if (m_msaaEnabled) {
+        m_finalResolveImageHolder.changeLayout(imageLayout, commandBuffer);
+    }
+
     m_finalImageHolder.changeLayout(imageLayout, commandBuffer);
 }
 
@@ -486,10 +550,17 @@ void ForwardRendererStage::createResources()
 {
     // Final
     auto finalFormat = vk::Format::eR8G8B8A8Unorm;
+    m_finalImageHolder.sampleCount(m_sampleCount);
     m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+
+    // Final resolve
+    if (m_msaaEnabled) {
+        m_finalResolveImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+    }
 
     // Depth
     auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
+    m_depthImageHolder.sampleCount(m_sampleCount);
     m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
 }
 
@@ -497,14 +568,15 @@ void ForwardRendererStage::createFramebuffers()
 {
     // Attachments
     std::vector<vk::ImageView> attachments;
-    attachments.emplace_back(m_finalImageHolder.view());
-    attachments.emplace_back(m_depthImageHolder.view());
-    attachments.emplace_back(m_finalImageHolder.view());
-    attachments.emplace_back(m_depthImageHolder.view());
-    attachments.emplace_back(m_finalImageHolder.view());
-    attachments.emplace_back(m_depthImageHolder.view());
-    attachments.emplace_back(m_finalImageHolder.view());
-    attachments.emplace_back(m_depthImageHolder.view());
+
+    for (auto i = 0u; i < 4u; ++i) { // For each subpass
+        attachments.emplace_back(m_finalImageHolder.view());
+        attachments.emplace_back(m_depthImageHolder.view());
+    }
+
+    if (m_msaaEnabled) {
+        attachments.emplace_back(m_finalResolveImageHolder.view());
+    }
 
     // Framebuffer
     vk::FramebufferCreateInfo framebufferInfo;

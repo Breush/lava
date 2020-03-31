@@ -57,6 +57,16 @@ Scene::~Scene()
     aft().~SceneAft();
 }
 
+// ----- Rendering
+
+void Scene::msaa(Msaa msaa)
+{
+    if (m_msaa == msaa) return;
+    m_msaa = msaa;
+
+    aft().foreMsaaChanged();
+}
+
 // ----- Makers
 
 // :RuntimeAft @note Any resource is in fact allocated with more space,

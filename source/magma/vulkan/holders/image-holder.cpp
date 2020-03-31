@@ -123,7 +123,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
     imageInfo.tiling = vk::ImageTiling::eOptimal;
     imageInfo.initialLayout = vk::ImageLayout::ePreinitialized;
     imageInfo.usage = usageFlags;
-    imageInfo.samples = vk::SampleCountFlagBits::e1;
+    imageInfo.samples = m_sampleCount;
     imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
     if (layersCount == 6u) {

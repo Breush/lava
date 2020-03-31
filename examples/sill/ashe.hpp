@@ -31,6 +31,7 @@ namespace lava::ashe {
             input.bindAction("window.close", Key::Escape);
             input.bindAction("window.toggle-fullscreen", {Key::F11});
             input.bindAction("toggle-fps-counting", {Key::LeftControl, Key::LeftAlt, Key::F});
+            input.bindAction("toggle-msaa", {Key::LeftControl, Key::LeftAlt, Key::M});
 
             //----- Initializing camera
 
@@ -49,6 +50,9 @@ namespace lava::ashe {
                 }
                 if (input.justDown("toggle-fps-counting")) {
                     m_engine.fpsCounting(!m_engine.fpsCounting());
+                }
+                if (input.justDown("toggle-msaa")) {
+                    m_engine.scene().msaa((m_engine.scene().msaa() == magma::Msaa::None) ? magma::Msaa::Max : magma::Msaa::None);
                 }
 
                 if (input.axisChanged("zoom")) {

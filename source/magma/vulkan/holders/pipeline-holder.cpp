@@ -93,7 +93,7 @@ void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
     //--- Multisample state
 
     vk::PipelineMultisampleStateCreateInfo multisampleState;
-    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    multisampleState.rasterizationSamples = m_sampleCount;
     multisampleState.minSampleShading = 1.f;
 
     //--- Depth stencil state
@@ -193,12 +193,17 @@ void PipelineHolder::add(const ColorAttachment& colorAttachment)
 
 void PipelineHolder::set(const DepthStencilAttachment& depthStencilAttachment)
 {
-    m_depthStencilAttachment = std::make_unique<DepthStencilAttachment>(depthStencilAttachment);
+    m_depthStencilAttachment = std::make_optional<DepthStencilAttachment>(depthStencilAttachment);
 }
 
 void PipelineHolder::add(const InputAttachment& inputAttachment)
 {
     m_inputAttachments.emplace_back(inputAttachment);
+}
+
+void PipelineHolder::set(const ResolveAttachment& resolveAttachment)
+{
+    m_resolveAttachment = std::make_optional<ResolveAttachment>(resolveAttachment);
 }
 
 void PipelineHolder::addPushConstantRange(uint32_t size)

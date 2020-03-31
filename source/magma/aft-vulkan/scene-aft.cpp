@@ -175,7 +175,7 @@ RenderImage SceneAft::cameraDepthRenderImage(const Camera& camera) const
 
 void SceneAft::updateCamera(const Camera& camera)
 {
-    updateStages(camera);
+    rebuildStages(camera);
 
     // Present stage of RenderEngine is not right anymore, has the renderImage is no more
     m_engine.impl().updateRenderViews(camera.renderImage());
@@ -272,9 +272,11 @@ void SceneAft::foreAdd(Camera& camera)
     else
         cameraBundle.rendererStage = std::make_unique<ForwardRendererStage>(m_fore);
 
+    cameraBundle.rendererStage->sampleCount(sampleCount());
+
     if (m_initialized) {
         cameraBundle.rendererStage->init(camera);
-        updateStages(camera);
+        rebuildStages(camera);
     }
 
     // :ShadowsLightCameraPair We neeed to resize the number of threads for shadow map generation
@@ -323,6 +325,13 @@ void SceneAft::foreRemove(const Mesh& mesh)
     m_pendingRemovedMeshes.emplace_back(&mesh);
 }
 
+void SceneAft::foreMsaaChanged()
+{
+    for (auto& camera : m_fore.cameras()) {
+        updateCamera(*camera);
+    }
+}
+
 // ----- Internal
 
 void SceneAft::initStages()
@@ -361,7 +370,7 @@ void SceneAft::initResources()
     m_environment.init();
 }
 
-void SceneAft::updateStages(const Camera& camera)
+void SceneAft::rebuildStages(const Camera& camera)
 {
     auto& rendererStage = *m_cameraBundles.at(&camera).rendererStage;
 
@@ -369,7 +378,10 @@ void SceneAft::updateStages(const Camera& camera)
     const auto& extent = camera.extent();
     vk::Extent2D vkExtent{extent.width, extent.height};
     const auto polygonMode = camera.polygonMode();
-    rendererStage.update(vkExtent, (polygonMode == PolygonMode::Line) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
+    rendererStage.extent(vkExtent);
+    rendererStage.sampleCount(sampleCount());
+    rendererStage.polygonMode((polygonMode == PolygonMode::Line) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
+    rendererStage.rebuild();
 }
 
 void SceneAft::updateLightBundleFromCameras(const Light& light)
@@ -387,4 +399,13 @@ void SceneAft::updateLightBundleFromCameras(const Light& light)
             lightBundle.shadows.at(camera).init(light, *camera);
         }
     }
+}
+
+vk::SampleCountFlagBits SceneAft::sampleCount() const
+{
+    if (m_fore.msaa() == Msaa::Max) {
+        return m_engine.impl().deviceHolder().maxSampleCount();
+    }
+
+    return vk::SampleCountFlagBits::e1;
 }

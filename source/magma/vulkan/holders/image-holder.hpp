@@ -80,5 +80,6 @@ namespace lava::magma::vulkan {
         $attribute(vulkan::ImageView, view);
         $attribute(vk::ImageLayout, layout, = vk::ImageLayout::eUndefined);
         $attribute(vk::ImageAspectFlagBits, aspect);
+        $property(vk::SampleCountFlagBits, sampleCount, = vk::SampleCountFlagBits::e1);
     };
 }

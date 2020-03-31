@@ -208,6 +208,6 @@ void Present::removeView(uint32_t viewId)
 void Present::updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler)
 {
     // @todo Also add greyscale image and linear depth...
-
+    m_engine.device().waitIdle();
     vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 2u, viewId);
 }

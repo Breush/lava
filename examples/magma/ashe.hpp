@@ -378,6 +378,10 @@ namespace lava::ashe {
                 else if (event.key.which == Key::F) {
                     m_engine->logTrackingOnce();
                 }
+                // Press M toggle MSAA
+                else if (event.key.which == Key::M) {
+                    m_scene->msaa((m_scene->msaa() == magma::Msaa::None) ? magma::Msaa::Max : magma::Msaa::None);
+                }
                 // Press W for toggle wireframe
                 else if (event.key.which == Key::W) {
                     m_camera->polygonMode((m_camera->polygonMode() == magma::PolygonMode::Line) ? magma::PolygonMode::Fill
