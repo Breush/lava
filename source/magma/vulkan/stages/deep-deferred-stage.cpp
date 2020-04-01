@@ -114,7 +114,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipelineLayout(),
                                      DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, 1, &m_gBufferSsboDescriptorSet, 0, nullptr);
-    commandBuffer.draw(6, 1, 0, 0);
+    commandBuffer.draw(3, 1, 0, 0);
 
     deviceHolder.debugEndRegion(commandBuffer);
 
@@ -191,7 +191,7 @@ void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId
             .render(commandBuffer, frameId, m_epiphanyPipelineHolder.pipelineLayout(), EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);
     }
 
-    commandBuffer.draw(6, 1, 0, 1);
+    commandBuffer.draw(3, 1, 0, 1);
 
     deviceHolder.debugEndRegion(commandBuffer);
 

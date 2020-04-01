@@ -4,22 +4,19 @@
 
 //----- In setup
 
-vec2 positions[6] = vec2[](
+// Our fullscreen pass uses only one triangle instead of two.
+// Idea from Real-Time Rendering - Fourth Edition - page 514.
+
+vec2 positions[3] = vec2[](
     vec2(-1, -1),
-    vec2(-1, 1),
-    vec2(1, 1),
-    vec2(1, 1),
-    vec2(1, -1),
-    vec2(-1, -1)
+    vec2(-1, 3),
+    vec2(3, -1)
 );
 
-vec2 uvs[6] = vec2[](
+vec2 uvs[3] = vec2[](
     vec2(0, 0),
-    vec2(0, 1),
-    vec2(1, 1),
-    vec2(1, 1),
-    vec2(1, 0),
-    vec2(0, 0)
+    vec2(0, 2),
+    vec2(2, 0)
 );
 
 //----- Fragment forwarded out

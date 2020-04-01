@@ -123,7 +123,7 @@ void Present::render(vk::CommandBuffer commandBuffer)
     // Draw
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipelineLayout(), 0, 1, &m_descriptorSet,
                                      0, nullptr);
-    commandBuffer.draw(6, 1, 0, 0);
+    commandBuffer.draw(3, 1, 0, 0);
 
     //----- Epilogue
 
