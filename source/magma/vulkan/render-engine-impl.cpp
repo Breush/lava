@@ -129,7 +129,7 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     materialInfo.sourcePath = shaderPath;
     materialInfo.watchId = watchId;
 
-    m_shadersManager.registerImplGroup(hrid, shaderImplementation);
+    m_shadersManager.registerImplGroup(hrid, shaderImplementation, materialId);
 
     return materialId;
 }

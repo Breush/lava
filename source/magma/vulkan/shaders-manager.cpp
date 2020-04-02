@@ -11,13 +11,13 @@ ShadersManager::ShadersManager(const vk::Device& device)
 {
 }
 
-void ShadersManager::registerImplGroup(const std::string& hrid, const std::string& rawCode)
+void ShadersManager::registerImplGroup(const std::string& hrid, const std::string& rawCode, uint32_t implsId)
 {
     auto& implGroup = m_implGroups[hrid];
 
     auto impls = extractImpls(rawCode);
     for (const auto& impl : impls) {
-        const auto implId = registerImpl(impl.first, impl.second);
+        const auto implId = registerImpl(impl.first, impl.second, implsId);
         implGroup.implIds[impl.first] = implId;
     }
 }
@@ -117,11 +117,15 @@ void ShadersManager::dirtifyImpl(const std::string& category)
     }
 }
 
-uint32_t ShadersManager::registerImpl(const std::string& category, const std::string& implCode)
+uint32_t ShadersManager::registerImpl(const std::string& category, const std::string& implCode, uint32_t implId)
 {
-    const uint32_t implId = m_impls[category].textCodes.size();
+    if (implId == -1u) {
+        implId = m_impls[category].textCodes.size();
+    }
+
     auto resolvedShader = resolveImpl(category, implId, implCode);
     m_impls[category].textCodes.emplace_back(resolvedShader.textCode);
+    m_impls[category].ids.emplace_back(implId);
 
     dirtifyImpl(category);
 
@@ -196,12 +200,12 @@ ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& 
 
                 for (uint32_t i = 0; i < m_impls[category].textCodes.size(); ++i) {
                     std::stringstream callStream;
-                    callStream << category << i;
+                    callStream << category << m_impls[category].ids[i];
                     auto callString = callStream.str();
                     auto caseBuffer = casesBuffer.replace(callMarkPos, callMarkSize, callString);
                     callMarkSize = callString.size();
 
-                    adaptedCode << "case " << i << ":" << std::endl;
+                    adaptedCode << "case " << m_impls[category].ids[i] << ":" << std::endl;
                     adaptedCode << caseBuffer << std::endl;
                     adaptedCode << "break;" << std::endl;
                 }
