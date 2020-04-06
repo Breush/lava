@@ -52,6 +52,15 @@ namespace lava::magma {
         }
     };
 
+    template <>
+    struct SceneResourceMaker<Flat> {
+        template <class... Arguments>
+        static inline Flat& make(Scene& scene, Arguments&&... arguments)
+        {
+            return scene.makeFlat(std::forward<Arguments>(arguments)...);
+        }
+    };
+
     template <class T, class... Arguments>
     inline T& Scene::make(Arguments&&... arguments)
     {

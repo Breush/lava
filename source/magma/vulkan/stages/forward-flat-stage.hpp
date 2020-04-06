@@ -12,19 +12,15 @@
 
 namespace lava::magma {
     /**
-     * Forward renderer.
+     * Forward renderer for flat objects.
      */
-    class ForwardRendererStage final : public IRendererStage {
-        constexpr static const uint32_t ENVIRONMENT_DESCRIPTOR_SET_INDEX = 0u;
-        constexpr static const uint32_t MATERIAL_DESCRIPTOR_SET_INDEX = 1u;
-        constexpr static const uint32_t MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX = 2u;
-        constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 3u;
-        constexpr static const uint32_t SHADOWS_DESCRIPTOR_SET_INDEX = 4u;
+    class ForwardFlatStage final : public IRendererStage {
+        constexpr static const uint32_t MATERIAL_DESCRIPTOR_SET_INDEX = 0u;
         constexpr static const uint32_t CAMERA_PUSH_CONSTANT_OFFSET = 0u;
-        constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = sizeof(CameraUbo);
+        constexpr static const uint32_t FLAT_PUSH_CONSTANT_OFFSET = sizeof(CameraUbo);
 
     public:
-        ForwardRendererStage(Scene& scene);
+        ForwardFlatStage(Scene& scene);
 
         // IRendererStage
         void init(const Camera& camera) final;
@@ -32,8 +28,8 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
 
         void extent(vk::Extent2D extent) final;
-        void sampleCount(vk::SampleCountFlagBits sampleCount) final;
-        void polygonMode(vk::PolygonMode polygonMode) final;
+        void sampleCount(vk::SampleCountFlagBits /* sampleCount */) final { /* Not handled */ }
+        void polygonMode(vk::PolygonMode /* polygonMode */) final { /* Not handled */ }
 
         RenderImage renderImage() const final;
         RenderImage depthRenderImage() const final;
@@ -42,10 +38,7 @@ namespace lava::magma {
         void changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) final;
 
     protected:
-        void initOpaquePass();
-        void initDepthlessPass();
-        void initWireframePass();
-        void initTranslucentPass();
+        void initPass();
 
         void updatePassShaders(bool firstTime);
 
@@ -62,22 +55,14 @@ namespace lava::magma {
         bool m_rebuildResources = true;
 
         // Configuration
-        bool m_msaaEnabled = false;
         vk::Extent2D m_extent;
-        vk::PolygonMode m_polygonMode = vk::PolygonMode::eFill;
-        vk::SampleCountFlagBits m_sampleCount = vk::SampleCountFlagBits::e1;
 
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;
-        vulkan::PipelineHolder m_opaquePipelineHolder;
-        vulkan::PipelineHolder m_depthlessPipelineHolder;
-        vulkan::PipelineHolder m_wireframePipelineHolder;
-        vulkan::PipelineHolder m_translucentPipelineHolder;
+        vulkan::PipelineHolder m_pipelineHolder;
 
         // Resources
         vulkan::ImageHolder m_finalImageHolder;
-        vulkan::ImageHolder m_finalResolveImageHolder;
-        vulkan::ImageHolder m_depthImageHolder;
         vulkan::Framebuffer m_framebuffer;
     };
 }

@@ -9,6 +9,12 @@ struct {
     vec3 normal;
 } gBuffer;
 
+flat {
+    vec4 main() {
+        return vec4(0);
+    }
+}
+
 geometry {
     bool main() {
         gBuffer.normal = inTbn[2];

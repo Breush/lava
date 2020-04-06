@@ -1,6 +1,7 @@
 #include "./scene-aft.hpp"
 
 #include <lava/magma/camera.hpp>
+#include <lava/magma/flat.hpp>
 #include <lava/magma/light.hpp>
 #include <lava/magma/material.hpp>
 #include <lava/magma/mesh.hpp>
@@ -8,10 +9,12 @@
 
 #include "../vulkan/render-engine-impl.hpp"
 #include "../vulkan/stages/deep-deferred-stage.hpp"
+#include "../vulkan/stages/forward-flat-stage.hpp"
 #include "../vulkan/stages/forward-renderer-stage.hpp"
 #include "../vulkan/stages/shadows-stage.hpp"
 #include "./camera-aft.hpp"
 #include "./config.hpp"
+#include "./flat-aft.hpp"
 #include "./light-aft.hpp"
 #include "./material-aft.hpp"
 #include "./mesh-aft.hpp"
@@ -108,6 +111,10 @@ void SceneAft::update()
     for (auto mesh : m_fore.meshes()) {
         mesh->aft().update();
     }
+
+    for (auto flat : m_fore.flats()) {
+        flat->aft().update();
+    }
 }
 
 // ----- Record
@@ -116,6 +123,7 @@ void SceneAft::record()
 {
     tracker.counter("draw-calls.shadows") = 0u;
     tracker.counter("draw-calls.renderer") = 0u;
+    tracker.counter("draw-calls.flat-renderer") = 0u;
 
     m_commandBuffers.resize(0);
 
@@ -266,11 +274,16 @@ void SceneAft::foreAdd(Camera& camera)
     cameraBundle.id = cameraId;
     cameraBundle.rendererThread = std::make_unique<vulkan::CommandBufferThread>(m_engine.impl(), "camera.renderer");
 
-    // @note We fallback to a forward renderer if something is not handled.
-    if (m_fore.rendererType() == RendererType::DeepDeferred)
+    if (m_fore.rendererType() == RendererType::DeepDeferred) {
         cameraBundle.rendererStage = std::make_unique<DeepDeferredStage>(m_fore);
-    else
+    }
+    else if (m_fore.rendererType() == RendererType::ForwardFlat) {
+        cameraBundle.rendererStage = std::make_unique<ForwardFlatStage>(m_fore);
+    }
+    else {
+        // @note We fallback to a forward renderer if something is not handled.
         cameraBundle.rendererStage = std::make_unique<ForwardRendererStage>(m_fore);
+    }
 
     cameraBundle.rendererStage->sampleCount(sampleCount());
 
@@ -323,6 +336,12 @@ void SceneAft::foreRemove(const Texture& texture)
 void SceneAft::foreRemove(const Mesh& mesh)
 {
     m_pendingRemovedMeshes.emplace_back(&mesh);
+}
+
+void SceneAft::foreRemove(const Flat& flat)
+{
+    m_engine.impl().device().waitIdle();
+    m_fore.removeUnsafe(flat);
 }
 
 void SceneAft::foreMsaaChanged()

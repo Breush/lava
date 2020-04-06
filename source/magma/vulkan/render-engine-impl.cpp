@@ -76,6 +76,7 @@ void RenderEngine::Impl::draw()
         if (m_logTracking) {
             logger.info("magma.render-engine") << "Render scene " << sceneId << "." << std::endl;
             logger.log().tab(1);
+            logger.log() << "draw-calls.flat-renderer: " << tracker.counter("draw-calls.flat-renderer") << std::endl;
             logger.log() << "draw-calls.renderer: " << tracker.counter("draw-calls.renderer") << std::endl;
             logger.log() << "draw-calls.shadows: " << tracker.counter("draw-calls.shadows") << std::endl;
             logger.log().tab(-1);

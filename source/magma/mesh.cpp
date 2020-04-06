@@ -227,11 +227,11 @@ void Mesh::computeTangents()
     }
 
     // Regenerating indices and unlit vertices
-    m_vertices = m_temporaryVertices;
-    auto indicesCount = m_vertices.size();
-    m_indices.resize(indicesCount);
-    m_unlitVertices.resize(indicesCount);
-    for (auto i = 0u; i < indicesCount; ++i) {
+    m_vertices = std::move(m_temporaryVertices);
+    auto verticeCount = m_vertices.size();
+    m_indices.resize(verticeCount);
+    m_unlitVertices.resize(verticeCount);
+    for (auto i = 0u; i < verticeCount; ++i) {
         m_indices[i] = i;
         m_unlitVertices[i].pos = m_vertices[i].pos;
     }

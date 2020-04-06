@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <lava/core/axis.hpp>
 #include <lava/core/bounding-sphere.hpp>
 #include <lava/core/macros/aft.hpp>
 #include <lava/core/render-category.hpp>

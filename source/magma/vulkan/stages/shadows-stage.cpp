@@ -130,6 +130,7 @@ void ShadowsStage::initPass()
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "0";
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["SHADOWS_CASCADES_COUNT"] = std::to_string(SHADOWS_CASCADES_COUNT);

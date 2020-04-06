@@ -93,7 +93,7 @@ void ForwardRendererStage::render(vk::CommandBuffer commandBuffer, uint32_t fram
 
     // Set render pass
     std::array<vk::ClearValue, 2> clearValues;
-    // @todo Allow clear color to be configurable
+    // @fixme Allow clear color to be configurable per scene or camera!
     std::array<float, 4> clearColor{0.2f, 0.6f, 0.4f, 1.f};
     clearValues[0u].color = vk::ClearColorValue(clearColor);
     clearValues[1u].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
@@ -377,7 +377,7 @@ void ForwardRendererStage::initDepthlessPass()
     vulkan::PipelineHolder::ColorAttachment finalColorAttachment;
     finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
     finalColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-    finalColorAttachment.blending = vulkan::PipelineHolder::ColorAttachmentBlending::AlphaBlending;
+    finalColorAttachment.clear = false;
     m_depthlessPipelineHolder.add(finalColorAttachment);
 
     //---- Vertex input
@@ -424,6 +424,7 @@ void ForwardRendererStage::initWireframePass()
     finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
     finalColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
     finalColorAttachment.blending = vulkan::PipelineHolder::ColorAttachmentBlending::AlphaBlending;
+    finalColorAttachment.clear = false;
     m_wireframePipelineHolder.add(finalColorAttachment);
 
     //---- Vertex input
@@ -469,6 +470,7 @@ void ForwardRendererStage::initTranslucentPass()
     finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
     finalColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
     finalColorAttachment.blending = vulkan::PipelineHolder::ColorAttachmentBlending::AlphaBlending;
+    finalColorAttachment.clear = false;
     m_translucentPipelineHolder.add(finalColorAttachment);
 
     //---- Vertex input
@@ -489,6 +491,7 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);

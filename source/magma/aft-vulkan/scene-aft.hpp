@@ -15,6 +15,7 @@ namespace lava::magma {
     class Material;
     class Texture;
     class Mesh;
+    class Flat;
     class ShadowsStage;
 }
 
@@ -100,11 +101,13 @@ namespace lava::magma {
         void foreAdd(Material& material);
         void foreAdd(Texture& /* texture */) {}
         void foreAdd(Mesh& /* mesh  */) {}
+        void foreAdd(Flat& /* flat  */) {}
         void foreRemove(const Light& light);
         void foreRemove(const Camera& camera);
         void foreRemove(const Material& material);
         void foreRemove(const Texture& texture);
         void foreRemove(const Mesh& mesh);
+        void foreRemove(const Flat& flat);
         void foreEnvironmentTexture(const Texture* texture) { m_environment.set(texture); }
         void foreMsaaChanged();
 

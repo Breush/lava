@@ -32,7 +32,7 @@ void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelin
     if (m_fore.indices().empty()) return;
 
     // Bind the material
-    // @todo Have this in a more clever render loop, and not called by this mesh
+    // @todo :CleverMaterialBinding Have this in a more clever render loop, and not called by this mesh
     // Fact is we shouldn't know about the correct descriptorSetIndex here
     if (m_fore.material() != nullptr) {
         m_fore.material()->aft().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);

@@ -1,8 +1,9 @@
 #softdefine USE_CAMERA_PUSH_CONSTANT
+#softdefine USE_FLAT_PUSH_CONSTANT
 #softdefine USE_MESH_PUSH_CONSTANT
 #softdefine USE_SHADOW_MAP_PUSH_CONSTANT
 
-#if USE_CAMERA_PUSH_CONSTANT || USE_MESH_PUSH_CONSTANT || USE_SHADOW_MAP_PUSH_CONSTANT
+#if USE_CAMERA_PUSH_CONSTANT || USE_FLAT_PUSH_CONSTANT || USE_MESH_PUSH_CONSTANT || USE_SHADOW_MAP_PUSH_CONSTANT
 layout(std430, push_constant) uniform PushConstantUbo {
     // Camera UBO
     #if USE_CAMERA_PUSH_CONSTANT
@@ -11,6 +12,12 @@ layout(std430, push_constant) uniform PushConstantUbo {
     vec4 cameraViewTransform2;
     vec4 cameraProjectionFactors0;
     vec4 cameraProjectionFactors1;
+    #endif
+
+    // Flat UBO
+    #if USE_FLAT_PUSH_CONSTANT
+    vec4 flatTransform;   // 00 01 10 11
+    vec4 flatTranslation; // Only XY
     #endif
 
     // Mesh UBO
@@ -62,6 +69,20 @@ void setupCamera() {
 }
 
 #include "../helpers/camera.sfunc"
+#endif
+
+//----- Flat
+
+#if USE_FLAT_PUSH_CONSTANT
+struct FlatUbo {
+    mat3 transform;
+} flatUbo; // @todo Sorry for extra "Ubo", but flat is a keyword in GLSL...
+
+void setupFlat() {
+    flatUbo.transform = mat3(pushConstants.flatTransform.xy, 0,
+                             pushConstants.flatTransform.zw, 0,
+                             pushConstants.flatTranslation.xy, 1);
+}
 #endif
 
 //----- Mesh

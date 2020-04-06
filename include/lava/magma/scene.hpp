@@ -14,6 +14,7 @@ namespace lava::magma {
     class Material;
     class Texture;
     class Mesh;
+    class Flat;
 }
 
 namespace lava::magma {
@@ -74,6 +75,7 @@ namespace lava::magma {
         Material& makeMaterial(const std::string& hrid);
         Texture& makeTexture(const std::string& imagePath = "");
         Mesh& makeMesh();
+        Flat& makeFlat();
         /// @}
 
         /**
@@ -87,6 +89,7 @@ namespace lava::magma {
         void remove(const Material& material);
         void remove(const Texture& texture);
         void remove(const Mesh& mesh);
+        void remove(const Flat& flat);
 
         /**
          * Remove the resource without considering the backend (SceneAft).
@@ -98,6 +101,7 @@ namespace lava::magma {
         void removeUnsafe(const Material& material);
         void removeUnsafe(const Texture& texture);
         void removeUnsafe(const Mesh& mesh);
+        void removeUnsafe(const Flat& flat);
         /// @}
 
         /**
@@ -109,6 +113,7 @@ namespace lava::magma {
         const std::vector<Material*>& materials() const { return m_materials; }
         const std::vector<Texture*>& textures() const { return m_textures; }
         const std::vector<Mesh*>& meshes() const { return m_meshes; }
+        const std::vector<Flat*>& flats() const { return m_flats; }
         /// @}
 
         /**
@@ -140,6 +145,7 @@ namespace lava::magma {
         chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
         chamber::BucketAllocator& textureAllocator() { return m_textureAllocator; }
         chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
+        chamber::BucketAllocator& flatAllocator() { return m_flatAllocator; }
         /// @}
 
     private:
@@ -159,6 +165,7 @@ namespace lava::magma {
         chamber::BucketAllocator m_materialAllocator;
         chamber::BucketAllocator m_textureAllocator;
         chamber::BucketAllocator m_meshAllocator;
+        chamber::BucketAllocator m_flatAllocator;
 
         // ----- Resources
         // These raw pointers are pointing to bucket allocators' adresses.
@@ -167,6 +174,7 @@ namespace lava::magma {
         std::vector<Material*> m_materials;
         std::vector<Texture*> m_textures;
         std::vector<Mesh*> m_meshes;
+        std::vector<Flat*> m_flats;
     };
 }
 

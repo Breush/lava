@@ -19,6 +19,7 @@ namespace lava::magma::vulkan {
             vk::Format format;
             vk::ImageLayout finalLayout;
             ColorAttachmentBlending blending = ColorAttachmentBlending::None;
+            bool clear = true;
         };
 
         struct DepthStencilAttachment {

@@ -28,8 +28,8 @@ DeepDeferredStage::DeepDeferredStage(Scene& scene)
     , m_gBufferSsboDescriptorHolder(m_scene.engine().impl())
     , m_gBufferSsboHeaderBufferHolder(m_scene.engine().impl())
     , m_gBufferSsboListBufferHolder(m_scene.engine().impl())
-    , m_finalImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.deep-deferred-stage.final-image")
-    , m_depthImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.deep-deferred-stage.depth-image")
+    , m_finalImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.deep-deferred.final-image")
+    , m_depthImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.deep-deferred.depth-image")
     , m_framebuffer(m_scene.engine().impl().device())
 {
 }
@@ -38,7 +38,7 @@ void DeepDeferredStage::init(const Camera& camera)
 {
     m_camera = &camera;
 
-    logger.info("magma.vulkan.stages.deep-deferred-stage") << "Initializing." << std::endl;
+    logger.info("magma.vulkan.stages.deep-deferred") << "Initializing." << std::endl;
     logger.log().tab(1);
 
     initGBuffer();
@@ -259,6 +259,7 @@ void DeepDeferredStage::initClearPass()
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
@@ -360,7 +361,7 @@ void DeepDeferredStage::initDepthlessPass()
     vulkan::PipelineHolder::ColorAttachment gBufferNodeColorAttachment;
     gBufferNodeColorAttachment.format = vk::Format::eR32G32B32A32Uint;
     gBufferNodeColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-    gBufferNodeColorAttachment.blending = vulkan::PipelineHolder::ColorAttachmentBlending::AlphaBlending;
+    gBufferNodeColorAttachment.clear = false;
 
     // There are multiple nodes render targets
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
@@ -419,6 +420,7 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
@@ -463,6 +465,7 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
@@ -522,7 +525,7 @@ void DeepDeferredStage::createResources()
     m_gBufferSsboListBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, listSize);
     m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
 
-    logger.info("magma.vulkan.stages.deep-deferred-stage")
+    logger.info("magma.vulkan.stages.deep-deferred")
         << "GBuffer sizes | header: " << headerSize / 1000000.f << "Mo | list: " << listSize / 1000000.f << "Mo." << std::endl;
 
     // Final
@@ -569,6 +572,6 @@ void DeepDeferredStage::createFramebuffers()
 
     if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
         != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.deep-deferred-stage") << "Failed to create framebuffers." << std::endl;
+        logger.error("magma.vulkan.stages.deep-deferred") << "Failed to create framebuffers." << std::endl;
     }
 }

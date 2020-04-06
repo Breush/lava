@@ -3,19 +3,18 @@
 #include "../vulkan/holders/buffer-holder.hpp"
 
 namespace lava::magma {
-    class Mesh;
+    class Flat;
     class Scene;
 }
 
 namespace lava::magma {
-    class MeshAft {
+    class FlatAft {
     public:
-        MeshAft(Mesh& fore, Scene& scene);
+        FlatAft(Flat& fore, Scene& scene);
 
         void update();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset,
                     uint32_t materialDescriptorSetIndex) const;
-        void renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const;
 
         // ----- Fore
         void foreVerticesChanged() { m_vertexBufferDirty = true; }
@@ -26,11 +25,10 @@ namespace lava::magma {
         void createIndexBuffer();
 
     private:
-        Mesh& m_fore;
+        Flat& m_fore;
         Scene& m_scene;
 
         // ----- Geometry
-        vulkan::BufferHolder m_unlitVertexBufferHolder;
         vulkan::BufferHolder m_vertexBufferHolder;
         vulkan::BufferHolder m_indexBufferHolder;
         bool m_vertexBufferDirty = false;

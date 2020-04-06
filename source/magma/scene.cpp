@@ -1,12 +1,14 @@
 #include <lava/magma/scene.hpp>
 
 #include <lava/magma/camera.hpp>
+#include <lava/magma/flat.hpp>
 #include <lava/magma/light.hpp>
 #include <lava/magma/material.hpp>
 #include <lava/magma/mesh.hpp>
 #include <lava/magma/texture.hpp>
 
 #include "./aft-vulkan/camera-aft.hpp"
+#include "./aft-vulkan/flat-aft.hpp"
 #include "./aft-vulkan/light-aft.hpp"
 #include "./aft-vulkan/material-aft.hpp"
 #include "./aft-vulkan/mesh-aft.hpp"
@@ -50,6 +52,10 @@ Scene::~Scene()
 
     for (auto mesh : m_meshes) {
         m_meshAllocator.deallocate(mesh);
+    }
+
+    for (auto flat : m_flats) {
+        m_flatAllocator.deallocate(flat);
     }
 
     // @note Keep last, deleting the aft after all resources
@@ -124,6 +130,16 @@ Mesh& Scene::makeMesh()
     return *resource;
 }
 
+Flat& Scene::makeFlat()
+{
+    constexpr const auto size = sizeof(std::aligned_union<0, Flat>::type) + sizeof(FlatAft);
+    auto resource = m_flatAllocator.allocateSized<Flat>(size, *this);
+
+    m_flats.emplace_back(resource);
+    aft().foreAdd(*resource);
+    return *resource;
+}
+
 // ----- Removers
 
 void Scene::remove(const Light& light)
@@ -149,6 +165,11 @@ void Scene::remove(const Texture& texture)
 void Scene::remove(const Mesh& mesh)
 {
     aft().foreRemove(mesh);
+}
+
+void Scene::remove(const Flat& flat)
+{
+    aft().foreRemove(flat);
 }
 
 void Scene::removeUnsafe(const Light& light)
@@ -201,6 +222,17 @@ void Scene::removeUnsafe(const Mesh& mesh)
         if (*iMesh == &mesh) {
             m_meshAllocator.deallocate(&mesh);
             m_meshes.erase(iMesh);
+            break;
+        }
+    }
+}
+
+void Scene::removeUnsafe(const Flat& flat)
+{
+    for (auto iFlat = m_flats.begin(); iFlat != m_flats.end(); ++iFlat) {
+        if (*iFlat == &flat) {
+            m_flatAllocator.deallocate(&flat);
+            m_flats.erase(iFlat);
             break;
         }
     }

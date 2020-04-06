@@ -25,6 +25,11 @@ namespace lava::magma {
         glm::vec4 projectionFactors1; // 16 [2][0] [2][1] extent.width extent.height
     };
 
+    struct FlatUbo { // 32 bytes
+        glm::vec4 transform;   // 16 [0][0] [0][1] [1][0] [1][1]
+        glm::vec4 translation; // 16 translation on xy, while zw are unused.
+    };
+
     struct MaterialUboHeader {
         union {
             uint32_t id;

@@ -32,5 +32,12 @@ $enum_class(lava::magma, RendererType,
              */
             DeepDeferred,
 
+            /**
+             * A forward renderer specialized for rendering 2D elements (named flats).
+             *
+             * It's a one-pass renderer, everything has to be ordered.
+             */
+            ForwardFlat,
+
             // @note Upcoming: deferred renderer.
 );
