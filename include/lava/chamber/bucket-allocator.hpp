@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <cstring> // memset
 
 namespace lava::chamber {
     /**
@@ -53,14 +54,35 @@ namespace lava::chamber {
             // Calling destructor
             tPointer->~T();
 
-            // @fixme Find the bucket
-            // decrease allocationsCount
-            // move the bucket to last if empty
+            Bucket* tBucket = nullptr;
+            for (auto& bucket : m_buckets) {
+                if (reinterpret_cast<uint8_t*>(tPointer) >= bucket.data.get() &&
+                    reinterpret_cast<uint8_t*>(tPointer) < bucket.data.get() + m_bucketSize) {
+                    tBucket = &bucket;
+                    break;
+                }
+            }
+
+            // Deallocating something not allocated by us!
+            if (tBucket == nullptr) {
+                assert(false);
+                return;
+            }
+
+            // Clearing memory for debug
+            memset(reinterpret_cast<uint8_t*>(tPointer), 0, sizeof(T));
+
+            // @fixme Also move the bucket to last if empty
+            tBucket->allocationsCount -= 1u;
         }
 
     protected:
         void addBucket()
         {
+            // @fixme If any, move last bucket to front (because it is full)
+            // And do not reallocate if the new back is not full
+            // Well... check if that's a good idea first ;)
+
             m_buckets.emplace_back();
             m_buckets.back().data = std::make_unique<uint8_t[]>(m_bucketSize);
         }

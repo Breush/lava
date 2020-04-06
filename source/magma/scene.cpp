@@ -176,7 +176,7 @@ void Scene::removeUnsafe(const Light& light)
 {
     for (auto iLight = m_lights.begin(); iLight != m_lights.end(); ++iLight) {
         if (*iLight == &light) {
-            m_lightAllocator.deallocate(&light);
+            m_lightAllocator.deallocate(*iLight);
             m_lights.erase(iLight);
             break;
         }
@@ -187,7 +187,7 @@ void Scene::removeUnsafe(const Camera& camera)
 {
     for (auto iCamera = m_cameras.begin(); iCamera != m_cameras.end(); ++iCamera) {
         if (*iCamera == &camera) {
-            m_cameraAllocator.deallocate(&camera);
+            m_cameraAllocator.deallocate(*iCamera);
             m_cameras.erase(iCamera);
             break;
         }
@@ -198,7 +198,7 @@ void Scene::removeUnsafe(const Material& material)
 {
     for (auto iMaterial = m_materials.begin(); iMaterial != m_materials.end(); ++iMaterial) {
         if (*iMaterial == &material) {
-            m_materialAllocator.deallocate(&material);
+            m_materialAllocator.deallocate(*iMaterial);
             m_materials.erase(iMaterial);
             break;
         }
@@ -209,7 +209,7 @@ void Scene::removeUnsafe(const Texture& texture)
 {
     for (auto iTexture = m_textures.begin(); iTexture != m_textures.end(); ++iTexture) {
         if (*iTexture == &texture) {
-            m_textureAllocator.deallocate(&texture);
+            m_textureAllocator.deallocate(*iTexture);
             m_textures.erase(iTexture);
             break;
         }
@@ -220,7 +220,7 @@ void Scene::removeUnsafe(const Mesh& mesh)
 {
     for (auto iMesh = m_meshes.begin(); iMesh != m_meshes.end(); ++iMesh) {
         if (*iMesh == &mesh) {
-            m_meshAllocator.deallocate(&mesh);
+            m_meshAllocator.deallocate(*iMesh);
             m_meshes.erase(iMesh);
             break;
         }
@@ -231,7 +231,7 @@ void Scene::removeUnsafe(const Flat& flat)
 {
     for (auto iFlat = m_flats.begin(); iFlat != m_flats.end(); ++iFlat) {
         if (*iFlat == &flat) {
-            m_flatAllocator.deallocate(&flat);
+            m_flatAllocator.deallocate(*iFlat);
             m_flats.erase(iFlat);
             break;
         }
