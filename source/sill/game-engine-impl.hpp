@@ -55,6 +55,11 @@ namespace lava::sill {
         const magma::WindowRenderTarget& windowRenderTarget() const { return *m_windowRenderTarget; }
         magma::Scene& scene() { return *m_scene; }
         const magma::Scene& scene() const { return *m_scene; }
+        magma::Scene& scene2d() { return *m_scene2d; }
+        const magma::Scene& scene2d() const { return *m_scene2d; }
+        // @todo Inconsistency: It is CameraComponent that holds the 3D cameras but here it's stored in GameEngine.
+        magma::Camera& camera2d() { return *m_camera2d; }
+        const magma::Camera& camera2d() const { return *m_camera2d; }
 
         const std::vector<std::unique_ptr<GameEntity>>& entities() const { return m_entities; }
         std::vector<std::unique_ptr<GameEntity>>& entities() { return m_entities; }
@@ -80,6 +85,8 @@ namespace lava::sill {
         magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
         magma::VrRenderTarget* m_vrRenderTarget = nullptr;
         magma::Scene* m_scene = nullptr;
+        magma::Scene* m_scene2d = nullptr;
+        magma::Camera* m_camera2d = nullptr;
         magma::Light* m_light = nullptr;
         magma::DirectionalLightController m_lightController;
 
@@ -108,5 +115,7 @@ namespace lava::sill {
 
         // Callbacks
         std::vector<WindowExtentChangedCallback> m_windowExtentChangedCallbacks;
+        float m_windowExtentDelay = -1.f;
+        Extent2d m_windowExtent;
     };
 }

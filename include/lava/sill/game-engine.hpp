@@ -18,6 +18,7 @@ namespace lava::dike {
 
 namespace lava::magma {
     class RenderEngine;
+    class WindowRenderTarget;
 }
 
 namespace lava::sill {
@@ -50,6 +51,9 @@ namespace lava::sill {
         /// Access the render engine.
         magma::RenderEngine& renderEngine();
         magma::Scene& scene();
+        magma::Scene& scene2d();
+        magma::Camera& camera2d();
+        magma::WindowRenderTarget& windowRenderTarget();
 
         /// Access the windowing system.
         crater::Window& window();

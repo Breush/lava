@@ -11,7 +11,7 @@ namespace lava::sill {
         ~Impl();
 
         // IComponent
-        void update(float dt) override final;
+        void update(float /*dt*/) override final {}
 
         // CameraComponent
         const Extent2d& extent() const { return m_extent; }
@@ -42,6 +42,5 @@ namespace lava::sill {
         magma::OrbitCameraController m_cameraController;
 
         Extent2d m_extent;
-        float m_updateDelay = -1.f;
     };
 }

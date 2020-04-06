@@ -14,8 +14,8 @@ GameEngine::Impl::Impl(GameEngine& engine)
 
     //----- Initializing window
 
-    Extent2d windowExtent = {800, 600};
-    m_window = std::make_unique<crater::Window>(windowExtent, "sill");
+    m_windowExtent = {800, 600};
+    m_window = std::make_unique<crater::Window>(m_windowExtent, "sill");
 
     //----- Initializing rendering
 
@@ -23,7 +23,7 @@ GameEngine::Impl::Impl(GameEngine& engine)
     m_renderEngine = std::make_unique<magma::RenderEngine>();
     registerMaterials();
 
-    m_windowRenderTarget = &m_renderEngine->make<magma::WindowRenderTarget>(m_window->handle(), windowExtent);
+    m_windowRenderTarget = &m_renderEngine->make<magma::WindowRenderTarget>(m_window->handle(), m_windowExtent);
 
     m_scene = &m_renderEngine->make<magma::Scene>();
     m_scene->rendererType(magma::RendererType::Forward);
@@ -38,6 +38,16 @@ GameEngine::Impl::Impl(GameEngine& engine)
     m_light = &m_scene->make<magma::Light>();
     m_lightController.bind(*m_light);
     m_lightController.direction({3.f, 2.f, -6.f});
+
+    //----- Initializing 2D rendering
+
+    m_scene2d = &m_renderEngine->make<magma::Scene>();
+    m_scene2d->rendererType(magma::RendererType::ForwardFlat);
+
+    m_camera2d = &m_scene2d->make<magma::Camera>(m_windowExtent);
+
+    Viewport viewport;
+    m_renderEngine->addView(m_camera2d->renderImage(), *m_windowRenderTarget, viewport);
 
     //----- Initializing physics
 
@@ -188,6 +198,18 @@ void GameEngine::Impl::updateEntities(float dt)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
+    // Update based on callbacks
+    if (m_windowExtentDelay > 0.f) {
+        m_windowExtentDelay -= dt;
+        if (m_windowExtentDelay <= 0.f) {
+            m_windowRenderTarget->extent(m_windowExtent);
+            m_camera2d->extent(m_windowExtent);
+            for (const auto& callback : m_windowExtentChangedCallbacks) {
+                callback(m_windowExtent);
+            }
+        }
+    }
+
     // Add all new entities
     for (auto& entity : m_pendingAddedEntities) {
         m_entities.emplace_back(std::move(entity));
@@ -241,16 +263,13 @@ void GameEngine::Impl::handleEvent(WsEvent& event)
     case WsEventType::WindowResized: {
         // Ignore resize of same size
         Extent2d extent = {event.windowSize.width, event.windowSize.height};
-        if (m_windowRenderTarget->extent() == extent) {
+        if (m_windowExtent == extent) {
             break;
         }
 
         // Or update swapchain
-        m_windowRenderTarget->extent(extent);
-
-        for (const auto& callback : m_windowExtentChangedCallbacks) {
-            callback(extent);
-        }
+        m_windowExtent = extent;
+        m_windowExtentDelay = 0.1f;
         break;
     }
 

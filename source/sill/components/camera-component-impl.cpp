@@ -24,8 +24,9 @@ CameraComponent::Impl::Impl(GameEntity& entity)
 
     // @fixme Have a way to remove this callback when the component is destroyed.
     engine.onWindowExtentChanged([this](Extent2d extent) {
-        m_updateDelay = 0.1f;
         m_extent = extent;
+        m_camera->extent(m_extent);
+        m_cameraController.updateCamera();
     });
 }
 
@@ -33,21 +34,6 @@ CameraComponent::Impl::~Impl()
 {
     auto& engine = m_entity.engine().impl();
     engine.scene().remove(*m_camera);
-}
-
-void CameraComponent::Impl::update(float dt)
-{
-    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
-
-    // @note We delay updates as it might take a while
-    // recontructing buffers and such.
-    if (m_updateDelay > 0.f) {
-        m_updateDelay -= dt;
-        if (m_updateDelay <= 0.f) {
-            m_camera->extent(m_extent);
-            m_cameraController.updateCamera();
-        }
-    }
 }
 
 lava::Ray CameraComponent::Impl::coordinatesToRay(const glm::vec2& coordinates, float depth) const
