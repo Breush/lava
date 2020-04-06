@@ -356,7 +356,7 @@ namespace lava::ashe {
                 // Press C to show debug of camera
                 else if (event.key.which == Key::C) {
                     if (depthViewId == -1u) {
-                        depthViewId = m_engine->addView(m_camera->depthRenderImage(), *m_windowTarget, Viewport{0, 0, 1, 1});
+                        depthViewId = m_engine->addView(m_camera->depthRenderImage(), *m_windowTarget, Viewport{0, 0, 1, 1, -2.f});
                     }
                     else {
                         m_engine->removeView(depthViewId);
@@ -367,7 +367,7 @@ namespace lava::ashe {
                 else if (event.key.which == Key::L) {
                     if (depthViewId == -1u) {
                         depthViewId =
-                            m_engine->addView(m_light->shadowsRenderImage(), *m_windowTarget, Viewport{0.5, 0.5, 0.5, 0.5});
+                            m_engine->addView(m_light->shadowsRenderImage(), *m_windowTarget, Viewport{0.5, 0.5, 0.5, 0.5, -2.f});
                     }
                     else {
                         m_engine->removeView(depthViewId);

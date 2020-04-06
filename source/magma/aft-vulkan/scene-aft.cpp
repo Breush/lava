@@ -219,6 +219,11 @@ void SceneAft::shadowsFallbackCamera(Camera& camera, const Camera& fallbackCamer
 
 RenderImage SceneAft::shadowsCascadeRenderImage(const Light& light, const Camera* camera, uint32_t cascadeIndex) const
 {
+    // No camera specified? Just take the first one.
+    if (camera == nullptr) {
+        camera = m_fore.cameras()[0u];
+    }
+
     auto& cameraBundle = m_cameraBundles.at(camera);
     if (cameraBundle.shadowsFallbackCamera != nullptr) {
         camera = cameraBundle.shadowsFallbackCamera;

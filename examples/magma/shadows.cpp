@@ -41,7 +41,7 @@ int main(void)
     magma::OrbitCameraController cameraController(camera);
     cameraController.origin({-1.5f, 3.1f, 3.f});
     cameraController.target({-0.8f, -0.2f, 0.2f});
-    app.engine().addView(camera, app.windowRenderTarget(), Viewport{0.5, 0, 0.5, 0.5});
+    app.engine().addView(camera, app.windowRenderTarget(), Viewport{0.5, 0, 0.5, 0.5, -1.f});
 
     auto t = 0.f;
     app.run([&](float dt) {
