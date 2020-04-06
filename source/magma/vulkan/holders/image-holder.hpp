@@ -16,6 +16,9 @@ namespace lava::magma::vulkan {
         ImageHolder(const RenderEngine::Impl& engine);
         ImageHolder(const RenderEngine::Impl& engine, const std::string& name);
 
+        vk::SampleCountFlagBits sampleCount() const { return m_sampleCount; }
+        void sampleCount(vk::SampleCountFlagBits m_sampleCount);
+
         /// Allocate all image memory for the specified format.
         void create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect, uint8_t layersCount = 1u,
                     uint8_t mipLevelsCount = 1u);
@@ -75,11 +78,12 @@ namespace lava::magma::vulkan {
         uint32_t m_imageBytesLength = 0u;
         uint8_t m_channels = 4u;
         uint8_t m_channelBytesLength = 1u;
+        bool m_sampleCountChanged = true;
         $attribute(vulkan::Image, image);
         $attribute(vulkan::DeviceMemory, memory);
         $attribute(vulkan::ImageView, view);
         $attribute(vk::ImageLayout, layout, = vk::ImageLayout::eUndefined);
         $attribute(vk::ImageAspectFlagBits, aspect);
-        $property(vk::SampleCountFlagBits, sampleCount, = vk::SampleCountFlagBits::e1);
+        vk::SampleCountFlagBits m_sampleCount = vk::SampleCountFlagBits::e1;
     };
 }

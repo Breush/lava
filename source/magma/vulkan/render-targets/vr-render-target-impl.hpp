@@ -23,7 +23,7 @@ namespace lava::magma {
         void draw(const std::vector<vk::CommandBuffer>& commandBuffers) const override final;
 
         // @fixme Implement the views for this VrRenderTarget, somehow
-        uint32_t addView(vk::ImageView, vk::ImageLayout, vk::Sampler, Viewport) final { return 0u; }
+        uint32_t addView(vk::ImageView, vk::ImageLayout, vk::Sampler, Viewport, uint32_t) final { return 0u; }
         void removeView(uint32_t) final {}
         void updateView(uint32_t, vk::ImageView, vk::ImageLayout, vk::Sampler) final {}
 

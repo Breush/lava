@@ -47,6 +47,7 @@ GameEngine::Impl::Impl(GameEngine& engine)
     m_camera2d = &m_scene2d->make<magma::Camera>(m_windowExtent);
 
     Viewport viewport;
+    viewport.depth = -1.f; // On top.
     m_renderEngine->addView(m_camera2d->renderImage(), *m_windowRenderTarget, viewport);
 
     //----- Initializing physics

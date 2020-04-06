@@ -6,6 +6,8 @@
 #include "../holders/render-pass-holder.hpp"
 #include "../holders/ubo-holder.hpp"
 
+#include <lava/magma/ubos.hpp>
+
 namespace lava::magma::vulkan {
     class SwapchainHolder;
 }
@@ -25,7 +27,7 @@ namespace lava::magma {
         void bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder);
 
         /// Render an image to binded swapchain in a specific viewport.
-        uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport);
+        uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport, uint32_t channelCount);
 
         /// Remove the specified view.
         void removeView(uint32_t viewId);
@@ -35,6 +37,17 @@ namespace lava::magma {
 
     protected:
         void createFramebuffers();
+        void updateUbos();
+
+    protected:
+        struct ViewInfo {
+            uint32_t id;
+            Viewport viewport;
+            vk::ImageView imageView;
+            vk::ImageLayout imageLayout;
+            vk::Sampler sampler;
+            uint32_t channelCount;
+        };
 
     private:
         // References
@@ -43,7 +56,7 @@ namespace lava::magma {
         vk::Extent2D m_extent;
 
         // Configuration
-        std::vector<Viewport> m_viewports;
+        std::unordered_map<uint32_t, ViewInfo> m_viewInfos; // All known viewports, key is viewId.
 
         // Resources
         vulkan::RenderPassHolder m_renderPassHolder;
@@ -52,5 +65,7 @@ namespace lava::magma {
         vulkan::UboHolder m_uboHolder;
         vk::DescriptorSet m_descriptorSet;
         std::vector<vulkan::Framebuffer> m_framebuffers;
+
+        uint32_t m_nextViewId = 0u;
     };
 }

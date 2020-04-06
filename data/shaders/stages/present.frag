@@ -13,6 +13,7 @@ layout(set = 0, binding = 1) uniform ViewportUbo {
     float y;
     float width;
     float height;
+    uint channelCount;
 } viewports[MAX_VIEW_COUNT];
 
 layout(set = 0, binding = 2) uniform sampler2D sourceSamplers[MAX_VIEW_COUNT];
@@ -29,7 +30,7 @@ layout(location = 0) out vec3 outPresent;
 
 void main()
 {
-    outPresent = vec3(1, 1, 1);
+    outPresent = vec3(1 - length(inUv.xy - 0.5));
 
     for (uint i = 0; i < views.count; ++i) {
         // Convert UVs to viewport coordinates
@@ -40,7 +41,21 @@ void main()
             continue;
         }
 
-        // @todo We could choose how to compose (fully erase or use alpha?)
-        outPresent = texture(sourceSamplers[i], vec2(x, y)).xyz;
+        // Compose colors
+        if (viewports[i].channelCount == 4) {
+            vec4 color = texture(sourceSamplers[i], vec2(x, y));
+            outPresent = mix(outPresent, color.rgb, color.a);
+        }
+        else if (viewports[i].channelCount == 3) {
+            vec3 color = texture(sourceSamplers[i], vec2(x, y)).rgb;
+            outPresent = color;
+        }
+        else if (viewports[i].channelCount == 1) {
+            float color = texture(sourceSamplers[i], vec2(x, y)).r;
+            outPresent = vec3(color);
+        }
+        else {
+            outPresent = vec3(0.9, 0.7, 0.5);
+        }
     }
 }

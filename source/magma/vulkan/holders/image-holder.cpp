@@ -24,9 +24,26 @@ ImageHolder::ImageHolder(const RenderEngine::Impl& engine, const std::string& na
     m_name = name;
 }
 
+void ImageHolder::sampleCount(vk::SampleCountFlagBits sampleCount)
+{
+    if (m_sampleCount == sampleCount) return;
+    m_sampleCount = sampleCount;
+    m_sampleCountChanged = true;
+}
+
 void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect, uint8_t layersCount,
                          uint8_t mipLevelsCount)
 {
+    if (!m_sampleCountChanged &&
+        m_format == format &&
+        m_extent == extent &&
+        m_aspect == imageAspect &&
+        m_layersCount == layersCount &&
+        m_mipLevelsCount == mipLevelsCount) {
+        // Nothing to do that image was already created correctly
+        return;
+    }
+
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
     m_format = format;
@@ -34,6 +51,7 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
     m_aspect = imageAspect;
     m_layersCount = layersCount;
     m_mipLevelsCount = mipLevelsCount;
+    m_sampleCountChanged = false;
 
     switch (format) {
     case vk::Format::eR8Unorm: {
@@ -46,7 +64,11 @@ void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspect
         m_channelBytesLength = 2u;
         break;
     }
-    case vk::Format::eD32Sfloat:
+    case vk::Format::eD32Sfloat: {
+        m_channels = 1u;
+        m_channelBytesLength = 4u;
+        break;
+    }
     case vk::Format::eR8G8B8A8Unorm: {
         m_channels = 4u;
         m_channelBytesLength = 1u;
@@ -331,6 +353,7 @@ RenderImage ImageHolder::renderImage(uint32_t uuid) const
     renderImage.impl().image(m_image);
     renderImage.impl().view(m_view);
     renderImage.impl().layout(m_layout);
+    renderImage.impl().channelCount(m_channels);
     return renderImage;
 }
 

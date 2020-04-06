@@ -87,4 +87,17 @@ namespace lava::magma {
         float deltaPhi;
         float deltaTheta;
     };
+
+    // For present
+    struct ViewUbo {
+        uint32_t count;
+    };
+
+    struct ViewportUbo {
+        float x;
+        float y;
+        float width;
+        float height;
+        uint32_t channelCount;
+    };
 }

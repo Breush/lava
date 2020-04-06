@@ -121,14 +121,14 @@ void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
 
         if (m_colorAttachments[i].blending == ColorAttachmentBlending::AlphaBlending) {
             // finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * oldColor;
-            // finalColor.a = newAlpha.a;
+            // finalColor.a = newAlpha + (1 - newAlpha) * oldAlpha;
             colorBlendAttachmentState.blendEnable = true;
             colorBlendAttachmentState.colorBlendOp = vk::BlendOp::eAdd;
             colorBlendAttachmentState.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
             colorBlendAttachmentState.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
             colorBlendAttachmentState.alphaBlendOp = vk::BlendOp::eAdd;
             colorBlendAttachmentState.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-            colorBlendAttachmentState.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+            colorBlendAttachmentState.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
         }
     }
 

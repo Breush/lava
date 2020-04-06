@@ -31,10 +31,14 @@ namespace lava::magma {
         vk::ImageLayout layout() const { return m_layout; }
         void layout(vk::ImageLayout layout) { m_layout = layout; }
 
+        uint32_t channelCount() const { return m_channelCount; }
+        void channelCount(uint32_t channelCount) { m_channelCount = channelCount; }
+
     private:
         uint32_t m_uuid = 0u;
         vk::Image m_image = nullptr;
         vk::ImageView m_view = nullptr;
         vk::ImageLayout m_layout = vk::ImageLayout::eColorAttachmentOptimal;
+        uint32_t m_channelCount = 4u;
     };
 }

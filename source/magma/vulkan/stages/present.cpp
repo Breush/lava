@@ -18,7 +18,7 @@ Present::Present(RenderEngine::Impl& engine)
     , m_descriptorHolder(engine)
     , m_uboHolder(engine)
 {
-    m_viewports.reserve(MAX_VIEW_COUNT);
+    m_viewInfos.reserve(MAX_VIEW_COUNT);
 }
 
 void Present::init()
@@ -68,7 +68,7 @@ void Present::init()
     //----- Uniform buffers
 
     m_uboHolder.init(m_descriptorSet, m_descriptorHolder.uniformBufferBindingOffset(),
-                     {sizeof(uint32_t), {sizeof(Viewport), MAX_VIEW_COUNT}});
+                     {sizeof(ViewUbo), {sizeof(ViewportUbo), MAX_VIEW_COUNT}});
 
     //----- Attachments
 
@@ -130,7 +130,61 @@ void Present::render(vk::CommandBuffer commandBuffer)
     commandBuffer.endRenderPass();
 }
 
-//----- Internal
+void Present::bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder)
+{
+    m_swapchainHolder = &swapchainHolder;
+}
+
+uint32_t Present::addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport, uint32_t channelCount)
+{
+    if (m_viewInfos.size() >= MAX_VIEW_COUNT) {
+        logger.warning("magma.vulkan.stages.present")
+            << "Cannot add another view. "
+            << "Maximum view count is currently set to " << MAX_VIEW_COUNT << "." << std::endl;
+        return -1u;
+    }
+
+    // Adding the view
+    const uint32_t viewId = m_nextViewId;
+    m_nextViewId += 1u;
+
+    ViewInfo viewInfo;
+    viewInfo.id = viewId;
+    viewInfo.viewport = viewport;
+    viewInfo.imageView = imageView;
+    viewInfo.imageLayout = imageLayout;
+    viewInfo.sampler = sampler;
+    viewInfo.channelCount = channelCount;
+    m_viewInfos.emplace(viewId, viewInfo);
+
+    updateUbos();
+
+    return viewId;
+}
+
+void Present::removeView(uint32_t viewId)
+{
+    auto viewInfoIt = m_viewInfos.find(viewId);
+
+    if (viewInfoIt == m_viewInfos.end()) {
+        logger.warning("magma.vulkan.stages.present") << "Cannot remove view " << viewId << " which does not exist." << std::endl;
+        return;
+    }
+
+    m_viewInfos.erase(viewInfoIt);
+    updateUbos();
+}
+
+void Present::updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler)
+{
+    m_viewInfos.at(viewId).imageView = imageView;
+    m_viewInfos.at(viewId).imageLayout = imageLayout;
+    m_viewInfos.at(viewId).sampler = sampler;
+
+    updateUbos();
+}
+
+// ----- Internal
 
 void Present::createFramebuffers()
 {
@@ -155,59 +209,36 @@ void Present::createFramebuffers()
     }
 }
 
-void Present::bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder)
+void Present::updateUbos()
 {
-    m_swapchainHolder = &swapchainHolder;
-}
-
-uint32_t Present::addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport)
-{
-    if (m_viewports.size() >= MAX_VIEW_COUNT) {
-        logger.warning("magma.vulkan.stages.present")
-            << "Cannot add another view. "
-            << "Maximum view count is currently set to " << MAX_VIEW_COUNT << "." << std::endl;
-        return -1u;
-    }
-
-    // Adding the view
-    const uint32_t viewId = m_viewports.size();
-    m_viewports.emplace_back(viewport);
-
-    //---- Descriptors
-
-    // Views count update
-    const uint32_t viewCount = m_viewports.size();
-    m_uboHolder.copy(0, viewCount);
-
-    // Viewports descriptor
-    m_uboHolder.copy(1, m_viewports.back(), viewId);
-
-    // Samplers descriptor
-    updateView(viewId, imageView, imageLayout, sampler);
-
-    return viewId;
-}
-
-void Present::removeView(uint32_t viewId)
-{
-    // @todo Handle views individually, generating a really unique id
-    // that has nothing to do with internal storage.
-    if (viewId != m_viewports.size() - 1u) {
-        logger.warning("magma.vulkan.stages.present")
-            << "Currently unable to remove a view that is not the last one added." << std::endl;
-        return;
-    }
-
-    m_viewports.erase(std::begin(m_viewports) + viewId);
-
-    // Views count update
-    const uint32_t viewCount = m_viewports.size();
-    m_uboHolder.copy(0, viewCount);
-}
-
-void Present::updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler)
-{
-    // @todo Also add greyscale image and linear depth...
+    // @todo Better have uboDirty and update(dt)?
     m_engine.device().waitIdle();
-    vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 2u, viewId);
+
+    ViewUbo viewUbo;
+    viewUbo.count = m_viewInfos.size();
+    m_uboHolder.copy(0, viewUbo);
+
+    // Sort based on depth
+    std::vector<ViewInfo> sortedViewInfos;
+    sortedViewInfos.reserve(m_viewInfos.size());
+    for (const auto& viewInfoPair : m_viewInfos) {
+        sortedViewInfos.emplace_back(viewInfoPair.second);
+    }
+    std::sort(sortedViewInfos.begin(), sortedViewInfos.end(), [](const ViewInfo& viewInfo1, const ViewInfo& viewInfo2) {
+        return viewInfo1.viewport.depth > viewInfo2.viewport.depth;
+    });
+
+    // Now set ubos
+    for (auto i = 0u; i < sortedViewInfos.size(); ++i) {
+        const auto& viewInfo = sortedViewInfos[i];
+        ViewportUbo viewportUbo;
+        viewportUbo.x = viewInfo.viewport.x;
+        viewportUbo.y = viewInfo.viewport.y;
+        viewportUbo.width = viewInfo.viewport.width;
+        viewportUbo.height = viewInfo.viewport.height;
+        viewportUbo.channelCount = viewInfo.channelCount;
+
+        m_uboHolder.copy(1, viewportUbo, i);
+        vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, viewInfo.imageView, viewInfo.sampler, viewInfo.imageLayout, 2u, i);
+    }
 }

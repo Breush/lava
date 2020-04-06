@@ -21,7 +21,7 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer) final;
         void draw(const std::vector<vk::CommandBuffer>& commandBuffers) const final;
 
-        uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport) final;
+        uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler, Viewport viewport, uint32_t channelCount) final;
         void removeView(uint32_t viewId) final;
         void updateView(uint32_t viewId, vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler) final;
 

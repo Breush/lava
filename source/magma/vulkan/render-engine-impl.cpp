@@ -160,12 +160,14 @@ uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& ren
     renderView.renderTargetId = renderTargetId;
 
     // Add a new image to the present stage
+    // @fixme We should be able to forward the RenderImage directly
     auto imageView = renderImageImpl.view();
     auto imageLayout = renderImageImpl.layout();
+    auto channelCount = renderImageImpl.channelCount();
 
     // @fixme Should be "compositorViewId"...
     renderView.presentViewId =
-        renderTargetBundle.renderTarget->interfaceImpl().addView(imageView, imageLayout, m_dummySampler, viewport);
+        renderTargetBundle.renderTarget->interfaceImpl().addView(imageView, imageLayout, m_dummySampler, viewport, channelCount);
 
     return m_renderViews.size() - 1u;
 }
@@ -245,6 +247,8 @@ void RenderEngine::Impl::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 void RenderEngine::Impl::updateRenderViews(RenderImage renderImage)
 {
     auto& renderImageImpl = renderImage.impl();
+    if (!renderImageImpl.image()) return;
+
     if (renderImageImpl.uuid() == 0u) {
         logger.warning("magma.vulkan.render-engine") << "Updating render views for an unset RenderImage uuid." << std::endl;
         return;

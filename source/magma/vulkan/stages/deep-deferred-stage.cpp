@@ -220,7 +220,9 @@ void DeepDeferredStage::polygonMode(vk::PolygonMode polygonMode)
 RenderImage DeepDeferredStage::renderImage() const
 {
     auto cameraId = m_scene.aft().cameraId(*m_camera);
-    return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
+    auto renderImage = m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
+    renderImage.impl().channelCount(3u); // Alpha is never written with this render pass
+    return renderImage;
 }
 
 RenderImage DeepDeferredStage::depthRenderImage() const
