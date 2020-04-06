@@ -119,13 +119,8 @@ void ShadersManager::dirtifyImpl(const std::string& category)
 
 uint32_t ShadersManager::registerImpl(const std::string& category, const std::string& implCode, uint32_t implId)
 {
-    if (implId == -1u) {
-        implId = m_impls[category].textCodes.size();
-    }
-
     auto resolvedShader = resolveImpl(category, implId, implCode);
-    m_impls[category].textCodes.emplace_back(resolvedShader.textCode);
-    m_impls[category].ids.emplace_back(implId);
+    m_impls[category].textCodes.emplace(implId, resolvedShader.textCode);
 
     dirtifyImpl(category);
 
@@ -159,20 +154,23 @@ ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& 
 
     std::string category;
     std::string casesBuffer;
+    std::string casesSpacing;
     bool casesBuffering = false;
 
     std::set<std::string> implsDependencies;
 
     while (std::getline(textCodeStream, line)) {
+        std::string spacing;
         std::string word;
-        std::istringstream lineStream(line);
-        while (lineStream >> word) {
+        auto offset = chamber::nextWord(line, word, 0u, &spacing);
+
+        for (; !word.empty(); offset = chamber::nextWord(line, word, offset, &spacing)) {
             // @magma:impl:paste
             if (word.find("@magma:impl:paste") != std::string::npos) {
-                lineStream >> category;
+                offset = chamber::nextWord(line, category, offset);
                 adaptedCode << "// BEGIN @magma:impl:paste " << category << std::endl;
                 for (const auto& implTextCode : m_impls[category].textCodes) {
-                    adaptedCode << implTextCode << std::endl;
+                    adaptedCode << implTextCode.second << std::endl;
                 }
                 adaptedCode << "// END @magma:impl:paste " << category << std::endl;
                 implsDependencies.emplace(category);
@@ -180,13 +178,14 @@ ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& 
             }
             // @magma:impl:main
             else if (word.find("@magma:impl:main") != std::string::npos) {
-                adaptedCode << annotationMain << " ";
+                adaptedCode << spacing << annotationMain;
                 continue;
             }
             // @magma:impl:beginCases
             else if (word.find("@magma:impl:beginCases") != std::string::npos) {
-                lineStream >> category;
-                adaptedCode << "// BEGIN @magma:impl:beginCases " << category << std::endl;
+                casesSpacing = spacing;
+                offset = chamber::nextWord(line, category, offset);
+                adaptedCode << spacing << "// BEGIN @magma:impl:beginCases " << category << std::endl;
                 casesBuffering = true;
                 casesBuffer = "";
                 implsDependencies.emplace(category);
@@ -198,31 +197,30 @@ ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& 
                 auto callMarkPos = casesBuffer.find(callMark);
                 auto callMarkSize = callMark.size();
 
-                for (uint32_t i = 0; i < m_impls[category].textCodes.size(); ++i) {
+                for (const auto& implTextCode : m_impls[category].textCodes) {
                     std::stringstream callStream;
-                    callStream << category << m_impls[category].ids[i];
+                    callStream << category << implTextCode.first;
                     auto callString = callStream.str();
                     auto caseBuffer = casesBuffer.replace(callMarkPos, callMarkSize, callString);
                     callMarkSize = callString.size();
 
-                    adaptedCode << "case " << m_impls[category].ids[i] << ":" << std::endl;
-                    adaptedCode << caseBuffer << std::endl;
-                    adaptedCode << "break;" << std::endl;
+                    adaptedCode << casesSpacing << "case " << implTextCode.first << ":" << caseBuffer;
+                    adaptedCode << casesSpacing << "break;" << std::endl;
                 }
 
-                adaptedCode << "default: break;" << std::endl;
-                adaptedCode << "// END @magma:impl:endCases " << category << std::endl;
+                adaptedCode << casesSpacing << "default: break;" << std::endl;
+                adaptedCode << casesSpacing << "// END @magma:impl:endCases " << category;
                 casesBuffering = false;
                 continue;
             }
 
             if (casesBuffering) {
-                casesBuffer += word + " ";
+                casesBuffer += spacing + word;
                 continue;
             }
 
             // Default
-            adaptedCode << word << " ";
+            adaptedCode << spacing << word;
         }
 
         if (casesBuffering) {
@@ -250,12 +248,14 @@ std::vector<std::pair<std::string, std::string>> ShadersManager::extractImpls(co
     std::string line;
 
     while (std::getline(rawCodeStream, line)) {
+        std::string spacing;
         std::string word;
-        std::istringstream lineStream(line);
-        while (lineStream >> word) {
+        uint32_t offset = chamber::nextWord(line, word, 0u, &spacing);
+
+        for (; !word.empty(); offset = chamber::nextWord(line, word, offset, &spacing)) {
             // @magma:impl:begin
             if (word.find("@magma:impl:begin") != std::string::npos) {
-                lineStream >> category;
+                offset = chamber::nextWord(line, category, offset);
                 implCode = std::make_unique<std::stringstream>();
                 continue;
             }
@@ -267,7 +267,7 @@ std::vector<std::pair<std::string, std::string>> ShadersManager::extractImpls(co
             }
 
             if (implCode) {
-                (*implCode) << word << " ";
+                (*implCode) << spacing << word;
             }
         }
 

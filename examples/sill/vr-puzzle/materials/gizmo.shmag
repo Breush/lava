@@ -6,13 +6,12 @@ struct {
     vec3 color;
 } gBuffer;
 
+uniform {
+    vec3 color = vec3(1, 1, 1);
+    bool highlight = false;
+};
+
 geometry {
-
-    uniform {
-        vec3 color = vec3(1, 1, 1);
-        bool highlight = false;
-    };
-
     bool main() {
         if (highlight) {
             gBuffer.color = color;

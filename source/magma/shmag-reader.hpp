@@ -52,8 +52,8 @@ namespace lava::magma {
         void parseGBuffer();
         void parseGBufferDeclarations();
         GBufferDeclaration parseGBufferDeclaration();
-        UniformDefinitions parseUniform(uint32_t& baseOffset, uint32_t& textureOffset);
-        UniformDefinition parseUniformDefinition(uint32_t& baseOffset, uint32_t& textureOffset);
+        UniformDefinitions parseUniform(uint32_t& basicOffset, uint32_t& textureOffset);
+        UniformDefinition parseUniformDefinition(uint32_t& basicOffset, uint32_t& textureOffset);
 
         // Generic
         void parseBlock(std::stringstream& adaptedCode, bool expectSemicolon = false);
@@ -75,8 +75,8 @@ namespace lava::magma {
         void injectGlobalUniformDefinitions(std::stringstream& adaptedCode);
         void injectGBufferDefinitions(std::stringstream& adaptedCode);
 
-        void parseToken(chamber::TokenType tokenType);
-        void parseIdentifier(const std::string& expectedIdentifier);
+        chamber::Lexer::Token parseToken(chamber::TokenType tokenType);
+        chamber::Lexer::Token parseIdentifier(const std::string& expectedIdentifier);
         std::string parseIdentifier();
         uint32_t parseArraySize();
         uint32_t parseBool(); // Returns 0 or 1
@@ -91,7 +91,9 @@ namespace lava::magma {
         void remapBlock(std::stringstream& adaptedCode, const std::unordered_map<std::string, std::string>& extraMap,
                         std::function<void(void)> onReturn);
 
-        std::optional<chamber::Lexer::Token> getNotToken(chamber::TokenType tokenType);
+        bool getNotToken(chamber::TokenType tokenType, chamber::Lexer::Token* token = nullptr);
+
+        std::string limitSpacing(const std::string& spacing) const;
 
         // Errors
         void errorExpected(const std::string& expectedChoices);
@@ -108,6 +110,8 @@ namespace lava::magma {
         GBufferDeclarations m_gBufferDeclarations;
         std::unordered_map<std::string, std::string> m_samplersMap;
         std::string m_samplerCubeName = "";
+
+        std::string m_spacing = "";
 
         uint32_t m_errorsCount = 0u;
     };

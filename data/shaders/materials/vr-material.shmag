@@ -11,11 +11,11 @@ struct {
     vec3 normal;
 } gBuffer;
 
-geometry {
-    uniform {
-        texture2d diffuseMap = "white";
-    };
+uniform {
+    texture2d diffuseMap = "white";
+};
 
+geometry {
     bool main() {
         vec4 diffuse = texture(diffuseMap, uv);
 

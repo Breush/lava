@@ -20,6 +20,14 @@ std::optional<Lexer::Token> Lexer::nextToken()
         return std::nullopt;
     }
 
+    m_token.spacing = "";
+    while (m_lexer.token == CLEX_white) {
+        m_token.spacing += m_lexer.string;
+        if (!stb_c_lexer_get_token(&m_lexer)) {
+            return std::nullopt;
+        }
+    }
+
     switch (m_lexer.token) {
     case CLEX_id: {
         m_token.type = TokenType::Identifier;

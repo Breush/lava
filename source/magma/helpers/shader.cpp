@@ -1,5 +1,7 @@
 #include "./shader.hpp"
 
+#include <lava/chamber/string-tools.hpp>
+
 using namespace lava;
 using namespace lava::chamber;
 
@@ -17,12 +19,15 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
     std::string line;
 
     while (std::getline(file, line)) {
+        std::string spacing;
         std::string word;
-        std::istringstream lineStream(line);
-        while (lineStream >> word) {
+
+        auto offset = chamber::nextWord(line, word, 0u, &spacing);
+
+        for (; !word.empty(); offset = chamber::nextWord(line, word, offset, &spacing)) {
             // #softdefine
             if (word.find("#softdefine") != std::string::npos) {
-                lineStream >> word;
+                offset = chamber::nextWord(line, word, offset);
 
                 const auto definePair = defines.find(word);
                 if (definePair == defines.end()) {
@@ -32,13 +37,12 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
                     continue;
                 }
 
-                adaptedCode << "// #softdefine " << word << std::endl;
-                adaptedCode << "#define " << word << " " << definePair->second << " ";
+                adaptedCode << "#define " << word << " " << definePair->second << " // #softdefine";
                 continue;
             }
             // #include
             else if (word.find("#include") != std::string::npos) {
-                lineStream >> word;
+                offset = chamber::nextWord(line, word, offset);
 
                 word = word.substr(1u, word.size() - 2u);
                 auto includeFilename = filename.substr(0u, filename.find_last_of("/") + 1u) + word;
@@ -49,7 +53,7 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
             }
 
             // Default
-            adaptedCode << word << " ";
+            adaptedCode << spacing << word;
         }
         adaptedCode << std::endl;
     }

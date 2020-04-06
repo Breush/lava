@@ -18,22 +18,22 @@ struct {
     vec3(8) emissive;
 } gBuffer;
 
+// Everything that the user can control,
+// with their default values.
+uniform {
+    vec4 albedoColor = vec4(1, 1, 1, 1);
+    float roughnessFactor = 1;
+    float metallicFactor = 1;
+    texture2d normalMap = "normal";
+    texture2d albedoMap = "white";
+    texture2d occlusionMap = "white";           // Red channel.
+    texture2d roughnessMetallicMap = "white";   // Green and blue channels.
+    texture2d emissiveMap = "invisible";
+};
+
 // ----- GEOMETRY
 
 geometry {
-    // Everything that the user can control,
-    // with their default values.
-    uniform {
-        vec4 albedoColor = vec4(1, 1, 1, 1);
-        float roughnessFactor = 1;
-        float metallicFactor = 1;
-        texture2d normalMap = "normal";
-        texture2d albedoMap = "white";
-        texture2d occlusionMap = "white";           // Red channel.
-        texture2d roughnessMetallicMap = "white";   // Green and blue channels.
-        texture2d emissiveMap = "invisible";
-    };
-
     // In the geometry main, our role is to fill the G-Buffer
     // with the useful data for lighting computation.
     bool main() {

@@ -48,7 +48,31 @@ std::vector<std::wstring_view> chamber::splitAsViews(const std::wstring& s, wcha
     return generalSplit<std::wstring_view>(s, c);
 }
 
+std::vector<std::string_view> chamber::splitAsViews(const std::string& s, char c)
+{
+    return generalSplit<std::string_view>(s, c);
+}
+
 std::vector<std::string> chamber::split(const std::string& s, char c)
 {
     return generalSplit<std::string>(s, c);
+}
+
+uint32_t chamber::nextWord(const std::string& line, std::string& word, uint32_t offset, std::string* spacing)
+{
+    // Get spacing before word (if any)
+    if (spacing != nullptr) *spacing = "";
+    while (offset < line.size() && std::isspace(line[offset])) {
+        if (spacing != nullptr) *spacing += line[offset];
+        offset += 1u;
+    }
+
+    // Extract word
+    word = "";
+    while (offset < line.size() && !std::isspace(line[offset])) {
+        word += line[offset];
+        offset += 1u;
+    }
+
+    return offset;
 }

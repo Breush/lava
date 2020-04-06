@@ -2,14 +2,14 @@ struct {
     bool valid;
 } gBuffer;
 
-geometry {
-    uniform {
-        float length = 1;
-        float time = 0;
-        bool anglesValid = true;
-        bool placeValid = true;
-    };
+uniform {
+    float length = 1;
+    float time = 0;
+    bool anglesValid = true;
+    bool placeValid = true;
+};
 
+geometry {
     bool main() {
         gBuffer.valid = anglesValid && placeValid;
 

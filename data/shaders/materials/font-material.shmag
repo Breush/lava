@@ -6,11 +6,12 @@ struct {
     float opacity;
 } gBuffer;
 
-geometry {
-    uniform {
-        texture2d fontTexture = "invisible";
-    };
+uniform {
+    texture2d fontTexture = "invisible";
+};
 
+
+geometry {
     bool main() {
         float opacity = texture(fontTexture, uv).r;
         if (opacity == 0) discard;

@@ -15,7 +15,7 @@ namespace lava::magma {
         ShadersManager(const vk::Device& device);
 
         /// Register multiple impls thanks to files annotations.
-        void registerImplGroup(const std::string& hrid, const std::string& rawCode, uint32_t implsId = -1u);
+        void registerImplGroup(const std::string& hrid, const std::string& rawCode, uint32_t implsId);
 
         /// Update previously registered impl group.
         void updateImplGroup(const std::string& hrid, const std::string& rawCode);
@@ -34,8 +34,7 @@ namespace lava::magma {
 
     protected:
         struct Impl {
-            std::vector<std::string> textCodes;
-            std::vector<uint32_t> ids;
+            std::unordered_map<uint32_t, std::string> textCodes; // Key is implId
             std::set<std::string> dirtyShaderIds;
             std::vector<std::function<void(void)>> updateCallbacks;
         };
