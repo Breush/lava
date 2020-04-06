@@ -66,7 +66,7 @@ namespace lava::sill {
          * @name Fonts
          */
         /// @{
-        Font& font(const std::string& hrid);
+        Font& font(const std::string& hrid, uint32_t size = 32u);
         /// @}
 
         /**

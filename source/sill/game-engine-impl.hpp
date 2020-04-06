@@ -31,7 +31,7 @@ namespace lava::sill {
         void fpsCounting(bool fpsCounting) { m_fpsCounting = fpsCounting; }
 
         // Fonts
-        Font& font(const std::string& hrid) { return m_fontManager.font(hrid); }
+        Font& font(const std::string& hrid, uint32_t size) { return m_fontManager.font(hrid, size); }
 
         // Adders
         void add(std::unique_ptr<GameEntity>&& gameEntity);

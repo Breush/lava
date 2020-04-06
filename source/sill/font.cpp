@@ -6,15 +6,15 @@ using namespace lava;
 using namespace lava::sill;
 using namespace lava::chamber;
 
-Font::Font(GameEngine& engine, const std::string& fontPath)
+Font::Font(GameEngine& engine, const std::string& path, uint32_t size)
     : m_engine(engine)
 {
     //----- Read file
 
-    std::ifstream file(fontPath, std::ios::binary);
+    std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
-        logger.warning("sill.font") << "Unable to find file " << fontPath << "." << std::endl;
+        logger.warning("sill.font") << "Unable to find file " << path << "." << std::endl;
         return;
     }
 
@@ -25,7 +25,7 @@ Font::Font(GameEngine& engine, const std::string& fontPath)
 
     // @note Texture size can't be updated dynamically,
     // because meshes could reference wrong UVs.
-    m_glyphMaxHeight = 32u;             // @todo Should be configurable
+    m_glyphMaxHeight = size;
     m_glyphMaxWidth = m_glyphMaxHeight; // @todo Use stbtt_GetFontBoundingBox to know horizontal extent
     m_glyphsRatio = static_cast<float>(m_glyphMaxWidth) / static_cast<float>(m_glyphMaxHeight);
     m_glyphsScale = stbtt_ScaleForPixelHeight(&m_stbFont, m_glyphMaxHeight);
@@ -123,6 +123,6 @@ Font::GlyphInfo Font::packGlyph(wchar_t c)
     glyphInfo.minUv.x = static_cast<float>(glyphStartPosition) / static_cast<float>(m_textureWidth);
     glyphInfo.minUv.y = 0;
     glyphInfo.maxUv.x = static_cast<float>(glyphStartPosition + m_glyphMaxWidth) / static_cast<float>(m_textureWidth);
-    glyphInfo.maxUv.y = -1; // Font bitmaps are reversed
+    glyphInfo.maxUv.y = 1;
     return glyphInfo;
 }

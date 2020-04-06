@@ -28,7 +28,7 @@ $pimpl_method(GameEngine, crater::Window&, window);
 $pimpl_property_v(GameEngine, bool, fpsCounting);
 
 // ----- Fonts
-$pimpl_method(GameEngine, Font&, font, const std::string&, hrid);
+$pimpl_method(GameEngine, Font&, font, const std::string&, hrid, uint32_t, size);
 
 // ----- Adders
 void GameEngine::add(std::unique_ptr<GameEntity>&& entity)

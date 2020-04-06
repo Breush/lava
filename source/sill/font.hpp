@@ -17,7 +17,7 @@ namespace lava::sill {
         };
 
     public:
-        Font(GameEngine& engine, const std::string& fontPath);
+        Font(GameEngine& engine, const std::string& path, uint32_t size);
 
         std::vector<GlyphInfo> glyphsInfos(std::wstring_view u16Text);
 
@@ -48,7 +48,7 @@ namespace lava::sill {
         float m_glyphsRatio; //< glyphMaxWidth / glyphMaxHeight.
         float m_glyphsScale;
         int m_glyphsAscent;
-        const uint32_t m_maxRenderedGlyphsCount = 256u;
+        const uint32_t m_maxRenderedGlyphsCount = 64u;
         uint32_t m_renderedGlyphsCount = 0u;
     };
 }
