@@ -1,0 +1,15 @@
+/**
+ * Button flat material.
+ */
+
+uniform {
+    vec4 topColor = vec4(1, 1, 1, 1);
+    vec4 bottomColor = vec4(1, 1, 1, 1);
+};
+
+flat {
+    vec4 main() {
+        vec4 color = mix(topColor, bottomColor, uv.y);
+        return color;
+    }
+}

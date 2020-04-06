@@ -3,6 +3,7 @@
 #include <lava/sill/components/i-component.hpp>
 
 #include <lava/sill/flat-node.hpp>
+#include <lava/magma/flat.hpp>
 
 namespace lava::sill {
     class TransformComponent;

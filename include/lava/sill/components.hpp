@@ -10,3 +10,5 @@
 #include <lava/sill/components/sound-emitter-component.hpp>
 #include <lava/sill/components/text-mesh-component.hpp>
 #include <lava/sill/components/transform-component.hpp>
+
+#include <lava/sill/components/ui-button-component.hpp>

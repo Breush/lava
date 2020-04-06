@@ -62,6 +62,10 @@ GameEngine::Impl::Impl(GameEngine& engine)
     //----- Initializing fonts
 
     m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
+
+    //----- Initializing UI components actions
+
+    m_inputManager.bindAction("ui.main-click", {MouseButton::Left});
 }
 
 GameEngine::Impl::~Impl()
@@ -249,6 +253,9 @@ void GameEngine::Impl::registerMaterials()
 
     // PBR roughness-metallic material (used in GLB loader)
     registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
+
+    // UI
+    registerMaterialFromFile("ui.button", "./data/shaders/flat-materials/ui/button.shmag");
 }
 
 void GameEngine::Impl::handleEvent(WsEvent& event)

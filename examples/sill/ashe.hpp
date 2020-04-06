@@ -35,7 +35,7 @@ namespace lava::ashe {
 
             //----- Initializing camera
 
-            auto& cameraEntity = m_engine.make<sill::GameEntity>();
+            auto& cameraEntity = m_engine.make<sill::GameEntity>("ashe.camera");
             auto& cameraComponent = cameraEntity.make<sill::CameraComponent>();
             cameraComponent.origin({-2.f, 3.f, 2.f});
             cameraComponent.target({0.f, 0.f, 0.f});
@@ -79,7 +79,7 @@ namespace lava::ashe {
 
             m_engine.environmentTexture("./assets/skies/cloudy/");
 
-            auto& skyboxEntity = m_engine.make<sill::GameEntity>();
+            auto& skyboxEntity = m_engine.make<sill::GameEntity>("ashe.skybox");
             auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
             sill::makers::BoxMeshOptions options{.siding = sill::BoxSiding::In};
             sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
