@@ -32,7 +32,8 @@ namespace lava::magma {
         void polygonMode(vk::PolygonMode /* polygonMode */) final { /* Not handled */ }
 
         RenderImage renderImage() const final;
-        RenderImage depthRenderImage() const final;
+        RenderImage depthRenderImage() const final { return RenderImage(); }
+        bool depthRenderImageValid() const final { return false; }
         vk::RenderPass renderPass() const final { return m_renderPassHolder.renderPass(); }
 
         void changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) final;

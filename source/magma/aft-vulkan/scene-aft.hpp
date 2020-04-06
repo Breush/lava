@@ -54,6 +54,7 @@ namespace lava::magma {
         /// @{
         RenderImage cameraRenderImage(const Camera& camera) const;
         RenderImage cameraDepthRenderImage(const Camera& camera) const;
+        bool cameraDepthRenderImageValid(const Camera& camera) const;
 
         void updateCamera(const Camera& camera);
         void changeCameraRenderImageLayout(const Camera& camera, vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);

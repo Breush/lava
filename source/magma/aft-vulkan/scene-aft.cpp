@@ -185,12 +185,16 @@ void SceneAft::updateCamera(const Camera& camera)
 {
     rebuildStages(camera);
 
+    auto& rendererStage = *m_cameraBundles.at(&camera).rendererStage;
+
     // Present stage of RenderEngine is not right anymore, has the renderImage is no more
-    m_engine.impl().updateRenderViews(camera.renderImage());
+    m_engine.impl().updateRenderViews(rendererStage.renderImage());
 
     // @note Well, the shadow map might not have changed,
     // but we update it anyway. We're not sure if it is the first initialization or not.
-    m_engine.impl().updateRenderViews(camera.depthRenderImage());
+    if (rendererStage.depthRenderImageValid()) {
+        m_engine.impl().updateRenderViews(rendererStage.depthRenderImage());
+    }
 }
 
 void SceneAft::changeCameraRenderImageLayout(const Camera& camera, vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)

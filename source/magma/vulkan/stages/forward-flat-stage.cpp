@@ -122,12 +122,6 @@ RenderImage ForwardFlatStage::renderImage() const
     return m_finalImageHolder.renderImage(RenderImage::Impl::UUID_CONTEXT_CAMERA + cameraId);
 }
 
-RenderImage ForwardFlatStage::depthRenderImage() const
-{
-    // No depth image!
-    return RenderImage();
-}
-
 void ForwardFlatStage::changeRenderImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
 {
     m_finalImageHolder.changeLayout(imageLayout, commandBuffer);
