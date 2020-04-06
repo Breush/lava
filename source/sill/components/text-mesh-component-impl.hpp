@@ -20,15 +20,12 @@ namespace lava::sill {
         void verticalAnchor(Anchor verticalAnchor);
         void alignment(Alignment alignment);
 
-    protected:
-        FloatExtent2d glyphsExtent(const std::vector<Font::GlyphInfo>& glyphsInfos);
-
     private:
         std::wstring m_text;                        //< UTF-16 encoded string.
         std::string m_fontHrid = "default";         //< Font used for rendering.
-        Anchor m_horizontalAnchor = Anchor::CENTER; //< Anchor of the mesh for the horizontal axis.
-        Anchor m_verticalAnchor = Anchor::CENTER;   //< Anchor of the mesh for the vertical axis.
-        Alignment m_alignment = Alignment::START;   //< Alignment of the text for the reading axis.
+        Anchor m_horizontalAnchor = Anchor::Center; //< Anchor of the mesh for the horizontal axis.
+        Anchor m_verticalAnchor = Anchor::Center;   //< Anchor of the mesh for the vertical axis.
+        Alignment m_alignment = Alignment::Start;   //< Alignment of the text for the reading axis.
         bool m_dirty = false;                       //< Whether the mesh should be recreated during next update.
     };
 }

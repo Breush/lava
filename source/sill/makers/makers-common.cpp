@@ -1,7 +1,10 @@
 #include "./makers-common.hpp"
 
+#include <lava/sill/game-engine.hpp>
+
 using namespace lava;
 using namespace lava::chamber;
+using namespace lava::sill;
 
 void sill::addCirclePoints(std::vector<glm::vec3>& points, std::vector<glm::vec2>& uvs, const uint32_t tessellation,
                            const float sphereRadius, const float radius, const float height)
@@ -55,4 +58,111 @@ void sill::addRowStrip(std::vector<uint16_t>& indices, uint32_t tessellation, ui
         indices.emplace_back(u0);
         indices.emplace_back(d0);
     }
+}
+
+FloatExtent2d sill::glyphsExtent(const std::vector<Font::GlyphInfo>& glyphsInfos)
+{
+    FloatExtent2d extent;
+    if (glyphsInfos.empty()) {
+        return extent;
+    }
+
+    extent.height = 1.f;
+    for (const auto& glyphInfo : glyphsInfos) {
+        extent.width += glyphInfo.advance;
+    }
+    return extent;
+}
+
+TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, TextOptions options)
+{
+    TextGeometry geometry;
+    auto& positions = geometry.positions;
+    auto& uvs = geometry.uvs;
+    auto& indices = geometry.indices;
+
+    auto& font = engine.font(options.fontHrid, options.fontSize);
+    const auto glyphsRatio = font.glyphsRatio();
+
+    float yOffset = 0.f;
+    auto glyphsCount = 0u;
+    FloatExtent2d globalTextExtent;
+    for (auto& text : splitAsViews(text, '\n')) {
+        const auto glyphsInfos = font.glyphsInfos(text);
+        const auto textExtent = glyphsExtent(glyphsInfos);
+
+        // @note These operation are valid because this is a left to right language
+        globalTextExtent.width = std::max(globalTextExtent.width, textExtent.width);
+        globalTextExtent.height += textExtent.height;
+
+        // Find offsets for alignment
+        float xOffset = 0.f;
+        switch (options.alignment) {
+        case Alignment::Start: break;
+        case Alignment::Center: xOffset -= textExtent.width / 2.f; break;
+        case Alignment::End: xOffset -= textExtent.width; break;
+        }
+
+        // Fill up geometry
+        for (const auto& glyphInfo : glyphsInfos) {
+            indices.emplace_back(4u * glyphsCount + 0u);
+            indices.emplace_back(4u * glyphsCount + 2u);
+            indices.emplace_back(4u * glyphsCount + 3u);
+            indices.emplace_back(4u * glyphsCount + 3u);
+            indices.emplace_back(4u * glyphsCount + 1u);
+            indices.emplace_back(4u * glyphsCount + 0u);
+
+            positions.emplace_back(xOffset, yOffset);
+            positions.emplace_back(xOffset, yOffset + 1);
+            positions.emplace_back(xOffset + glyphsRatio, yOffset);
+            positions.emplace_back(xOffset + glyphsRatio, yOffset + 1);
+
+            uvs.emplace_back(glyphInfo.minUv.x, glyphInfo.minUv.y);
+            uvs.emplace_back(glyphInfo.minUv.x, glyphInfo.maxUv.y);
+            uvs.emplace_back(glyphInfo.maxUv.x, glyphInfo.minUv.y);
+            uvs.emplace_back(glyphInfo.maxUv.x, glyphInfo.maxUv.y);
+
+            xOffset += glyphInfo.advance;
+            glyphsCount += 1u;
+        }
+
+        yOffset -= textExtent.height;
+    }
+
+    //----- Adjust for anchors
+
+    // Anchor horizontally
+    float xAnchor = 0.f;
+    switch (options.alignment) {
+    case Alignment::Start: xAnchor -= globalTextExtent.width / 2.f; break;
+    case Alignment::Center: break;
+    case Alignment::End: xAnchor += globalTextExtent.width / 2.f; break;
+    }
+    switch (options.horizontalAnchor) {
+    case Anchor::Start: xAnchor += globalTextExtent.width / 2.f; break;
+    case Anchor::Center: break;
+    case Anchor::End: xAnchor -= globalTextExtent.width / 2.f; break;
+    }
+
+    // Anchor vertically
+    float yAnchor = 0.f;
+    switch (options.verticalAnchor) {
+    case Anchor::Start: break;
+    case Anchor::Center: yAnchor -= globalTextExtent.height / 2.f; break;
+    case Anchor::End: yAnchor += globalTextExtent.height; break;
+    }
+
+    for (auto& position : positions) {
+        position.x += xAnchor;
+        position.y += yAnchor;
+    }
+
+    //----- Adjust for font size
+
+    for (auto& position : positions) {
+        position.x *= options.fontSize;
+        position.y *= options.fontSize;
+    }
+
+    return geometry;
 }

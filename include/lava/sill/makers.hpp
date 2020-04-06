@@ -8,3 +8,4 @@
 #include <lava/sill/makers/tore-mesh.hpp>
 
 #include <lava/sill/makers/quad-flat.hpp>
+#include <lava/sill/makers/text-flat.hpp>

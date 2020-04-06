@@ -38,7 +38,7 @@ std::function<void(MeshComponent&)> makers::planeMeshMaker(const glm::vec2& dime
             }
         }
 
-        indices.reserve(6 * options.tessellation.x * options.tessellation.y);
+        indices.reserve(6 * (options.tessellation.x - 1u) * (options.tessellation.y - 1u));
         for (auto x = 0u; x < options.tessellation.x - 1u; ++x) {
             for (auto y = 0u; y < options.tessellation.y - 1u; ++y) {
                 auto index = x * options.tessellation.y + y;

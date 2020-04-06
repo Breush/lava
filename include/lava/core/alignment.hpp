@@ -2,8 +2,8 @@
 
 namespace lava {
     enum class Alignment {
-        START,
-        CENTER,
-        END,
+        Start,
+        Center,
+        End,
     };
 }
