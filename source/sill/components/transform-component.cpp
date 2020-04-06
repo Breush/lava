@@ -37,6 +37,14 @@ void TransformComponent::scaling(float scaling, ChangeReasonFlag changeReasonFla
     m_impl->scaling(glm::vec3{scaling, scaling, scaling}, changeReasonFlag);
 }
 
+// Local transform 2D
+void TransformComponent::translation2d(const glm::vec2& translation, ChangeReasonFlag changeReasonFlag)
+{
+    m_translation2d = translation;
+    updateTransform2d(changeReasonFlag);
+    updateWorldTransform2d(changeReasonFlag);
+}
+
 // World transform
 $pimpl_method_const(TransformComponent, const glm::mat4&, worldTransform);
 $pimpl_method(TransformComponent, void, worldTransform, const glm::mat4&, transform, ChangeReasonFlag, changeReasonFlag);
@@ -46,3 +54,59 @@ $pimpl_method(TransformComponent, void, onTransformChanged, std::function<void()
               changeReasonFlags);
 $pimpl_method(TransformComponent, void, onWorldTransformChanged, std::function<void()>, callback, ChangeReasonFlags,
               changeReasonFlags);
+
+void TransformComponent::onTransform2dChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags)
+{
+    m_transform2dChangedCallbacks.emplace_back(TransformChangedCallbackInfo{callback, changeReasonFlags});
+}
+
+void TransformComponent::onWorldTransform2dChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags)
+{
+    m_worldTransform2dChangedCallbacks.emplace_back(TransformChangedCallbackInfo{callback, changeReasonFlags});
+}
+
+// ----- Internal
+
+void TransformComponent::updateTransform2d(ChangeReasonFlag changeReasonFlag)
+{
+    m_transform2d = glm::scale(glm::mat3(1.f), m_scaling2d);
+    m_transform2d = glm::rotate(glm::mat3(1.f), m_rotation2d) * m_transform2d;
+    m_transform2d[2] = glm::vec3(m_translation2d, 1.f);
+
+    callTransform2dChanged(changeReasonFlag);
+}
+
+void TransformComponent::updateWorldTransform2d(ChangeReasonFlag changeReasonFlag)
+{
+    if (m_entity.parent() != nullptr) {
+        m_worldTransform2d = m_entity.parent()->get<TransformComponent>().worldTransform2d() * m_transform2d;
+    }
+    else {
+        m_worldTransform2d = m_transform2d;
+    }
+
+    callWorldTransform2dChanged(changeReasonFlag);
+
+    // Update children
+    for (auto& child : m_entity.children()) {
+        child->get<TransformComponent>().updateWorldTransform2d(ChangeReasonFlag::Parent);
+    }
+}
+
+void TransformComponent::callTransform2dChanged(ChangeReasonFlag changeReasonFlag) const
+{
+    for (const auto& callback : m_transform2dChangedCallbacks) {
+        if (callback.changeReasonFlags & changeReasonFlag) {
+            callback.callback();
+        }
+    }
+}
+
+void TransformComponent::callWorldTransform2dChanged(ChangeReasonFlag changeReasonFlag) const
+{
+    for (const auto& callback : m_worldTransform2dChangedCallbacks) {
+        if (callback.changeReasonFlags & changeReasonFlag) {
+            callback.callback();
+        }
+    }
+}

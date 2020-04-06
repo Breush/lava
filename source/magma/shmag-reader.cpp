@@ -48,8 +48,11 @@ ShmagReader::ShmagReader(const fs::Path& shaderPath)
         else if (context == "epiphany") {
             parseEpiphany(adaptedCode);
         }
+        else if (context == "flat") {
+            parseFlat(adaptedCode);
+        }
         else {
-            errorExpected("context: struct (gBuffer), (global) uniform, geometry, epiphany");
+            errorExpected("context: struct (gBuffer), (global) uniform, geometry, epiphany, flat");
         }
     }
 
@@ -321,7 +324,7 @@ void ShmagReader::parseGeometryMain(std::stringstream& adaptedCode)
 
     if (returnCount != 1u) {
         logger.error("magma.shmag-reader") << "Expected 1 return in geometry code but found " << returnCount << "." << std::endl;
-}
+    }
 }
 
 void ShmagReader::injectGeometryUniformDefinitions(std::stringstream& adaptedCode)
@@ -587,6 +590,56 @@ void ShmagReader::injectEpiphanyGBufferDataExtraction(std::stringstream& adapted
     adaptedCode << std::endl;
 }
 
+// ----- Flat
+
+void ShmagReader::parseFlat(std::stringstream& adaptedCode)
+{
+    adaptedCode << "@magma:impl:begin flat" << std::endl;
+
+    parseToken(chamber::TokenType::LeftBrace);
+
+    // Optional uniform definition
+    Lexer::Token token;
+    while (getNotToken(chamber::TokenType::RightBrace, &token)) {
+        auto firstIdentifier = parseCurrentIdentifier();
+
+        m_spacing = token.spacing;
+        m_spacing = m_spacing.substr(m_spacing.rfind('\n') + 1);
+
+        if (firstIdentifier == "vec4") {
+            parseIdentifier("main");
+            parseFlatMain(adaptedCode);
+        }
+        else {
+            errorExpected("declaration, definition");
+        }
+    }
+
+    adaptedCode << "@magma:impl:end flat" << std::endl;
+}
+
+void ShmagReader::parseFlatMain(std::stringstream& adaptedCode)
+{
+    parseToken(chamber::TokenType::LeftParenthesis);
+    parseToken(chamber::TokenType::RightParenthesis);
+    parseToken(chamber::TokenType::LeftBrace);
+
+    adaptedCode << m_spacing << "vec4 @magma:impl:main () {" << std::endl;
+    m_spacing += "    ";
+
+    // ----- Inject uniform definitions
+
+    injectGeometryUniformDefinitions(adaptedCode);
+
+    // ----- Remap original code
+
+    // @todo These are fixed?
+    std::unordered_map<std::string, std::string> inMap = {{"uv", "inUv"}};
+
+    adaptedCode << m_spacing << "// [shmag-reader] Remapped original flat code.";
+    remapBlock(adaptedCode, inMap, []() {});
+}
+
 // ----- Common
 
 void ShmagReader::injectGlobalUniformDefinitions(std::stringstream& adaptedCode)
@@ -768,7 +821,7 @@ bool ShmagReader::getNotToken(chamber::TokenType tokenType, Lexer::Token* token)
     if (optToken) {
         if (token != nullptr) {
             *token = *optToken;
-}
+        }
         return optToken->type != tokenType;
     }
     return false;
@@ -804,16 +857,16 @@ void ShmagReader::remapBlock(std::stringstream& adaptedCode, const std::unordere
 
         if (token->type == chamber::TokenType::LeftBrace) {
             bracesCount++;
-            }
+        }
         else if (token->type == chamber::TokenType::RightBrace) {
             bracesCount--;
         }
 
         if (bracesCount == 0u) break;
-        }
+    }
 
-            adaptedCode << std::endl;
-        }
+    adaptedCode << std::endl;
+}
 
 std::string ShmagReader::limitSpacing(const std::string& spacing) const
 {

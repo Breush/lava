@@ -71,6 +71,10 @@ namespace lava::magma {
 
         void injectEpiphanyGBufferDataExtraction(std::stringstream& adaptedCode);
 
+        // Flat
+        void parseFlat(std::stringstream& adaptedCode);
+        void parseFlatMain(std::stringstream& adaptedCode);
+
         // Common
         void injectGlobalUniformDefinitions(std::stringstream& adaptedCode);
         void injectGBufferDefinitions(std::stringstream& adaptedCode);

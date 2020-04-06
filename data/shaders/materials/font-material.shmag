@@ -10,6 +10,15 @@ uniform {
     texture2d fontTexture = "invisible";
 };
 
+flat {
+    vec4 main() {
+        float opacity = texture(fontTexture, uv).r;
+        if (opacity == 0) discard;
+
+        // @fixme Do handle colors!
+        return vec4(0, 0, 0, opacity);
+    }
+}
 
 geometry {
     bool main() {

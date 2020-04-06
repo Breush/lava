@@ -15,6 +15,8 @@ namespace lava::sill {
      *
      * As it should always be attached to a MeshNode,
      * there is no way to set the transform here.
+     *
+     * @fixme Could be renamed MeshGroup for consistency.
      */
     class Mesh {
     public:
