@@ -44,21 +44,17 @@ Frustum Camera::frustum(const glm::vec2& topLeftRel, const glm::vec2& bottomRigh
 {
     Frustum frustum;
 
-    // @fixme These inverses could be precomputed, as they are needed in sill::CameraComponent::Impl too.
-    auto viewTransformInverse = glm::inverse(m_viewTransform);
-    auto projectionTransformInverse = glm::inverse(m_projectionTransform);
+    auto topLeftLocal = m_projectionTransformInverse * glm::vec4(topLeftRel.x, topLeftRel.y, 0.f, 1.f);
+    auto topRightLocal = m_projectionTransformInverse * glm::vec4(bottomRightRel.x, topLeftRel.y, 0.f, 1.f);
+    auto bottomLeftLocal = m_projectionTransformInverse * glm::vec4(topLeftRel.x, bottomRightRel.y, 0.f, 1.f);
+    auto bottomRightLocal = m_projectionTransformInverse * glm::vec4(bottomRightRel.x, bottomRightRel.y, 0.f, 1.f);
 
-    auto topLeftLocal = projectionTransformInverse * glm::vec4(topLeftRel.x, topLeftRel.y, 0.f, 1.f);
-    auto topRightLocal = projectionTransformInverse * glm::vec4(bottomRightRel.x, topLeftRel.y, 0.f, 1.f);
-    auto bottomLeftLocal = projectionTransformInverse * glm::vec4(topLeftRel.x, bottomRightRel.y, 0.f, 1.f);
-    auto bottomRightLocal = projectionTransformInverse * glm::vec4(bottomRightRel.x, bottomRightRel.y, 0.f, 1.f);
+    auto topLeft = glm::vec3(m_viewTransformInverse * (topLeftLocal / topLeftLocal.w));
+    auto topRight = glm::vec3(m_viewTransformInverse * (topRightLocal / topRightLocal.w));
+    auto bottomLeft = glm::vec3(m_viewTransformInverse * (bottomLeftLocal / bottomLeftLocal.w));
+    auto bottomRight = glm::vec3(m_viewTransformInverse * (bottomRightLocal / bottomRightLocal.w));
 
-    auto topLeft = glm::vec3(viewTransformInverse * (topLeftLocal / topLeftLocal.w));
-    auto topRight = glm::vec3(viewTransformInverse * (topRightLocal / topRightLocal.w));
-    auto bottomLeft = glm::vec3(viewTransformInverse * (bottomLeftLocal / bottomLeftLocal.w));
-    auto bottomRight = glm::vec3(viewTransformInverse * (bottomRightLocal / bottomRightLocal.w));
-
-    auto translation = glm::vec3(viewTransformInverse[3]);
+    auto translation = glm::vec3(m_viewTransformInverse[3]);
 
     // Forward
     frustum.forward = glm::normalize(glm::cross(topLeft - bottomLeft, bottomRight - bottomLeft));
@@ -107,7 +103,8 @@ void Camera::extent(Extent2d extent)
 void Camera::viewTransform(const glm::mat4& viewTransform)
 {
     m_viewTransform = viewTransform;
-    m_inverseViewProjectionTransform = glm::inverse(m_projectionTransform * m_viewTransform);
+    m_viewTransformInverse = glm::inverse(m_viewTransform);
+    m_viewProjectionTransformInverse = glm::inverse(m_projectionTransform * m_viewTransform);
     updateFrustum();
 
     // Update UBO
@@ -120,7 +117,8 @@ void Camera::viewTransform(const glm::mat4& viewTransform)
 void Camera::projectionTransform(const glm::mat4& projectionTransform)
 {
     m_projectionTransform = projectionTransform;
-    m_inverseViewProjectionTransform = glm::inverse(m_projectionTransform * m_viewTransform);
+    m_projectionTransformInverse = glm::inverse(m_projectionTransform);
+    m_viewProjectionTransformInverse = glm::inverse(m_projectionTransform * m_viewTransform);
     updateFrustum();
 
     // Update UBO

@@ -101,14 +101,16 @@ namespace lava::magma {
         /// @{
         /// Translation, rotation of the camera within world-space.
         const glm::mat4& viewTransform() const { return m_viewTransform; }
+        const glm::mat4& viewTransformInverse() const { return m_viewTransformInverse; }
         void viewTransform(const glm::mat4& viewTransform);
 
         /// Projection matrix to get Vulkan's Normalized Device Coordinates.
         const glm::mat4& projectionTransform() const { return m_projectionTransform; }
+        const glm::mat4& projectionTransformInverse() const { return m_projectionTransformInverse; }
         void projectionTransform(const glm::mat4& projectionTransform);
 
         /// Pre-computed inverse(projectionTransform * viewTransform).
-        const glm::mat4& inverseViewProjectionTransform() const { return m_inverseViewProjectionTransform; }
+        const glm::mat4& viewProjectionTransformInverse() const { return m_viewProjectionTransformInverse; }
         /// @}
 
         /**
@@ -143,6 +145,8 @@ namespace lava::magma {
         // ----- Transforms
         glm::mat4 m_viewTransform = glm::mat4(1.f);
         glm::mat4 m_projectionTransform = glm::mat4(1.f);
-        glm::mat4 m_inverseViewProjectionTransform = glm::mat4(1.f);
+        glm::mat4 m_viewTransformInverse = glm::mat4(1.f);
+        glm::mat4 m_projectionTransformInverse = glm::mat4(1.f);
+        glm::mat4 m_viewProjectionTransformInverse = glm::mat4(1.f);
     };
 }
