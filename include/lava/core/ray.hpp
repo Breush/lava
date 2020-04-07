@@ -46,4 +46,37 @@ namespace lava {
         // Parallel
         return 0.f;
     }
+
+    // Outputs the parametrization of the intersection of ray with the triangle.
+    // Returns 0.f when not intersecting.
+    // @note We're using algorithm from Real-Time Rendering Fourth Edition - page 965,
+    // which projects the ray into the barycentric coordinates system of the triangle to test.
+    inline float intersectTriangle(const Ray& ray, const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2)
+    {
+        auto e01 = p1 - p0;
+        auto e02 = p2 - p0;
+
+        // Ignore triangles with opposite normals
+        auto c = glm::cross(e01, e02);
+        if (glm::dot(c, ray.direction) > 0.f) return 0.f;
+
+        // Ray might be parallel to triangle
+        auto q = glm::cross(ray.direction, e02);
+        auto a = glm::dot(e01, q);
+        if (a > -0.0001f && a < 0.0001f) return 0.f;
+
+        auto f = 1.f / a;
+        auto s = ray.origin - p0;
+        auto u = f * glm::dot(s, q);
+        if (u < 0.f) return 0.f;
+
+        auto r = glm::cross(s, e01);
+        auto v = f * glm::dot(ray.direction, r);
+        if (v < 0.f || u + v > 1.f) return 0.f;
+
+        auto t = f * glm::dot(e02, r);
+        if (t < 0.f) return 0.f;
+
+        return t;
+    }
 }
