@@ -74,7 +74,7 @@ namespace lava::sill {
         void updateInput();
         void updateEntities(float dt);
         void registerMaterials();
-        void handleEvent(WsEvent& event);
+        void handleEvent(WsEvent& event, bool& propagate);
 
     private:
         GameEngine& m_engine;

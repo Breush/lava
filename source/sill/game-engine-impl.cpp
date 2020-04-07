@@ -62,10 +62,6 @@ GameEngine::Impl::Impl(GameEngine& engine)
     //----- Initializing fonts
 
     m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
-
-    //----- Initializing UI components actions
-
-    m_inputManager.bindAction("ui.main-click", {MouseButton::Left});
 }
 
 GameEngine::Impl::~Impl()
@@ -172,7 +168,9 @@ void GameEngine::Impl::updateInput()
     m_inputManager.updateReset();
 
     while (auto event = m_window->pollEvent()) {
-        handleEvent(*event);
+        bool propagate = true;
+        handleEvent(*event, propagate);
+        if (!propagate) continue;
 
         m_inputManager.update(*event);
     }
@@ -258,9 +256,11 @@ void GameEngine::Impl::registerMaterials()
     registerMaterialFromFile("ui.button", "./data/shaders/flat-materials/ui/button.shmag");
 }
 
-void GameEngine::Impl::handleEvent(WsEvent& event)
+void GameEngine::Impl::handleEvent(WsEvent& event, bool& propagate)
 {
-    PROFILE_FUNCTION();
+    // Let UI analyse the event.
+    // @todo :Refactor Move the scene/camera2d to ui manager?
+    m_engine.ui().handleEvent(event, propagate);
 
     switch (event.type) {
     case WsEventType::WindowClosed: {

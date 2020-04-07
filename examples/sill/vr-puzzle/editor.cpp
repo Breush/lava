@@ -55,15 +55,43 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
     }
 }
 
-void unselectAllObjects(GameState& gameState) {
-    gameState.editor.selection.objects.clear();
-    gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(0.f);
+void onSelectionChanged(GameState& gameState)
+{
+    // Erase UI
+    for (auto entity : gameState.ui.entities) {
+        gameState.engine->remove(*entity);
+    }
+    gameState.ui.entities.clear();
+
+    // Create UI
+    if (gameState.editor.selection.objects.size() == 1u) {
+        auto& object = *gameState.editor.selection.objects[0u];
+        if (object.entity().name() == "brick") {
+            auto& brick = dynamic_cast<Brick&>(object);
+            auto& entity = gameState.engine->make<sill::GameEntity>();
+            entity.make<sill::UiButtonComponent>(L"toggle fixed").onClicked([&brick]() {
+                brick.fixed(!brick.fixed());
+            });
+            entity.get<sill::TransformComponent>().translation2d({100, 40});
+            gameState.ui.entities.emplace_back(&entity);
+            return;
+        }
+    }
 }
 
-void selectObject(GameState& gameState, Object* object, bool addToSelection) {
+void unselectAllObjects(GameState& gameState, bool signalSelectionChanged = true) {
+    gameState.editor.selection.objects.clear();
+    gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(0.f);
+
+    if (signalSelectionChanged) {
+        onSelectionChanged(gameState);
+    }
+}
+
+void selectObject(GameState& gameState, Object* object, bool addToSelection, bool signalSelectionChanged = true) {
     if (!object) {
         if (!addToSelection) {
-            unselectAllObjects(gameState);
+            unselectAllObjects(gameState, signalSelectionChanged);
         }
         return;
     }
@@ -75,16 +103,20 @@ void selectObject(GameState& gameState, Object* object, bool addToSelection) {
     }
 
     if (!addToSelection) {
-        unselectAllObjects(gameState);
+        unselectAllObjects(gameState, false);
     }
 
     gameState.editor.selection.objects.emplace_back(object);
+
+    if (signalSelectionChanged) {
+        onSelectionChanged(gameState);
+    }
 }
 
 /// Update the current selection based on the multi rectangle.
-void selectMultiObjects(GameState& gameState)
+void selectMultiObjects(GameState& gameState, bool signalSelectionChanged = true)
 {
-    unselectAllObjects(gameState);
+    unselectAllObjects(gameState, false);
 
     auto topleftCoordinates = glm::min(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
     auto bottomRightCoordinates = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
@@ -93,8 +125,13 @@ void selectMultiObjects(GameState& gameState)
     for (auto object : gameState.level.objects) {
         auto position = object->transform().translation();
         if (frustum.canSee(position)) {
-            selectObject(gameState, object, true);
+            selectObject(gameState, object, true, false);
         }
+    }
+
+    // @todo Well, not sure selection changed...
+    if (signalSelectionChanged) {
+        onSelectionChanged(gameState);
     }
 }
 
@@ -120,9 +157,6 @@ void updateSelectedObject(GameState& gameState, Object& object)
         }
         if (input.justDown("left")) {
             brick.addBlockH(0, false);
-        }
-        if (input.justDown("brick.toggle-fixed")) {
-            brick.fixed(!brick.fixed());
         }
     }
     else if (entity.name() == "panel") {
@@ -204,7 +238,6 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
-    input.bindAction("brick.toggle-fixed", {Key::LeftShift, Key::F});
     input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
     input.bindAction("rename-selection", {Key::F2});
     input.bindAction("solve-selection", {Key::LeftShift, Key::S});

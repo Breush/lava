@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/sill/pick-precision.hpp>
+#include <lava/sill/ui-manager.hpp>
 #include <lava/sill/vr-manager.hpp>
 
 #include <lava/core/filesystem.hpp>
@@ -57,6 +58,9 @@ namespace lava::sill {
 
         /// Access the windowing system.
         crater::Window& window();
+
+        /// Access the UI.
+        UiManager& ui() { return m_uiManager; }
 
         /// Log FPS at each second.
         bool fpsCounting() const;
@@ -126,6 +130,7 @@ namespace lava::sill {
     private:
         Impl* m_impl = nullptr;
 
+        UiManager m_uiManager{*this};
         VrManager m_vrManager{*this};
 
         std::vector<GameEntity*> m_entities;

@@ -20,6 +20,8 @@ UiButtonComponent::UiButtonComponent(GameEntity& entity, const std::wstring& tex
     , m_transformComponent(entity.ensure<TransformComponent>())
     , m_flatComponent(entity.ensure<FlatComponent>())
 {
+    entity.engine().ui().registerEntity(entity);
+
     auto& scene2d = entity.engine().scene2d();
 
     // Background setup
@@ -32,45 +34,38 @@ UiButtonComponent::UiButtonComponent(GameEntity& entity, const std::wstring& tex
     this->text(text);
 }
 
+UiButtonComponent::~UiButtonComponent()
+{
+    m_entity.engine().ui().unregisterEntity(m_entity);
+}
+
 void UiButtonComponent::update(float /* dt */)
 {
-    auto& input = m_entity.engine().input();
-    const auto& coords = input.mouseCoordinates();
-
     if (m_textDirty) {
         updateText();
     }
-
-    const auto& position = m_transformComponent.translation2d();
-    bool hovered = (coords.x >= position.x - m_extent.x / 2.f &&
-                    coords.x <= position.x + m_extent.x / 2.f &&
-                    coords.y >= position.y - m_extent.y / 2.f &&
-                    coords.y <= position.y + m_extent.y / 2.f);
-
-    this->hovered(hovered);
-
-    // We were clicked and button is released.
-    if (m_beingClicked &&
-        input.justUp("ui.main-click")) {
-        beingClicked(false);
-        if (m_hovered && m_clickedCallback != nullptr) {
-            m_clickedCallback();
-        }
-    }
-
-    if (!m_hovered) return;
-
-    if (m_clickedCallback != nullptr &&
-        input.justDown("ui.main-click")) {
-        beingClicked(true);
-    }
 }
+
+// ----- Configuration
 
 void UiButtonComponent::text(const std::wstring& text)
 {
     if (m_text == text) return;
     m_text = text;
     m_textDirty = true;
+}
+
+// ----- UI manager interaction
+
+bool UiButtonComponent::checkHovered(const glm::ivec2& mousePosition)
+{
+    const auto& position = m_transformComponent.translation2d();
+    bool hovered = (mousePosition.x >= position.x - m_extent.x / 2.f &&
+                    mousePosition.x <= position.x + m_extent.x / 2.f &&
+                    mousePosition.y >= position.y - m_extent.y / 2.f &&
+                    mousePosition.y <= position.y + m_extent.y / 2.f);
+    this->hovered(hovered);
+    return hovered;
 }
 
 void UiButtonComponent::hovered(bool hovered)
@@ -80,11 +75,15 @@ void UiButtonComponent::hovered(bool hovered)
     updateHovered();
 }
 
-void UiButtonComponent::beingClicked(bool beingClicked)
+void UiButtonComponent::dragEnd(const glm::ivec2& mousePosition)
 {
-    if (m_beingClicked == beingClicked) return;
-    m_beingClicked = beingClicked;
-    updateBeingClicked();
+    beingClicked(false);
+
+    // If still hovered, call callback
+    if (checkHovered(mousePosition) &&
+        m_clickedCallback != nullptr) {
+        m_clickedCallback();
+    }
 }
 
 // ----- Internal
@@ -130,4 +129,11 @@ void UiButtonComponent::updateBeingClicked()
 
     m_flatComponent.primitive(0u, 0u).material()->set("topColor", {0.8, 0.8, 0.8, 1.f});
     m_flatComponent.primitive(0u, 0u).material()->set("bottomColor", {0.9f, 0.9f, 0.9f, 1.f});
+}
+
+void UiButtonComponent::beingClicked(bool beingClicked)
+{
+    if (m_beingClicked == beingClicked) return;
+    m_beingClicked = beingClicked;
+    updateBeingClicked();
 }

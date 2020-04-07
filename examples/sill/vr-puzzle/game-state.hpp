@@ -44,6 +44,10 @@ struct GameState {
     Brick* pointedBrick = nullptr;
 
     struct {
+        std::vector<lava::sill::GameEntity*> entities;
+    } ui;
+
+    struct {
         Panel* panel;
         glm::uvec2 coordinates;
     } snapping;

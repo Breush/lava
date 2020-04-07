@@ -17,6 +17,7 @@ namespace lava::sill {
     public:
         UiButtonComponent(GameEntity& entity);
         UiButtonComponent(GameEntity& entity, const std::wstring& text);
+        ~UiButtonComponent();
 
         // IComponent
         static std::string hrid() { return "ui.button"; }
@@ -25,9 +26,11 @@ namespace lava::sill {
         // Configuration
         void text(const std::wstring& text);
 
-        // User interaction
+        // UI manager interaction
         void hovered(bool hovered);
-        void beingClicked(bool beingClicked);
+        bool checkHovered(const glm::ivec2& mousePosition);
+        void dragStart(const glm::ivec2& /* mousePosition */) { beingClicked(true); }
+        void dragEnd(const glm::ivec2& mousePosition);
 
         // Callbacks
         void onClicked(ClickedCallback callback) { m_clickedCallback = callback; }
@@ -36,6 +39,8 @@ namespace lava::sill {
         void updateText();
         void updateHovered();
         void updateBeingClicked();
+
+        void beingClicked(bool beingClicked);
 
     private:
         TransformComponent& m_transformComponent;
