@@ -2,21 +2,22 @@
 
 #include <lava/sill/components/i-component.hpp>
 
-#include <functional>
-#include <lava/magma/material.hpp>
 #include <lava/sill/animation-flags.hpp>
-#include <string>
+#include <lava/magma/uniform.hpp>
+#include <unordered_map>
+#include <variant>
+
+namespace lava::magma {
+    class Material;
+}
 
 namespace lava::sill {
     /**
      * Allows interpolation between two states.
      */
     class AnimationComponent final : public IComponent {
-        using UpdateCallback = std::function<void(float)>;
-
     public:
         AnimationComponent(GameEntity& entity);
-        ~AnimationComponent();
 
         // IComponent
         static std::string hrid() { return "animation"; }
@@ -24,22 +25,37 @@ namespace lava::sill {
 
         /**
          * Controls animation over the specified flags.
-         *
-         * @fixme We might want a auto-stop when animation ends.
-         * Calling target afterwards would be illegal.
          */
-        void start(AnimationFlags flags, float time);
-        void start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time);
+        void start(AnimationFlags flags, float time, bool autoStop = true);
+        void start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time, bool autoStop = true);
         void stop(AnimationFlags flags);
         void target(AnimationFlag flag, const glm::mat4& target);
         void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, float target);
         void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, const glm::vec4& target);
 
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
+    protected:
+        struct AnimationInfo {
+            bool autoStop = false;
+            bool needUpdate = true; // When timeSpent < totalTime or if target or time has changed since last update.
+            float timeSpent = 0.f;
+            float totalTime = 0.f;
+            std::variant<glm::mat4, lava::magma::UniformFallback> startValue;
+            std::variant<glm::mat4, lava::magma::UniformFallback> targetValue;
+
+            // For AnimationFlag::MaterialUniform
+            magma::Material* material;
+            std::string uniformName;
+            lava::magma::UniformType uniformType;
+        };
+
+    protected:
+        AnimationInfo* findAnimationInfo(AnimationFlag flag);
+        AnimationInfo* findAnimationInfo(AnimationFlag flag, magma::Material& material, const std::string& uniformName);
+        AnimationInfo& findOrCreateAnimationInfo(AnimationFlag flag);
+        AnimationInfo& findOrCreateAnimationInfo(AnimationFlag flag, magma::Material& material, const std::string& uniformName);
+        void updateInterpolation(AnimationFlag flag, AnimationInfo& animationInfo);
 
     private:
-        Impl* m_impl = nullptr;
+        std::unordered_map<AnimationFlag, std::vector<AnimationInfo>> m_animationsInfos;
     };
 }

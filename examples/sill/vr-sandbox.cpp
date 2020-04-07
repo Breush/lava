@@ -63,7 +63,7 @@ int main(void)
                 }
 
                 // We will animate the world transform over 300ms.
-                grabbedCube->get<sill::AnimationComponent>().start(sill::AnimationFlag::WorldTransform, 0.3f);
+                grabbedCube->get<sill::AnimationComponent>().start(sill::AnimationFlag::WorldTransform, 0.3f, false);
             }
             else if (engine.input().justUp("trigger")) {
                 grabbedCube->get<sill::AnimationComponent>().stop(sill::AnimationFlag::WorldTransform);

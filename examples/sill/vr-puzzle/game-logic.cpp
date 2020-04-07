@@ -58,7 +58,7 @@ namespace {
         checkLevelSolveStatus(gameState);
 
         // Animate the world transform.
-        grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.2f);
+        grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.2f, false);
     }
 
     void ungrabBrick(GameState& gameState)
@@ -86,7 +86,7 @@ namespace {
     void rotateGrabbedBrick()
     {
         grabbedBrick->incrementBaseRotationLevel();
-        grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.1f);
+        grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.1f, false);
     }
 
     glm::mat4 baseRotationLevelMatrix()
