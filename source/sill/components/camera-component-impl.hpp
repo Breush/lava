@@ -42,5 +42,6 @@ namespace lava::sill {
         magma::OrbitCameraController m_cameraController;
 
         Extent2d m_extent;
+        uint32_t m_onWindowExtentChangedId;
     };
 }

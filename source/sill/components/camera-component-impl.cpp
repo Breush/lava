@@ -22,8 +22,7 @@ CameraComponent::Impl::Impl(GameEntity& entity)
     // @todo Let the viewport be configurable too...
     engine.renderEngine().addView(*m_camera, engine.windowRenderTarget(), Viewport{0, 0, 1, 1});
 
-    // @fixme Have a way to remove this callback when the component is destroyed.
-    engine.onWindowExtentChanged([this](Extent2d extent) {
+    m_onWindowExtentChangedId = engine.onWindowExtentChanged([this](Extent2d extent) {
         m_extent = extent;
         m_camera->extent(m_extent);
         m_cameraController.updateCamera();
@@ -33,6 +32,7 @@ CameraComponent::Impl::Impl(GameEntity& entity)
 CameraComponent::Impl::~Impl()
 {
     auto& engine = m_entity.engine().impl();
+    engine.removeOnWindowExtentChanged(m_onWindowExtentChangedId);
     engine.scene().remove(*m_camera);
 }
 

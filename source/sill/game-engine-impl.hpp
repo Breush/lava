@@ -45,10 +45,6 @@ namespace lava::sill {
         /// @}
 
         // Getters
-        // @fixme One should be able to with the render engine without
-        // having to know GameEngine::Impl. For example, if the end user wants
-        // to create a new component. We just make an example of that,
-        // by having a custom component made inside it.
         magma::RenderEngine& renderEngine() { return *m_renderEngine; }
         const magma::RenderEngine& renderEngine() const { return *m_renderEngine; }
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowRenderTarget; }
@@ -65,10 +61,16 @@ namespace lava::sill {
         std::vector<std::unique_ptr<GameEntity>>& entities() { return m_entities; }
 
         // Callbacks
-        void onWindowExtentChanged(WindowExtentChangedCallback callback)
-        {
-            m_windowExtentChangedCallbacks.emplace_back(callback);
+        uint32_t onWindowExtentChanged(WindowExtentChangedCallback callback) {
+            auto id = m_windowExtentChangedNextId;
+            m_windowExtentChangedNextId += 1u;
+            m_windowExtentChangedCallbacks[id] = callback;
+            return id;
         };
+        void removeOnWindowExtentChanged(uint32_t id) {
+            if (m_destroying) return;
+            m_windowExtentChangedCallbacks.erase(id);
+        }
 
     protected:
         void updateInput();
@@ -78,6 +80,7 @@ namespace lava::sill {
 
     private:
         GameEngine& m_engine;
+        bool m_destroying = false;
 
         // Rendering
         std::unique_ptr<crater::Window> m_window = nullptr;
@@ -114,7 +117,8 @@ namespace lava::sill {
         std::vector<const GameEntity*> m_pendingRemovedEntities;
 
         // Callbacks
-        std::vector<WindowExtentChangedCallback> m_windowExtentChangedCallbacks;
+        std::unordered_map<uint32_t, WindowExtentChangedCallback> m_windowExtentChangedCallbacks; // Key is id
+        uint32_t m_windowExtentChangedNextId = 0u;
         float m_windowExtentDelay = -1.f;
         Extent2d m_windowExtent;
     };

@@ -66,6 +66,8 @@ GameEngine::Impl::Impl(GameEngine& engine)
 
 GameEngine::Impl::~Impl()
 {
+    m_destroying = true;
+
     chamber::stopProfiling();
 }
 
@@ -207,8 +209,8 @@ void GameEngine::Impl::updateEntities(float dt)
         if (m_windowExtentDelay <= 0.f) {
             m_windowRenderTarget->extent(m_windowExtent);
             m_camera2d->extent(m_windowExtent);
-            for (const auto& callback : m_windowExtentChangedCallbacks) {
-                callback(m_windowExtent);
+            for (const auto& callbackPair : m_windowExtentChangedCallbacks) {
+                callbackPair.second(m_windowExtent);
             }
         }
     }
