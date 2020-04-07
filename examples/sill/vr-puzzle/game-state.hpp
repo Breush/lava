@@ -90,6 +90,7 @@ struct GameState {
             std::vector<Object*> objects;
             glm::vec2 multiStart;
             glm::vec2 multiEnd;
+            lava::sill::GameEntity* multiEntity = nullptr; // The rectangle
         } selection;
 
         struct {

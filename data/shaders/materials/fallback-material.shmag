@@ -11,7 +11,7 @@ struct {
 
 flat {
     vec4 main() {
-        return vec4(0);
+        return vec4(1);
     }
 }
 

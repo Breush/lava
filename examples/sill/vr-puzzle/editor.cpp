@@ -68,7 +68,7 @@ void onSelectionChanged(GameState& gameState)
         auto& object = *gameState.editor.selection.objects[0u];
         if (object.entity().name() == "brick") {
             auto& brick = dynamic_cast<Brick&>(object);
-            auto& entity = gameState.engine->make<sill::GameEntity>();
+            auto& entity = gameState.engine->make<sill::GameEntity>("button - toggle fixed");
             entity.make<sill::UiButtonComponent>(L"toggle fixed").onClicked([&brick]() {
                 brick.fixed(!brick.fixed());
             });
@@ -82,6 +82,7 @@ void onSelectionChanged(GameState& gameState)
 void unselectAllObjects(GameState& gameState, bool signalSelectionChanged = true) {
     gameState.editor.selection.objects.clear();
     gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(0.f);
+    gameState.editor.selection.multiEntity->get<sill::TransformComponent>().scaling2d(0.f);
 
     if (signalSelectionChanged) {
         onSelectionChanged(gameState);
@@ -113,14 +114,24 @@ void selectObject(GameState& gameState, Object* object, bool addToSelection, boo
     }
 }
 
+/// Update the the multi rectangle visuals.
+void selectMultiObjectsUpdate(GameState& gameState)
+{
+    auto topLeft = glm::min(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
+    auto bottomRight = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
+    gameState.editor.selection.multiEntity->get<sill::TransformComponent>().translation2d((topLeft + bottomRight) / 2.f);
+    gameState.editor.selection.multiEntity->get<sill::TransformComponent>().scaling2d(bottomRight - topLeft);
+    gameState.editor.selection.multiEntity->get<sill::FlatComponent>().primitive(0u, 0u).material()->set("extent", bottomRight - topLeft);
+}
+
 /// Update the current selection based on the multi rectangle.
 void selectMultiObjects(GameState& gameState, bool signalSelectionChanged = true)
 {
     unselectAllObjects(gameState, false);
 
-    auto topleftCoordinates = glm::min(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
-    auto bottomRightCoordinates = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
-    auto frustum = gameState.camera.component->frustum(topleftCoordinates, bottomRightCoordinates);
+    auto topLeft = glm::min(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
+    auto bottomRight = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
+    auto frustum = gameState.camera.component->frustum(topLeft, bottomRight);
 
     for (auto object : gameState.level.objects) {
         auto position = object->transform().translation();
@@ -248,6 +259,16 @@ void setupEditor(GameState& gameState)
 
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
     auto& editorBehavior = editorEntity.make<sill::BehaviorComponent>();
+
+    // Multi rectangle
+    {
+        auto& multiEntity = engine.make<sill::GameEntity>("multi");
+        auto& flatComponent = multiEntity.make<sill::FlatComponent>();
+        auto& flatNode = sill::makers::quadFlatMaker(1.f)(flatComponent);
+        auto& material = engine.scene2d().make<magma::Material>("selection-rectangle");
+        flatNode.flatGroup->primitive(0u).material(material);
+        gameState.editor.selection.multiEntity = &multiEntity;
+    }
 
     // Gizmo
     {
@@ -433,6 +454,7 @@ void setupEditor(GameState& gameState)
                      (input.axisChanged("main-x") || input.axisChanged("main-y"))) {
                 gameState.editor.state = EditorState::MultiSelection;
                 gameState.editor.selection.multiStart = input.mouseCoordinates();
+                unselectAllObjects(gameState);
             }
 
             // Select entity on left click if any.
@@ -445,10 +467,11 @@ void setupEditor(GameState& gameState)
         else if (gameState.editor.state == EditorState::MultiSelection) {
             if (input.justUp("left-fire")) {
                 gameState.editor.state = EditorState::Idle;
+                selectMultiObjects(gameState);
             }
             else if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
                 gameState.editor.selection.multiEnd = input.mouseCoordinates();
-                selectMultiObjects(gameState);
+                selectMultiObjectsUpdate(gameState);
             }
         }
 

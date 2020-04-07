@@ -1,0 +1,22 @@
+
+uniform {
+    vec2 extent = vec2(0, 0);
+};
+
+flat {
+    vec4 main() {
+        vec2 uvAbs = abs(2 * (uv.xy - 0.5));
+
+        float border;
+        if (uvAbs.x > uvAbs.y) {
+            float dx = 4 / extent.x;
+            border = smoothstep(1 - dx, 1, uvAbs.x);
+        }
+        else {
+            float dy = 4 / extent.y;
+            border = smoothstep(1 - dy, 1, uvAbs.y);
+        }
+
+        return vec4(0.6, 0.7, 0.95, max(0.3, 0.9 * border));
+    }
+}

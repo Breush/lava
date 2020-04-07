@@ -70,7 +70,7 @@ void ForwardFlatStage::render(vk::CommandBuffer commandBuffer, uint32_t /* frame
 
     // Set render pass
     std::array<vk::ClearValue, 1> clearValues;
-    std::array<float, 4> clearColor{0.f, 0.f, 0.f, 0.f};
+    std::array<float, 4> clearColor{1.f, 1.f, 1.f, 0.f}; // @note White is important so that composed colors are correct.
     clearValues[0u].color = vk::ClearColorValue(clearColor);
 
     vk::RenderPassBeginInfo renderPassInfo;

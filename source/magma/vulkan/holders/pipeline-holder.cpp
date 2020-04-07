@@ -120,8 +120,8 @@ void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
                                                    | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
         if (m_colorAttachments[i].blending == ColorAttachmentBlending::AlphaBlending) {
-            // finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * oldColor;
-            // finalColor.a = newAlpha + (1 - newAlpha) * oldAlpha;
+            // finalColor.rgb = (new.a) * new.rgb + (1 - new.a) * old.rgb;
+            // finalColor.a = new.a + (1 - new.a) * old.a;
             colorBlendAttachmentState.blendEnable = true;
             colorBlendAttachmentState.colorBlendOp = vk::BlendOp::eAdd;
             colorBlendAttachmentState.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;

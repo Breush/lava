@@ -45,6 +45,20 @@ void TransformComponent::translation2d(const glm::vec2& translation, ChangeReaso
     updateWorldTransform2d(changeReasonFlag);
 }
 
+void TransformComponent::rotation2d(float rotation, ChangeReasonFlag changeReasonFlag)
+{
+    m_rotation2d = rotation;
+    updateTransform2d(changeReasonFlag);
+    updateWorldTransform2d(changeReasonFlag);
+}
+
+void TransformComponent::scaling2d(const glm::vec2& scaling, ChangeReasonFlag changeReasonFlag)
+{
+    m_scaling2d = scaling;
+    updateTransform2d(changeReasonFlag);
+    updateWorldTransform2d(changeReasonFlag);
+}
+
 // World transform
 $pimpl_method_const(TransformComponent, const glm::mat4&, worldTransform);
 $pimpl_method(TransformComponent, void, worldTransform, const glm::mat4&, transform, ChangeReasonFlag, changeReasonFlag);
