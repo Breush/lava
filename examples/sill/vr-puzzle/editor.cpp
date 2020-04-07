@@ -5,7 +5,6 @@
 #include <iostream>
 #include <lava/chamber/math.hpp>
 #include <lava/dike.hpp>
-#include <lava/magma.hpp>
 
 #include "./game-state.hpp"
 #include "./camera.hpp"

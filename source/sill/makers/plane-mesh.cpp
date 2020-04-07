@@ -63,8 +63,8 @@ std::function<void(MeshComponent&)> makers::planeMeshMaker(const glm::vec2& dime
         }
 
         // Apply the geometry
-        auto mesh = std::make_unique<Mesh>(meshComponent.entity().engine());
-        auto& primitive = mesh->addPrimitive();
+        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.entity().engine());
+        auto& primitive = meshGroup->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);
@@ -75,11 +75,11 @@ std::function<void(MeshComponent&)> makers::planeMeshMaker(const glm::vec2& dime
         std::vector<MeshNode> nodes(1u);
 
         if (options.rootNodeHasGeometry) {
-            nodes[0u].mesh = std::move(mesh);
+            nodes[0u].meshGroup = std::move(meshGroup);
         }
         else {
             nodes.emplace_back();
-            nodes[1u].mesh = std::move(mesh);
+            nodes[1u].meshGroup = std::move(meshGroup);
             nodes[1u].parent = &nodes[0u];
             nodes[0u].children.emplace_back(&nodes[1u]);
         }

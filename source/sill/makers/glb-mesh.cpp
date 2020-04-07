@@ -91,8 +91,8 @@ namespace {
         setTexture(engine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData);
     }
 
-    std::unique_ptr<Mesh> loadMesh(GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
-                                   CacheData& cacheData, bool flipTriangles)
+    std::unique_ptr<MeshGroup> loadMesh(GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
+                                        CacheData& cacheData, bool flipTriangles)
     {
         PROFILE_FUNCTION();
 
@@ -103,8 +103,8 @@ namespace {
         const auto& bufferViews = json["bufferViews"];
         const auto& materials = json.find("materials");
 
-        auto meshData = std::make_unique<Mesh>(entity.engine());
-        meshData->name(mesh.name);
+        auto meshGroup = std::make_unique<MeshGroup>(entity.engine());
+        meshGroup->name(mesh.name);
 
         // Each primitive will consist in one magma::Mesh
         for (auto primitiveIndex = 0u; primitiveIndex < mesh.primitives.size(); ++primitiveIndex) {
@@ -165,7 +165,7 @@ namespace {
             }
 
             // Apply the geometry
-            auto& meshPrimitive = meshData->addPrimitive();
+            auto& meshPrimitive = meshGroup->addPrimitive();
             meshPrimitive.verticesCount(positions.size());
 
             auto indicesComponentType = accessors[primitive.indicesAccessorIndex]["componentType"];
@@ -203,7 +203,7 @@ namespace {
             meshPrimitive.category(translucent ? RenderCategory::Translucent : RenderCategory::Opaque);
         }
 
-        return meshData;
+        return meshGroup;
     }
 
     MeshNode* loadNode(GameEntity& entity, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
@@ -234,7 +234,7 @@ namespace {
 
         // Load geometry if any
         if (node.meshIndex != -1u) {
-            meshNode.mesh = loadMesh(entity, node.meshIndex, binChunk, json, cacheData, flipTriangles);
+            meshNode.meshGroup = loadMesh(entity, node.meshIndex, binChunk, json, cacheData, flipTriangles);
         }
 
         // Recurse over children

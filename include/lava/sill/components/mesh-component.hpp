@@ -29,17 +29,9 @@ namespace lava::sill {
         void nodes(std::vector<MeshNode>&& nodes);
         MeshNode& addNode(); // Emplace back a node.
 
-        // Helper to access a primitive directly.
-        magma::Mesh& primitive(uint32_t nodeIndex, uint32_t primitiveIndex)
-        {
-            return node(nodeIndex).mesh->primitive(primitiveIndex);
-        }
-
-        // Helper to access a material directly.
-        magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex)
-        {
-            return node(nodeIndex).mesh->primitive(primitiveIndex).material();
-        }
+        // Helpers
+        magma::Mesh& primitive(uint32_t nodeIndex, uint32_t primitiveIndex);
+        magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex);
 
         // Animations
         void add(const std::string& hrid, const MeshAnimation& animation);

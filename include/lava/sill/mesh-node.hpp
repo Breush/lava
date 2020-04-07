@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lava/sill/mesh.hpp>
+#include <lava/sill/mesh-group.hpp>
 
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/mat4x4.hpp>
@@ -19,7 +19,7 @@ namespace lava::sill {
         std::string name;
 
         /// The optional mesh geometry (and material).
-        std::unique_ptr<Mesh> mesh = nullptr;
+        std::unique_ptr<MeshGroup> meshGroup = nullptr;
 
         /// The local transform of the node, updating with animation.
         glm::mat4 localTransform = glm::mat4(1.f);

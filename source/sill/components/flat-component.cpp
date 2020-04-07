@@ -48,6 +48,18 @@ void FlatComponent::removeNode(const std::string& name)
     m_nodes.erase(nodeIt);
 }
 
+// ----- Helpers
+
+magma::Flat& FlatComponent::primitive(uint32_t nodeIndex, uint32_t primitiveIndex)
+{
+    return m_nodes[nodeIndex].flatGroup->primitive(primitiveIndex);
+}
+
+magma::Material* FlatComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
+{
+    return m_nodes[nodeIndex].flatGroup->primitive(primitiveIndex).material();
+}
+
 // ----- Internal
 
 void FlatComponent::onWorldTransform2dChanged()
@@ -56,9 +68,6 @@ void FlatComponent::onWorldTransform2dChanged()
         if (!node.flatGroup) continue;
 
         auto transform = m_transformComponent.worldTransform2d() * node.localTransform;
-
-        for (auto primitive : node.flatGroup->primitives()) {
-            primitive->transform(transform);
-        }
+        node.flatGroup->transform(transform);
     }
 }

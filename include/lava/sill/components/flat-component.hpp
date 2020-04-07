@@ -3,7 +3,6 @@
 #include <lava/sill/components/i-component.hpp>
 
 #include <lava/sill/flat-node.hpp>
-#include <lava/magma/flat.hpp>
 
 namespace lava::sill {
     class TransformComponent;
@@ -28,17 +27,9 @@ namespace lava::sill {
         FlatNode& addNode(); // Emplace back a node.
         void removeNode(const std::string& name);
 
-        // Helper to access a primitive directly.
-        magma::Flat& primitive(uint32_t nodeIndex, uint32_t primitiveIndex)
-        {
-            return m_nodes[nodeIndex].flatGroup->primitive(primitiveIndex);
-        }
-
-        // Helper to access a material directly.
-        magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex)
-        {
-            return m_nodes[nodeIndex].flatGroup->primitive(primitiveIndex).material();
-        }
+        // Helpers
+        magma::Flat& primitive(uint32_t nodeIndex, uint32_t primitiveIndex);
+        magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex);
 
     protected:
         void onWorldTransform2dChanged();

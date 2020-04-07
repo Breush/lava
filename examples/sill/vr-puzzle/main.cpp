@@ -1,5 +1,3 @@
-#include <lava/sill.hpp>
-
 #include "./camera.hpp"
 #include "./editor.hpp"
 #include "./environment.hpp"

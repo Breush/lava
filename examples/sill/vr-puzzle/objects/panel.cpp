@@ -31,11 +31,11 @@ Panel::Panel(GameState& gameState)
     // Create border
     auto& meshNode = meshComponent.addNode();
     meshNode.name = "border";
-    meshNode.mesh = std::make_unique<sill::Mesh>(*m_gameState.engine);
+    meshNode.meshGroup = std::make_unique<sill::MeshGroup>(*m_gameState.engine);
     meshNode.parent = &meshComponent.node(0);
     meshComponent.node(0).children.emplace_back(&meshNode);
     m_borderMaterial = &engine.scene().make<magma::Material>("roughness-metallic");
-    meshNode.mesh->addPrimitive().material(*m_borderMaterial);
+    meshNode.meshGroup->addPrimitive().material(*m_borderMaterial);
 
     m_entity->make<sill::ColliderComponent>();
     m_entity->get<sill::PhysicsComponent>().dynamic(false);

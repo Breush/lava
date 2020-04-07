@@ -14,7 +14,7 @@ FlatGroup::~FlatGroup()
 {
     for (auto& primitive : m_primitives) {
         if (primitive->material() != nullptr) {
-            // @fixme Well... this seems to work only for non-shared materials
+            // @fixme :AutoMaterialDelete Well... this seems to work only for non-shared materials
             // and otherwise thanks to deallocator not doing anything...
             m_engine.scene2d().remove(*primitive->material());
         }
@@ -29,4 +29,15 @@ magma::Flat& FlatGroup::addPrimitive()
     auto& primitive = m_engine.scene2d().make<magma::Flat>();
     m_primitives.emplace_back(&primitive);
     return primitive;
+}
+
+//----- Transforms
+
+void FlatGroup::transform(const glm::mat4& transform)
+{
+    // @note Each magma::Flat has its own transform,
+    // there are no notions of primitive in magma.
+    for (auto& primitive : m_primitives) {
+        primitive->transform(transform);
+    }
 }

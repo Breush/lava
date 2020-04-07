@@ -7,6 +7,7 @@
 
 #include <lava/core/ray.hpp>
 #include <lava/sill.hpp>
+#include <lava/magma.hpp>
 #include <unordered_map>
 
 enum class State {

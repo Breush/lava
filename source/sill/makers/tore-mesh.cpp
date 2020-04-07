@@ -66,8 +66,8 @@ std::function<void(MeshComponent&)> makers::toreMeshMaker(uint32_t bigTessellati
         }
 
         // Apply the geometry
-        auto mesh = std::make_unique<Mesh>(meshComponent.entity().engine());
-        auto& primitive = mesh->addPrimitive();
+        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.entity().engine());
+        auto& primitive = meshGroup->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);
@@ -76,7 +76,7 @@ std::function<void(MeshComponent&)> makers::toreMeshMaker(uint32_t bigTessellati
         primitive.indices(indices);
 
         std::vector<MeshNode> nodes(1u);
-        nodes[0u].mesh = std::move(mesh);
+        nodes[0u].meshGroup = std::move(meshGroup);
         meshComponent.nodes(std::move(nodes));
     };
 }

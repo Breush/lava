@@ -3,8 +3,6 @@
 #include <lava/chamber/interpolation-tools.hpp>
 #include <lava/sill/components/transform-component.hpp>
 
-#include "../mesh-impl.hpp"
-
 using namespace lava;
 using namespace lava::chamber;
 using namespace lava::sill;
@@ -14,8 +12,8 @@ namespace {
     {
         node.worldTransform = parentTransform * node.localTransform;
 
-        if (node.mesh) {
-            node.mesh->impl().transform(node.worldTransform);
+        if (node.meshGroup) {
+            node.meshGroup->transform(node.worldTransform);
         }
 
         for (auto child : node.children) {
@@ -206,9 +204,9 @@ void MeshComponent::Impl::category(RenderCategory category)
     m_category = category;
 
     for (auto& node : m_nodes) {
-        if (node.mesh == nullptr) continue;
+        if (node.meshGroup == nullptr) continue;
 
-        for (auto& primitive : node.mesh->primitives()) {
+        for (auto& primitive : node.meshGroup->primitives()) {
             primitive->category(category);
         }
     }
@@ -219,9 +217,9 @@ BoundingSphere MeshComponent::Impl::boundingSphere() const
     BoundingSphere boundingSphere;
 
     for (auto& node : m_nodes) {
-        if (node.mesh == nullptr) continue;
+        if (node.meshGroup == nullptr) continue;
 
-        for (auto& primitive : node.mesh->primitives()) {
+        for (auto& primitive : node.meshGroup->primitives()) {
             boundingSphere = mergeBoundingSpheres(boundingSphere, primitive->boundingSphere());
         }
     }
@@ -235,9 +233,9 @@ void MeshComponent::Impl::boundingSpheresVisible(bool boundingSpheresVisible)
     m_boundingSpheresVisible = boundingSpheresVisible;
 
     for (auto& node : m_nodes) {
-        if (node.mesh == nullptr) continue;
+        if (node.meshGroup == nullptr) continue;
 
-        for (auto& primitive : node.mesh->primitives()) {
+        for (auto& primitive : node.meshGroup->primitives()) {
             primitive->debugBoundingSphere(boundingSpheresVisible);
         }
     }

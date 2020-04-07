@@ -13,8 +13,8 @@ namespace {
         }
 
         s << "[MeshNode] " << node.name;
-        if (node.mesh) {
-            s << " (mesh)";
+        if (node.meshGroup) {
+            s << " (mesh with " << node.meshGroup->primitives().size() << " primitives)";
         }
         s << std::endl;
 
@@ -38,6 +38,18 @@ $pimpl_method(MeshComponent, MeshNode&, addNode);
 void MeshComponent::nodes(std::vector<MeshNode>&& nodes)
 {
     m_impl->nodes(std::move(nodes));
+}
+
+// ----- Helpers
+
+magma::Mesh& MeshComponent::primitive(uint32_t nodeIndex, uint32_t primitiveIndex)
+{
+    return m_impl->node(nodeIndex).meshGroup->primitive(primitiveIndex);
+}
+
+magma::Material* MeshComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
+{
+    return m_impl->node(nodeIndex).meshGroup->primitive(primitiveIndex).material();
 }
 
 $pimpl_method(MeshComponent, void, add, const std::string&, hrid, const MeshAnimation&, animation);
@@ -77,13 +89,13 @@ float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
     distance = 0.f;
 
     for (const auto& node : nodes()) {
-        if (node.mesh == nullptr) continue;
+        if (node.meshGroup == nullptr) continue;
 
         // @note For the ray-triangle intersection test,
         // we're using Real-Time Rendering Fourth Edition - page 965,
         // which projects the ray into the barycentric coordinates system
         // of the triangle to test;
-        for (const auto& primitive : node.mesh->primitives()) {
+        for (const auto& primitive : node.meshGroup->primitives()) {
             if (primitive->category() != RenderCategory::Opaque && primitive->category() != RenderCategory::Translucent) {
                 continue;
             }

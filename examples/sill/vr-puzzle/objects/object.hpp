@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/sill.hpp>
+#include <lava/magma.hpp>
 
 struct GameState;
 

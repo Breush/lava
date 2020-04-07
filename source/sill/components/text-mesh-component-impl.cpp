@@ -48,8 +48,8 @@ void TextMeshComponent::Impl::update(float /* dt */)
         uv.y *= -1.f;
     }
 
-    auto mesh = std::make_unique<Mesh>(m_entity.engine());
-    auto& primitive = mesh->addPrimitive();
+    auto meshGroup = std::make_unique<MeshGroup>(m_entity.engine());
+    auto& primitive = meshGroup->addPrimitive();
     primitive.verticesCount(positions.size());
     primitive.verticesPositions(positions);
     primitive.verticesNormals(normals);
@@ -63,7 +63,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
     primitive.material(material);
 
     std::vector<MeshNode> nodes(1u);
-    nodes[0u].mesh = std::move(mesh);
+    nodes[0u].meshGroup = std::move(meshGroup);
 
     auto& meshComponent = m_entity.get<MeshComponent>();
     meshComponent.nodes(std::move(nodes));
