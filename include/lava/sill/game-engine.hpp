@@ -4,6 +4,7 @@
 #include <lava/sill/ui-manager.hpp>
 #include <lava/sill/vr-manager.hpp>
 
+#include <functional>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/ray.hpp>
 #include <lava/magma/scene.hpp>
@@ -36,6 +37,9 @@ namespace lava::sill {
      * Handles events in a uniform way.
      */
     class GameEngine final {
+    public:
+        using WindowExtentChangedCallback = std::function<void(Extent2d)>;
+
     public:
         GameEngine();
         ~GameEngine();
@@ -118,6 +122,14 @@ namespace lava::sill {
 
         /// Find an entity by its name (will stop after the first one).
         GameEntity* findEntityByName(const std::string& name) const;
+        /// @}
+
+        /**
+         * @name Callbacks
+         */
+        /// @{
+        uint32_t onWindowExtentChanged(WindowExtentChangedCallback callback);
+        void removeOnWindowExtentChanged(uint32_t id);
         /// @}
 
         /// Main loop.

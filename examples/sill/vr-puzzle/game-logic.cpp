@@ -206,7 +206,7 @@ namespace {
 
             const auto& extent = gameState.camera.component->extent();
             auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};
-            auto screenMatrix = gameState.camera.component->transformAtCoordinates(coordinates, 0.5f);
+            auto screenMatrix = gameState.camera.component->unprojectAsTransform(coordinates, 0.5f);
             screenMatrix = glm::rotate(screenMatrix, chamber::math::PI_OVER_TWO, {0, 1, 0});
             screenMatrix = glm::scale(screenMatrix, glm::vec3{0.02f});
 

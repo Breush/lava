@@ -130,7 +130,7 @@ void selectMultiObjects(GameState& gameState, bool signalSelectionChanged = true
 
     auto topLeft = glm::min(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
     auto bottomRight = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
-    auto frustum = gameState.camera.component->frustum(topLeft, bottomRight);
+    auto frustum = gameState.camera.component->unprojectAsFrustum(topLeft, bottomRight);
 
     for (auto object : gameState.level.objects) {
         auto position = object->transform().translation();

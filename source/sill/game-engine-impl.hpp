@@ -10,9 +10,6 @@
 namespace lava::sill {
     class GameEngine::Impl {
     public:
-        using WindowExtentChangedCallback = std::function<void(Extent2d)>;
-
-    public:
         Impl(GameEngine& engine);
         ~Impl();
 

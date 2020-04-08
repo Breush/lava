@@ -127,7 +127,7 @@ void setupCamera(GameState& gameState)
 
         const auto& extent = gameState.camera.component->extent();
         auto coordinates = glm::vec2{0.5f * extent.width, 0.5f * extent.height};
-        auto screenMatrix = gameState.camera.component->transformAtCoordinates(coordinates, 0.001f);
+        auto screenMatrix = gameState.camera.component->unprojectAsTransform(coordinates, 0.001f);
         screenMatrix = glm::rotate(screenMatrix, chamber::math::PI_OVER_TWO, {0, 1, 0});
         screenMatrix = glm::scale(screenMatrix, glm::vec3{0.01f});
         reticleTransformComponent.worldTransform(screenMatrix);

@@ -6,10 +6,12 @@
 #include <lava/core/extent.hpp>
 #include <lava/core/ray.hpp>
 #include <lava/magma/frustum.hpp>
+#include <lava/magma/camera-controllers/orbit-camera-controller.hpp>
 #include <string>
 
-// @fixme Wouldn't be shocking if we had access to the underlying magma::Camera,
-// as we do use magma::Material and such directly.
+namespace lava::magma {
+    class Camera;
+}
 
 namespace lava::sill {
     class CameraComponent final : public IComponent {
@@ -19,48 +21,60 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "camera"; }
-        void update(float dt) override final;
+        void update(float /* dt */) final {}
 
-        // Public API
-        const Extent2d& extent() const;
+        /**
+         * @name Configuration
+         */
+        /// @{
+        /// Kept in sync with the rendering window.
+        const Extent2d& extent() const { return m_extent; }
+        /// @}
 
-        const glm::vec3& origin() const;
-        void origin(const glm::vec3& origin);
+        /**
+         * @name Controls
+         */
+        /// @{
+        // Orbit
+        const glm::vec3& origin() const { return m_cameraController.origin(); }
+        void origin(const glm::vec3& origin) { m_cameraController.origin(origin); }
+        const glm::vec3& target() const { return m_cameraController.target(); }
+        void target(const glm::vec3& target) { m_cameraController.target(target); }
+        float radius() const { return m_cameraController.radius(); }
+        void radius(float radius) { m_cameraController.radius(radius); }
 
-        const glm::vec3& target() const;
-        void target(const glm::vec3& target);
+        void radiusAdd(float radiusDistance) { m_cameraController.radiusAdd(radiusDistance); }
+        void orbitAdd(float longitudeAngle, float latitudeAngle){ m_cameraController.orbitAdd(longitudeAngle, latitudeAngle); }
 
-        float radius() const;
-        void radius(float radius);
-
-        void strafe(float x, float y);
-        void radiusAdd(float radiusDistance);
-        void orbitAdd(float longitudeAngle, float latitudeAngle);
-        void rotateAtOrigin(float longitudeAngle, float latitudeAngle);
-
+        // FPS
         void goForward(float distance, const glm::vec3& constraints = {1, 1, 1});
         void goRight(float distance, const glm::vec3& constraints = {1, 1, 1});
+        void strafe(float x, float y) { m_cameraController.strafe(x, y); }
+        void rotateAtOrigin(float longitudeAngle, float latitudeAngle) { m_cameraController.rotateAtOrigin(longitudeAngle, latitudeAngle); }
+        /// @}
 
+        /**
+         * @name Transforms
+         */
+        /// @{
         const glm::mat4& viewTransform() const;
         const glm::mat4& projectionTransform() const;
 
-        /// Transform the render target position into a ray going forward.
-        Ray coordinatesToRay(const glm::vec2& coordinates) const;
-
-        /// Transform screen-space coordinates to a 3D position.
+        /// Unproject screen-space coordinates to a 3D position.
         glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
-
-        /// Transform screen-space rectangle to a 3D view frustum.
-        magma::Frustum frustum(const glm::vec2& topLeftCoordinates, const glm::vec2& bottomRightCoordinates) const;
-
-        /// Get the transform to front-looking show a 3D element at coordinates.
-        glm::mat4 transformAtCoordinates(const glm::vec2& coordinates, float depth = 0.f) const;
-
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
+        /// Unproject screen-space coordinates to a ray going forward.
+        Ray unprojectAsRay(const glm::vec2& coordinates, float depth = 0.f) const;
+        /// Unproject screen-space coordinates to a forward-looking transform.
+        glm::mat4 unprojectAsTransform(const glm::vec2& coordinates, float depth = 0.f) const;
+        /// Unproject screen-space rectangle to a 3D view frustum.
+        magma::Frustum unprojectAsFrustum(const glm::vec2& topLeftCoordinates, const glm::vec2& bottomRightCoordinates) const;
+        /// @}
 
     private:
-        Impl* m_impl = nullptr;
+        magma::Camera* m_camera = nullptr;
+        magma::OrbitCameraController m_cameraController;
+
+        Extent2d m_extent;
+        uint32_t m_onWindowExtentChangedId;
     };
 }
