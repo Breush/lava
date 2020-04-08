@@ -64,6 +64,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
 
     std::vector<MeshNode> nodes(1u);
     nodes[0u].meshGroup = std::move(meshGroup);
+    nodes[0u].transform(glm::scale(glm::mat4(1.f), glm::vec3{1.f / textOptions.fontSize}));
 
     auto& meshComponent = m_entity.get<MeshComponent>();
     meshComponent.nodes(std::move(nodes));

@@ -17,9 +17,8 @@ namespace lava::sill {
         GameEntity& entity() { return m_entity; }
         const GameEntity& entity() const { return m_entity; }
 
-        /// Called once per frame, respecting components dependencies.
+        /// Called once per frame by game engine.
         /// dt is expressed in seconds.
-        /// @fixme This is internal, and should be seen from user API.
         virtual void update(float dt) = 0;
 
         // To be implemented

@@ -58,8 +58,7 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
 
         // Push the glyphInfo to the list
         auto glyphInfo = pGlyphInfo->second;
-        // @fixme Somehow wrong in latest releases!
-        // glyphInfo.advance += stbtt_GetCodepointKernAdvance(&m_stbFont, c, nextC) * m_glyphsScale;
+        glyphInfo.advance += stbtt_GetCodepointKernAdvance(&m_stbFont, c, nextC) * m_glyphsScale / m_glyphMaxWidth;
         glyphsInfos.emplace_back(glyphInfo);
 
         c = nextC;
@@ -107,7 +106,7 @@ Font::GlyphInfo Font::packGlyph(wchar_t c)
     }
 
     // Draw the bitmap to the texture
-    auto glyphStartPosition = m_renderedGlyphsCount * m_glyphMaxWidth;
+    auto glyphStartPosition = m_renderedGlyphsCount * m_glyphMaxWidth; // @fixme Use glyph bounding box!
     for (auto i = 0; i < width; ++i) {
         for (auto j = 0; j < height; ++j) {
             auto index = glyphStartPosition + (i + xOff) + (j + yOff) * m_textureWidth;
