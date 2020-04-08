@@ -88,6 +88,185 @@ namespace {
     }
 }
 
+// ----- Bricks
+
+void unserializeBrick(Brick& brick, GameState& gameState, const nlohmann::json& json)
+{
+    std::vector<glm::ivec2> blocks;
+    for (auto& blockJson : json["blocks"]) {
+        blocks.emplace_back(unserializeIvec2(blockJson));
+    }
+    brick.blocks(blocks);
+
+    auto& barriersJson = json["barriers"];
+    for (auto& barrierJson : barriersJson) {
+        brick.addBarrier(*gameState.level.barriers[barrierJson]);
+    }
+
+    brick.color(unserializeVec3(json["color"]));
+    brick.fixed(json["fixed"]);
+    brick.baseRotationLevel(json["rotationLevel"]);
+
+    auto& snapPanelJson = json["snapPanel"];
+    if (!snapPanelJson.is_null()) {
+        auto& panel = *gameState.level.panels[snapPanelJson];
+        brick.snap(panel, unserializeUvec2(json["snapCoordinates"]));
+    }
+
+    // @fixme Keep last because of a bug, blocks won't be moved otherwise.
+    brick.transform().worldTransform(unserializeMat4(json["transform"]));
+}
+
+nlohmann::json serialize(GameState& gameState, const Brick& brick)
+{
+    nlohmann::json json = {
+        {"transform", serialize(brick.transform().worldTransform())},
+        {"blocks", nlohmann::json::array()},
+        {"barriers", nlohmann::json::array()},
+        {"color", serialize(brick.color())},
+        {"fixed", brick.fixed()},
+        {"rotationLevel", brick.rotationLevel()},
+        {"snapPanel", {}},
+    };
+
+    for (auto block : brick.blocks()) {
+        json["blocks"].emplace_back(serialize(block.nonRotatedCoordinates));
+    }
+
+    for (auto barrier : brick.barriers()) {
+        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
+    }
+
+    if (brick.snapped()) {
+        json["snapPanel"] = findPanelIndex(gameState, brick.snapPanel().entity());
+        json["snapCoordinates"] = serialize(brick.snapCoordinates());
+    }
+
+    return json;
+}
+
+// ----- Panels
+
+void unserializePanel(Panel& panel, GameState& gameState, const nlohmann::json& json)
+{
+    panel.name(json["name"]);
+    panel.extent(unserializeUvec2(json["extent"]));
+
+    auto& barriersJson = json["barriers"];
+    for (auto& barrierJson : barriersJson) {
+        panel.addBarrier(*gameState.level.barriers[barrierJson]);
+    }
+
+    panel.transform().worldTransform(unserializeMat4(json["transform"]));
+}
+
+nlohmann::json serialize(GameState& gameState, const Panel& panel)
+{
+    nlohmann::json json = {
+        {"name", panel.name()},
+        {"transform", serialize(panel.transform().worldTransform())},
+        {"extent", serialize(panel.extent())},
+        {"barriers", nlohmann::json::array()},
+    };
+
+    for (const auto& barrier : panel.barriers()) {
+        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
+    }
+
+    return json;
+}
+
+// ----- Barriers
+
+void unserializeBarrier(Barrier& barrier, GameState& /* gameState */, const nlohmann::json& json)
+{
+    barrier.name(json["name"]);
+    barrier.transform().worldTransform(unserializeMat4(json["transform"]));
+    barrier.diameter(json["diameter"]);
+    barrier.powered(json["powered"]);
+}
+
+nlohmann::json serialize(GameState& /* gameState */, const Barrier& barrier)
+{
+    nlohmann::json json = {
+        {"name", barrier.name()},
+        {"transform", serialize(barrier.transform().worldTransform())},
+        {"powered", barrier.powered()},
+        {"diameter", barrier.diameter()},
+    };
+
+    return json;
+}
+
+// ----- Generics
+
+void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::json& json)
+{
+    auto& entity = gameState.engine->make<sill::GameEntity>(json["name"].get<std::string>());
+    entity.ensure<sill::TransformComponent>().worldTransform(unserializeMat4(json["transform"]));
+
+    for (auto& componentJson : json["components"].items()) {
+        if (componentJson.key() == "mesh") {
+            auto& meshComponent = entity.ensure<sill::MeshComponent>();
+
+            auto path = componentJson.value()["path"].get<std::string>();
+            sill::makers::glbMeshMaker(path)(meshComponent);
+        }
+        else if (componentJson.key() == "sound-emitter") {
+            auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
+
+            const auto& sounds = componentJson.value()["sounds"];
+            for (const auto& sound : sounds) {
+                soundEmitterComponent.add(sound["hrid"], sound["path"]);
+            }
+        }
+        else {
+            logger.warning("vr-puzzle") << "Unhandled component '" << componentJson.key() << "'." << std::endl;
+        }
+    }
+
+    generic.entity(entity);
+}
+
+nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
+{
+    const auto& entity = generic.entity();
+
+    nlohmann::json json = {
+        {"name", entity.name()},
+        {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
+        {"components", nlohmann::json()},
+    };
+
+    auto& componentsJson = json["components"];
+    for (const auto& componentHrid : entity.componentsHrids()) {
+        if (componentHrid == "mesh") {
+            componentsJson[componentHrid] = {{"path", entity.get<sill::MeshComponent>().path()}};
+        }
+        else if (componentHrid == "sound-emitter") {
+            auto sounds = nlohmann::json::array();
+            for (const auto& sound : entity.get<sill::SoundEmitterComponent>().sounds()) {
+                sounds.emplace_back(nlohmann::json({
+                    {"hrid", sound.first},
+                    {"path", sound.second},
+                }));
+            }
+            componentsJson[componentHrid] = {{"sounds", sounds}};
+        }
+        else if (componentHrid == "transform") {
+            // Nothing to do
+        }
+        else {
+            logger.warning("vr-puzzle") << "Unhandled component '" << componentHrid << "' to serialize '" << entity.name()
+                                        << "' generic entity." << std::endl;
+        }
+    }
+
+    return json;
+}
+
+// ----- Level
+
 void unserializeLevel(GameState& gameState, const std::string& path)
 {
     std::ifstream levelFile(path);
@@ -112,21 +291,26 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     gameState.level.generics.clear();
     gameState.level.objects.clear();
 
+    // @note We add the object on the list before unserializing it.
+    // Because, for example, in Panel::updateFromSnappedBricks called by Brick,
+    // we go through gameState.level.bricks. So the brick has to be added
+    // to the list beforehands.
+
     for (auto& barrierJson : levelJson["barriers"]) {
-        auto barrier = unserializeBarrier(gameState, barrierJson);
-        gameState.level.barriers.emplace_back(std::move(barrier));
+        auto& barrier = gameState.level.barriers.emplace_back(std::make_unique<Barrier>(gameState));
+        unserializeBarrier(*barrier, gameState, barrierJson);
     }
     for (auto& panelJson : levelJson["panels"]) {
-        auto panel = unserializePanel(gameState, panelJson);
-        gameState.level.panels.emplace_back(std::move(panel));
+        auto& panel = gameState.level.panels.emplace_back(std::make_unique<Panel>(gameState));
+        unserializePanel(*panel, gameState, panelJson);
     }
     for (const auto& brickJson : levelJson["bricks"]) {
-        auto brick = unserializeBrick(gameState, brickJson);
-        gameState.level.bricks.emplace_back(std::move(brick));
+        auto& brick = gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
+        unserializeBrick(*brick, gameState, brickJson);
     }
     for (auto& genericJson : levelJson["generics"]) {
-        auto generic = unserializeGeneric(gameState, genericJson);
-        gameState.level.generics.emplace_back(std::move(generic));
+        auto& generic = gameState.level.generics.emplace_back(std::make_unique<Generic>(gameState));
+        unserializeGeneric(*generic, gameState, genericJson);
     }
 }
 
@@ -175,224 +359,32 @@ void serializeLevel(GameState& gameState, const std::string& path)
     gameState.level.path = path;
 }
 
-// ----- Bricks
-
-std::unique_ptr<Brick> unserializeBrick(GameState& gameState, const nlohmann::json& json)
-{
-    auto brick = std::make_unique<Brick>(gameState);
-
-    std::vector<glm::ivec2> blocks;
-    for (auto& blockJson : json["blocks"]) {
-        blocks.emplace_back(unserializeIvec2(blockJson));
-    }
-    brick->blocks(blocks);
-
-    auto& barriersJson = json["barriers"];
-    for (auto& barrierJson : barriersJson) {
-        brick->addBarrier(*gameState.level.barriers[barrierJson]);
-    }
-
-    brick->color(unserializeVec3(json["color"]));
-    brick->fixed(json["fixed"]);
-    brick->baseRotationLevel(json["rotationLevel"]);
-
-    auto& snapPanelJson = json["snapPanel"];
-    if (!snapPanelJson.is_null()) {
-        auto& panel = *gameState.level.panels[snapPanelJson];
-        brick->snap(panel, unserializeUvec2(json["snapCoordinates"]));
-    }
-
-    // @fixme Keep last because of a bug, blocks won't be moved otherwise.
-    brick->transform().worldTransform(unserializeMat4(json["transform"]));
-
-    return brick;
-}
-
-nlohmann::json serialize(GameState& gameState, const Brick& brick)
-{
-    nlohmann::json json = {
-        {"transform", serialize(brick.transform().worldTransform())},
-        {"blocks", nlohmann::json::array()},
-        {"barriers", nlohmann::json::array()},
-        {"color", serialize(brick.color())},
-        {"fixed", brick.fixed()},
-        {"rotationLevel", brick.rotationLevel()},
-        {"snapPanel", {}},
-    };
-
-    for (auto block : brick.blocks()) {
-        json["blocks"].emplace_back(serialize(block.nonRotatedCoordinates));
-    }
-
-    for (auto barrier : brick.barriers()) {
-        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
-    }
-
-    if (brick.snapped()) {
-        json["snapPanel"] = findPanelIndex(gameState, brick.snapPanel().entity());
-        json["snapCoordinates"] = serialize(brick.snapCoordinates());
-    }
-
-    return json;
-}
-
-// ----- Panels
-
-std::unique_ptr<Panel> unserializePanel(GameState& gameState, const nlohmann::json& json)
-{
-    auto panel = std::make_unique<Panel>(gameState);
-
-    panel->name(json["name"]);
-    panel->extent(unserializeUvec2(json["extent"]));
-
-    auto& barriersJson = json["barriers"];
-    for (auto& barrierJson : barriersJson) {
-        panel->addBarrier(*gameState.level.barriers[barrierJson]);
-    }
-
-    panel->transform().worldTransform(unserializeMat4(json["transform"]));
-
-    return panel;
-}
-
-nlohmann::json serialize(GameState& gameState, const Panel& panel)
-{
-    nlohmann::json json = {
-        {"name", panel.name()},
-        {"transform", serialize(panel.transform().worldTransform())},
-        {"extent", serialize(panel.extent())},
-        {"barriers", nlohmann::json::array()},
-    };
-
-    for (const auto& barrier : panel.barriers()) {
-        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
-    }
-
-    return json;
-}
-
-// ----- Barriers
-
-std::unique_ptr<Barrier> unserializeBarrier(GameState& gameState, const nlohmann::json& json)
-{
-    auto barrier = std::make_unique<Barrier>(gameState);
-
-    barrier->name(json["name"]);
-    barrier->transform().worldTransform(unserializeMat4(json["transform"]));
-    barrier->diameter(json["diameter"]);
-    barrier->powered(json["powered"]);
-
-    return barrier;
-}
-
-nlohmann::json serialize(GameState& /* gameState */, const Barrier& barrier)
-{
-    nlohmann::json json = {
-        {"name", barrier.name()},
-        {"transform", serialize(barrier.transform().worldTransform())},
-        {"powered", barrier.powered()},
-        {"diameter", barrier.diameter()},
-    };
-
-    return json;
-}
-
-// ----- Generics
-
-std::unique_ptr<Generic> unserializeGeneric(GameState& gameState, const nlohmann::json& json)
-{
-    auto generic = std::make_unique<Generic>(gameState);
-
-    auto& entity = gameState.engine->make<sill::GameEntity>(json["name"].get<std::string>());
-    entity.ensure<sill::TransformComponent>().worldTransform(unserializeMat4(json["transform"]));
-
-    for (auto& componentJson : json["components"].items()) {
-        if (componentJson.key() == "mesh") {
-            auto& meshComponent = entity.ensure<sill::MeshComponent>();
-
-            auto path = componentJson.value()["path"].get<std::string>();
-            sill::makers::glbMeshMaker(path)(meshComponent);
-        }
-        else if (componentJson.key() == "sound-emitter") {
-            auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
-
-            const auto& sounds = componentJson.value()["sounds"];
-            for (const auto& sound : sounds) {
-                soundEmitterComponent.add(sound["hrid"], sound["path"]);
-            }
-        }
-        else {
-            logger.warning("vr-puzzle") << "Unhandled component '" << componentJson.key() << "'." << std::endl;
-        }
-    }
-
-    generic->entity(entity);
-    return generic;
-}
-
-nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
-{
-    const auto& entity = generic.entity();
-
-    nlohmann::json json = {
-        {"name", entity.name()},
-        {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
-        {"components", nlohmann::json()},
-    };
-
-    auto& componentsJson = json["components"];
-    for (const auto& componentHrid : entity.componentsHrids()) {
-        if (componentHrid == "mesh") {
-            componentsJson[componentHrid] = {{"path", entity.get<sill::MeshComponent>().path()}};
-        }
-        else if (componentHrid == "sound-emitter") {
-            auto sounds = nlohmann::json::array();
-            for (const auto& sound : entity.get<sill::SoundEmitterComponent>().sounds()) {
-                sounds.emplace_back(nlohmann::json({
-                    {"hrid", sound.first},
-                    {"path", sound.second},
-                }));
-            }
-            componentsJson[componentHrid] = {{"sounds", sounds}};
-        }
-        else if (componentHrid == "transform") {
-            // Nothing to do
-        }
-        else {
-            logger.warning("vr-puzzle") << "Unhandled component '" << componentHrid << "' to serialize '" << entity.name()
-                                        << "' generic entity." << std::endl;
-        }
-    }
-
-    return json;
-}
-
 Object& duplicateBySerialization(GameState& gameState, const Object& object)
 {
     auto& entity = object.entity();
 
     if (entity.name() == "brick") {
         auto json = serialize(gameState, dynamic_cast<const Brick&>(object));
-        auto newBrick = unserializeBrick(gameState, json);
-        gameState.level.bricks.emplace_back(std::move(newBrick));
-        return *gameState.level.bricks.back();
+        auto& brick = *gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
+        unserializeBrick(brick, gameState, json);
+        return brick;
     }
     else if (entity.name() == "panel") {
         auto json = serialize(gameState, dynamic_cast<const Panel&>(object));
-        auto newPanel = unserializePanel(gameState, json);
-        gameState.level.panels.emplace_back(std::move(newPanel));
-        return *gameState.level.panels.back();
+        auto& panel = *gameState.level.panels.emplace_back(std::make_unique<Panel>(gameState));
+        unserializePanel(panel, gameState, json);
+        return panel;
     }
     else if (entity.name() == "barrier") {
         auto json = serialize(gameState, dynamic_cast<const Barrier&>(object));
-        auto newBarrier = unserializeBarrier(gameState, json);
-        gameState.level.barriers.emplace_back(std::move(newBarrier));
-        return *gameState.level.barriers.back();
+        auto& barrier = *gameState.level.barriers.emplace_back(std::make_unique<Barrier>(gameState));
+        unserializeBarrier(barrier, gameState, json);
+        return barrier;
     }
 
     // Generics
     auto json = serialize(gameState, dynamic_cast<const Generic&>(object));
-    auto newGeneric = unserializeGeneric(gameState, json);
-    gameState.level.generics.emplace_back(std::move(newGeneric));
-    return *gameState.level.generics.back();
+    auto& generic = *gameState.level.generics.emplace_back(std::make_unique<Generic>(gameState));
+    unserializeGeneric(generic, gameState, json);
+    return generic;
 }
