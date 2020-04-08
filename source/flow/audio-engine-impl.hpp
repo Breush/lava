@@ -18,7 +18,7 @@ namespace lava::flow {
 
         // ----- AudioEngine
 
-        void update();
+        void update(float dt);
 
         void add(std::unique_ptr<AudioSource>&& source);
 

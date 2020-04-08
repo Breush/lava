@@ -39,7 +39,7 @@ int main(void)
         soundPosition.y = -std::sin(omega) * 50.f;
         sound.position(soundPosition);
 
-        engine.update();
+        engine.update(0.f);
     }
 
     return EXIT_SUCCESS;

@@ -4,9 +4,9 @@
 
 using namespace lava::flow;
 
-void AudioEngine::Impl::update()
+void AudioEngine::Impl::update(float /* dt */)
 {
-    // @todo We could take a delta-time or a speed factor as a parameter.
+    // @todo We could use the delta-time or a speed factor as a parameter.
 
     for (const auto& source : m_sources) {
         if (source->impl().playing()) {

@@ -113,7 +113,7 @@ void GameEngine::Impl::run()
             updateEntities(updateDt);
 
             // Update audio.
-            m_audioEngine->update(); // @fixme No dt?
+            m_audioEngine->update(updateDt);
 
             updateTimeLag -= updateTime;
         }

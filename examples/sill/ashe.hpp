@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lava/sill.hpp>
+#include <lava/magma.hpp>
 #include <lava/crater.hpp>
 
 namespace lava::ashe {

@@ -29,7 +29,7 @@ int main(void)
             thunderSound.playOnce();
         }
 
-        engine.update();
+        engine.update(0.f);
     }
 
     return EXIT_SUCCESS;

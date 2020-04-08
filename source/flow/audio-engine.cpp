@@ -19,7 +19,7 @@ AudioEngine::~AudioEngine()
     delete m_impl;
 }
 
-$pimpl_method(AudioEngine, void, update);
+$pimpl_method(AudioEngine, void, update, float, dt);
 
 void AudioEngine::add(std::unique_ptr<AudioSource>&& source)
 {

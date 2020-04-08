@@ -14,8 +14,12 @@ namespace lava::flow {
         /**
          * To be called to mix and play all currently active audio.
          * Should be called regularly, like a rendering function.
+         *
+         * dt is in seconds the time to skip since last update.
+         * Can be set to 0.f to be kept in sync.
+         * @todo Unused so far.
          */
-        void update();
+        void update(float dt);
 
         /**
          * @name Makers
