@@ -199,21 +199,14 @@ magma::Material* MeshComponent::material(uint32_t nodeIndex, uint32_t primitiveI
 
 float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
 {
-    // @fixme Currently not handling PickPrecision::BoundingBox
 
     const auto& bs = boundingSphere();
-    auto rayOriginToBsCenter = bs.center - ray.origin;
-    auto distance = glm::dot(ray.direction, rayOriginToBsCenter);
-    if (distance <= 0.f) return 0.f;
+    float distance = intersectSphere(ray, bs.center, bs.radius);
+    if (distance == 0.f) return 0.f;
 
-    auto bsCenterProjection = ray.origin + ray.direction * distance;
-    if (glm::length(bs.center - bsCenterProjection) > bs.radius) return 0.f;
+    if (pickPrecision == PickPrecision::BoundingSphere) return distance;
 
-    if (pickPrecision != PickPrecision::Mesh) return distance;
-
-    // @fixme It might be a good idea to first check against the bounding spheres
-    // of each primitive.
-
+    // Reset because we're not sure of hitting geometry.
     distance = 0.f;
 
     for (const auto& node : nodes()) {
@@ -224,6 +217,11 @@ float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
                 continue;
             }
 
+            // Check against primitive's bounding sphere
+            const auto& bs = primitive->boundingSphere();
+            if (intersectSphere(ray, bs.center, bs.radius) == 0.f) continue;
+
+            // Check against primitive's triangles
             const auto& transform = primitive->transform();
             const auto& indices = primitive->indices();
             const auto& vertices = primitive->unlitVertices();

@@ -79,4 +79,18 @@ namespace lava {
 
         return t;
     }
+
+    // Outputs the parametrization of the intersection of ray with the sphere.
+    // Returns 0.f when not intersecting.
+    inline float intersectSphere(const Ray& ray, const glm::vec3& center, float radius)
+    {
+        auto originToCenter = center - ray.origin;
+        auto t = glm::dot(ray.direction, originToCenter);
+        if (t <= 0.f) return 0.f;
+
+        auto intersectionPoint = ray.origin + ray.direction * t;
+        if (glm::length(center - intersectionPoint) > radius) return 0.f;
+
+        return t;
+    }
 }
