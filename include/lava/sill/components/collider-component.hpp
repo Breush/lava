@@ -19,7 +19,6 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "collider"; }
-        void update(float dt) final;
 
         /**
          * @name Shapes

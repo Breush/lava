@@ -23,7 +23,8 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "mesh"; }
-        void update(float dt) override final;
+        void update(float dt) final;
+        void updateFrame() final;
 
         /**
          * @name Nodes
@@ -106,7 +107,7 @@ namespace lava::sill {
         };
 
     protected:
-        void onWorldTransformChanged();
+        void updateNodesTransforms();
         void resetAnimationInfo(AnimationInfo& animationInfo) const;
 
     private:
@@ -115,6 +116,7 @@ namespace lava::sill {
         // Resources
         std::vector<MeshNode> m_nodes;
         std::unordered_map<std::string, AnimationInfo> m_animationsInfos;
+        bool m_nodesTranformsDirty = true;
 
         // Attributes
         RenderCategory m_category = RenderCategory::Opaque;

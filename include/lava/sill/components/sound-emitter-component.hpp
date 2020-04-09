@@ -10,7 +10,6 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "sound-emitter"; }
-        void update(float dt) final;
 
         /// Sounds
         const std::unordered_map<std::string, std::string>& sounds() const { return m_sounds; }

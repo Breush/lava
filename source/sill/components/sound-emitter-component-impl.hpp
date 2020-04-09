@@ -9,9 +9,6 @@ namespace lava::sill {
     public:
         Impl(GameEntity& entity);
 
-        // IComponent
-        void update(float /* dt */) final {}
-
         // SoundEmitterComponent
         void add(const std::string& hrid, const std::string& path);
         void start(const std::string& hrid);

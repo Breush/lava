@@ -15,7 +15,7 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "flat"; }
-        void update(float /* dt */) final {}
+        void updateFrame() final;
 
         /// A flat node holds the geometry hierarchy.
         FlatNode& node(uint32_t index) { return m_nodes[index]; }
@@ -32,11 +32,12 @@ namespace lava::sill {
         magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex);
 
     protected:
-        void onWorldTransform2dChanged();
+        void updateNodesTransforms();
 
     private:
         TransformComponent& m_transformComponent;
 
         std::vector<FlatNode> m_nodes;
+        bool m_nodesTranformsDirty = true;
     };
 }

@@ -11,7 +11,7 @@ namespace lava::sill {
         Impl(GameEntity& entity);
 
         // IComponent
-        void update(float dt) override final;
+        void update(float dt);
 
         void text(const std::wstring& u16Text);
         void font(const std::string& hrid);

@@ -6,9 +6,6 @@ using namespace lava::sill;
 
 $pimpl_class_base(ColliderComponent, IComponent, GameEntity&, entity);
 
-// IComponent
-$pimpl_method(ColliderComponent, void, update, float, dt);
-
 // Shapes
 $pimpl_method(ColliderComponent, void, clearShapes);
 $pimpl_method(ColliderComponent, void, addBoxShape, const glm::vec3&, offset, const glm::vec3&, dimensions);

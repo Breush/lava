@@ -98,12 +98,8 @@ void UiButtonComponent::updateText()
     node.name = "text";
 
     // @todo We're missing the bounding box of flat - that would be useful here!
-    m_extent = {options.fontSize * m_text.size() * 0.5f, options.fontSize};
+    m_extent = {options.fontSize * m_text.size() * 0.4f, options.fontSize};
     m_flatComponent.node("background").transform(glm::scale(glm::mat3(1.f), m_extent));
-
-    // @fixme :TransformNeeded This update is needed to refresh the flat position!
-    // But shouldn't -- we should be able to refresh our positions after a flat is added in FlatCOmponent
-    m_transformComponent.translation2d(m_transformComponent.translation2d());
 
     m_textDirty = false;
 }

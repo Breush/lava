@@ -15,9 +15,6 @@ namespace lava::sill {
         Impl(GameEntity& entity);
         ~Impl();
 
-        // IComponent
-        void update(float /* dt */) final {}
-
         // ColliderComponent
         void clearShapes();
         void addBoxShape(const glm::vec3& offset, const glm::vec3& dimensions);
@@ -28,7 +25,7 @@ namespace lava::sill {
 
     protected:
         /// Callbacks
-        void onTransformChanged();
+        void onWorldTransformChanged();
 
     protected:
         struct BoxShape {

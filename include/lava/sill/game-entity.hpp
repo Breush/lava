@@ -16,6 +16,9 @@ namespace lava::sill {
      */
     class GameEntity final {
     public:
+        using ParentChangedCallback = std::function<void()>;
+
+    public:
         GameEntity(GameEngine& engine);
         GameEntity(GameEngine& engine, const std::string& name);
         GameEntity(const GameEntity& entity) = delete;
@@ -94,6 +97,14 @@ namespace lava::sill {
         void removeComponent(const std::string& hrid);
         /// @}
 
+        /**
+         * @name Components
+         */
+        /// @{
+        /// Be warned whenever the parent of the entity changes.
+        void onParentChanged(ParentChangedCallback callback) { m_parentChangedCallbacks.emplace_back(callback); }
+        /// @}
+
         /// Tools
         /// Returns 0.f if no intersection. Never returns a negative.
         float distanceFrom(Ray ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
@@ -108,6 +119,7 @@ namespace lava::sill {
         Impl* m_impl = nullptr;
 
         std::vector<std::string> m_componentsHrids;
+        std::vector<ParentChangedCallback> m_parentChangedCallbacks;
     };
 }
 

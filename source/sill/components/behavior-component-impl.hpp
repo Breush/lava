@@ -10,7 +10,7 @@ namespace lava::sill {
         Impl(GameEntity& entity);
 
         // IComponent
-        void update(float dt) override final;
+        void update(float dt);
 
         // BehaviorComponent
         void onUpdate(UpdateCallback updateCallback);

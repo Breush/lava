@@ -92,6 +92,8 @@ namespace {
 
 void unserializeBrick(Brick& brick, GameState& gameState, const nlohmann::json& json)
 {
+    brick.transform().worldTransform(unserializeMat4(json["transform"]));
+
     std::vector<glm::ivec2> blocks;
     for (auto& blockJson : json["blocks"]) {
         blocks.emplace_back(unserializeIvec2(blockJson));
@@ -112,9 +114,6 @@ void unserializeBrick(Brick& brick, GameState& gameState, const nlohmann::json& 
         auto& panel = *gameState.level.panels[snapPanelJson];
         brick.snap(panel, unserializeUvec2(json["snapCoordinates"]));
     }
-
-    // @fixme Keep last because of a bug, blocks won't be moved otherwise.
-    brick.transform().worldTransform(unserializeMat4(json["transform"]));
 }
 
 nlohmann::json serialize(GameState& gameState, const Brick& brick)

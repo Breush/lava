@@ -36,6 +36,7 @@ namespace lava::sill {
 
         // Forwarded to components.
         void update(float dt);
+        void updateFrame();
 
         GameEngine::Impl& engine() { return m_engine; }
         const GameEngine::Impl& engine() const { return m_engine; }

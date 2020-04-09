@@ -41,6 +41,5 @@ void PhysicsComponent::Impl::update(float /* dt */)
 
 void PhysicsComponent::Impl::onNonPhysicsWorldTransformChanged()
 {
-    const auto& worldTransform = m_transformComponent.worldTransform();
-    m_rigidBody->transform(worldTransform);
+    m_rigidBody->transform(m_transformComponent.worldTransform());
 }

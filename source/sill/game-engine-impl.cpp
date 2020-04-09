@@ -109,13 +109,18 @@ void GameEngine::Impl::run()
             // Update physics.
             m_physicsEngine->update(updateDt);
 
-            // Update all entities.
-            updateEntities(updateDt);
-
             // Update audio.
             m_audioEngine->update(updateDt);
 
+            // Update all entities.
+            updateEntities(updateDt);
+
             updateTimeLag -= updateTime;
+        }
+
+        // Entities update before each rendering
+        for (auto& entity : m_entities) {
+            entity->impl().updateFrame();
         }
 
         // Render the scene.
@@ -126,7 +131,7 @@ void GameEngine::Impl::run()
 
 void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
 {
-    logger.info("sill.game-engine").tab(1) << "Adding entity " << &gameEntity->impl() << " '" << gameEntity->name() << "'." << std::endl;
+    logger.info("sill.game-engine").tab(1) << "Adding entity " << gameEntity.get() << " '" << gameEntity->name() << "'." << std::endl;
 
     m_pendingAddedEntities.emplace_back(std::move(gameEntity));
 
@@ -135,7 +140,7 @@ void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
 
 void GameEngine::Impl::remove(const GameEntity& gameEntity)
 {
-    logger.info("sill.game-engine").tab(1) << "Removing entity " << &gameEntity.impl() << " '" << gameEntity.name() << "'." << std::endl;
+    logger.info("sill.game-engine").tab(1) << "Removing entity " << &gameEntity << " '" << gameEntity.name() << "'." << std::endl;
 
     m_pendingRemovedEntities.emplace_back(&gameEntity);
 

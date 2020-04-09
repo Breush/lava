@@ -11,7 +11,14 @@ FlatComponent::FlatComponent(GameEntity& entity)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<sill::TransformComponent>())
 {
-    m_transformComponent.onWorldTransform2dChanged([this]() { onWorldTransform2dChanged(); });
+    m_transformComponent.onWorldTransform2dChanged([this]() { m_nodesTranformsDirty = true; });
+}
+
+void FlatComponent::updateFrame()
+{
+    if (m_nodesTranformsDirty) {
+        updateNodesTransforms();
+    }
 }
 
 // ----- Nodes
@@ -27,13 +34,12 @@ FlatNode& FlatComponent::node(const std::string& name)
 void FlatComponent::nodes(std::vector<FlatNode>&& nodes)
 {
     m_nodes = std::move(nodes);
-
-    // Update all flats transform
-    onWorldTransform2dChanged();
+    m_nodesTranformsDirty = true;
 }
 
 FlatNode& FlatComponent::addNode()
 {
+    m_nodesTranformsDirty = true;
     return m_nodes.emplace_back();
 }
 
@@ -46,6 +52,7 @@ void FlatComponent::removeNode(const std::string& name)
     if (nodeIt == m_nodes.end()) return;
 
     m_nodes.erase(nodeIt);
+    m_nodesTranformsDirty = true;
 }
 
 // ----- Helpers
@@ -62,7 +69,7 @@ magma::Material* FlatComponent::material(uint32_t nodeIndex, uint32_t primitiveI
 
 // ----- Internal
 
-void FlatComponent::onWorldTransform2dChanged()
+void FlatComponent::updateNodesTransforms()
 {
     for (const auto& node : m_nodes) {
         if (!node.flatGroup) continue;
@@ -70,4 +77,6 @@ void FlatComponent::onWorldTransform2dChanged()
         auto transform = m_transformComponent.worldTransform2d() * node.localTransform;
         node.flatGroup->transform(transform);
     }
+
+    m_nodesTranformsDirty = false;
 }

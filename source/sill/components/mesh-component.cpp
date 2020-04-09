@@ -44,10 +44,7 @@ MeshComponent::MeshComponent(GameEntity& entity)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
-    m_transformComponent.onWorldTransformChanged([this]() { onWorldTransformChanged(); });
-
-    // Init correctly on first creation
-    onWorldTransformChanged();
+    m_transformComponent.onWorldTransformChanged([this]() { m_nodesTranformsDirty = true; });
 }
 
 void MeshComponent::update(float dt)
@@ -131,10 +128,17 @@ void MeshComponent::update(float dt)
         }
     }
 
-    // @todo We could bee more clever to update only the nodes
-    // that need to be updated while being sure it's done only once.
     if (nodesAnimated) {
-        onWorldTransformChanged();
+        m_nodesTranformsDirty = true;
+    }
+}
+
+void MeshComponent::updateFrame()
+{
+    // @todo We could be more clever to update only the nodes
+    // that need to be updated while being sure it's done only once.
+    if (m_nodesTranformsDirty) {
+        updateNodesTransforms();
     }
 }
 
@@ -155,8 +159,7 @@ void MeshComponent::nodes(std::vector<MeshNode>&& nodes)
         }
     }
 
-    // Update all meshes transform
-    onWorldTransformChanged();
+    m_nodesTranformsDirty = true;
 }
 
 MeshNode& MeshComponent::addNode()
@@ -182,6 +185,7 @@ MeshNode& MeshComponent::addNode()
         }
     }
 
+    m_nodesTranformsDirty = true;
     return m_nodes.back();
 }
 
@@ -199,7 +203,6 @@ magma::Material* MeshComponent::material(uint32_t nodeIndex, uint32_t primitiveI
 
 float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
 {
-
     const auto& bs = boundingSphere();
     float distance = intersectSphere(ray, bs.center, bs.radius);
     if (distance == 0.f) return 0.f;
@@ -328,18 +331,17 @@ void MeshComponent::printHierarchy(std::ostream& s) const
 
 // ----- Internal
 
-void MeshComponent::onWorldTransformChanged()
+void MeshComponent::updateNodesTransforms()
 {
-    // @todo We can be more clever than this and dirtify the transforms,
-    // waiting for the next update cycle to effectively update.
-
-    auto modelTransform = m_transformComponent.worldTransform();
+    const auto& worldTransform = m_transformComponent.worldTransform();
 
     // @note The root nodes have just no parent!
     for (auto& node : m_nodes) {
         if (node.parent != nullptr) continue;
-        updateNodeTransforms(node, modelTransform);
+        updateNodeTransforms(node, worldTransform);
     }
+
+    m_nodesTranformsDirty = false;
 }
 
 void MeshComponent::resetAnimationInfo(AnimationInfo& animationInfo) const

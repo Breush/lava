@@ -34,7 +34,7 @@ namespace lava::sill {
 
         /// IComponent
         static std::string hrid() { return "transform"; }
-        void update(float /* dt */) final {}
+        void update(float dt) final;
 
         /**
          * @name Local transform
@@ -105,6 +105,7 @@ namespace lava::sill {
 
         // 2D
         const glm::mat3& worldTransform2d() const { return m_worldTransform2d; }
+        void worldTransform2d(const glm::mat3& transform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         /// }
 
         /**
@@ -125,8 +126,10 @@ namespace lava::sill {
     protected:
         void updateTransform(ChangeReasonFlag changeReasonFlag);
         void updateWorldTransform(ChangeReasonFlag changeReasonFlag);
+        void updateChildrenWorldTransform();
         void updateTransform2d(ChangeReasonFlag changeReasonFlag);
         void updateWorldTransform2d(ChangeReasonFlag changeReasonFlag);
+        void updateChildrenWorldTransform2d();
 
     public:
         struct TransformChangedCallbackInfo {
@@ -154,5 +157,7 @@ namespace lava::sill {
         std::vector<TransformChangedCallbackInfo> m_worldTransformChangedCallbacks;
         std::vector<TransformChangedCallbackInfo> m_transform2dChangedCallbacks;
         std::vector<TransformChangedCallbackInfo> m_worldTransform2dChangedCallbacks;
+
+        bool m_everUpdated = false;
     };
 }

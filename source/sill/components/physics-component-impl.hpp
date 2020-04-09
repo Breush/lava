@@ -15,7 +15,7 @@ namespace lava::sill {
         ~Impl();
 
         // IComponent
-        void update(float dt) final;
+        void update(float dt);
 
         dike::RigidBody& dike() { return *m_rigidBody; }
 

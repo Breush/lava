@@ -272,7 +272,7 @@ void setupEditor(GameState& gameState)
     // Gizmo
     {
         auto& gizmoEntity = engine.make<sill::GameEntity>("gizmo");
-        gizmoEntity.ensure<sill::TransformComponent>();
+        gizmoEntity.ensure<sill::TransformComponent>().scaling(0.f);
         gameState.editor.gizmo.entity = &gizmoEntity;
 
         // --- Translation
@@ -320,9 +320,6 @@ void setupEditor(GameState& gameState)
             rotationToolEntity.addChild(axisEntity);
         }
 
-        // @fixme There's an engine bug where doing that before adding children,
-        // won't update children's transforms.
-        gizmoEntity.get<sill::TransformComponent>().scaling(0.f);
         setGizmoTool(gameState, GizmoTool::Translation);
     }
 

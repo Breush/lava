@@ -3,6 +3,15 @@
 using namespace lava::chamber;
 using namespace lava::sill;
 
+namespace {
+    void callParentChanged(const std::vector<GameEntity::ParentChangedCallback>& callbacks)
+    {
+        for (auto callback : callbacks) {
+            callback();
+        }
+    }
+}
+
 GameEntity::Impl::Impl(GameEntity& entity, GameEngine& engine)
     : m_entity(entity)
     , m_engine(engine.impl())
@@ -41,10 +50,22 @@ void GameEntity::Impl::update(float dt)
     // @todo Remove components asynchronously too
 }
 
+void GameEntity::Impl::updateFrame()
+{
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    // Effective update
+    for (auto& component : m_components) {
+        component.second->updateFrame();
+    }
+}
+
 // ----- GameEntity hierarchy
 
 void GameEntity::Impl::parent(GameEntity* parent, bool updateParent)
 {
+    if (m_parent == parent) return;
+
     if (updateParent && m_parent) {
         m_parent->forgetChild(m_entity, false);
     }
@@ -54,6 +75,9 @@ void GameEntity::Impl::parent(GameEntity* parent, bool updateParent)
     if (updateParent && m_parent) {
         m_parent->addChild(m_entity, false);
     }
+
+    // @todo :Refactor Why an Impl for GameEntity? There's no back-end to hide!
+    callParentChanged(m_entity.m_parentChangedCallbacks);
 }
 
 void GameEntity::Impl::addChild(GameEntity& child, bool updateChild)
@@ -110,7 +134,7 @@ void GameEntity::Impl::add(const std::string& hrid, std::unique_ptr<IComponent>&
         logger.error("sill.game-entity") << "Entity '" << m_name << "' already has a " << hrid << " component." << std::endl;
     }
 
-    logger.info("sill.game-entity").tab(2) << "(" << this << " '" << m_name << "') Adding " << hrid << " component." << std::endl;
+    logger.info("sill.game-entity").tab(2) << "(" << &m_entity << " '" << m_name << "') Adding " << hrid << " component." << std::endl;
 
     m_pendingAddedComponents.emplace(hrid, std::move(component));
 

@@ -14,7 +14,7 @@ ColliderComponent::Impl::Impl(GameEntity& entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
     , m_physicsComponent(m_entity.ensure<PhysicsComponent>())
 {
-    m_transformComponent.onTransformChanged([this]() { onTransformChanged(); });
+    m_transformComponent.onWorldTransformChanged([this]() { onWorldTransformChanged(); });
 }
 
 ColliderComponent::Impl::~Impl()
@@ -110,7 +110,7 @@ void ColliderComponent::Impl::debugEnabled(bool debugEnabled)
 
 //----- Callbacks
 
-void ColliderComponent::Impl::onTransformChanged()
+void ColliderComponent::Impl::onWorldTransformChanged()
 {
     if (m_debugEnabled) {
         const auto& worldTransform = m_transformComponent.worldTransform();

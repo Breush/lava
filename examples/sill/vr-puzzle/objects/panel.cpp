@@ -97,17 +97,14 @@ void Panel::extent(const glm::uvec2& extent)
 
     updateBorderMeshPrimitive();
 
-    // @fixme NEEDED to refresh node transforms.
-    m_entity->get<sill::TransformComponent>().worldTransform(m_entity->get<sill::TransformComponent>().worldTransform());
-
     // Reset rules
     m_links.clear();
 
     m_uniformData.resize(extent.x * extent.y);
     updateUniformData();
 
-    updateSolved();
     updateSnappingPoints();
+    updateSolved();
 }
 
 void Panel::addLink(const glm::uvec2& from, const glm::uvec2& to)

@@ -21,7 +21,6 @@ namespace lava::sill {
 
         // IComponent
         static std::string hrid() { return "camera"; }
-        void update(float /* dt */) final {}
 
         /**
          * @name Configuration
