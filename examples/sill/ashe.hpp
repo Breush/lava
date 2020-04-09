@@ -38,7 +38,7 @@ namespace lava::ashe {
 
             auto& cameraEntity = m_engine.make<sill::GameEntity>("ashe.camera");
             auto& cameraComponent = cameraEntity.make<sill::CameraComponent>();
-            cameraComponent.origin({-2.f, 3.f, 2.f});
+            cameraComponent.origin({-2.f, -3.f, 2.f});
             cameraComponent.target({0.f, 0.f, 0.f});
 
             auto& cameraBehaviorComponent = cameraEntity.make<sill::BehaviorComponent>();

@@ -27,7 +27,7 @@ int main(void)
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::PlaneMeshOptions options = {.doubleSided = true};
         sill::makers::planeMeshMaker({1, 1}, options)(meshComponent);
-        entity.get<sill::TransformComponent>().translate({0.f, 1.2f, 0.f});
+        entity.get<sill::TransformComponent>().translate({0.f, -1.2f, 0.f});
     }
 
     // Box mesh maker
@@ -35,7 +35,7 @@ int main(void)
         auto& entity = engine.make<sill::GameEntity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::boxMeshMaker(1.f)(meshComponent);
-        entity.get<sill::TransformComponent>().translate({0.f, -1.2f, 0.f});
+        entity.get<sill::TransformComponent>().translate({0.f, 1.2f, 0.f});
     }
 
     // Sphere mesh maker

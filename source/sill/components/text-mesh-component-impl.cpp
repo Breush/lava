@@ -40,12 +40,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
     // Converting vec2 positions to vec3
     positions.reserve(geometry.positions.size());
     for (const auto& position : geometry.positions) {
-        positions.emplace_back(position, 0.f);
-    }
-
-    // UVs are reversed somehow @todo Inspect why it works with flats
-    for (auto& uv : geometry.uvs) {
-        uv.y *= -1.f;
+        positions.emplace_back(position.x, 0.f, -position.y);
     }
 
     auto meshGroup = std::make_unique<MeshGroup>(m_entity.engine());
@@ -64,7 +59,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
 
     std::vector<MeshNode> nodes(1u);
     nodes[0u].meshGroup = std::move(meshGroup);
-    nodes[0u].transform(glm::scale(glm::mat4(1.f), glm::vec3{1.f / textOptions.fontSize}));
+    nodes[0u].transform(glm::scale(glm::mat4(1.f), glm::vec3{0.01f}));
 
     auto& meshComponent = m_entity.get<MeshComponent>();
     meshComponent.nodes(std::move(nodes));

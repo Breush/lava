@@ -69,8 +69,9 @@ FloatExtent2d sill::glyphsExtent(const std::vector<Font::GlyphInfo>& glyphsInfos
 
     extent.height = 1.f;
     for (const auto& glyphInfo : glyphsInfos) {
-        extent.width += glyphInfo.advance;
+        extent.width += glyphInfo.xOffset;
     }
+    extent.width += glyphsInfos.back().width;
     return extent;
 }
 
@@ -82,7 +83,6 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, Te
     auto& indices = geometry.indices;
 
     auto& font = engine.font(options.fontHrid, options.fontSize);
-    const auto glyphsRatio = font.glyphsRatio();
 
     float yOffset = 0.f;
     auto glyphsCount = 0u;
@@ -105,28 +105,29 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, Te
 
         // Fill up geometry
         for (const auto& glyphInfo : glyphsInfos) {
-            indices.emplace_back(4u * glyphsCount + 0u);
+            indices.emplace_back(4u * glyphsCount + 3u);
             indices.emplace_back(4u * glyphsCount + 2u);
-            indices.emplace_back(4u * glyphsCount + 3u);
-            indices.emplace_back(4u * glyphsCount + 3u);
-            indices.emplace_back(4u * glyphsCount + 1u);
             indices.emplace_back(4u * glyphsCount + 0u);
+            indices.emplace_back(4u * glyphsCount + 0u);
+            indices.emplace_back(4u * glyphsCount + 1u);
+            indices.emplace_back(4u * glyphsCount + 3u);
 
-            positions.emplace_back(xOffset, yOffset);
-            positions.emplace_back(xOffset, yOffset + 1);
-            positions.emplace_back(xOffset + glyphsRatio, yOffset);
-            positions.emplace_back(xOffset + glyphsRatio, yOffset + 1);
+            xOffset += glyphInfo.xOffset;
+            auto y = yOffset + glyphInfo.yOffset;
+            positions.emplace_back(xOffset, y);
+            positions.emplace_back(xOffset, y + glyphInfo.height);
+            positions.emplace_back(xOffset + glyphInfo.width, y);
+            positions.emplace_back(xOffset + glyphInfo.width, y + glyphInfo.height);
 
             uvs.emplace_back(glyphInfo.minUv.x, glyphInfo.minUv.y);
             uvs.emplace_back(glyphInfo.minUv.x, glyphInfo.maxUv.y);
             uvs.emplace_back(glyphInfo.maxUv.x, glyphInfo.minUv.y);
             uvs.emplace_back(glyphInfo.maxUv.x, glyphInfo.maxUv.y);
 
-            xOffset += glyphInfo.advance;
             glyphsCount += 1u;
         }
 
-        yOffset -= textExtent.height;
+        yOffset += textExtent.height;
     }
 
     //----- Adjust for anchors

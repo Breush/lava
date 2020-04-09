@@ -37,4 +37,3 @@ epiphany {
         return vec4(1, 1, 1, gBuffer.opacity);
     }
 }
- 
