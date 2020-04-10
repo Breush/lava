@@ -33,9 +33,8 @@ std::function<FlatNode&(FlatComponent&)> makers::textFlatMaker(const std::wstrin
         primitive.verticesUvs(geometry.uvs);
         primitive.indices(geometry.indices);
 
-        auto& font = engine.font(textOptions.fontHrid, textOptions.fontSize);
         auto& material = flatComponent.entity().engine().scene2d().make<magma::Material>("font");
-        material.set("fontTexture", font.texture());
+        material.set("fontTexture", *geometry.texture);
         primitive.material(material);
 
         return node;

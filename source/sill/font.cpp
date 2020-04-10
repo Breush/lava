@@ -1,4 +1,4 @@
-#include "./font.hpp"
+#include <lava/sill/font.hpp>
 
 #include <lava/sill/game-engine.hpp>
 

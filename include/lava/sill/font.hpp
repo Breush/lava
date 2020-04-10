@@ -1,5 +1,16 @@
 #pragma once
 
+#include <glm/vec2.hpp>
+#include <lava/chamber/stb/truetype.hpp>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+namespace lava::magma {
+    class Texture;
+}
+
 namespace lava::sill {
     class GameEngine;
 }

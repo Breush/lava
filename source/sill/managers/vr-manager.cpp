@@ -1,4 +1,4 @@
-#include <lava/sill/vr-manager.hpp>
+#include <lava/sill/managers/vr-manager.hpp>
 
 #include <lava/sill/game-engine.hpp>
 

@@ -2,7 +2,6 @@
 
 #include <lava/sill/components/text-mesh-component.hpp>
 
-#include "../font.hpp"
 #include "./component-impl.hpp"
 
 namespace lava::sill {

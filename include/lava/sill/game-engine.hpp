@@ -1,8 +1,10 @@
 #pragma once
 
 #include <lava/sill/pick-precision.hpp>
-#include <lava/sill/ui-manager.hpp>
-#include <lava/sill/vr-manager.hpp>
+#include <lava/sill/managers/font-manager.hpp>
+#include <lava/sill/managers/input-manager.hpp>
+#include <lava/sill/managers/ui-manager.hpp>
+#include <lava/sill/managers/vr-manager.hpp>
 
 #include <functional>
 #include <lava/core/filesystem.hpp>
@@ -25,8 +27,6 @@ namespace lava::magma {
 
 namespace lava::sill {
     class GameEntity;
-    class InputManager;
-    class Font;
 }
 
 namespace lava::sill {
@@ -44,12 +44,6 @@ namespace lava::sill {
         GameEngine();
         ~GameEngine();
 
-        /// Access input manager.
-        InputManager& input();
-
-        /// Access the VR manager.
-        VrManager& vr() { return m_vrManager; }
-
         /// Access physics engine.
         dike::PhysicsEngine& physicsEngine();
 
@@ -63,18 +57,18 @@ namespace lava::sill {
         /// Access the windowing system.
         crater::Window& window();
 
-        /// Access the UI.
-        UiManager& ui() { return m_uiManager; }
-
         /// Log FPS at each second.
         bool fpsCounting() const;
         void fpsCounting(bool fpsCounting);
 
         /**
-         * @name Fonts
+         * @name Managers
          */
         /// @{
-        Font& font(const std::string& hrid, uint32_t size = 32u);
+        FontManager& font() { return m_fontManager; }
+        InputManager& input() { return m_inputManager; }
+        UiManager& ui() { return m_uiManager; }
+        VrManager& vr() { return m_vrManager; }
         /// @}
 
         /**
@@ -142,6 +136,9 @@ namespace lava::sill {
     private:
         Impl* m_impl = nullptr;
 
+        // Managers
+        FontManager m_fontManager{*this};
+        InputManager m_inputManager;
         UiManager m_uiManager{*this};
         VrManager m_vrManager{*this};
 

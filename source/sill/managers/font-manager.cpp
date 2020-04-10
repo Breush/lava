@@ -1,4 +1,4 @@
-#include "./font-manager.hpp"
+#include <lava/sill/managers/font-manager.hpp>
 
 using namespace lava::sill;
 using namespace lava::chamber;
@@ -16,7 +16,7 @@ void FontManager::registerFont(const std::string& hrid, const std::string& path)
     m_paths[hrid] = path;
 }
 
-Font& FontManager::font(const std::string& hrid, uint32_t size)
+Font& FontManager::get(const std::string& hrid, uint32_t size)
 {
     auto id = hrid + ":" + std::to_string(size);
 

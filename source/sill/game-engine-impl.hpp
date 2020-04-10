@@ -3,9 +3,6 @@
 #include <lava/sill/game-engine.hpp>
 
 #include <lava/sill/game-entity.hpp>
-#include <lava/sill/input-manager.hpp>
-
-#include "./font-manager.hpp"
 
 namespace lava::sill {
     class GameEngine::Impl {
@@ -19,16 +16,12 @@ namespace lava::sill {
         /// @{
         GameEngine& engine() { return m_engine; }
         const GameEngine& engine() const { return m_engine; }
-        InputManager& input() { return m_inputManager; }
         dike::PhysicsEngine& physicsEngine() { return *m_physicsEngine; }
         flow::AudioEngine& audioEngine() { return *m_audioEngine; }
         crater::Window& window() { return *m_window; }
 
         bool fpsCounting() const { return m_fpsCounting; }
         void fpsCounting(bool fpsCounting) { m_fpsCounting = fpsCounting; }
-
-        // Fonts
-        Font& font(const std::string& hrid, uint32_t size) { return m_fontManager.font(hrid, size); }
 
         // Adders
         void add(std::unique_ptr<GameEntity>&& gameEntity);
@@ -101,12 +94,6 @@ namespace lava::sill {
 
         // Audio
         std::unique_ptr<flow::AudioEngine> m_audioEngine = nullptr;
-
-        // Fonts
-        FontManager m_fontManager;
-
-        // Input
-        InputManager m_inputManager;
 
         // Entities
         std::vector<std::unique_ptr<GameEntity>> m_entities;

@@ -52,9 +52,8 @@ void TextMeshComponent::Impl::update(float /* dt */)
     primitive.indices(geometry.indices);
     primitive.category(RenderCategory::Translucent);
 
-    auto& font = m_entity.engine().font(textOptions.fontHrid, textOptions.fontSize);
     auto& material = m_entity.engine().scene().make<magma::Material>("font");
-    material.set("fontTexture", font.texture());
+    material.set("fontTexture", *geometry.texture);
     primitive.material(material);
 
     std::vector<MeshNode> nodes(1u);

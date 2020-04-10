@@ -1,76 +1,76 @@
-#include "./input-manager-impl.hpp"
+#include <lava/sill/managers/input-manager.hpp>
 
 using namespace lava::sill;
 
-bool InputManager::Impl::down(const std::string& actionName) const
+bool InputManager::down(const std::string& actionName) const
 {
     const auto& action = m_actions.at(actionName);
     return action.activeness > 0;
 }
 
-bool InputManager::Impl::up(const std::string& actionName) const
+bool InputManager::up(const std::string& actionName) const
 {
     const auto& action = m_actions.at(actionName);
     return action.activeness == 0;
 }
 
-bool InputManager::Impl::justDown(const std::string& actionName) const
+bool InputManager::justDown(const std::string& actionName) const
 {
     const auto& action = m_actions.at(actionName);
     return action.activeness > 0 && action.previousActiveness == 0;
 }
 
-bool InputManager::Impl::justUp(const std::string& actionName) const
+bool InputManager::justUp(const std::string& actionName) const
 {
     const auto& action = m_actions.at(actionName);
     return action.activeness == 0 && action.previousActiveness != 0;
 }
 
-bool InputManager::Impl::justDownUp(const std::string& actionName) const
+bool InputManager::justDownUp(const std::string& actionName) const
 {
     const auto& action = m_actions.at(actionName);
     return action.activeness == 0 && action.previousActiveness != 0 &&
            m_previousUpdatedBindings.find("action." + actionName) != m_previousUpdatedBindings.end();
 }
 
-bool InputManager::Impl::axisChanged(const std::string& axisName) const
+bool InputManager::axisChanged(const std::string& axisName) const
 {
     const auto& axis = m_axes.at(axisName);
     return axis.value != 0.f;
 }
 
-float InputManager::Impl::axis(const std::string& axisName) const
+float InputManager::axis(const std::string& axisName) const
 {
     const auto& axis = m_axes.at(axisName);
     return axis.value;
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, MouseButton mouseButton)
+void InputManager::bindAction(const std::string& actionName, MouseButton mouseButton)
 {
     m_actions[actionName].mouseButtons.emplace(mouseButton);
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, VrButton vrButton, VrDeviceType hand)
+void InputManager::bindAction(const std::string& actionName, VrButton vrButton, VrDeviceType hand)
 {
     m_actions[actionName].vrControllerButtons.emplace_back(VrControllerButton{hand, vrButton});
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, Key key)
+void InputManager::bindAction(const std::string& actionName, Key key)
 {
     m_actions[actionName].keys.emplace_back(std::set({key}));
 }
 
-void InputManager::Impl::bindAction(const std::string& actionName, const std::set<Key>& keys)
+void InputManager::bindAction(const std::string& actionName, const std::set<Key>& keys)
 {
     m_actions[actionName].keys.emplace_back(keys);
 }
 
-void InputManager::Impl::bindAxis(const std::string& axisName, InputAxis inputAxis)
+void InputManager::bindAxis(const std::string& axisName, InputAxis inputAxis)
 {
     m_axes[axisName].inputAxes.emplace(inputAxis);
 }
 
-void InputManager::Impl::updateReset()
+void InputManager::updateReset()
 {
     if (!m_updatedBindings.empty()) {
         m_previousUpdatedBindings = m_updatedBindings;
@@ -88,7 +88,7 @@ void InputManager::Impl::updateReset()
     }
 }
 
-void InputManager::Impl::update(WsEvent& event)
+void InputManager::update(WsEvent& event)
 {
     // Mouse buttons
     if (event.type == WsEventType::MouseButtonPressed) {
@@ -181,7 +181,7 @@ void InputManager::Impl::update(WsEvent& event)
     }
 }
 
-void InputManager::Impl::update(VrEvent& event)
+void InputManager::update(VrEvent& event)
 {
     // VR buttons
     if (event.type == VrEventType::ButtonPressed) {
@@ -220,7 +220,7 @@ void InputManager::Impl::update(VrEvent& event)
     }
 }
 
-bool InputManager::Impl::keysPressed(const std::set<Key>& keys) const
+bool InputManager::keysPressed(const std::set<Key>& keys) const
 {
     for (auto key : keys) {
         if (m_keysPressed.find(key) == m_keysPressed.end() || !m_keysPressed.at(key)) {

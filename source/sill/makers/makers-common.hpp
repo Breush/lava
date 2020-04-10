@@ -1,8 +1,6 @@
 #pragma once
 
-// @fixme This should be public!
-// Otherwise nobody could have made a text maker.
-#include "../font.hpp"
+#include <lava/sill/font.hpp>
 
 namespace lava::sill {
     void addCirclePoints(std::vector<glm::vec3>& points, std::vector<glm::vec2>& uvs, const uint32_t tessellation,
@@ -20,6 +18,7 @@ namespace lava::sill {
         std::vector<uint16_t> indices;
         std::vector<glm::vec2> positions;
         std::vector<glm::vec2> uvs;
+        magma::Texture* texture;
     };
 
     // @todo :Refactor Could be shared with the TextFlat maker one

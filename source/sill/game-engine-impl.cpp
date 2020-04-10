@@ -7,7 +7,6 @@ using namespace lava::chamber;
 
 GameEngine::Impl::Impl(GameEngine& engine)
     : m_engine(engine)
-    , m_fontManager(engine)
 {
     chamber::startProfiling();
     PROFILE_FUNCTION(PROFILER_COLOR_INIT);
@@ -61,7 +60,7 @@ GameEngine::Impl::Impl(GameEngine& engine)
 
     //----- Initializing fonts
 
-    m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
+    m_engine.font().registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
 }
 
 GameEngine::Impl::~Impl()
@@ -172,14 +171,14 @@ void GameEngine::Impl::updateInput()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    m_inputManager.updateReset();
+    m_engine.input().updateReset();
 
     while (auto event = m_window->pollEvent()) {
         bool propagate = true;
         handleEvent(*event, propagate);
         if (!propagate) continue;
 
-        m_inputManager.update(*event);
+        m_engine.input().update(*event);
     }
 
     // Update VR controllers
@@ -200,7 +199,7 @@ void GameEngine::Impl::updateInput()
 
     // Handle VR event
     while (auto event = m_renderEngine->vrPollEvent()) {
-        m_inputManager.update(*event);
+        m_engine.input().update(*event);
     }
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./font.hpp"
+#include <lava/sill/font.hpp>
 
 namespace lava::sill {
     class GameEngine;
@@ -11,11 +11,11 @@ namespace lava::sill {
     public:
         FontManager(GameEngine& engine);
 
-        // @todo Can't it be a make<Font>(hrid, path) inside game-engine ?
+        // Save the font
         void registerFont(const std::string& hrid, const std::string& path);
 
         // Getters
-        Font& font(const std::string& hrid, uint32_t size);
+        Font& get(const std::string& hrid, uint32_t size);
 
     private:
         // References
