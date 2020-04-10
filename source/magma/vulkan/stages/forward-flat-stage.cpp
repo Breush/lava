@@ -59,7 +59,7 @@ void ForwardFlatStage::rebuild()
     }
 }
 
-void ForwardFlatStage::render(vk::CommandBuffer commandBuffer, uint32_t /* frameId */)
+void ForwardFlatStage::record(vk::CommandBuffer commandBuffer, uint32_t /* frameId */)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 

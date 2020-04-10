@@ -79,7 +79,7 @@ void DeepDeferredStage::rebuild()
     }
 }
 
-void DeepDeferredStage::render(vk::CommandBuffer commandBuffer, uint32_t frameId)
+void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 

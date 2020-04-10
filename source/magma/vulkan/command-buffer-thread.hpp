@@ -39,8 +39,7 @@ namespace lava::magma::vulkan {
                 beginInfo.pInheritanceInfo = &inheritanceInfo;
 
                 commandBuffer.begin(&beginInfo);
-                // @fixme We should rename render -> record
-                stage.render(commandBuffer, args...);
+                stage.record(commandBuffer, args...);
                 commandBuffer.end();
             });
         }

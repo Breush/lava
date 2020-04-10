@@ -55,7 +55,7 @@ void ShadowsStage::updateFromCamerasCount()
     createResources();
 }
 
-void ShadowsStage::render(vk::CommandBuffer commandBuffer, const Camera* camera)
+void ShadowsStage::record(vk::CommandBuffer commandBuffer, const Camera* camera)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
 

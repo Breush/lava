@@ -25,7 +25,7 @@ namespace lava::magma {
         // IRendererStage
         void init(const Camera& camera) final;
         void rebuild() final;
-        void render(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
+        void record(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
 
         void extent(vk::Extent2D extent) final;
         void sampleCount(vk::SampleCountFlagBits /* sampleCount */) final { /* Not handled */ }

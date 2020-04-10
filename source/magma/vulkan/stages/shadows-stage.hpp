@@ -22,7 +22,7 @@ namespace lava::magma {
         void init(const Light& light);
         void update(vk::Extent2D extent);
         void updateFromCamerasCount();
-        void render(vk::CommandBuffer commandBuffer, const Camera* camera);
+        void record(vk::CommandBuffer commandBuffer, const Camera* camera);
 
         RenderImage renderImage(const Camera& camera, uint32_t cascadeIndex = 0u) const;
         vk::RenderPass renderPass() const { return m_renderPassHolder.renderPass(); }
