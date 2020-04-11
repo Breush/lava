@@ -5,9 +5,8 @@
 #include <lava/chamber/bucket-allocator.hpp>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/viewport.hpp>
-#include <lava/core/vr-device-type.hpp>
-#include <lava/core/vr-event.hpp>
 #include <lava/magma/material-info.hpp>
+#include <lava/magma/vr-engine.hpp>
 #include <memory>
 
 namespace lava::magma {
@@ -91,35 +90,8 @@ namespace lava::magma {
          * @name VR
          */
         /// @{
-        /// Poll VR event.
-        std::optional<VrEvent> vrPollEvent();
-
-        /// The world translation of the VR area.
-        const glm::vec3& vrTranslation() const;
-        void vrTranslation(const glm::vec3& translation);
-
-        /// Whether a VR system can be used (initialization worked).
-        bool vrEnabled() const;
-
-        /// Get whether a device is valid (active and ready to be asked for transform or mesh).
-        bool vrDeviceValid(VrDeviceType deviceType) const;
-
-        /// Get a device transform.
-        const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const;
-
-        /**
-         * Get a device mesh.
-         * Can be requested only if vrDeviceValid() is true.
-         *
-         * @note Requesting VrDeviceType::Head will set
-         * vrRenderable() to false for this mesh, consider tweaking
-         * this parameter if you need to render it within a VrRenderTarget.
-         *
-         * @note The first time this function is called, it will make
-         * a mesh within the provided scene. This means the scene
-         * cannot be removed afterwards or the mesh used in a different scene.
-         */
-        Mesh& vrDeviceMesh(VrDeviceType deviceType, Scene& scene);
+        VrEngine& vr() { return m_vrEngine; }
+        const VrEngine& vr() const { return m_vrEngine; }
         /// @}
 
         /// Enable extra logging for next draw.
@@ -144,7 +116,10 @@ namespace lava::magma {
     private:
         Impl* m_impl = nullptr;
 
-        // ----- Allocators
+        // VR
+        VrEngine m_vrEngine;
+
+        // Allocators
         chamber::BucketAllocator m_sceneAllocator;
     };
 }

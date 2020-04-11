@@ -1,6 +1,6 @@
 #include "./instance-holder.hpp"
 
-#include "../helpers/vr.hpp"
+#include <lava/magma/vr-engine.hpp>
 
 // @note Instanciation of declared-only in vulkan.h.
 
@@ -78,21 +78,20 @@ namespace {
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-void InstanceHolder::init(bool debugEnabled, bool vrEnabled)
+void InstanceHolder::init(bool debugEnabled, VrEngine& vr)
 {
     m_debugEnabled = debugEnabled;
-    m_vrEnabled = vrEnabled;
 
-    createInstance();
-    setupDebug();
+    createInstance(vr);
+    setupDebug(vr);
 }
 
-void InstanceHolder::createInstance()
+void InstanceHolder::createInstance(VrEngine& vr)
 {
     vk::InstanceCreateInfo instanceCreateInfo;
     initApplication(instanceCreateInfo);
-    initValidationLayers(instanceCreateInfo);
-    initRequiredExtensions(instanceCreateInfo);
+    initValidationLayers(instanceCreateInfo, vr);
+    initRequiredExtensions(instanceCreateInfo, vr);
 
     // Really create the instance
     vk::Result result;
@@ -101,7 +100,7 @@ void InstanceHolder::createInstance()
     }
 }
 
-void InstanceHolder::setupDebug()
+void InstanceHolder::setupDebug(VrEngine& vr)
 {
     if (!m_debugEnabled) return;
 
@@ -109,7 +108,7 @@ void InstanceHolder::setupDebug()
     createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
 
     // @note We can't show Performance issues when using VR, because OpenVR/SteamVR makes it emit a warning at each loop.
-    if (!m_vrEnabled) {
+    if (!vr.enabled()) {
         createInfo.messageType |= vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
     }
 
@@ -129,7 +128,7 @@ void InstanceHolder::initApplication(vk::InstanceCreateInfo& instanceCreateInfo)
     instanceCreateInfo.pApplicationInfo = &m_applicationInfo;
 }
 
-void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCreateInfo)
+void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCreateInfo, VrEngine& vr)
 {
     // Logging all available extensions
     bool debugUtilsExtensionAvailable = false;
@@ -151,10 +150,14 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
     m_extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
 
-    if (m_vrEnabled) {
-        const auto& vrExtensions = vulkan::vrRequiredInstanceExtensions();
-        for (const auto& vrExtension : vrExtensions) {
-            m_extensions.emplace_back(vrExtension.c_str());
+    if (vr.enabled()) {
+        VrRenderingNeedsInfo info;
+        info.type = VrRenderingNeedsType::Vulkan;
+        info.vulkan.physicalDevice = nullptr;
+        auto needs = vr.renderingNeeds(info);
+
+        for (auto i = 0u; i < needs.vulkan.instanceExtensionCount; ++i) {
+            m_extensions.emplace_back(needs.vulkan.instanceExtensionsNames[i]);
         }
     }
 
@@ -181,7 +184,7 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
     logger.log().tab(-1);
 }
 
-void InstanceHolder::initValidationLayers(vk::InstanceCreateInfo& instanceCreateInfo)
+void InstanceHolder::initValidationLayers(vk::InstanceCreateInfo& instanceCreateInfo, VrEngine& vr)
 {
     instanceCreateInfo.enabledLayerCount = 0;
 
@@ -194,7 +197,7 @@ void InstanceHolder::initValidationLayers(vk::InstanceCreateInfo& instanceCreate
     return;
 #endif
 
-    if (m_vrEnabled) {
+    if (vr.enabled()) {
         logger.warning("magma.vulkan.instance-holder") << "Validation layers enabled, but VR is enabled too. " << std::endl;
         logger.log() << "We don't enable validation layers as they add a way too big overhead." << std::endl;
         m_debugEnabled = false;

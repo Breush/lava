@@ -41,7 +41,7 @@ namespace lava::magma {
 
     private:
         // References
-        RenderEngine::Impl& m_engine;
+        RenderEngine& m_engine;
         Scene* m_scene = nullptr;
         uint32_t m_id = -1u;
 

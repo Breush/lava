@@ -3,6 +3,10 @@
 #include "../helpers/queue.hpp"
 #include "../wrappers.hpp"
 
+namespace lava::magma {
+    class VrEngine;
+}
+
 namespace lava::magma::vulkan {
     /**
      * An abstraction over a vk::Device.
@@ -10,7 +14,7 @@ namespace lava::magma::vulkan {
     class DeviceHolder {
     public:
         /// pSurface can be set to nullptr if the application does not draw to a window surface.
-        void init(vk::Instance instance, vk::SurfaceKHR* pSurface, bool debugEnabled, bool vrEnabled);
+        void init(vk::Instance instance, vk::SurfaceKHR* pSurface, bool debugEnabled, VrEngine& vr);
 
         void debugObjectName(vk::DescriptorSet object, const std::string& name) const;
         void debugObjectName(vk::ImageView object, const std::string& name) const;
@@ -35,7 +39,7 @@ namespace lava::magma::vulkan {
 
     protected:
         void pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* pSurface);
-        void createLogicalDevice(vk::SurfaceKHR* pSurface);
+        void createLogicalDevice(vk::SurfaceKHR* pSurface, VrEngine& vr);
 
         /// Generic function, make a public override if needed.
         void debugObjectName(uint64_t object, vk::ObjectType objectType, const std::string& name) const;
@@ -52,6 +56,5 @@ namespace lava::magma::vulkan {
 
         const std::vector<const char*> m_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
         bool m_debugEnabled = false; // Should be in sync with InstanceHolder.
-        bool m_vrEnabled = false;    // Should be in sync with InstanceHolder.
     };
 }

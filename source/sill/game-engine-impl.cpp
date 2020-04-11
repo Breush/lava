@@ -28,7 +28,8 @@ GameEngine::Impl::Impl(GameEngine& engine)
     m_scene->rendererType(magma::RendererType::Forward);
     m_scene->msaa(magma::Msaa::Max);
 
-    if (m_renderEngine->vrEnabled()) {
+    if (m_renderEngine->vr().enabled()) {
+        m_scene->msaa(magma::Msaa::None);
         m_vrRenderTarget = &m_renderEngine->make<magma::VrRenderTarget>();
         m_vrRenderTarget->bindScene(*m_scene);
     }
@@ -76,7 +77,7 @@ void GameEngine::Impl::run()
 
     // @todo If we want two GameEngine at the same time on day,
     // these statics cannot stay there.
-    static const std::chrono::nanoseconds updateTime(11'111'111); // 1/60s * 2/3
+    static const std::chrono::nanoseconds updateTime(7'407'407); // 1/90s * 2/3
     static float updateDt = std::chrono::duration<float>(updateTime).count();
     static auto currentTime = std::chrono::high_resolution_clock::now();
     static std::chrono::nanoseconds updateTimeLag(updateTime);
@@ -122,8 +123,12 @@ void GameEngine::Impl::run()
             entity->impl().updateFrame();
         }
 
+        // VR update
+        m_engine.vr().update();
+
         // Render the scene.
         m_renderEngine->update();
+
         m_renderEngine->draw();
     }
 }
@@ -181,24 +186,8 @@ void GameEngine::Impl::updateInput()
         m_engine.input().update(*event);
     }
 
-    // Update VR controllers
-    if (m_vrRenderTarget != nullptr) {
-        if (m_renderEngine->vrDeviceValid(VrDeviceType::LeftHand)) {
-            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::LeftHand, *m_scene);
-            mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::LeftHand));
-        }
-        if (m_renderEngine->vrDeviceValid(VrDeviceType::RightHand)) {
-            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::RightHand, *m_scene);
-            mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::RightHand));
-        }
-        if (m_renderEngine->vrDeviceValid(VrDeviceType::Head)) {
-            auto& mesh = m_renderEngine->vrDeviceMesh(VrDeviceType::Head, *m_scene);
-            mesh.transform(m_renderEngine->vrDeviceTransform(VrDeviceType::Head));
-        }
-    }
-
     // Handle VR event
-    while (auto event = m_renderEngine->vrPollEvent()) {
+    while (auto event = m_renderEngine->vr().pollEvent()) {
         m_engine.input().update(*event);
     }
 }

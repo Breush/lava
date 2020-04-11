@@ -5,7 +5,6 @@
 #include <lava/magma/render-targets/i-render-target.hpp>
 #include <lava/magma/scene.hpp>
 
-#include "../vr-engine.hpp"
 #include "./holders/buffer-holder.hpp"
 #include "./holders/device-holder.hpp"
 #include "./holders/image-holder.hpp"
@@ -51,19 +50,6 @@ namespace lava::magma {
         /// @}
 
         /**
-         * @name VR
-         */
-        /// @{
-        std::optional<VrEvent> vrPollEvent() { return m_vrEngine.pollEvent(); }
-        bool vrEnabled() const { return m_vrEngine.enabled(); }
-        const glm::vec3& vrTranslation() const { return m_vrEngine.translation(); }
-        void vrTranslation(const glm::vec3& translation) { m_vrEngine.translation(translation); }
-        bool vrDeviceValid(VrDeviceType deviceType) const { return m_vrEngine.deviceValid(deviceType); }
-        const glm::mat4& vrDeviceTransform(VrDeviceType deviceType) const { return m_vrEngine.deviceTransform(deviceType); }
-        Mesh& vrDeviceMesh(VrDeviceType deviceType, Scene& scene) { return m_vrEngine.deviceMesh(deviceType, scene); }
-        /// @}
-
-        /**
          * @name Getters
          */
         /// @{
@@ -97,9 +83,6 @@ namespace lava::magma {
          * @name Internal interface
          */
         /// @{
-        VrEngine& vrEngine() { return m_vrEngine; }
-        const VrEngine& vrEngine() const { return m_vrEngine; }
-
         void updateRenderViews(RenderImage renderImage);
         /// @}
 
@@ -153,9 +136,6 @@ namespace lava::magma {
         std::unordered_map<std::string, MaterialInfo> m_materialInfos;
         std::unordered_map<std::string, uint32_t> m_registeredMaterialsMap;
         chamber::FileWatcher m_shadersWatcher;
-
-        /// VR
-        VrEngine m_vrEngine;
 
         /**
          * @name Textures

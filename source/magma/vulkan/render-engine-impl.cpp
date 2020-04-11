@@ -1,7 +1,5 @@
 #include "./render-engine-impl.hpp"
 
-#include <lava/magma/vr-tools.hpp>
-
 #include "../aft-vulkan/scene-aft.hpp"
 #include "../shmag-reader.hpp"
 #include "./helpers/queue.hpp"
@@ -448,8 +446,10 @@ void RenderEngine::Impl::initVr()
     logger.info("magma.vulkan.render-engine") << "Initializing VR." << std::endl;
     logger.log().tab(1);
 
-    m_vrEngine.init();
-    if (m_vrEngine.enabled()) {
+    // @todo vr().init() / vr().update() should probably be called by RenderEngine itself (not Impl)
+    // as this is not vulkan dependent
+    m_engine.vr().init();
+    if (m_engine.vr().enabled()) {
         registerMaterialFromFile("vr", "./data/shaders/materials/vr-material.shmag");
     }
 
@@ -463,7 +463,7 @@ void RenderEngine::Impl::initVulkan()
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan." << std::endl;
     logger.log().tab(1);
 
-    m_instanceHolder.init(true, vrEnabled());
+    m_instanceHolder.init(true, m_engine.vr());
 
     logger.log().tab(-1);
 }
@@ -475,7 +475,7 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR* pSurface)
     logger.info("magma.vulkan.render-engine") << "Initializing vulkan device." << std::endl;
     logger.log().tab(1);
 
-    m_deviceHolder.init(instance(), pSurface, m_instanceHolder.debugEnabled(), m_instanceHolder.vrEnabled());
+    m_deviceHolder.init(instance(), pSurface, m_instanceHolder.debugEnabled(), m_engine.vr());
 
     createCommandPools(pSurface);
     createDummyTextures();
@@ -487,8 +487,8 @@ void RenderEngine::Impl::initVulkanDevice(vk::SurfaceKHR* pSurface)
 
 void RenderEngine::Impl::updateVr()
 {
-    if (m_vrEngine.enabled()) {
-        m_vrEngine.update();
+    if (m_engine.vr().enabled()) {
+        m_engine.vr().update();
     }
 }
 

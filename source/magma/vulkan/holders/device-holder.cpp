@@ -2,7 +2,8 @@
 
 #include "../helpers/queue.hpp"
 #include "../helpers/swapchain.hpp"
-#include "../helpers/vr.hpp"
+
+#include <lava/magma/vr-engine.hpp>
 
 // @note Instanciation of declared-only in vulkan.h.
 
@@ -71,13 +72,12 @@ namespace {
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR* pSurface, bool debugEnabled, bool vrEnabled)
+void DeviceHolder::init(vk::Instance instance, vk::SurfaceKHR* pSurface, bool debugEnabled, VrEngine& vr)
 {
     m_debugEnabled = debugEnabled;
-    m_vrEnabled = vrEnabled;
 
     pickPhysicalDevice(instance, pSurface);
-    createLogicalDevice(pSurface);
+    createLogicalDevice(pSurface, vr);
 }
 
 void DeviceHolder::debugObjectName(uint64_t object, vk::ObjectType objectType, const std::string& name) const
@@ -167,7 +167,7 @@ void DeviceHolder::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* pSu
     logger.error("magma.vulkan.device-holder") << "Unable to find suitable GPU." << std::endl;
 }
 
-void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
+void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface, VrEngine& vr)
 {
     // Queues
     float queuePriority = 1.0f;
@@ -191,13 +191,24 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
     deviceFeatures.fillModeNonSolid = true;
 
     // Extensions
+    // logger.info("magma.vulkan.device-holder").tab(1) << "Available extensions:" << std::endl;
+    // auto extensions = m_physicalDevice.enumerateDeviceExtensionProperties().value;
+    // for (const auto& extension : extensions) {
+    //     logger.log() << extension.extensionName << std::endl;
+    // }
+    // logger.log().tab(-1);
+
     auto enabledExtensions(m_extensions);
 
     // Checking VR extensions
-    if (m_vrEnabled) {
-        const auto& vrExtensions = vulkan::vrRequiredDeviceExtensions(m_physicalDevice);
-        for (const auto& vrExtension : vrExtensions) {
-            enabledExtensions.emplace_back(vrExtension.c_str());
+    if (vr.enabled()) {
+        VrRenderingNeedsInfo info;
+        info.type = VrRenderingNeedsType::Vulkan;
+        info.vulkan.physicalDevice = m_physicalDevice;
+        auto needs = vr.renderingNeeds(info);
+
+        for (auto i = 0u; i < needs.vulkan.deviceExtensionCount; ++i) {
+            enabledExtensions.emplace_back(needs.vulkan.deviceExtensionsNames[i]);
         }
     }
 
@@ -216,8 +227,10 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface)
     createInfo.ppEnabledExtensionNames = enabledExtensions.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    if (m_physicalDevice.createDevice(&createInfo, nullptr, m_device.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.device-holder") << "Unable to create logical device. " << std::endl;
+    auto result = m_physicalDevice.createDevice(&createInfo, nullptr, m_device.replace());
+    if (result != vk::Result::eSuccess) {
+        logger.error("magma.vulkan.device-holder") << "Unable to create logical device: " <<
+                                                      vk::to_string(result) << "." << std::endl;
     };
 
     m_graphicsQueue = m_device.vk().getQueue(m_queueFamilyIndices.graphics, 0);

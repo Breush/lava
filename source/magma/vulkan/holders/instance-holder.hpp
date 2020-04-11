@@ -2,27 +2,30 @@
 
 #include "../wrappers.hpp"
 
+namespace lava::magma {
+    class VrEngine;
+}
+
 namespace lava::magma::vulkan {
     /**
      * An abstraction over a vk::Instance.
      */
     class InstanceHolder final {
     public:
-        void init(bool debugEnabled, bool vrEnabled);
+        void init(bool debugEnabled, VrEngine& vr);
 
         // ----- Getters
 
         const vk::Instance& instance() const { return m_instance; }
         bool debugEnabled() const { return m_debugEnabled; }
-        bool vrEnabled() const { return m_vrEnabled; }
 
     protected:
-        void createInstance();
-        void setupDebug();
+        void createInstance(VrEngine& vr);
+        void setupDebug(VrEngine& vr);
 
         void initApplication(vk::InstanceCreateInfo& instanceCreateInfo);
-        void initValidationLayers(vk::InstanceCreateInfo& instanceCreateInfo);
-        void initRequiredExtensions(vk::InstanceCreateInfo& instanceCreateInfo);
+        void initValidationLayers(vk::InstanceCreateInfo& instanceCreateInfo, VrEngine& vr);
+        void initRequiredExtensions(vk::InstanceCreateInfo& instanceCreateInfo, VrEngine& vr);
 
     private:
         // Resources
@@ -32,9 +35,6 @@ namespace lava::magma::vulkan {
         // Application
         vk::ApplicationInfo m_applicationInfo;
         std::vector<const char*> m_extensions;
-
-        // VR
-        bool m_vrEnabled = false;
 
         // Validation layers
         bool m_debugEnabled = true;

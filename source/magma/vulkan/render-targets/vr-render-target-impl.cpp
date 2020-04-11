@@ -12,10 +12,10 @@ using namespace lava::magma;
 using namespace lava::chamber;
 
 VrRenderTarget::Impl::Impl(RenderEngine& engine)
-    : m_engine(engine.impl())
-    , m_fence(m_engine.device())
+    : m_engine(engine)
+    , m_fence(engine.impl().device())
 {
-    if (!m_engine.vrEnabled()) {
+    if (!m_engine.vr().enabled()) {
         logger.error("magma.vulkan.vr-render-target") << "Cannot use VrRenderTarget because "
                                                       << "no VR system has been enabled on startup." << std::endl;
     }
@@ -35,7 +35,7 @@ void VrRenderTarget::Impl::init(uint32_t id)
     initFence();
 
     // @note This is only the minimum recommended size, but this can be configurable.
-    m_extent = m_engine.vrEngine().renderTargetExtent();
+    m_extent = m_engine.vr().renderTargetExtent();
 
     logger.info("magma.vulkan.vr-render-target")
         << "VR system recommend a size of " << m_extent.width << "x" << m_extent.height << std::endl;
@@ -50,8 +50,8 @@ bool VrRenderTarget::Impl::prepare()
         PROFILE_BLOCK("VrRenderTarget - waitForFences", PROFILER_COLOR_DRAW);
 
         static const auto MAX = std::numeric_limits<uint64_t>::max();
-        m_engine.device().waitForFences(1u, &m_fence, true, MAX);
-        m_engine.device().resetFences(1u, &m_fence);
+        m_engine.impl().device().waitForFences(1u, &m_fence, true, MAX);
+        m_engine.impl().device().resetFences(1u, &m_fence);
     }
 
     m_leftEyeCameraController.updateCamera(VrEye::Left);
@@ -81,18 +81,18 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
     submitInfo.commandBufferCount = commandBuffers.size();
     submitInfo.pCommandBuffers = commandBuffers.data();
 
-    if (m_engine.graphicsQueue().submit(1, &submitInfo, m_fence) != vk::Result::eSuccess) {
+    if (m_engine.impl().graphicsQueue().submit(1, &submitInfo, m_fence) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.vr-render-target") << "Failed to submit draw command buffer." << std::endl;
     }
 
     // Submit to SteamVR
     vr::VRVulkanTextureData_t vulkanData;
     vulkanData.m_nImage = (uint64_t) static_cast<VkImage>(m_leftEyeCamera->renderImage().impl().image());
-    vulkanData.m_pDevice = m_engine.device();
-    vulkanData.m_pPhysicalDevice = m_engine.physicalDevice();
-    vulkanData.m_pInstance = m_engine.instance();
-    vulkanData.m_pQueue = m_engine.graphicsQueue();
-    vulkanData.m_nQueueFamilyIndex = m_engine.graphicsQueueFamilyIndex();
+    vulkanData.m_pDevice = m_engine.impl().device();
+    vulkanData.m_pPhysicalDevice = m_engine.impl().physicalDevice();
+    vulkanData.m_pInstance = m_engine.impl().instance();
+    vulkanData.m_pQueue = m_engine.impl().graphicsQueue();
+    vulkanData.m_nQueueFamilyIndex = m_engine.impl().graphicsQueueFamilyIndex();
 
     vulkanData.m_nWidth = m_extent.width;
     vulkanData.m_nHeight = m_extent.height;
@@ -151,7 +151,7 @@ void VrRenderTarget::Impl::initFence()
     vk::FenceCreateInfo fenceInfo;
     fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-    auto result = m_engine.device().createFence(&fenceInfo, nullptr, m_fence.replace());
+    auto result = m_engine.impl().device().createFence(&fenceInfo, nullptr, m_fence.replace());
     if (result != vk::Result::eSuccess) {
         logger.error("magma.vulkan.window-render-target") << "Unable to create fence." << std::endl;
     }
