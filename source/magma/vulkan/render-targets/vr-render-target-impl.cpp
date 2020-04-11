@@ -41,6 +41,14 @@ void VrRenderTarget::Impl::init(uint32_t id)
         << "VR system recommend a size of " << m_extent.width << "x" << m_extent.height << std::endl;
 }
 
+void VrRenderTarget::Impl::update()
+{
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    m_leftEyeCameraController.updateCamera(VrEye::Left);
+    m_rightEyeCameraController.updateCamera(VrEye::Right);
+}
+
 bool VrRenderTarget::Impl::prepare()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_RENDER);
@@ -53,9 +61,6 @@ bool VrRenderTarget::Impl::prepare()
         m_engine.impl().device().waitForFences(1u, &m_fence, true, MAX);
         m_engine.impl().device().resetFences(1u, &m_fence);
     }
-
-    m_leftEyeCameraController.updateCamera(VrEye::Left);
-    m_rightEyeCameraController.updateCamera(VrEye::Right);
 
     return true;
 }
@@ -87,7 +92,6 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
 
     // Submit to SteamVR
     vr::VRVulkanTextureData_t vulkanData;
-    vulkanData.m_nImage = (uint64_t) static_cast<VkImage>(m_leftEyeCamera->renderImage().impl().image());
     vulkanData.m_pDevice = m_engine.impl().device();
     vulkanData.m_pPhysicalDevice = m_engine.impl().physicalDevice();
     vulkanData.m_pInstance = m_engine.impl().instance();
@@ -96,8 +100,10 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
 
     vulkanData.m_nWidth = m_extent.width;
     vulkanData.m_nHeight = m_extent.height;
-    vulkanData.m_nFormat = VK_FORMAT_R8G8B8A8_SRGB; // @note Don't know really what's right for these 2 parameters.
-    vulkanData.m_nSampleCount = 1;
+    vulkanData.m_nSampleCount = 1u;
+
+    vulkanData.m_nImage = (uint64_t) static_cast<VkImage>(m_leftEyeCamera->renderImage().impl().image());
+    vulkanData.m_nFormat = (uint32_t) static_cast<VkImageLayout>(m_leftEyeCamera->renderImage().impl().layout());
 
     vr::Texture_t texture = {&vulkanData, vr::TextureType_Vulkan, vr::ColorSpace_Auto};
     vr::EVRCompositorError error = vr::VRCompositor()->Submit(vr::Eye_Left, &texture, &bounds);
@@ -107,6 +113,7 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
     }
 
     vulkanData.m_nImage = (uint64_t) static_cast<VkImage>(m_rightEyeCamera->renderImage().impl().image());
+    vulkanData.m_nFormat = (uint32_t) static_cast<VkImageLayout>(m_rightEyeCamera->renderImage().impl().layout());
 
     vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
     error = vr::VRCompositor()->Submit(vr::Eye_Right, &texture, &bounds);

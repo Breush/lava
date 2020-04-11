@@ -17,6 +17,7 @@ namespace lava::magma {
 
         // IRenderTarget::Impl
         void init(uint32_t id) final;
+        void update() final {}
         bool prepare() final;
         void render(vk::CommandBuffer commandBuffer) final;
         void draw(const std::vector<vk::CommandBuffer>& commandBuffers) const final;

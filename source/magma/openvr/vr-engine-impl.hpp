@@ -19,7 +19,6 @@ namespace lava::magma {
         Extent2d renderTargetExtent() const;
         glm::mat4 eyeProjectionTransform(VrEye eye, float nearClip, float farClip) const;
         glm::mat4 eyeToHeadTransform(VrEye eye) const;
-        const glm::mat4& fixesTransform() const { return m_fixesTransform; }
 
     private:
         VrEngine& m_engine;

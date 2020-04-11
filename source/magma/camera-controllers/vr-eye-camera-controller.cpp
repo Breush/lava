@@ -24,5 +24,5 @@ void VrEyeCameraController::updateCamera(VrEye eye)
     m_camera->projectionTransform(projectionTransform);
 
     auto viewTransform = vrEngine.eyeViewTransform(eye);
-    m_camera->viewTransform(glm::inverse(viewTransform) * m_camera->scene().engine().vr().fixesTransform());
+    m_camera->viewTransform(viewTransform);
 }

@@ -68,9 +68,6 @@ Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, Scene& scene)
 void VrEngine::transform(const glm::mat4& transform)
 {
     m_transform = transform;
-
-    const auto& fixesTransform = m_impl->fixesTransform();
-    m_fixedTransform = fixesTransform * m_transform * glm::inverse(fixesTransform);
 }
 
 // ----- View
@@ -85,17 +82,8 @@ glm::mat4 VrEngine::eyeProjectionTransform(VrEye eye, float nearClip, float farC
     return m_impl->eyeProjectionTransform(eye, nearClip, farClip);
 }
 
-glm::mat4 VrEngine::eyeToHeadTransform(VrEye eye) const
-{
-    return m_impl->eyeToHeadTransform(eye);
-}
-
 glm::mat4 VrEngine::eyeViewTransform(VrEye eye) const
 {
-    return m_fixedTransform * m_devicesInfos.at(VrDeviceType::Head).transform * eyeToHeadTransform(eye);
-}
-
-const glm::mat4& VrEngine::fixesTransform() const
-{
-    return m_impl->fixesTransform();
+    // @todo Not sure why we would need inverse here...
+    return glm::inverse(m_devicesInfos.at(VrDeviceType::Head).transform * m_impl->eyeToHeadTransform(eye));
 }

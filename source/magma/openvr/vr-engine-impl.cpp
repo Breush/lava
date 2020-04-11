@@ -61,37 +61,37 @@ bool VrEngine::Impl::init()
 
 void VrEngine::Impl::update()
 {
-    auto error = vr::VRCompositor()->GetLastPoses(m_devicesPoses.data(), vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-    if (error != 0) return;
+    m_vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.f, m_devicesPoses.data(), vr::k_unMaxTrackedDeviceCount);
 
-    const auto& transform = m_engine.transform();
+    const auto& areaTransform = m_engine.transform();
     for (auto deviceIndex = 0u; deviceIndex < vr::k_unMaxTrackedDeviceCount; ++deviceIndex) {
         const auto& pose = m_devicesPoses[deviceIndex];
 
         if (!pose.bPoseIsValid) continue;
 
+        auto type = m_vrSystem->GetTrackedDeviceClass(deviceIndex);
+        if (type == vr::TrackedDeviceClass_TrackingReference) return;
+
         DeviceInfo deviceInfo;
         deviceInfo.valid = pose.bPoseIsValid;
 
         auto m = pose.mDeviceToAbsoluteTracking.m;
-        deviceInfo.transform = glm::mat4(m[0][0], m[1][0], m[2][0], 0.f, // X
+        auto deviceTransform = glm::mat4(m[0][0], m[1][0], m[2][0], 0.f, // X
                                          m[0][1], m[1][1], m[2][1], 0.f, // Y
                                          m[0][2], m[1][2], m[2][2], 0.f, // Z
                                          m[0][3], m[1][3], m[2][3], 1.f);
-        deviceInfo.fixedTransform = transform * m_fixesTransform * deviceInfo.transform; // @fixme Might not be our job
+        // @fixme Might not be our job to multiply by areaTransform
+        deviceInfo.transform = areaTransform * m_fixesTransform * deviceTransform;
 
         deviceInfo.data[0u] = deviceIndex;
-        deviceInfo.data[1u] = m_vrSystem->GetTrackedDeviceClass(deviceIndex);
+        deviceInfo.data[1u] = type;
 
-        if (deviceInfo.data[1u] == vr::TrackedDeviceClass_HMD) {
+        if (type == vr::TrackedDeviceClass_HMD) {
             m_engine.deviceInfo(VrDeviceType::Head) = deviceInfo;
         }
-        else if (deviceInfo.data[1u] == vr::TrackedDeviceClass_Controller) {
+        else if (type == vr::TrackedDeviceClass_Controller) {
             auto deviceType = deviceTypeHandFromOpenVrDeviceIndex(*m_vrSystem, deviceIndex);
             m_engine.deviceInfo(deviceType) = deviceInfo;
-        }
-        else if (deviceInfo.data[1u] == vr::TrackedDeviceClass_TrackingReference) {
-            // @todo Store the info too?
         }
         else {
             logger.warning("magma.openvr.vr-engine") << "Unknown VR device type." << std::endl;

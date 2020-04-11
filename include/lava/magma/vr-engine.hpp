@@ -13,8 +13,7 @@ namespace lava::magma {
     public:
         struct DeviceInfo {
             bool valid = false;                        // Whether the device is valid.
-            glm::mat4 transform = glm::mat4(1.f);      // Last known VR-space transform of the device.
-            glm::mat4 fixedTransform = glm::mat4(1.f); // Last known absolute transform of the device in our coordinate system.
+            glm::mat4 transform = glm::mat4(1.f);      // Last known world-space transform of the device.
             // Back-end specific data
             uint32_t data[2u];
         };
@@ -46,7 +45,7 @@ namespace lava::magma {
         bool deviceValid(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).valid; }
 
         /// Get a device transform.
-        const glm::mat4& deviceTransform(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).fixedTransform; }
+        const glm::mat4& deviceTransform(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).transform; }
 
         /**
          * Get a device mesh.
@@ -86,14 +85,8 @@ namespace lava::magma {
         /// Get camera projection transform for an eye.
         glm::mat4 eyeProjectionTransform(VrEye eye, float nearClip, float farClip) const;
 
-        /// Get camera view transform for an eye from the head.
-        glm::mat4 eyeToHeadTransform(VrEye eye) const;
-
         /// Get premultiplied (headTransform * eyeToHeadTransform) eye absolute transform.
         glm::mat4 eyeViewTransform(VrEye eye) const;
-
-        /// VR world to lava conventions transform.
-        const glm::mat4& fixesTransform() const;
         /// @}
 
     public:
@@ -110,6 +103,5 @@ namespace lava::magma {
         std::unordered_map<VrDeviceType, Mesh*> m_devicesMeshes;
 
         glm::mat4 m_transform = glm::mat4(1.f);
-        glm::mat4 m_fixedTransform = glm::mat4(1.f);
     };
 }

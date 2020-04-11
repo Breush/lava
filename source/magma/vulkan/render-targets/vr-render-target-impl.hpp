@@ -17,10 +17,11 @@ namespace lava::magma {
         ~Impl();
 
         // IRenderTarget::Impl
-        void init(uint32_t id) override final;
-        bool prepare() override final;
-        void render(vk::CommandBuffer commandBuffer) override final;
-        void draw(const std::vector<vk::CommandBuffer>& commandBuffers) const override final;
+        void init(uint32_t id) final;
+        void update() final;
+        bool prepare() final;
+        void render(vk::CommandBuffer commandBuffer) final;
+        void draw(const std::vector<vk::CommandBuffer>& commandBuffers) const final;
 
         // @fixme Implement the views for this VrRenderTarget, somehow
         uint32_t addView(vk::ImageView, vk::ImageLayout, vk::Sampler, Viewport, uint32_t) final { return 0u; }

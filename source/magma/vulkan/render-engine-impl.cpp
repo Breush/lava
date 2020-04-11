@@ -45,6 +45,16 @@ void RenderEngine::Impl::update()
     for (auto scene : m_scenes) {
         scene->aft().update();
     }
+
+    // @note The difference between RenderTarget::Impl::update and RenderTarget::Impl::prepare
+    // is that the latter should not update any UBOs.
+    // For instance, VrRenderTarget update is updating the VrCameraController for the eyes,
+    // and that should not be in prepare otherwise there might be concurrency issues with scene recording.
+    for (auto renderTargetId = 0u; renderTargetId < m_renderTargetBundles.size(); ++renderTargetId) {
+        auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
+        auto& renderTargetImpl = renderTargetBundle.renderTarget->interfaceImpl();
+        renderTargetImpl.update();
+    }
 }
 
 void RenderEngine::Impl::draw()
