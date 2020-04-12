@@ -43,6 +43,7 @@ namespace lava {
 
         struct KeyData {
             Key which;
+            wchar_t code;
         };
 
         // -----

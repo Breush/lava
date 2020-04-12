@@ -5,6 +5,7 @@
 
 #include <glm/vec2.hpp>
 #include <xcb/xcb.h>
+#include <xkbcommon/xkbcommon.h>
 
 namespace lava::crater {
     /**
@@ -31,6 +32,7 @@ namespace lava::crater {
 
         void initXcbConnection();
         void setupWindow(VideoMode mode, const std::string& title);
+        void setupXkb();
         void processEvent(xcb_generic_event_t& windowEvent);
 
         void mouseMoveIgnored(bool ignored) const;
@@ -46,6 +48,9 @@ namespace lava::crater {
         xcb_intern_atom_reply_t* m_hintsReply = nullptr;
         xcb_intern_atom_reply_t* m_protocolsReply = nullptr;
         xcb_intern_atom_reply_t* m_deleteWindowReply = nullptr;
+        xkb_context* m_xkbContext = nullptr;
+        xkb_keymap* m_xkbKeymap = nullptr;
+        xkb_state* m_xkbState = nullptr;
 
         Extent2d m_extent;
         Extent2d m_extentBeforeFullscreen;

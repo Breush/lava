@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <xcb/xcb_keysyms.h>
+#include <xkbcommon/xkbcommon-x11.h>
 
 // @note Most on this code has been written thanks to
 // https://www.x.org/releases/X11R7.6/doc/libxcb/tutorial/index.html
@@ -28,70 +28,71 @@ namespace {
                                           XCB_EVENT_MASK_POINTER_MOTION |
                                           XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
-    xcb_key_symbols_t* g_keySymbols = nullptr;
-
     inline xcb_intern_atom_reply_t* internAtomHelper(xcb_connection_t* conn, bool only_if_exists, const char* str)
     {
         auto cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
         return xcb_intern_atom_reply(conn, cookie, nullptr);
     }
 
-    // Got list from https://github.com/substack/node-keysym/blob/master/data/keysyms.txt
-    Key keyEventToKey(xcb_key_press_event_t& keyEvent)
+    Key keysymToKey(xkb_keysym_t keysym)
     {
-        xcb_keysym_t keySym = xcb_key_press_lookup_keysym(g_keySymbols, &keyEvent, 0);
-
-        switch (keySym) {
-        case 'a': return Key::A;
-        case 'b': return Key::B;
-        case 'c': return Key::C;
-        case 'd': return Key::D;
-        case 'e': return Key::E;
-        case 'f': return Key::F;
-        case 'g': return Key::G;
-        case 'h': return Key::H;
-        case 'i': return Key::I;
-        case 'j': return Key::J;
-        case 'k': return Key::K;
-        case 'l': return Key::L;
-        case 'm': return Key::M;
-        case 'n': return Key::N;
-        case 'o': return Key::O;
-        case 'p': return Key::P;
-        case 'q': return Key::Q;
-        case 'r': return Key::R;
-        case 's': return Key::S;
-        case 't': return Key::T;
-        case 'u': return Key::U;
-        case 'v': return Key::V;
-        case 'w': return Key::W;
-        case 'x': return Key::X;
-        case 'y': return Key::Y;
-        case 'z': return Key::Z;
-        case 0xff1b: return Key::Escape;
-        case 0xffbe: return Key::F1;
-        case 0xffbf: return Key::F2;
-        case 0xffc0: return Key::F3;
-        case 0xffc1: return Key::F4;
-        case 0xffc2: return Key::F5;
-        case 0xffc3: return Key::F6;
-        case 0xffc4: return Key::F7;
-        case 0xffc5: return Key::F8;
-        case 0xffc6: return Key::F9;
-        case 0xffc7: return Key::F10;
-        case 0xffc8: return Key::F11;
-        case 0xffc9: return Key::F12;
-        case 0xff51: return Key::Left;
-        case 0xff52: return Key::Up;
-        case 0xff53: return Key::Right;
-        case 0xff54: return Key::Down;
-        case 0xffe1: return Key::LeftShift;
-        case 0xffe2: return Key::RightShift;
-        case 0xffe3: return Key::LeftControl;
-        case 0xffe4: return Key::RightControl;
-        case 0xffe9: return Key::LeftAlt;
-        case 0xffea: return Key::RightAlt;
-        case 0xffff: return Key::Delete;
+        switch (keysym) {
+        case XKB_KEY_a: case XKB_KEY_A: return Key::A;
+        case XKB_KEY_b: case XKB_KEY_B: return Key::B;
+        case XKB_KEY_c: case XKB_KEY_C: return Key::C;
+        case XKB_KEY_d: case XKB_KEY_D: return Key::D;
+        case XKB_KEY_e: case XKB_KEY_E: return Key::E;
+        case XKB_KEY_f: case XKB_KEY_F: return Key::F;
+        case XKB_KEY_g: case XKB_KEY_G: return Key::G;
+        case XKB_KEY_h: case XKB_KEY_H: return Key::H;
+        case XKB_KEY_i: case XKB_KEY_I: return Key::I;
+        case XKB_KEY_j: case XKB_KEY_J: return Key::J;
+        case XKB_KEY_k: case XKB_KEY_K: return Key::K;
+        case XKB_KEY_l: case XKB_KEY_L: return Key::L;
+        case XKB_KEY_m: case XKB_KEY_M: return Key::M;
+        case XKB_KEY_n: case XKB_KEY_N: return Key::N;
+        case XKB_KEY_o: case XKB_KEY_O: return Key::O;
+        case XKB_KEY_p: case XKB_KEY_P: return Key::P;
+        case XKB_KEY_q: case XKB_KEY_Q: return Key::Q;
+        case XKB_KEY_r: case XKB_KEY_R: return Key::R;
+        case XKB_KEY_s: case XKB_KEY_S: return Key::S;
+        case XKB_KEY_t: case XKB_KEY_T: return Key::T;
+        case XKB_KEY_u: case XKB_KEY_U: return Key::U;
+        case XKB_KEY_v: case XKB_KEY_V: return Key::V;
+        case XKB_KEY_w: case XKB_KEY_W: return Key::W;
+        case XKB_KEY_x: case XKB_KEY_X: return Key::X;
+        case XKB_KEY_y: case XKB_KEY_Y: return Key::Y;
+        case XKB_KEY_z: case XKB_KEY_Z: return Key::Z;
+        case XKB_KEY_Escape: return Key::Escape;
+        case XKB_KEY_F1: return Key::F1;
+        case XKB_KEY_F2: return Key::F2;
+        case XKB_KEY_F3: return Key::F3;
+        case XKB_KEY_F4: return Key::F4;
+        case XKB_KEY_F5: return Key::F5;
+        case XKB_KEY_F6: return Key::F6;
+        case XKB_KEY_F7: return Key::F7;
+        case XKB_KEY_F8: return Key::F8;
+        case XKB_KEY_F9: return Key::F9;
+        case XKB_KEY_F10: return Key::F10;
+        case XKB_KEY_F11: return Key::F11;
+        case XKB_KEY_F12: return Key::F12;
+        case XKB_KEY_Left: return Key::Left;
+        case XKB_KEY_Up: return Key::Up;
+        case XKB_KEY_Right: return Key::Right;
+        case XKB_KEY_Down: return Key::Down;
+        case XKB_KEY_Shift_L: return Key::LeftShift;
+        case XKB_KEY_Shift_R: return Key::RightShift;
+        case XKB_KEY_Control_L: return Key::LeftControl;
+        case XKB_KEY_Control_R: return Key::RightControl;
+        case XKB_KEY_Alt_L: return Key::LeftAlt;
+        case XKB_KEY_Alt_R: return Key::RightAlt;
+        case XKB_KEY_Delete: return Key::Delete;
+        default: {
+            // @note Debug to understand unhandled keys
+            // char keysym_name[64];
+            // xkb_keysym_get_name(keysym, keysym_name, sizeof(keysym_name));
+            // std::cout << keysym_name << ": 0x" << std::hex << keysym << std::endl;
+        }
         }
 
         return Key::Unknown;
@@ -106,14 +107,15 @@ Window::Impl::Impl(VideoMode mode, const std::string& title)
 {
     initXcbConnection();
     setupWindow(mode, title);
-
-    // @todo If not allocated?
-    // Probably more secure to put that as a class member for now.
-    g_keySymbols = xcb_key_symbols_alloc(m_connection);
+    setupXkb();
 }
 
 Window::Impl::~Impl()
 {
+    xkb_state_unref(m_xkbState);
+    xkb_keymap_unref(m_xkbKeymap);
+    xkb_context_unref(m_xkbContext);
+
     free(m_hintsReply);
     free(m_protocolsReply);
     free(m_deleteWindowReply);
@@ -236,6 +238,38 @@ void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
 
     xcb_map_window(m_connection, m_window);
     xcb_flush(m_connection);
+}
+
+void Window::Impl::setupXkb()
+{
+    // @note All that knowledge for correct setup comes from
+    // - https://github.com/xkbcommon/libxkbcommon/blob/master/doc/quick-guide.md
+    // - https://xkbcommon.org/doc/current/group__x11.html
+    xkb_x11_setup_xkb_extension(m_connection, XKB_X11_MIN_MAJOR_XKB_VERSION, XKB_X11_MIN_MINOR_XKB_VERSION,
+                                XKB_X11_SETUP_XKB_EXTENSION_NO_FLAGS, nullptr, nullptr, nullptr, nullptr);
+
+    // Context
+    m_xkbContext = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+    if (m_xkbContext == nullptr) {
+        logger.error("crater.xcb.window") << "Could not setup XKB context." << std::endl;
+    }
+
+    // Keymap
+    auto deviceId = xkb_x11_get_core_keyboard_device_id(m_connection);
+    if (deviceId == -1) {
+        logger.error("crater.xcb.window") << "Could not get XKB device ID." << std::endl;
+    }
+
+    m_xkbKeymap = xkb_x11_keymap_new_from_device(m_xkbContext, m_connection, deviceId, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    if (m_xkbKeymap == nullptr) {
+        logger.error("crater.xcb.window") << "Could not setup XKB keymap." << std::endl;
+    }
+
+    // State
+    m_xkbState = xkb_x11_state_new_from_device(m_xkbKeymap, m_connection, deviceId);
+    if (m_xkbState == nullptr) {
+        logger.error("crater.xcb.window") << "Could not setup XKB state." << std::endl;
+    }
 }
 
 void Window::Impl::mouseMoveIgnored(bool ignored) const
@@ -401,19 +435,31 @@ void Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
 
     case XCB_KEY_PRESS: {
         auto keyEvent = reinterpret_cast<xcb_key_press_event_t&>(windowEvent);
+        xkb_keycode_t keycode = keyEvent.detail;
+        xkb_state_update_key(m_xkbState, keycode, XKB_KEY_DOWN);
+
+        auto keysym = xkb_state_key_get_one_sym(m_xkbState, keycode);
+        wchar_t code = xkb_state_key_get_utf32(m_xkbState, keycode);
 
         WsEvent event;
         event.type = WsEventType::KeyPressed;
-        event.key.which = keyEventToKey(keyEvent);
+        event.key.which = keysymToKey(keysym);
+        event.key.code = code;
         pushEvent(event);
     } break;
 
     case XCB_KEY_RELEASE: {
         auto keyEvent = reinterpret_cast<xcb_key_release_event_t&>(windowEvent);
+        xkb_keycode_t keycode = keyEvent.detail;
+        xkb_state_update_key(m_xkbState, keycode, XKB_KEY_UP);
+
+        auto keysym = xkb_state_key_get_one_sym(m_xkbState, keycode);
+        wchar_t code = xkb_state_key_get_utf32(m_xkbState, keycode);
 
         WsEvent event;
         event.type = WsEventType::KeyReleased;
-        event.key.which = keyEventToKey(keyEvent);
+        event.key.which = keysymToKey(keysym);
+        event.key.code = code;
         pushEvent(event);
     } break;
 
