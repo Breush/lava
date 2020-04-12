@@ -14,6 +14,8 @@ namespace lava::magma {
     public:
         ShadersManager(const vk::Device& device);
 
+        void update();
+
         /// Register multiple impls thanks to files annotations.
         void registerImplGroup(const std::string& hrid, const std::string& rawCode, uint32_t implsId);
 
@@ -78,6 +80,7 @@ namespace lava::magma {
 
         // Data
         std::set<std::string> m_dirtyModules;
+        std::set<std::string> m_dirtyCategories;
         std::unordered_map<std::string, Impl> m_impls;
         std::unordered_map<std::string, ImplGroup> m_implGroups;
         std::unordered_map<std::string, ModuleInfo> m_modulesInfos;

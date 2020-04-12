@@ -531,4 +531,6 @@ void RenderEngine::Impl::updateShaders()
             logger.log().tab(-1);
         }
     }
+
+    m_shadersManager.update();
 }

@@ -11,6 +11,17 @@ ShadersManager::ShadersManager(const vk::Device& device)
 {
 }
 
+void ShadersManager::update()
+{
+    for (const auto& category : m_dirtyCategories) {
+        for (const auto& updateCallback : m_impls[category].updateCallbacks) {
+            updateCallback();
+        }
+    }
+    m_dirtyCategories.clear();
+}
+
+
 void ShadersManager::registerImplGroup(const std::string& hrid, const std::string& rawCode, uint32_t implsId)
 {
     auto& implGroup = m_implGroups[hrid];
@@ -105,15 +116,11 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const Modul
 
 void ShadersManager::dirtifyImpl(const std::string& category)
 {
+    m_dirtyCategories.emplace(category);
+
     // Remove modules that need to be updated
     for (const auto& shaderId : m_impls[category].dirtyShaderIds) {
         m_dirtyModules.emplace(shaderId);
-    }
-
-    // Calling all callbacks
-    // @fixme Do not call this directly during render engine update!
-    for (const auto& updateCallback : m_impls[category].updateCallbacks) {
-        updateCallback();
     }
 }
 
