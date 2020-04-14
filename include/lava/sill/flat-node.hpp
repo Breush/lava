@@ -16,6 +16,8 @@ namespace lava::sill {
         /// The local transform of the node, might be updated with animation.
         glm::mat3 localTransform = glm::mat3(1.f);
 
+        bool localTransformChanged = true;
+
     public:
         /// User-set local transform, with no animation.
         inline const glm::mat3& transform() const { return m_transform; }
@@ -23,6 +25,7 @@ namespace lava::sill {
         {
             m_transform = transform;
             localTransform = transform;
+            localTransformChanged = true;
         }
 
     private:

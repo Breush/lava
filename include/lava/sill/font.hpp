@@ -25,14 +25,14 @@ namespace lava::sill {
             glm::vec2 minUv = glm::vec2(0.f);
             glm::vec2 maxUv = glm::vec2(0.f);
 
-            // Position and extent of the current glyph.
+            // Position (relative to previous) and extent of the current glyph.
             float xOffset = 0.f;
             float yOffset = 0.f;
             float width = 0.f;
             float height = 1.f;
 
             // Horizontal offset to position the next glyph.
-            // Used internally.
+            // Already baked in next xOffset.
             float advance = 0.f;
         };
 
@@ -41,7 +41,9 @@ namespace lava::sill {
 
         // Extent is re-normalized , so that a character that take the full font size
         // that is provided will have a height of 1.
-        std::vector<GlyphInfo> glyphsInfos(std::wstring_view u16Text);
+        // The skipWhite option keeps only renderable characters,
+        // the xOffset being updated accordingly.
+        std::vector<GlyphInfo> glyphsInfos(std::wstring_view u16Text, bool skipWhite = true);
 
         // Getters
         magma::Texture& texture();

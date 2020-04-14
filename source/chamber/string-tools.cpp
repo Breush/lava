@@ -76,3 +76,17 @@ uint32_t chamber::nextWord(const std::string& line, std::string& word, uint32_t 
 
     return offset;
 }
+
+std::string chamber::utf16to8(const std::wstring& ws)
+{
+    using ConvertType = std::codecvt_utf8_utf16<wchar_t>;
+    std::wstring_convert<ConvertType, wchar_t> converter;
+    return converter.to_bytes(ws);
+}
+
+std::wstring chamber::utf8to16(const std::string& s)
+{
+    using ConvertType = std::codecvt_utf8_utf16<wchar_t>;
+    std::wstring_convert<ConvertType, wchar_t> converter;
+    return converter.from_bytes(s);
+}

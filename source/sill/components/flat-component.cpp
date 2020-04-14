@@ -16,9 +16,18 @@ FlatComponent::FlatComponent(GameEntity& entity)
 
 void FlatComponent::updateFrame()
 {
-    if (m_nodesTranformsDirty) {
-        updateNodesTransforms();
+    // Updating node transforms
+    for (auto& node : m_nodes) {
+        if (!node.flatGroup) continue;
+
+        if (m_nodesTranformsDirty || node.localTransformChanged) {
+            auto transform = m_transformComponent.worldTransform2d() * node.localTransform;
+            node.flatGroup->transform(transform);
+            node.localTransformChanged = false;
+        }
     }
+
+    m_nodesTranformsDirty = false;
 }
 
 // ----- Nodes
@@ -65,18 +74,4 @@ magma::Flat& FlatComponent::primitive(uint32_t nodeIndex, uint32_t primitiveInde
 magma::Material* FlatComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
 {
     return m_nodes[nodeIndex].flatGroup->primitive(primitiveIndex).material();
-}
-
-// ----- Internal
-
-void FlatComponent::updateNodesTransforms()
-{
-    for (const auto& node : m_nodes) {
-        if (!node.flatGroup) continue;
-
-        auto transform = m_transformComponent.worldTransform2d() * node.localTransform;
-        node.flatGroup->transform(transform);
-    }
-
-    m_nodesTranformsDirty = false;
 }

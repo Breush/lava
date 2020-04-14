@@ -12,3 +12,4 @@
 #include <lava/sill/components/transform-component.hpp>
 
 #include <lava/sill/components/ui-button-component.hpp>
+#include <lava/sill/components/ui-text-entry-component.hpp>

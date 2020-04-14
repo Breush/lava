@@ -248,7 +248,7 @@ void GameEngine::Impl::registerMaterials()
     registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
 
     // UI
-    registerMaterialFromFile("ui.button", "./data/shaders/flat-materials/ui/button.shmag");
+    registerMaterialFromFile("ui.quad", "./data/shaders/flat-materials/ui/quad.shmag");
 }
 
 void GameEngine::Impl::handleEvent(WsEvent& event, bool& propagate)

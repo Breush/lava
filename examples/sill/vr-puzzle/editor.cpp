@@ -4,6 +4,7 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <iostream>
 #include <lava/chamber/math.hpp>
+#include <lava/chamber/string-tools.hpp>
 #include <lava/dike.hpp>
 
 #include "./game-state.hpp"
@@ -67,11 +68,34 @@ void onSelectionChanged(GameState& gameState)
         auto& object = *gameState.editor.selection.objects[0u];
         if (object.entity().name() == "brick") {
             auto& brick = dynamic_cast<Brick&>(object);
-            auto& entity = gameState.engine->make<sill::GameEntity>("button - toggle fixed");
-            entity.make<sill::UiButtonComponent>(L"toggle fixed").onClicked([&brick]() {
+            auto& entity = gameState.engine->make<sill::GameEntity>("ui.brick.fixed");
+            auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle fixed");
+            uiComponent.onClicked([&brick]() {
                 brick.fixed(!brick.fixed());
             });
-            entity.get<sill::TransformComponent>().translation2d({100, 40});
+            entity.get<sill::TransformComponent>().translation2d({100, 17});
+            gameState.ui.entities.emplace_back(&entity);
+            return;
+        }
+        else if (object.entity().name() == "panel") {
+            auto& panel = dynamic_cast<Panel&>(object);
+            auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.name");
+            auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(panel.name()));
+            uiComponent.onTextChanged([&panel](const std::wstring& text) {
+                panel.name(utf16to8(text));
+            });
+            entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
+            gameState.ui.entities.emplace_back(&entity);
+            return;
+        }
+        else if (object.entity().name() == "barrier") {
+            auto& barrier = dynamic_cast<Barrier&>(object);
+            auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.name");
+            auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(barrier.name()));
+            uiComponent.onTextChanged([&barrier](const std::wstring& text) {
+                barrier.name(utf16to8(text));
+            });
+            entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
             gameState.ui.entities.emplace_back(&entity);
             return;
         }

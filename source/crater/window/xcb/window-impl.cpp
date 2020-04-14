@@ -63,6 +63,7 @@ namespace {
         case XKB_KEY_x: case XKB_KEY_X: return Key::X;
         case XKB_KEY_y: case XKB_KEY_Y: return Key::Y;
         case XKB_KEY_z: case XKB_KEY_Z: return Key::Z;
+        case XKB_KEY_BackSpace: return Key::Backspace;
         case XKB_KEY_Escape: return Key::Escape;
         case XKB_KEY_F1: return Key::F1;
         case XKB_KEY_F2: return Key::F2;

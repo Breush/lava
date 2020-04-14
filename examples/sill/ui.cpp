@@ -5,7 +5,7 @@
 #include "./ashe.hpp"
 
 #include <iostream>
-#include <lava/magma/camera.hpp>
+#include <lava/chamber/string-tools.hpp>
 
 using namespace lava;
 
@@ -13,6 +13,10 @@ int main(void)
 {
     ashe::Application app;
     auto& engine = app.engine();
+
+    // @todo Would be great to be able to position objects through
+    // a UiComponent which accepts relative coordinates.
+    auto screenExtent = engine.camera2d().extent();
 
     // Button
     {
@@ -35,10 +39,20 @@ int main(void)
             buttonComponent.text(texts[textIndex]);
         });
 
-        // @todo Would be great to be able to position objects through
-        // a UiComponent which accepts relative coordinates.
-        auto screenExtent = engine.camera2d().extent();
-        buttonEntity.get<sill::TransformComponent>().translation2d({screenExtent.width / 2.f, screenExtent.height / 2.f});
+        buttonEntity.get<sill::TransformComponent>().translation2d({screenExtent.width / 2.f,
+                                                                    screenExtent.height / 2.f});
+    }
+
+    // TextEntry
+    {
+        auto& textEntryEntity = engine.make<sill::GameEntity>("demo.text-entry");
+        auto& textEntryComponent = textEntryEntity.make<sill::UiTextEntryComponent>();
+        textEntryComponent.onTextChanged([](const std::wstring& text) {
+            std::cout << "TextEntry: " << chamber::utf16to8(text) << std::endl;
+        });
+
+        textEntryEntity.get<sill::TransformComponent>().translation2d({screenExtent.width / 2.f,
+                                                                       screenExtent.height / 2.f + 32u});
     }
 
     engine.run();

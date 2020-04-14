@@ -6,7 +6,7 @@
 
 namespace lava::sill {
     class GameEngine;
-    class GameEntity;
+    class IUiComponent;
 }
 
 namespace lava::sill {
@@ -17,9 +17,9 @@ namespace lava::sill {
     public:
         UiManager(GameEngine& engine);
 
-        /// Add or remove an entity to the UI.
-        void registerEntity(GameEntity& entity);
-        void unregisterEntity(GameEntity& entity);
+        /// Add or remove a component to the UI.
+        void registerUiComponent(IUiComponent& uiComponent);
+        void unregisterUiComponent(IUiComponent& uiComponent);
 
         // ----- Called by game engine
 
@@ -28,11 +28,12 @@ namespace lava::sill {
     private:
         GameEngine& m_engine;
 
-        std::vector<GameEntity*> m_entities;
+        // Registered entities
+        std::vector<IUiComponent*> m_uiComponents;
 
         // State
         glm::ivec2 m_mousePosition;
-        GameEntity* m_hoveredEntity = nullptr;
+        IUiComponent* m_hoveredUiComponent = nullptr;
         bool m_dragging = false;
     };
 }

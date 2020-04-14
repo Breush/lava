@@ -21,4 +21,10 @@ namespace lava::chamber {
 
     /// Extract next word (surrounded by whitespace-like characters) from a "line".
     uint32_t nextWord(const std::string& line, std::string& word, uint32_t offset = 0u, std::string* spacing = nullptr);
+
+    /// Convert a UTF16 string to UTF8.
+    std::string utf16to8(const std::wstring& ws);
+
+    /// Convert a UTF8 string to UTF16.
+    std::wstring utf8to16(const std::string& s);
 }

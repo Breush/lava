@@ -31,9 +31,6 @@ namespace lava::sill {
         magma::Flat& primitive(uint32_t nodeIndex, uint32_t primitiveIndex);
         magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex);
 
-    protected:
-        void updateNodesTransforms();
-
     private:
         TransformComponent& m_transformComponent;
 

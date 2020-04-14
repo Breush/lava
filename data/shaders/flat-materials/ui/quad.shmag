@@ -1,5 +1,5 @@
 /**
- * Button flat material.
+ * Simple quad flat material.
  */
 
 uniform {

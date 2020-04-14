@@ -54,4 +54,5 @@ $enum_class(lava, Key,
             LeftShift,    // LeftShift key
             RightShift,   // RightShift key
             Delete,       // Delete key
+            Backspace,    // Backspace key
 );

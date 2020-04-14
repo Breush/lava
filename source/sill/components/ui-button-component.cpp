@@ -15,27 +15,19 @@ UiButtonComponent::UiButtonComponent(GameEntity& entity)
 }
 
 UiButtonComponent::UiButtonComponent(GameEntity& entity, const std::wstring& text)
-    : IComponent(entity)
-    , m_transformComponent(entity.ensure<TransformComponent>())
+    : IUiComponent(entity)
     , m_flatComponent(entity.ensure<FlatComponent>())
 {
-    entity.engine().ui().registerEntity(entity);
-
     auto& scene2d = entity.engine().scene2d();
 
     // Background setup
     auto& node = makers::quadFlatMaker(1.f)(m_flatComponent);
     node.name = "background";
-    node.flatGroup->primitive(0u).material(scene2d.make<magma::Material>("ui.button"));
+    node.flatGroup->primitive(0u).material(scene2d.make<magma::Material>("ui.quad"));
     updateHovered();
 
     // Affecting text
     this->text(text);
-}
-
-UiButtonComponent::~UiButtonComponent()
-{
-    m_entity.engine().ui().unregisterEntity(m_entity);
 }
 
 void UiButtonComponent::update(float /* dt */)
@@ -55,17 +47,6 @@ void UiButtonComponent::text(const std::wstring& text)
 }
 
 // ----- UI manager interaction
-
-bool UiButtonComponent::checkHovered(const glm::ivec2& mousePosition)
-{
-    const auto& position = m_transformComponent.translation2d();
-    bool hovered = (mousePosition.x >= position.x - m_extent.x / 2.f &&
-                    mousePosition.x <= position.x + m_extent.x / 2.f &&
-                    mousePosition.y >= position.y - m_extent.y / 2.f &&
-                    mousePosition.y <= position.y + m_extent.y / 2.f);
-    this->hovered(hovered);
-    return hovered;
-}
 
 void UiButtonComponent::hovered(bool hovered)
 {

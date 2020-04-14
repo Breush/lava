@@ -39,7 +39,7 @@ Font::Font(GameEngine& engine, const std::string& path, uint32_t size)
     m_pixels.resize(m_textureWidth * m_glyphMaxHeight);
 }
 
-std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
+std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text, bool skipWhite)
 {
     std::vector<GlyphInfo> glyphsInfos;
 
@@ -60,7 +60,7 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text)
         }
 
         // Push non-empty glyphInfos to the list
-        if (pGlyphInfo->second.width > 0.f && pGlyphInfo->second.height > 0.f) {
+        if (!skipWhite || (pGlyphInfo->second.width > 0.f && pGlyphInfo->second.height > 0.f)) {
             auto glyphInfo = pGlyphInfo->second;
             glyphInfo.xOffset += advance;
             glyphsInfos.emplace_back(glyphInfo);

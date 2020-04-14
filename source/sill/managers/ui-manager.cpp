@@ -3,8 +3,7 @@
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/game-entity.hpp>
 
-// @todo :Refactor Should be UiComponent when we grow in similar components.
-#include <lava/sill/components/ui-button-component.hpp>
+#include <lava/sill/components/i-ui-component.hpp>
 
 using namespace lava;
 using namespace lava::sill;
@@ -14,15 +13,20 @@ UiManager::UiManager(GameEngine& engine)
 {
 }
 
-void UiManager::registerEntity(GameEntity& entity)
+void UiManager::registerUiComponent(IUiComponent& uiComponent)
 {
-    m_entities.emplace_back(&entity);
+    m_uiComponents.emplace_back(&uiComponent);
 }
 
-void UiManager::unregisterEntity(GameEntity& entity)
+void UiManager::unregisterUiComponent(IUiComponent& uiComponent)
 {
-    auto entityIt = std::find(m_entities.begin(), m_entities.end(), &entity);
-    m_entities.erase(entityIt);
+    auto uiComponentIt = std::find(m_uiComponents.begin(), m_uiComponents.end(), &uiComponent);
+    m_uiComponents.erase(uiComponentIt);
+
+    if (m_hoveredUiComponent == &uiComponent) {
+        m_hoveredUiComponent = nullptr;
+        m_dragging = false;
+    }
 }
 
 // ----- Called by game engine
@@ -39,37 +43,37 @@ void UiManager::handleEvent(WsEvent& event, bool& propagate)
         }
 
         // Check if we're hovering anything
-        m_hoveredEntity = nullptr;
-        for (auto entity : m_entities) {
-            auto& uiComponent = entity->get<UiButtonComponent>();
-            if (!m_hoveredEntity) {
-                if (uiComponent.checkHovered(m_mousePosition)) {
-                    m_hoveredEntity = entity;
+        m_hoveredUiComponent = nullptr;
+        for (auto uiComponent : m_uiComponents) {
+            if (!m_hoveredUiComponent) {
+                if (uiComponent->checkHovered(m_mousePosition)) {
+                    m_hoveredUiComponent = uiComponent;
                 }
             }
             else {
                 // Something above is hovered.
-                uiComponent.hovered(false);
+                uiComponent->hovered(false);
             }
         }
     }
     else if (event.type == WsEventType::MouseButtonPressed &&
              event.mouseButton.which == MouseButton::Left) {
-        if (!m_hoveredEntity) return;
+        if (!m_hoveredUiComponent) return;
+        m_hoveredUiComponent->dragStart(m_mousePosition, propagate);
 
-        // If anything hovered, events should not propagate.
-        propagate = false;
-
-        m_dragging = true;
-        m_hoveredEntity->get<UiButtonComponent>().dragStart(m_mousePosition);
+        // If non propagating, we go in dragging state.
+        m_dragging = !propagate;
     }
     else if (event.type == WsEventType::MouseButtonReleased &&
              event.mouseButton.which == MouseButton::Left) {
         if (!m_dragging) return;
 
         m_dragging = false;
-        auto& uiComponent = m_hoveredEntity->get<UiButtonComponent>();
-        uiComponent.dragEnd(m_mousePosition);
+        m_hoveredUiComponent->dragEnd(m_mousePosition);
+    }
+    else if (event.type == WsEventType::KeyPressed) {
+        if (!m_hoveredUiComponent) return; // @todo :UiFocus Have focused component instead
+        m_hoveredUiComponent->textEntered(event.key.which, event.key.code, propagate);
     }
 }
 
