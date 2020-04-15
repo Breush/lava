@@ -73,30 +73,52 @@ void onSelectionChanged(GameState& gameState)
             uiComponent.onClicked([&brick]() {
                 brick.fixed(!brick.fixed());
             });
-            entity.get<sill::TransformComponent>().translation2d({100, 17});
+            entity.get<sill::TransformComponent>().translation2d({100.f, 17.f});
             gameState.ui.entities.emplace_back(&entity);
             return;
         }
         else if (object.entity().name() == "panel") {
             auto& panel = dynamic_cast<Panel&>(object);
-            auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.name");
-            auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(panel.name()));
-            uiComponent.onTextChanged([&panel](const std::wstring& text) {
-                panel.name(utf16to8(text));
-            });
-            entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
-            gameState.ui.entities.emplace_back(&entity);
+            {
+                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.name");
+                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(panel.name()));
+                uiComponent.onTextChanged([&panel](const std::wstring& text) {
+                    panel.name(utf16to8(text));
+                });
+                entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
+                gameState.ui.entities.emplace_back(&entity);
+            }
+            {
+                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.solved");
+                auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle solved");
+                uiComponent.onClicked([&panel]() {
+                    panel.pretendSolved(!panel.solved());
+                });
+                entity.get<sill::TransformComponent>().translation2d({100.f, 1.5f * 30.f + 2.f * 2.f});
+                gameState.ui.entities.emplace_back(&entity);
+            }
             return;
         }
         else if (object.entity().name() == "barrier") {
             auto& barrier = dynamic_cast<Barrier&>(object);
-            auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.name");
-            auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(barrier.name()));
-            uiComponent.onTextChanged([&barrier](const std::wstring& text) {
-                barrier.name(utf16to8(text));
-            });
-            entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
-            gameState.ui.entities.emplace_back(&entity);
+            {
+                auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.name");
+                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(barrier.name()));
+                uiComponent.onTextChanged([&barrier](const std::wstring& text) {
+                    barrier.name(utf16to8(text));
+                });
+                entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
+                gameState.ui.entities.emplace_back(&entity);
+            }
+            {
+                auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.powered");
+                auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle powered");
+                uiComponent.onClicked([&barrier]() {
+                    barrier.powered(!barrier.powered());
+                });
+                entity.get<sill::TransformComponent>().translation2d({100.f, 1.5f * 30.f + 2.f * 2.f});
+                gameState.ui.entities.emplace_back(&entity);
+            }
             return;
         }
     }
@@ -208,16 +230,6 @@ void updateSelectedObject(GameState& gameState, Object& object)
         if (input.justDown("left")) {
             panel.extent(panel.extent() - glm::uvec2(1, 0));
         }
-        if (input.justDown("rename-selection")) {
-            std::string panelName;
-            std::cout << "Renaming panel '" << panel.name() << "'. New name:" << std::endl;
-            std::cin >> panelName;
-            panel.name(panelName);
-            std::cout << "New panel name '" << panel.name() << "'." << std::endl;
-        }
-        if (input.justDown("solve-selection")) {
-            panel.pretendSolved(!panel.solved());
-        }
     }
     else if (entity.name() == "barrier") {
         auto& barrier = dynamic_cast<Barrier&>(object);
@@ -227,16 +239,6 @@ void updateSelectedObject(GameState& gameState, Object& object)
         }
         if (input.justDown("down")) {
             barrier.diameter(barrier.diameter() - 0.5f);
-        }
-        if (input.justDown("rename-selection")) {
-            std::string barrierName;
-            std::cout << "Renaming barrier '" << barrier.name() << "'. New name:" << std::endl;
-            std::cin >> barrierName;
-            barrier.name(barrierName);
-            std::cout << "New barrier name '" << barrier.name() << "'." << std::endl;
-        }
-        if (input.justDown("solve-selection")) {
-            barrier.powered(!barrier.powered());
         }
     }
     else {
@@ -273,8 +275,6 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
     input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
-    input.bindAction("rename-selection", {Key::F2});
-    input.bindAction("solve-selection", {Key::LeftShift, Key::S});
     // @fixme Disabling, need gizmo
     // input.bindAction("scale-up", Key::S);
     // input.bindAction("scale-down", {Key::LeftShift, Key::S});
