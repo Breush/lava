@@ -70,7 +70,7 @@ void VrEngine::Impl::update()
         if (!pose.bPoseIsValid) continue;
 
         auto type = m_vrSystem->GetTrackedDeviceClass(deviceIndex);
-        if (type == vr::TrackedDeviceClass_TrackingReference) return;
+        if (type == vr::TrackedDeviceClass_TrackingReference) continue;
 
         DeviceInfo deviceInfo;
         deviceInfo.valid = pose.bPoseIsValid;

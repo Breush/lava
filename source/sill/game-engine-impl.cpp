@@ -13,7 +13,7 @@ GameEngine::Impl::Impl(GameEngine& engine)
 
     //----- Initializing window
 
-    m_windowExtent = {800, 600};
+    m_windowExtent = {1600, 900};
     m_window = std::make_unique<crater::Window>(m_windowExtent, "sill");
 
     //----- Initializing rendering

@@ -76,6 +76,10 @@ namespace lava::magma {
         Texture& makeTexture(const std::string& imagePath = "");
         Mesh& makeMesh();
         Flat& makeFlat();
+
+        /// Find an existing texture which has the same pixels.
+        /// @note This done through an hash computation and can give a wrong texture sometimes.
+        Texture* findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         /// @}
 
         /**

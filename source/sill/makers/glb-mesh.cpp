@@ -26,6 +26,9 @@ namespace {
         std::unordered_map<uint32_t, magma::Material*> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
         std::unordered_map<uint32_t, uint32_t> nodeIndices;
+
+        // Key is textureId, value is a list of materials and uniformName waiting for that texture to be done.
+        std::unordered_map<uint32_t, std::vector<std::pair<magma::Material*, std::string>>> pendingUniformBindings;
     };
 
     using PixelsCallback = std::function<void(uint8_t*, uint32_t, uint32_t)>;
@@ -36,38 +39,48 @@ namespace {
     {
         if (textureIndex == -1u) return;
 
+        cacheData.pendingUniformBindings[textureIndex].emplace_back(&material, uniformName);
+
+        // No need to reload already existing textures.
         if (cacheData.textures.find(textureIndex) != cacheData.textures.end()) {
-            auto& rmTexture = *cacheData.textures.at(textureIndex);
-            material.set(uniformName, rmTexture);
+            return;
         }
-        else {
-            glb::Texture texture(json["textures"][textureIndex]);
-            glb::Image image(json["images"][texture.source]);
 
-            glb::BufferView imageBufferView(json["bufferViews"][image.bufferView]);
-            auto imageVectorView = imageBufferView.get(binChunk.data);
+        glb::Texture texture(json["textures"][textureIndex]);
+        glb::Image image(json["images"][texture.source]);
 
-            auto& rmTexture = engine.scene().make<magma::Texture>();
-            cacheData.textures[textureIndex] = &rmTexture;
+        glb::BufferView imageBufferView(json["bufferViews"][image.bufferView]);
+        auto imageVectorView = imageBufferView.get(binChunk.data);
 
+        // Will be set later in an other thread.
+        cacheData.textures[textureIndex] = nullptr;
 
-            if (!cacheData.threadPool) {
-                cacheData.threadPool = std::make_unique<ThreadPool>();
+        if (!cacheData.threadPool) {
+            cacheData.threadPool = std::make_unique<ThreadPool>();
+        }
+
+        cacheData.threadPool->job([&engine, &cacheData, textureIndex, imageVectorView, pixelsCallback] {
+            // @todo We might want to choose the number of channels one day...
+            int texWidth, texHeight;
+            auto pixels = stbi_load_from_memory(imageVectorView.data(), imageVectorView.size(), &texWidth, &texHeight, nullptr,
+                                                STBI_rgb_alpha);
+            if (pixelsCallback) pixelsCallback(pixels, texWidth, texHeight);
+
+            // @note Because this is threaded, a badly-made GLB can ask to load the same texture multiple times
+            // if the data is duplicated. We cannot do anything at this level...
+            // This findTexture is for already loaded textures from other meshes.
+            auto existingTexture = engine.scene().findTexture(pixels, texWidth, texHeight, 4u);
+            if (existingTexture != nullptr) {
+                cacheData.textures[textureIndex] = existingTexture;
+            }
+            else {
+                auto& texture = engine.scene().make<magma::Texture>();
+                texture.loadFromMemory(pixels, texWidth, texHeight, 4u);
+                cacheData.textures[textureIndex] = &texture;
             }
 
-            cacheData.threadPool->job([&rmTexture, imageVectorView, pixelsCallback, &material, uniformName] {
-                // @todo We might want to choose the number of channels one day...
-                int texWidth, texHeight;
-                auto pixels = stbi_load_from_memory(imageVectorView.data(), imageVectorView.size(), &texWidth, &texHeight, nullptr,
-                                                    STBI_rgb_alpha);
-
-                if (pixelsCallback) pixelsCallback(pixels, texWidth, texHeight);
-                rmTexture.loadFromMemory(pixels, texWidth, texHeight, 4u);
-                material.set(uniformName, rmTexture);
-
-                stbi_image_free(pixels);
-            });
-        }
+            stbi_image_free(pixels);
+        });
     }
 
     void setOrmTexture(GameEngine& engine, magma::Material& material, uint32_t occlusionTextureIndex,
@@ -169,7 +182,11 @@ namespace {
             meshPrimitive.verticesCount(positions.size());
 
             auto indicesComponentType = accessors[primitive.indicesAccessorIndex]["componentType"];
-            if (indicesComponentType == 5123) {
+            if (indicesComponentType == 5125) {
+                auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint32_t>(bufferViews, binChunk.data);
+                meshPrimitive.indices(indices, flipTriangles);
+            }
+            else if (indicesComponentType == 5123) {
                 auto indices = glb::Accessor(accessors[primitive.indicesAccessorIndex]).get<uint16_t>(bufferViews, binChunk.data);
                 meshPrimitive.indices(indices, flipTriangles);
             }
@@ -378,9 +395,16 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
 
         meshComponent.nodes(std::move(meshNodes));
 
-        // @todo We might want to be non-blocking globally.
+        // Bind all uniforms to textures once that are all done loaded
         if (cacheData.threadPool) {
             cacheData.threadPool->wait();
+        }
+
+        for (auto it : cacheData.pendingUniformBindings) {
+            auto& texture = cacheData.textures[it.first];
+            for (const auto& pair : it.second) {
+                pair.first->set(pair.second, texture); // Set material uniform
+            }
         }
 
         logger.info("sill.makers.glb-mesh").tab(3) << "Generated mesh component for " << fileName << std::endl;

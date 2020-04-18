@@ -140,6 +140,21 @@ Flat& Scene::makeFlat()
     return *resource;
 }
 
+Texture* Scene::findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
+{
+    auto hash = Texture::hash(pixels, width, height, channels);
+
+    // @todo We're computing the hash twice for the texture that do not match,
+    // because we add it afterwards, there might be a way to return the hash info too.
+    for (auto texture : m_textures) {
+        if (texture->cube() == false && texture->hash() == hash) {
+            return texture;
+        }
+    }
+
+    return nullptr;
+}
+
 // ----- Removers
 
 void Scene::remove(const Light& light)

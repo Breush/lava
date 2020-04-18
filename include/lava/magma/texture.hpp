@@ -24,10 +24,14 @@ namespace lava::magma {
         Scene& scene() { return m_scene; }
         const Scene& scene() const { return m_scene; }
 
+        size_t hash() const { return m_hash; }
+        bool cube() const { return m_cube; }
+
         /**
          * @name Loaders
          */
         /// @{
+        static size_t hash(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         void loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         void loadFromFile(const std::string& imagePath);
 
@@ -40,5 +44,8 @@ namespace lava::magma {
     private:
         // ----- References
         Scene& m_scene;
+
+        size_t m_hash = 0u;
+        bool m_cube = false;
     };
 }

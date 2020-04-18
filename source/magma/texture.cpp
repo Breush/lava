@@ -22,8 +22,25 @@ Texture::~Texture()
 
 // ----- Loaders
 
+size_t Texture::hash(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
+{
+    size_t hash = 0u;
+    std::hash<uint32_t> hasher;
+
+    uint32_t length = width * height;
+    for (uint32_t i = 0u; i < length; ++i) {
+        hash ^= hasher(i + static_cast<uint32_t>(pixels[i]));
+    }
+
+    hash ^= (width << 2u) + (height << 1u) + channels;
+    return hash;
+}
+
 void Texture::loadFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
+    m_cube = false;
+    m_hash = hash(pixels, width, height, channels);
+
     aft().foreLoadFromMemory(pixels, width, height, channels);
 }
 
@@ -49,6 +66,9 @@ void Texture::loadFromFile(const std::string& imagePath)
 
 void Texture::loadCubeFromMemory(const std::array<const uint8_t*, 6u>& imagesPixels, uint32_t width, uint32_t height)
 {
+    m_cube = true;
+    // @note We don't hash cubes because they are too rare.
+
     aft().foreLoadCubeFromMemory(imagesPixels, width, height);
 }
 

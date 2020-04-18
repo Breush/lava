@@ -50,8 +50,10 @@ namespace lava::magma {
         void set(const std::string& uniformName, const glm::vec4& value);
         void set(const std::string& uniformName, const Texture& texture);
         void set(const std::string& uniformName, const uint32_t* values, uint32_t size);
+        void set(const std::string& uniformName, const Texture* texture) { set(uniformName, *texture); }
 
         void setGlobal(const std::string& uniformName, const Texture& texture);
+        void setGlobal(const std::string& uniformName, const Texture* texture) { setGlobal(uniformName, *texture); }
         /// @}
 
         /**
