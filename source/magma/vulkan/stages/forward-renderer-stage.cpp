@@ -456,7 +456,7 @@ void ForwardRendererStage::initTranslucentPass()
 
     //----- Rasterization
 
-    m_translucentPipelineHolder.set(vk::CullModeFlagBits::eBack);
+    m_translucentPipelineHolder.set(vk::CullModeFlagBits::eNone);
 
     //----- Attachments
 

@@ -408,7 +408,7 @@ void setupEditor(GameState& gameState)
             }
             else if (input.justDown("add-mesh")) {
                 std::cout << "Available meshes:" << std::endl;
-                for (const auto& entry : std::filesystem::directory_iterator("./assets/models/vr-puzzle/")) {
+                for (const auto& entry : std::filesystem::recursive_directory_iterator("./assets/models/vr-puzzle/")) {
                     if (entry.path().extension() == ".glb") {
                         std::cout << entry.path() << std::endl;
                     }

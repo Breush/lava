@@ -44,6 +44,29 @@ void setupEnvironment(GameState& gameState)
         entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
         entity.get<sill::PhysicsComponent>().dynamic(false);
     }
+
+    // Water
+    {
+        auto& entity = engine.make<sill::GameEntity>("water");
+        auto& meshComponent = entity.make<sill::MeshComponent>();
+        sill::makers::planeMeshMaker(512.f)(meshComponent);
+        meshComponent.category(RenderCategory::Translucent);
+        entity.get<sill::TransformComponent>().translate({0.f, 0.f, -0.3f});
+
+        auto& waveTexture = engine.scene().make<magma::Texture>();
+        waveTexture.loadFromFile("./assets/textures/vr-puzzle/water.png");
+
+        auto& material = engine.scene().make<magma::Material>("water");
+        material.set("waveMap", waveTexture);
+        meshComponent.primitive(0, 0).material(material);
+
+        auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
+        behaviorComponent.onUpdate([&](float dt) {
+            static float time = 0.f;
+            time += dt;
+            material.set("time", time);
+        });
+    }
 }
 
 void levelSolved(GameState& /*gameState*/)
@@ -83,9 +106,9 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
 
         // @fixme Have these stored in JSON somehow?
         findPanelByName(gameState, "intro.waking-hall-clock-controller")->onSolve([&gameState]() {
-            auto wakingHall = gameState.engine->findEntityByName("waking-hall");
-            wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
-            wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
+            // auto wakingHall = gameState.engine->findEntityByName("waking-hall");
+            // wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
+            // wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
         });
         findPanelByName(gameState, "intro.easy-solo")->onSolve([&gameState]() {
             findBarrierByName(gameState, "intro.easy-duo")->powered(true);

@@ -142,6 +142,12 @@ void Mesh::verticesTangents(VectorView<glm::vec4> tangents)
     aft().foreVerticesChanged();
 }
 
+void Mesh::indices(VectorView<uint32_t> indices, bool flipTriangles)
+{
+    setIndices(m_indices, indices, flipTriangles, m_vertices.size());
+    aft().foreIndicesChanged();
+}
+
 void Mesh::indices(VectorView<uint16_t> indices, bool flipTriangles)
 {
     setIndices(m_indices, indices, flipTriangles, m_vertices.size());

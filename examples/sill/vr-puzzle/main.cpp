@@ -29,6 +29,7 @@ int main(void)
     engine.registerMaterialFromFile("teleport-beam", "./examples/sill/vr-puzzle/materials/teleport-beam.shmag");
     engine.registerMaterialFromFile("teleport-area", "./examples/sill/vr-puzzle/materials/teleport-area.shmag");
     engine.registerMaterialFromFile("selection-rectangle", "./examples/sill/vr-puzzle/materials/selection-rectangle.shmag");
+    engine.registerMaterialFromFile("water", "./examples/sill/vr-puzzle/materials/water.shmag");
 
     // Camera (for companion window)
     setupCamera(gameState);

@@ -1,0 +1,45 @@
+struct {
+    nvec3(16) normal;
+    vec3 waveColor;
+} gBuffer;
+
+uniform {
+    float time = 0;
+    texture2d waveMap = "white";
+};
+
+geometry {
+    bool main() {
+        // @note That UV factor depends on the size of the plane!
+        vec2 reuv = 10 * uv;
+
+        float waveJitteriness = 0.1;
+        float waveJitterinessSpeed = 0.25;
+        vec2 waveUv = waveJitteriness * sin(waveJitterinessSpeed * time) + reuv;
+
+        gBuffer.normal = tbn[2];
+
+        gBuffer.waveColor = texture(waveMap, waveJitteriness * sin(waveJitterinessSpeed * time) + reuv).rgb;
+
+        return true;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        vec3 position = positionFromDepth(fragmentDepth, fragmentPosition);
+
+        vec3 n = gBuffer.normal;
+        vec3 v = normalize(camera.position.xyz - position);
+
+        float opacity = max(1 - dot(n, v), 0.5);
+
+        vec3 waterColor = vec3(0.3, 0.6, 0.9);
+        waterColor = mix(waterColor, vec3(1), dot(n, v));
+
+        // @todo Add environment contribution
+
+        vec3 color = gBuffer.waveColor * waterColor;
+        return vec4(color, opacity);
+    }
+}
