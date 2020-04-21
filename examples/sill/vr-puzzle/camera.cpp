@@ -98,21 +98,14 @@ void setupCamera(GameState& gameState)
     auto& reticleTransformComponent = reticleEntity.make<sill::TransformComponent>();
 
     auto& reticleMaterial = engine.scene().make<magma::Material>("reticle");
-    auto& reticleMeshComponent = reticleEntity.make<sill::MeshComponent>();
-    sill::makers::planeMeshMaker({1.f, 1.f})(reticleMeshComponent);
-    reticleMeshComponent.primitive(0u, 0u).shadowsCastable(false);
-    reticleMeshComponent.primitive(0u, 0u).material(reticleMaterial);
-    reticleMeshComponent.primitive(0u, 0u).category(RenderCategory::Translucent);
+    auto& reticleFlatComponent = reticleEntity.make<sill::FlatComponent>();
+    sill::makers::quadFlatMaker({5.f, 5.f})(reticleFlatComponent);
+    reticleFlatComponent.primitive(0u, 0u).material(reticleMaterial);
 
-    reticleEntity.make<sill::BehaviorComponent>().onUpdate([&gameState, &reticleTransformComponent](float /* dt */) {
-        if (!gameState.camera.reticleUpdateNeeded) return;
-
-        const auto& extent = gameState.camera.component->extent();
-        auto coordinates = glm::vec2{0.5f * extent.width, 0.5f * extent.height};
-        auto screenMatrix = gameState.camera.component->unprojectAsTransform(coordinates, 0.001f);
-        screenMatrix = glm::rotate(screenMatrix, chamber::math::PI_OVER_TWO, {0, 1, 0});
-        screenMatrix = glm::scale(screenMatrix, glm::vec3{0.01f});
-        reticleTransformComponent.worldTransform(screenMatrix);
+    auto extent = gameState.camera.component->extent();
+    reticleTransformComponent.translation2d({extent.width / 2.f, extent.height / 2.f});
+    gameState.engine->onWindowExtentChanged([&reticleTransformComponent](const Extent2d& extent) {
+        reticleTransformComponent.translation2d({extent.width / 2.f, extent.height / 2.f});
     });
 
     gameState.camera.reticleEntity = &reticleEntity;
@@ -129,9 +122,7 @@ void setCameraMode(GameState& gameState, CameraMode mode)
 
     // @todo This reticle thingy update would be useless if we had a dedicated screen-space UI pass.
     gameState.camera.reticleUpdateNeeded = firstPersonModeEnabled;
-    if (!firstPersonModeEnabled) {
-        gameState.camera.reticleEntity->get<sill::TransformComponent>().scaling(0.f);
-    }
+    gameState.camera.reticleEntity->get<sill::TransformComponent>().scaling2d((firstPersonModeEnabled) ? 1.f : 0.f);
 
     gameState.engine->window().mouseKeptCentered(mode == CameraMode::FirstPerson);
     gameState.engine->window().mouseHidden(mode == CameraMode::FirstPerson);
