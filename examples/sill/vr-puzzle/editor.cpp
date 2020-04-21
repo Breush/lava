@@ -253,14 +253,17 @@ void setupEditor(GameState& gameState)
     auto& input = engine.input();
 
     // Inputs
-
     input.bindAction("editor.toggle", Key::E);
     input.bindAction("editor.exit", Key::Escape);
+    input.bindAction("editor.main-click", MouseButton::Left);
     input.bindAction("editor.switch-gizmo", MouseButton::Middle);
     input.bindAction("editor.multiple-selection-modifier", {Key::LeftShift});
     input.bindAction("editor.multiple-selection-modifier", {Key::RightShift});
     input.bindAction("editor.duplicate-selection", {Key::LeftControl, Key::D});
     input.bindAction("editor.delete-selection", {Key::Delete});
+
+    input.bindAxis("editor.axis-x", InputAxis::MouseX);
+    input.bindAxis("editor.axis-y", InputAxis::MouseY);
 
     input.bindAction("up", Key::Up);
     input.bindAction("down", Key::Down);
@@ -269,7 +272,7 @@ void setupEditor(GameState& gameState)
     input.bindAction("save", {Key::LeftControl, Key::S});
     input.bindAction("reload-level", {Key::LeftControl, Key::R});
 
-    // @fixme This is for debug for now
+    // @fixme This is for debug for now, we want UI
     input.bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
     input.bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
@@ -447,7 +450,7 @@ void setupEditor(GameState& gameState)
             // ----- Left click
 
             // Go the gizmo mode if needed
-            if (input.justDown("left-fire")) {
+            if (input.justDown("editor.main-click")) {
                 if (gameState.editor.gizmo.selectedToolAxis) {
                     uint32_t axisIndex = gameState.editor.gizmo.toolEntity->childIndex(*gameState.editor.gizmo.selectedToolAxis);
                     gameState.editor.gizmo.axis = g_axes[axisIndex];
@@ -470,26 +473,26 @@ void setupEditor(GameState& gameState)
                 }
             }
             // Or might be multi-selection mode
-            else if (input.down("left-fire") &&
-                     (input.axisChanged("main-x") || input.axisChanged("main-y"))) {
+            else if (input.down("editor.main-click") &&
+                     (input.axisChanged("editor.axis-x") || input.axisChanged("editor.axis-y"))) {
                 gameState.editor.state = EditorState::MultiSelection;
                 gameState.editor.selection.multiStart = input.mouseCoordinates();
                 unselectAllObjects(gameState);
             }
 
             // Select entity on left click if any.
-            if (input.justDownUp("left-fire")) {
+            if (input.justDownUp("editor.main-click")) {
                 auto pickedEntity = engine.pickEntity(gameState.pickingRay);
                 auto pickedObject = findObject(gameState, pickedEntity);
                 selectObject(gameState, pickedObject, input.down("editor.multiple-selection-modifier"));
             }
         }
         else if (gameState.editor.state == EditorState::MultiSelection) {
-            if (input.justUp("left-fire")) {
+            if (input.justUp("editor.main-click")) {
                 gameState.editor.state = EditorState::Idle;
                 selectMultiObjects(gameState);
             }
-            else if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
+            else if (input.axisChanged("editor.axis-x") || input.axisChanged("editor.axis-y")) {
                 gameState.editor.selection.multiEnd = input.mouseCoordinates();
                 selectMultiObjectsUpdate(gameState);
             }
@@ -512,12 +515,12 @@ void setupEditor(GameState& gameState)
 
         // Move object if needed.
         if (gameState.editor.state == EditorState::TranslateAlongAxis) {
-            if (input.justUp("left-fire")) {
+            if (input.justUp("editor.main-click")) {
                 gameState.editor.state = EditorState::Idle;
                 return;
             }
 
-            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
+            if (input.axisChanged("editor.axis-x") || input.axisChanged("editor.axis-y")) {
                 const Ray axisRay = {.origin = barycenter, .direction = gameState.editor.gizmo.axis};
                 const auto delta = projectOn(axisRay, gameState.pickingRay) - gameState.editor.gizmo.axisOffset;
 
@@ -528,12 +531,12 @@ void setupEditor(GameState& gameState)
         }
         // Or rotate it!
         else if (gameState.editor.state == EditorState::RotateAlongAxis) {
-            if (input.justUp("left-fire")) {
+            if (input.justUp("editor.main-click")) {
                 gameState.editor.state = EditorState::Idle;
                 return;
             }
 
-            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
+            if (input.axisChanged("editor.axis-x") || input.axisChanged("editor.axis-y")) {
                 auto axisOffset = rotationAxisOffset(gameState, barycenter);
                 auto delta = axisOffset - gameState.editor.gizmo.axisOffset;
                 gameState.editor.gizmo.axisOffset = axisOffset;

@@ -2,6 +2,7 @@
 #include "./editor.hpp"
 #include "./environment.hpp"
 #include "./game-logic.hpp"
+#include "./player.hpp"
 #include "./ray-picking.hpp"
 #include "./teleport-beam.hpp"
 
@@ -34,9 +35,8 @@ int main(void)
     // Camera (for companion window)
     setupCamera(gameState);
 
-    // VR control
-    engine.input().bindAction("trigger", VrButton::Trigger, VrDeviceType::RightHand);
-    engine.input().bindAction("touchpad", VrButton::Touchpad, VrDeviceType::RightHand);
+    // Player
+    setupPlayer(gameState);
 
     // Environment
     setupEnvironment(gameState);

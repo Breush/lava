@@ -101,8 +101,6 @@ namespace {
         auto& engine = *gameState.engine;
         if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
-        gameState.player.position = engine.vr().deviceTransform(VrDeviceType::Head)[3];
-
         auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
@@ -152,10 +150,8 @@ namespace {
     {
         auto& engine = *gameState.engine;
 
-        gameState.player.position = gameState.camera.component->origin();
-
         // For mouse, the user uses click to grab then click to drop.
-        if (engine.input().justDownUp("left-fire")) {
+        if (engine.input().justDownUp("player.grab-brick")) {
             if (gameState.state == State::Idle && gameState.pointedBrick) {
                 grabBrick(gameState, gameState.pointedBrick);
             }
@@ -167,7 +163,7 @@ namespace {
         if (gameState.state != State::GrabbedBrick) return;
 
         // Update entity to us whenever it is in grabbing state.
-        if (engine.input().justDownUp("right-fire")) {
+        if (engine.input().justDownUp("player.rotate-brick")) {
             rotateGrabbedBrick();
         }
 

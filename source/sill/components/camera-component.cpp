@@ -37,6 +37,14 @@ CameraComponent::~CameraComponent()
 
 // ----- Controls
 
+void CameraComponent::go(const glm::vec3& origin)
+{
+    auto offset = origin - m_cameraController.origin();
+    auto target = m_cameraController.target() + offset;
+    m_cameraController.origin(origin);
+    m_cameraController.target(target);
+}
+
 void CameraComponent::goForward(float distance, const glm::vec3& constraints)
 {
     auto offset = distance * glm::normalize(constraints * (target() - origin()));

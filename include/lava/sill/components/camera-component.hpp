@@ -46,6 +46,7 @@ namespace lava::sill {
         void orbitAdd(float longitudeAngle, float latitudeAngle){ m_cameraController.orbitAdd(longitudeAngle, latitudeAngle); }
 
         // FPS
+        void go(const glm::vec3& origin); // Move both origin and target so that the camera seem to have moved there.
         void goForward(float distance, const glm::vec3& constraints = {1, 1, 1});
         void goRight(float distance, const glm::vec3& constraints = {1, 1, 1});
         void strafe(float x, float y) { m_cameraController.strafe(x, y); }

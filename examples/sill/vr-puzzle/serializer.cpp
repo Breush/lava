@@ -280,6 +280,10 @@ void unserializeLevel(GameState& gameState, const std::string& path)
 
     logger.info("vr-puzzle") << "Loading level '" << gameState.level.name << "'..." << std::endl;
 
+    const auto playerJson = levelJson["player"];
+    gameState.player.position = unserializeVec3(playerJson["position"]);
+    gameState.player.direction = unserializeVec3(playerJson["direction"]);
+
     for (auto object : gameState.level.objects) {
         object->clear(false);
     }
@@ -323,6 +327,10 @@ void serializeLevel(GameState& gameState, const std::string& path)
     levelJson["file"] = {
         {"type", "LEVEL"},
         {"version", 0},
+    };
+    levelJson["player"] = {
+        {"position", serialize(gameState.player.position)},
+        {"direction", serialize(gameState.player.direction)},
     };
 
     levelJson["barriers"] = nlohmann::json::array();

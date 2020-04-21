@@ -80,6 +80,8 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
     unserializeLevel(gameState, levelPath);
 
     if (gameState.level.name == "intro") {
+        gameState.terrain.entity = gameState.engine->findEntityByName("island-1");
+
         auto& clockEntity = *gameState.engine->findEntityByName("clock");
         auto& clockMeshComponent = clockEntity.get<sill::MeshComponent>();
         clockMeshComponent.startAnimation("seconds-tick", -1u);

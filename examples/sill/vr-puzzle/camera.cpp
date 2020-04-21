@@ -12,29 +12,27 @@ void setupCamera(GameState& gameState)
     auto& input = engine.input();
 
     // Initializing inputs
-    input.bindAxis("main-x", InputAxis::MouseX);
-    input.bindAxis("main-y", InputAxis::MouseY);
-    input.bindAxis("zoom", InputAxis::MouseWheelVertical);
+    input.bindAxis("camera.axis-x", InputAxis::MouseX);
+    input.bindAxis("camera.axis-y", InputAxis::MouseY);
+    input.bindAxis("camera.zoom", InputAxis::MouseWheelVertical);
 
-    input.bindAction("left-fire", MouseButton::Left);
-    input.bindAction("middle-fire", MouseButton::Middle);
-    input.bindAction("right-fire", MouseButton::Right);
+    input.bindAction("camera.strafe", MouseButton::Right);
+    input.bindAction("camera.orbit", MouseButton::Middle);
 
-    input.bindAction("move-forward", Key::Z);
-    input.bindAction("move-backward", Key::S);
-    input.bindAction("move-left", Key::Q);
-    input.bindAction("move-right", Key::D);
+    input.bindAction("camera.go-forward", Key::Z);
+    input.bindAction("camera.go-backward", Key::S);
+    input.bindAction("camera.go-left", Key::Q);
+    input.bindAction("camera.go-right", Key::D);
+    input.bindAction("camera.go-faster", Key::LeftShift);
 
     input.bindAction("window.close", Key::Escape);
-    input.bindAction("window.toggle-fullscreen", {Key::F11});
+    input.bindAction("window.toggle-fullscreen", Key::F11);
     input.bindAction("toggle-fps-counting", {Key::LeftControl, Key::LeftAlt, Key::F});
 
     // Make the entity
     auto& entity = engine.make<sill::GameEntity>("camera");
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     auto& cameraComponent = entity.make<sill::CameraComponent>();
-    cameraComponent.origin({-2.f, 0.f, 1.7f});
-    cameraComponent.target({0.f, 0.f, 1.7f});
     gameState.camera.component = &cameraComponent;
 
     // Behavior for user control
@@ -52,59 +50,43 @@ void setupCamera(GameState& gameState)
         // @fixme Better have a "pushLockCamera" function, something callable from anywhere.
         if (gameState.state == State::Editor && gameState.editor.state != EditorState::Idle) return;
 
-        // Going forward/backward
-
-        static float forwardImpulse = 0.f;
-
-        if (input.down("move-forward")) {
-            forwardImpulse = 3.f; // meters per second
-        }
-        else if (input.down("move-backward")) {
-            forwardImpulse = -3.f;
-        }
-
-        if (std::abs(forwardImpulse) > 0.01f) {
-            cameraComponent.goForward(forwardImpulse * dt, {1, 1, 0});
-            forwardImpulse = 0.9f * forwardImpulse;
-        }
-
-        // Going right/left
-
-        static float rightImpulse = 0.f;
-
-        if (input.down("move-right")) {
-            rightImpulse = 2.f;
-        }
-        else if (input.down("move-left")) {
-            rightImpulse = -2.f;
-        }
-
-        if (std::abs(rightImpulse) > 0.01f) {
-            cameraComponent.goRight(rightImpulse * dt, {1, 1, 0});
-            rightImpulse = 0.9f * rightImpulse;
-        }
-
         if (gameState.camera.mode == CameraMode::FirstPerson) {
-            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
-                glm::vec2 delta(input.axis("main-x") / 100.f, input.axis("main-y") / 100.f);
-                cameraComponent.rotateAtOrigin(-delta.x, -delta.y);
-            }
+            cameraComponent.go(gameState.player.headPosition);
+            cameraComponent.target(gameState.player.headPosition + gameState.player.direction);
         }
         else if (gameState.camera.mode == CameraMode::Orbit) {
-            if (input.axisChanged("zoom")) {
-                cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("zoom") / 10.f);
+            // Going forward/backward
+            float forwardImpulse = 0.f;
+            if (input.down("camera.go-forward")) forwardImpulse = 3.f; // Meters per second
+            else if (input.down("camera.go-backward")) forwardImpulse = -3.f;
+
+            if (std::abs(forwardImpulse) > 0.01f) {
+                if (input.down("camera.go-faster")) forwardImpulse *= 3.f;
+                cameraComponent.goForward(forwardImpulse * dt, glm::vec3{1, 1, 0});
             }
 
-            if (input.axisChanged("main-x") || input.axisChanged("main-y")) {
-                glm::vec2 delta(input.axis("main-x") / 100.f, input.axis("main-y") / 100.f);
+            // Going right/left
+            float rightImpulse = 0.f;
+            if (input.down("camera.go-right")) rightImpulse = 2.f;
+            else if (input.down("camera.go-left")) rightImpulse = -2.f;
 
-                // Right click is maintained to translate the camera
-                if (input.down("right-fire")) {
+            if (std::abs(rightImpulse) > 0.01f) {
+                if (input.down("camera.go-faster")) rightImpulse *= 3.f;
+                cameraComponent.goRight(rightImpulse * dt, glm::vec3{1, 1, 0});
+            }
+
+            // Mouse control
+            if (input.axisChanged("camera.zoom")) {
+                cameraComponent.radiusAdd(-cameraComponent.radius() * input.axis("camera.zoom") / 10.f);
+            }
+
+            if (input.axisChanged("camera.axis-x") || input.axisChanged("camera.axis-y")) {
+                glm::vec2 delta(input.axis("camera.axis-x") / 100.f, input.axis("camera.axis-y") / 100.f);
+
+                if (input.down("camera.strafe")) {
                     cameraComponent.strafe(delta.x / 10.f, delta.y / 10.f);
                 }
-
-                // Middle click is maintained to orbit
-                if (input.down("middle-fire")) {
+                if (input.down("camera.orbit")) {
                     cameraComponent.orbitAdd(-delta.x, delta.y);
                 }
             }

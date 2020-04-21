@@ -54,8 +54,14 @@ struct GameState {
     } snapping;
 
     struct {
-        glm::vec3 position; // Camera in FPS, headset in VR.
+        glm::vec3 position; // Camera projection on terrain in FPS, area position in VR.
+        glm::vec3 direction = {1.f, 0.f, 0.f}; // Always normalized, not used in VR.
+        glm::vec3 headPosition; // Camera in FPS, headset in VR.
     } player;
+
+    struct {
+        lava::sill::GameEntity* entity = nullptr;
+    } terrain;
 
     struct {
         lava::sill::GameEntity* beamEntity = nullptr;
