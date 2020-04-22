@@ -28,19 +28,14 @@ namespace lava::sill {
         void remove(const GameEntity& gameEntity);
 
         // Materials
-        void environmentTexture(const fs::Path& imagesPath);
-        void registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
+        void environmentTexture(const fs::Path& imagesPath, uint8_t sceneIndex = 0u);
 
         void run();
         /// @}
 
         // Getters
-        magma::RenderEngine& renderEngine() { return *m_renderEngine; }
-        const magma::RenderEngine& renderEngine() const { return *m_renderEngine; }
         magma::WindowRenderTarget& windowRenderTarget() { return *m_windowRenderTarget; }
         const magma::WindowRenderTarget& windowRenderTarget() const { return *m_windowRenderTarget; }
-        magma::Scene& scene() { return *m_scene; }
-        const magma::Scene& scene() const { return *m_scene; }
         magma::Scene& scene2d() { return *m_scene2d; }
         const magma::Scene& scene2d() const { return *m_scene2d; }
         // @todo Inconsistency: It is CameraComponent that holds the 3D cameras but here it's stored in GameEngine.
@@ -65,7 +60,6 @@ namespace lava::sill {
     protected:
         void updateInput();
         void updateEntities(float dt);
-        void registerMaterials();
         void handleEvent(WsEvent& event, bool& propagate);
 
     private:
@@ -74,10 +68,8 @@ namespace lava::sill {
 
         // Rendering
         std::unique_ptr<crater::Window> m_window = nullptr;
-        std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
         magma::WindowRenderTarget* m_windowRenderTarget = nullptr;
         magma::VrRenderTarget* m_vrRenderTarget = nullptr;
-        magma::Scene* m_scene = nullptr;
         magma::Scene* m_scene2d = nullptr;
         magma::Camera* m_camera2d = nullptr;
         magma::Light* m_light = nullptr;

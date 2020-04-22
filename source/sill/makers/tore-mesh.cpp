@@ -1,7 +1,6 @@
 #include <lava/sill/makers/tore-mesh.hpp>
 
 #include <lava/sill/components/mesh-component.hpp>
-#include <lava/sill/game-entity.hpp>
 
 #include "./makers-common.hpp"
 
@@ -66,7 +65,7 @@ std::function<void(MeshComponent&)> makers::toreMeshMaker(uint32_t bigTessellati
         }
 
         // Apply the geometry
-        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.entity().engine());
+        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.scene());
         auto& primitive = meshGroup->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);

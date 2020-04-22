@@ -104,19 +104,19 @@ namespace {
         setTexture(engine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData);
     }
 
-    std::unique_ptr<MeshGroup> loadMesh(GameEntity& entity, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
+    std::unique_ptr<MeshGroup> loadMesh(MeshComponent& meshComponent, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
                                         CacheData& cacheData, bool flipTriangles)
     {
         PROFILE_FUNCTION();
 
         glb::Mesh mesh(json["meshes"][meshIndex]);
 
-        auto& engine = entity.engine();
+        auto& engine = meshComponent.entity().engine();
         const auto& accessors = json["accessors"];
         const auto& bufferViews = json["bufferViews"];
         const auto& materials = json.find("materials");
 
-        auto meshGroup = std::make_unique<MeshGroup>(entity.engine());
+        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.scene());
         meshGroup->name(mesh.name);
 
         // Each primitive will consist in one magma::Mesh
@@ -223,7 +223,7 @@ namespace {
         return meshGroup;
     }
 
-    MeshNode* loadNode(GameEntity& entity, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
+    MeshNode* loadNode(MeshComponent& meshComponent, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
                        const nlohmann::json& json, CacheData& cacheData)
     {
         glb::Node node(json["nodes"][nodeIndex]);
@@ -251,12 +251,12 @@ namespace {
 
         // Load geometry if any
         if (node.meshIndex != -1u) {
-            meshNode.meshGroup = loadMesh(entity, node.meshIndex, binChunk, json, cacheData, flipTriangles);
+            meshNode.meshGroup = loadMesh(meshComponent, node.meshIndex, binChunk, json, cacheData, flipTriangles);
         }
 
         // Recurse over children
         for (auto child : node.children) {
-            auto childNode = loadNode(entity, child, meshNodes, binChunk, json, cacheData);
+            auto childNode = loadNode(meshComponent, child, meshNodes, binChunk, json, cacheData);
             if (childNode != nullptr) {
                 meshNode.children.emplace_back(childNode);
             }
@@ -379,7 +379,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
         rootNode.name = fileName;
 
         for (uint32_t nodeIndex : nodes) {
-            auto node = loadNode(meshComponent.entity(), nodeIndex, meshNodes, binChunk, json, cacheData);
+            auto node = loadNode(meshComponent, nodeIndex, meshNodes, binChunk, json, cacheData);
             if (node != nullptr) {
                 rootNode.children.emplace_back(node);
             }

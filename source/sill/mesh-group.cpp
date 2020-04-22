@@ -5,8 +5,8 @@
 using namespace lava;
 using namespace lava::sill;
 
-MeshGroup::MeshGroup(GameEngine& engine)
-    : m_engine(engine)
+MeshGroup::MeshGroup(magma::Scene& scene)
+    : m_scene(scene)
 {
 }
 
@@ -15,9 +15,9 @@ MeshGroup::~MeshGroup()
     for (auto& primitive : m_primitives) {
         // @fixme :AutoMaterialDelete
         if (primitive->material() != nullptr) {
-            m_engine.scene().remove(*primitive->material());
+            m_scene.remove(*primitive->material());
         }
-        m_engine.scene().remove(*primitive);
+        m_scene.remove(*primitive);
     }
 }
 
@@ -25,7 +25,7 @@ MeshGroup::~MeshGroup()
 
 magma::Mesh& MeshGroup::addPrimitive()
 {
-    auto& mesh = m_engine.scene().make<magma::Mesh>();
+    auto& mesh = m_scene.make<magma::Mesh>();
     m_primitives.emplace_back(&mesh);
     return mesh;
 }

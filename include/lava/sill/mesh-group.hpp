@@ -5,10 +5,7 @@
 
 namespace lava::magma {
     class Mesh;
-}
-
-namespace lava::sill {
-    class GameEngine;
+    class Scene;
 }
 
 namespace lava::sill {
@@ -17,7 +14,7 @@ namespace lava::sill {
      */
     class MeshGroup {
     public:
-        MeshGroup(GameEngine& engine);
+        MeshGroup(magma::Scene& scene);
         ~MeshGroup();
 
         // User info
@@ -37,7 +34,7 @@ namespace lava::sill {
         void transform(const glm::mat4& transform);
 
     private:
-        GameEngine& m_engine;
+        magma::Scene& m_scene;
 
         // Resources
         std::string m_name;

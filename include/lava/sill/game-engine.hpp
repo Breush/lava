@@ -47,12 +47,19 @@ namespace lava::sill {
         /// Access physics engine.
         dike::PhysicsEngine& physicsEngine();
 
-        /// Access the render engine.
-        magma::RenderEngine& renderEngine();
-        magma::Scene& scene();
+        /**
+         * @name Rendering
+         */
+        /// @{
+        magma::RenderEngine& renderEngine() { return *m_renderEngine; }
+        magma::Scene& scene(uint8_t index = 0u) { return *m_scenes.at(index); }
         magma::Scene& scene2d();
         magma::Camera& camera2d();
         magma::WindowRenderTarget& windowRenderTarget();
+
+        /// Returns the index of the newly allocated scene.
+        uint8_t addScene();
+        /// @}
 
         /// Access the windowing system.
         crater::Window& window();
@@ -144,6 +151,10 @@ namespace lava::sill {
 
         std::vector<GameEntity*> m_entities;
         bool m_debugEntityPicking = false;
+
+        // Resources
+        std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
+        std::vector<magma::Scene*> m_scenes;
     };
 }
 

@@ -94,7 +94,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     // Set render pass
     std::array<vk::ClearValue, 2> clearValues;
     // @fixme Allow clear color to be configurable per scene or camera!
-    std::array<float, 4> clearColor{0.2f, 0.6f, 0.4f, 1.f};
+    std::array<float, 4> clearColor{1.f, 1.f, 1.f, 0.f};
     clearValues[0u].color = vk::ClearColorValue(clearColor);
     clearValues[1u].depthStencil = vk::ClearDepthStencilValue{1.f, 0u};
 

@@ -22,6 +22,9 @@ namespace lava::sill {
         // IComponent
         static std::string hrid() { return "camera"; }
 
+        const magma::Camera& camera() const { return *m_camera; }
+        magma::Camera& camera() { return *m_camera; }
+
         /**
          * @name Configuration
          */

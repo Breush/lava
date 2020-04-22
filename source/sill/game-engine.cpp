@@ -14,14 +14,47 @@ namespace {
     static GameEntity* g_debugEntityPickingEntity = nullptr;
 }
 
-$pimpl_class_forward(GameEngine);
+GameEngine::GameEngine()
+{
+    // ----- Rendering
+
+    m_renderEngine = std::make_unique<magma::RenderEngine>();
+
+    auto& scene = m_scenes[addScene()];
+    scene->rendererType(magma::RendererType::Forward);
+    scene->msaa(magma::Msaa::Max);
+
+    if (m_renderEngine->vr().enabled()) {
+        scene->msaa(magma::Msaa::None);
+    }
+
+    registerMaterialFromFile("font", "./data/shaders/materials/font-material.shmag"); // (used in TextMeshComponent)
+    registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag"); // (used in GLB loader)
+    registerMaterialFromFile("ui.quad", "./data/shaders/flat-materials/ui/quad.shmag"); // (UI)
+
+    // ----- Impl
+
+    // @todo Might not be useful anymore, we have no back-end to hide
+    m_impl = new GameEngine::Impl(*this);
+}
+
+GameEngine::~GameEngine()
+{
+    delete m_impl;
+}
 
 $pimpl_method(GameEngine, dike::PhysicsEngine&, physicsEngine);
-$pimpl_method(GameEngine, magma::RenderEngine&, renderEngine);
-$pimpl_method(GameEngine, magma::Scene&, scene);
 $pimpl_method(GameEngine, magma::Scene&, scene2d);
 $pimpl_method(GameEngine, magma::Camera&, camera2d);
 $pimpl_method(GameEngine, magma::WindowRenderTarget&, windowRenderTarget);
+
+uint8_t GameEngine::addScene()
+{
+    auto& scene = m_renderEngine->make<magma::Scene>();
+    m_scenes.emplace_back(&scene);
+    return m_scenes.size() - 1u;
+}
+
 $pimpl_method(GameEngine, crater::Window&, window);
 
 $pimpl_property_v(GameEngine, bool, fpsCounting);
@@ -42,8 +75,13 @@ void GameEngine::remove(const GameEntity& entity)
 }
 
 // ----- Materials
+
 $pimpl_method(GameEngine, void, environmentTexture, const fs::Path&, imagesPath);
-$pimpl_method(GameEngine, void, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
+
+void GameEngine::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath)
+{
+    m_renderEngine->registerMaterialFromFile(hrid, shaderPath);
+}
 
 $pimpl_method(GameEngine, void, run);
 

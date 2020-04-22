@@ -19,7 +19,9 @@ namespace lava::sill {
         using AnimationLoopStartCallback = std::function<void()>;
 
     public:
-        MeshComponent(GameEntity& entity);
+        MeshComponent(GameEntity& entity, uint8_t sceneIndex = 0u);
+
+        magma::Scene& scene() { return *m_scene; }
 
         // IComponent
         static std::string hrid() { return "mesh"; }
@@ -112,6 +114,7 @@ namespace lava::sill {
 
     private:
         TransformComponent& m_transformComponent;
+        magma::Scene* m_scene = nullptr;
 
         // Resources
         std::vector<MeshNode> m_nodes;

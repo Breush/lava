@@ -18,37 +18,30 @@ GameEngine::Impl::Impl(GameEngine& engine)
 
     //----- Initializing rendering
 
-    // Register our materials
-    m_renderEngine = std::make_unique<magma::RenderEngine>();
-    registerMaterials();
+    auto& renderEngine = m_engine.renderEngine();
+    m_windowRenderTarget = &renderEngine.make<magma::WindowRenderTarget>(m_window->handle(), m_windowExtent);
 
-    m_windowRenderTarget = &m_renderEngine->make<magma::WindowRenderTarget>(m_window->handle(), m_windowExtent);
-
-    m_scene = &m_renderEngine->make<magma::Scene>();
-    m_scene->rendererType(magma::RendererType::Forward);
-    m_scene->msaa(magma::Msaa::Max);
-
-    if (m_renderEngine->vr().enabled()) {
-        m_scene->msaa(magma::Msaa::None);
-        m_vrRenderTarget = &m_renderEngine->make<magma::VrRenderTarget>();
-        m_vrRenderTarget->bindScene(*m_scene);
+    auto& scene = m_engine.scene();
+    if (renderEngine.vr().enabled()) {
+        m_vrRenderTarget = &renderEngine.make<magma::VrRenderTarget>();
+        m_vrRenderTarget->bindScene(scene);
     }
 
     // @todo Handle custom lights
-    m_light = &m_scene->make<magma::Light>();
+    m_light = &scene.make<magma::Light>();
     m_lightController.bind(*m_light);
     m_lightController.direction({3.f, 2.f, -6.f});
 
     //----- Initializing 2D rendering
 
-    m_scene2d = &m_renderEngine->make<magma::Scene>();
+    m_scene2d = &renderEngine.make<magma::Scene>();
     m_scene2d->rendererType(magma::RendererType::ForwardFlat);
 
     m_camera2d = &m_scene2d->make<magma::Camera>(m_windowExtent);
 
     Viewport viewport;
     viewport.depth = -1.f; // On top.
-    m_renderEngine->addView(m_camera2d->renderImage(), *m_windowRenderTarget, viewport);
+    renderEngine.addView(m_camera2d->renderImage(), *m_windowRenderTarget, viewport);
 
     //----- Initializing physics
 
@@ -127,9 +120,9 @@ void GameEngine::Impl::run()
         m_engine.vr().update();
 
         // Render the scene.
-        m_renderEngine->update();
-
-        m_renderEngine->draw();
+        auto& renderEngine = m_engine.renderEngine();
+        renderEngine.update();
+        renderEngine.draw();
     }
 }
 
@@ -151,23 +144,19 @@ void GameEngine::Impl::remove(const GameEntity& gameEntity)
     logger.log().tab(-1);
 }
 
-void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath)
+//----- Materials
+
+void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath, uint8_t sceneIndex)
 {
     if (m_environmentTexture != nullptr) {
         // @todo We currently have no way to remove a texture,
         // but we should do that here.
     }
 
-    m_environmentTexture = &m_scene->make<magma::Texture>();
+    auto& scene = m_engine.scene(sceneIndex);
+    m_environmentTexture = &scene.make<magma::Texture>();
     m_environmentTexture->loadCubeFromFiles(imagesPath);
-    m_scene->environmentTexture(m_environmentTexture);
-}
-
-//----- Materials
-
-void GameEngine::Impl::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath)
-{
-    m_renderEngine->registerMaterialFromFile(hrid, shaderPath);
+    scene.environmentTexture(m_environmentTexture);
 }
 
 //----- Internals
@@ -187,7 +176,8 @@ void GameEngine::Impl::updateInput()
     }
 
     // Handle VR event
-    while (auto event = m_renderEngine->vr().pollEvent()) {
+    auto& vr = m_engine.renderEngine().vr();
+    while (auto event = vr.pollEvent()) {
         m_engine.input().update(*event);
     }
 }
@@ -235,20 +225,6 @@ void GameEngine::Impl::updateEntities(float dt)
             }
         }
     }
-}
-
-void GameEngine::Impl::registerMaterials()
-{
-    PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
-
-    // Font material (used in TextMeshComponent)
-    registerMaterialFromFile("font", "./data/shaders/materials/font-material.shmag");
-
-    // PBR roughness-metallic material (used in GLB loader)
-    registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
-
-    // UI
-    registerMaterialFromFile("ui.quad", "./data/shaders/flat-materials/ui/quad.shmag");
 }
 
 void GameEngine::Impl::handleEvent(WsEvent& event, bool& propagate)

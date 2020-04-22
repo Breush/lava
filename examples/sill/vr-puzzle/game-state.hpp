@@ -101,6 +101,10 @@ struct GameState {
         } selection;
 
         struct {
+            // @todo Move that to general overlay scene?
+            lava::magma::Scene* scene = nullptr;
+            lava::magma::Camera* camera = nullptr;
+
             GizmoTool tool = GizmoTool::Translation;
             lava::sill::GameEntity* entity = nullptr; // Holding all tool gizmos (translation/rotation/scaling)
             lava::sill::GameEntity* toolEntity = nullptr; // One tool from list below

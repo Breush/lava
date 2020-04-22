@@ -298,6 +298,23 @@ void setupEditor(GameState& gameState)
 
     // Gizmo
     {
+        auto sceneIndex = engine.addScene();
+        gameState.editor.gizmo.scene = &engine.scene(sceneIndex);
+        gameState.editor.gizmo.camera = &engine.scene(sceneIndex).make<magma::Camera>(engine.windowRenderTarget().extent());
+
+        // @fixme We need at least a light, otherwise nothing works!
+        auto& light = engine.scene(sceneIndex).make<magma::Light>();
+        light.shadowsEnabled(false);
+
+        // Auto-update camera extent
+        gameState.engine->onWindowExtentChanged([&gameState](const Extent2d& extent) {
+            gameState.editor.gizmo.camera->extent(extent);
+        });
+
+        Viewport viewport;
+        viewport.depth = -0.5f; // On top of main scene, but below UI.
+        engine.renderEngine().addView(gameState.editor.gizmo.camera->renderImage(), engine.windowRenderTarget(), viewport);
+
         auto& gizmoEntity = engine.make<sill::GameEntity>("gizmo");
         gizmoEntity.ensure<sill::TransformComponent>().scaling(0.f);
         gameState.editor.gizmo.entity = &gizmoEntity;
@@ -313,7 +330,7 @@ void setupEditor(GameState& gameState)
             auto& axisMaterial = engine.scene().make<magma::Material>("gizmo");
             axisMaterial.set("color", axis);
 
-            auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>();
+            auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
             sill::makers::CylinderMeshOptions options;
             options.transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
             options.transform = glm::rotate(options.transform, math::PI_OVER_TWO, axis);
@@ -336,7 +353,7 @@ void setupEditor(GameState& gameState)
             auto& axisMaterial = engine.scene().make<magma::Material>("gizmo");
             axisMaterial.set("color", axis);
 
-            auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>();
+            auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
             auto transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
             transform = glm::rotate(transform, math::PI_OVER_TWO, axis);
             sill::makers::toreMeshMaker(32u, 1.f, 4u, 0.02f)(axisMeshComponent);
@@ -364,6 +381,10 @@ void setupEditor(GameState& gameState)
         }
 
         if (gameState.state != State::Editor) return;
+
+        // Synchronize the overlay camera with the main one.
+        gameState.editor.gizmo.camera->viewTransform(gameState.camera.component->camera().viewTransform());
+        gameState.editor.gizmo.camera->projectionTransform(gameState.camera.component->camera().projectionTransform());
 
         if (gameState.editor.state == EditorState::Idle) {
             // ----- Gizmos

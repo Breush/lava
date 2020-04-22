@@ -12,6 +12,8 @@ using namespace lava::sill;
 TextMeshComponent::Impl::Impl(GameEntity& entity)
     : ComponentImpl(entity)
 {
+    // @todo We should be able to provide a scene,
+    // but this won't matter if it is :Refactor ed.
     m_entity.ensure<MeshComponent>();
 }
 
@@ -43,7 +45,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
         positions.emplace_back(position.x, 0.f, -position.y);
     }
 
-    auto meshGroup = std::make_unique<MeshGroup>(m_entity.engine());
+    auto meshGroup = std::make_unique<MeshGroup>(m_entity.get<MeshComponent>().scene());
     auto& primitive = meshGroup->addPrimitive();
     primitive.verticesCount(positions.size());
     primitive.verticesPositions(positions);

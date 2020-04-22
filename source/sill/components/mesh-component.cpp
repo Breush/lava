@@ -3,6 +3,7 @@
 #include <lava/chamber/interpolation-tools.hpp>
 #include <lava/sill/components/transform-component.hpp>
 #include <lava/sill/game-entity.hpp>
+#include <lava/sill/game-engine.hpp>
 
 using namespace lava;
 using namespace lava::chamber;
@@ -40,10 +41,11 @@ namespace {
     }
 }
 
-MeshComponent::MeshComponent(GameEntity& entity)
+MeshComponent::MeshComponent(GameEntity& entity, uint8_t sceneIndex)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
+    m_scene = &m_entity.engine().scene(sceneIndex);
     m_transformComponent.onWorldTransformChanged([this]() { m_nodesTranformsDirty = true; });
 }
 

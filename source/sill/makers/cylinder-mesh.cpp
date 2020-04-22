@@ -1,7 +1,6 @@
 #include <lava/sill/makers/cylinder-mesh.hpp>
 
 #include <lava/sill/components/mesh-component.hpp>
-#include <lava/sill/game-entity.hpp>
 
 #include "./makers-common.hpp"
 
@@ -80,7 +79,7 @@ std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellat
         }
 
         // Apply the geometry
-        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.entity().engine());
+        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.scene());
         auto& primitive = meshGroup->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
