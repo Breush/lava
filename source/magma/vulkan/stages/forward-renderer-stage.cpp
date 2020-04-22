@@ -85,6 +85,8 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     const auto& deviceHolder = m_scene.engine().impl().deviceHolder();
     deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer");
 
+    auto cameraTransform = m_camera->projectionTransform() * m_camera->viewTransform();
+
     //----- Prologue
 
     // @todo These clearValues could be returned by a method of RenderPassHolder,
@@ -135,30 +137,36 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     m_scene.aft().environment().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), ENVIRONMENT_DESCRIPTOR_SET_INDEX);
 
     // Draw all opaque meshes and sort others
+    struct TranslucentMesh {
+        const Mesh* mesh;
+        float distanceToCamera;
+    };
+
     std::vector<const Mesh*> depthlessMeshes;
     std::vector<const Mesh*> wireframedMeshes;
-    std::vector<const Mesh*> translucentMeshes;
+    std::vector<TranslucentMesh> translucentMeshes;
     for (auto mesh : m_scene.meshes()) {
         if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
 
-        switch (mesh->category()) {
-        case RenderCategory::Depthless: {
+        auto category = mesh->category();
+        if (category == RenderCategory::Depthless) {
             depthlessMeshes.emplace_back(mesh);
             continue;
-        }
-        case RenderCategory::Wireframe: {
-            wireframedMeshes.emplace_back(mesh);
-            continue;
-        }
-        case RenderCategory::Translucent: {
-            translucentMeshes.emplace_back(mesh);
-            continue;
-        }
-        default: break;
         }
 
         const auto& boundingSphere = mesh->boundingSphere();
         if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
+            if (category == RenderCategory::Translucent) {
+
+                auto distanceToCamera = (cameraTransform * glm::vec4(boundingSphere.center, 1.f)).z + boundingSphere.radius;
+                translucentMeshes.emplace_back(TranslucentMesh{mesh, distanceToCamera});
+                continue;
+            }
+            else if (category == RenderCategory::Wireframe) {
+                wireframedMeshes.emplace_back(mesh);
+                continue;
+            }
+
             tracker.counter("draw-calls.renderer") += 1u;
             mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);
@@ -192,11 +200,8 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
 
     // Draw all wireframed meshes
     for (auto mesh : wireframedMeshes) {
-        const auto& boundingSphere = mesh->boundingSphere();
-        if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
-            tracker.counter("draw-calls.renderer") += 1u;
-            mesh->aft().renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
-        }
+        tracker.counter("draw-calls.renderer") += 1u;
+        mesh->aft().renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
     }
 
     deviceHolder.debugEndRegion(commandBuffer);
@@ -209,15 +214,14 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_translucentPipelineHolder.pipeline());
 
     // Draw all translucent meshes
-    // @fixme We should sort the meshes
-    // https://github.com/Breush/lava/issues/36
-    for (auto mesh : translucentMeshes) {
-        const auto& boundingSphere = mesh->boundingSphere();
-        if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
-            tracker.counter("draw-calls.renderer") += 1u;
-            mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
-                               MATERIAL_DESCRIPTOR_SET_INDEX);
-        }
+    std::sort(translucentMeshes.begin(), translucentMeshes.end(), [](const TranslucentMesh& a, const TranslucentMesh& b) {
+        return a.distanceToCamera > b.distanceToCamera;
+    });
+
+    for (auto translucentMesh : translucentMeshes) {
+        tracker.counter("draw-calls.renderer") += 1u;
+        translucentMesh.mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+                                           MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
     deviceHolder.debugEndRegion(commandBuffer);
