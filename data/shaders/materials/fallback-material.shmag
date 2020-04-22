@@ -6,7 +6,7 @@
  */
 
 struct {
-    vec3 normal;
+    nvec3(16) normal;
 } gBuffer;
 
 flat {
@@ -17,7 +17,7 @@ flat {
 
 geometry {
     bool main() {
-        gBuffer.normal = inTbn[2];
+        gBuffer.normal = normalize(tbn[2]);
 
         // This is always considered opaque
         return false;

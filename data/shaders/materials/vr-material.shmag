@@ -8,7 +8,7 @@
 struct {
     float(8) opacity;
     vec3(8) diffuse;
-    vec3 normal;
+    nvec3(16) normal;
 } gBuffer;
 
 uniform {
@@ -21,7 +21,7 @@ geometry {
 
         gBuffer.opacity = diffuse.a;
         gBuffer.diffuse = diffuse.rgb;
-        gBuffer.normal = inTbn[2];
+        gBuffer.normal = normalize(tbn[2]);
 
         return diffuse.a < 1.0;
     }

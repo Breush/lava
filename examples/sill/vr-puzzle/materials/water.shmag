@@ -17,7 +17,7 @@ geometry {
         float waveJitterinessSpeed = 0.25;
         vec2 waveUv = waveJitteriness * sin(waveJitterinessSpeed * time) + reuv;
 
-        gBuffer.normal = tbn[2];
+        gBuffer.normal = normalize(tbn[2]); // :NonUniformScaling @fixme This normalize should be useless
 
         gBuffer.waveColor = texture(waveMap, waveJitteriness * sin(waveJitterinessSpeed * time) + reuv).rgb;
 

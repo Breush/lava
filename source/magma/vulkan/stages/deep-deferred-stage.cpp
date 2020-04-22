@@ -419,6 +419,7 @@ void DeepDeferredStage::initEpiphanyPass()
 void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
 {
     m_geometryPipelineHolder.removeShaderStages();
+    m_depthlessPipelineHolder.removeShaderStages();
 
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
