@@ -22,6 +22,7 @@ enum class EditorState {
     MultiSelection,
     TranslateAlongAxis,
     RotateAlongAxis,
+    ScaleAlongAxis,
 };
 
 enum class CameraMode {
@@ -32,7 +33,7 @@ enum class CameraMode {
 enum class GizmoTool {
     Translation,
     Rotation,
-    // @todo Scaling, not implemented yet
+    Scaling,
 };
 
 struct GameState {
@@ -110,12 +111,14 @@ struct GameState {
             lava::sill::GameEntity* toolEntity = nullptr; // One tool from list below
             lava::sill::GameEntity* translationToolEntity = nullptr;
             lava::sill::GameEntity* rotationToolEntity = nullptr;
+            lava::sill::GameEntity* scalingToolEntity = nullptr;
             lava::sill::GameEntity* selectedToolAxis = nullptr;
 
             // Used when moving along an axis
             glm::vec3 axis = {0.f, 0.f, 1.f};
             glm::vec3 nextAxis = {1.f, 0.f, 0.f};
             float axisOffset = 0.f;
+            float previousScaling = 1.f;
         } gizmo;
     } editor;
 };

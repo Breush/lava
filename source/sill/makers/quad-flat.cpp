@@ -42,7 +42,6 @@ std::function<FlatNode&(FlatComponent&)> makers::quadFlatMaker(const glm::vec2& 
 
         // Apply the geometry
         auto& node = flatComponent.addNode();
-        // node.flatGroup.emplace(flatComponent.entity().engine());
         node.flatGroup = std::make_unique<FlatGroup>(flatComponent.entity().engine());
         auto& primitive = node.flatGroup->addPrimitive();
         primitive.verticesCount(positions.size());

@@ -47,12 +47,20 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
         gameState.editor.gizmo.toolEntity = gameState.editor.gizmo.translationToolEntity;
         gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(1.f);
         gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(0.f);
+        gameState.editor.gizmo.scalingToolEntity->get<sill::TransformComponent>().scaling(0.f);
     }
     else if (gameState.editor.gizmo.tool == GizmoTool::Rotation) {
         gameState.editor.gizmo.toolEntity = gameState.editor.gizmo.rotationToolEntity;
         gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(0.f);
         gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(1.f);
+        gameState.editor.gizmo.scalingToolEntity->get<sill::TransformComponent>().scaling(0.f);
     }
+    else if (gameState.editor.gizmo.tool == GizmoTool::Scaling) {
+        gameState.editor.gizmo.toolEntity = gameState.editor.gizmo.scalingToolEntity;
+        gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(0.f);
+        gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(0.f);
+        gameState.editor.gizmo.scalingToolEntity->get<sill::TransformComponent>().scaling(1.f);
+}
 }
 
 void onSelectionChanged(GameState& gameState)
@@ -364,6 +372,37 @@ void setupEditor(GameState& gameState)
             rotationToolEntity.addChild(axisEntity);
         }
 
+        // --- Scaling
+        auto& scalingToolEntity = engine.make<sill::GameEntity>("gizmo-scaling");
+        scalingToolEntity.ensure<sill::TransformComponent>();
+        gizmoEntity.addChild(scalingToolEntity);
+        gameState.editor.gizmo.scalingToolEntity = &scalingToolEntity;
+
+        for (const auto& axis : g_axes) {
+            auto& axisEntity = engine.make<sill::GameEntity>("gizmo-scaling-axis");
+            auto& axisMaterial = engine.scene().make<magma::Material>("gizmo");
+            axisMaterial.set("color", axis);
+
+            auto transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
+            transform = glm::rotate(transform, math::PI_OVER_TWO, axis);
+
+            auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
+            sill::makers::CylinderMeshOptions cylinderOptions;
+            cylinderOptions.transform = transform;
+            cylinderOptions.offset = 0.25f;
+            sill::makers::cylinderMeshMaker(8u, 0.02f, 0.5f, cylinderOptions)(axisMeshComponent);
+            axisMeshComponent.primitive(0, 0).material(axisMaterial);
+            axisMeshComponent.primitive(0, 0).shadowsCastable(false);
+
+            sill::makers::BoxMeshOptions boxOptions;
+            boxOptions.offset = glm::vec3(transform * glm::vec4{0.f, 0.f, 0.5f, 1.f});
+            sill::makers::boxMeshMaker(0.05f, boxOptions)(axisMeshComponent);
+            axisMeshComponent.primitive(1, 0).material(axisMaterial);
+            axisMeshComponent.primitive(1, 0).shadowsCastable(false);
+
+            scalingToolEntity.addChild(axisEntity);
+        }
+
         setGizmoTool(gameState, GizmoTool::Translation);
     }
 
@@ -489,6 +528,11 @@ void setupEditor(GameState& gameState)
                         gameState.editor.state = EditorState::RotateAlongAxis;
                         gameState.editor.gizmo.axisOffset = rotationAxisOffset(gameState, axisRay.origin);
                     }
+                    else if (gameState.editor.gizmo.tool == GizmoTool::Scaling) {
+                        gameState.editor.state = EditorState::ScaleAlongAxis;
+                        gameState.editor.gizmo.axisOffset = projectOn(axisRay, gameState.pickingRay);
+                        gameState.editor.gizmo.previousScaling = 1.f;
+                    }
 
                     return;
                 }
@@ -567,12 +611,34 @@ void setupEditor(GameState& gameState)
                 }
             }
         }
+        // Or scale it!!
+        else if (gameState.editor.state == EditorState::ScaleAlongAxis) {
+            if (input.justUp("editor.main-click")) {
+                gameState.editor.state = EditorState::Idle;
+                return;
+            }
+
+            if (input.axisChanged("editor.axis-x") || input.axisChanged("editor.axis-y")) {
+                const Ray axisRay = {.origin = barycenter, .direction = gameState.editor.gizmo.axis};
+                auto newScaling = projectOn(axisRay, gameState.pickingRay) / gameState.editor.gizmo.axisOffset;
+                auto scaleFactor = newScaling / gameState.editor.gizmo.previousScaling;
+                auto scaleFactors = (scaleFactor - 1.f) * gameState.editor.gizmo.axis + 1.f;
+                gameState.editor.gizmo.previousScaling = newScaling;
+
+                for (auto object : gameState.editor.selection.objects) {
+                    object->transform().scale(scaleFactors);
+                }
+            }
+        }
         else if (gameState.editor.state == EditorState::Idle) {
             if (input.justDownUp("editor.switch-gizmo")) {
                 if (gameState.editor.gizmo.tool == GizmoTool::Translation) {
                     setGizmoTool(gameState, GizmoTool::Rotation);
                 }
                 else if (gameState.editor.gizmo.tool == GizmoTool::Rotation) {
+                    setGizmoTool(gameState, GizmoTool::Scaling);
+                }
+                else if (gameState.editor.gizmo.tool == GizmoTool::Scaling) {
                     setGizmoTool(gameState, GizmoTool::Translation);
                 }
             }
