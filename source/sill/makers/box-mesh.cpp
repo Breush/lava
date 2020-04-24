@@ -125,7 +125,42 @@ std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent
         };
         break;
     }
-    case BoxCoordinatesSystem::Unknown:
+    case BoxCoordinatesSystem::FullFace: {
+        uvs = {
+            // Bottom
+            {0.f, 1.f},
+            {1.f, 1.f},
+            {1.f, 0.f},
+            {0.f, 0.f},
+            // Top
+            {0.f, 0.f},
+            {0.f, 1.f},
+            {1.f, 1.f},
+            {1.f, 0.f},
+            // Left
+            {0.f, 0.f},
+            {0.f, 1.f},
+            {1.f, 1.f},
+            {1.f, 0.f},
+            // Right
+            {0.f, 0.f},
+            {0.f, 1.f},
+            {1.f, 1.f},
+            {1.f, 0.f},
+            // Front
+            {0.f, 1.f},
+            {1.f, 1.f},
+            {1.f, 0.f},
+            {0.f, 0.f},
+            // Back
+            {0.f, 0.f},
+            {0.f, 1.f},
+            {1.f, 1.f},
+            {1.f, 0.f},
+        };
+        break;
+    }
+    case BoxCoordinatesSystem::None:
         // Nothing to do
         break;
     }

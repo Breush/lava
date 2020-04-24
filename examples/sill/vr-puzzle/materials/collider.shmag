@@ -1,0 +1,24 @@
+struct {
+    vec2 coords;
+} gBuffer;
+
+geometry {
+    bool main() {
+        gBuffer.coords = uv.xy;
+        return true;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        float intensity = 0.1;
+        float sideSize = 0.01;
+
+        intensity += smoothstep(1 - sideSize, 1, gBuffer.coords.y);
+        intensity += smoothstep(1 - sideSize, 1, 1 - gBuffer.coords.y);
+        intensity += smoothstep(1 - sideSize, 1, gBuffer.coords.x);
+        intensity += smoothstep(1 - sideSize, 1, 1 - gBuffer.coords.x);
+
+        return vec4(vec3(0.5, 0.9, 0.7), intensity);
+    }
+}

@@ -18,7 +18,7 @@ namespace lava::sill {
         ~PhysicsComponent();
 
         // IComponent
-        static std::string hrid() { return "box-collider"; }
+        static std::string hrid() { return "physics"; }
         void update(float dt) final;
 
         /// Controls whether the entity should exists in the physics world.

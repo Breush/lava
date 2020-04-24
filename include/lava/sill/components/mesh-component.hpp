@@ -71,6 +71,10 @@ namespace lava::sill {
         RenderCategory category() const { return m_category; }
         void category(RenderCategory category);
 
+        /// Changes the enableness of all primitives.
+        bool enabled() const { return m_enabled; }
+        void enabled(bool enabled);
+
         /// Bounding sphere around all bounding spheres of primitives.
         BoundingSphere boundingSphere() const;
         /// @}
@@ -123,6 +127,7 @@ namespace lava::sill {
 
         // Attributes
         RenderCategory m_category = RenderCategory::Opaque;
+        bool m_enabled = true;
 
         // Debug
         bool m_boundingSpheresVisible = false;

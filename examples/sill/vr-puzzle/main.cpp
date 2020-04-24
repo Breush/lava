@@ -25,6 +25,7 @@ int main(void)
     engine.registerMaterialFromFile("skybox", "./data/shaders/materials/skybox-material.shmag");
     engine.registerMaterialFromFile("barrier", "./examples/sill/vr-puzzle/materials/barrier.shmag");
     engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/materials/panel.shmag");
+    engine.registerMaterialFromFile("collider", "./examples/sill/vr-puzzle/materials/collider.shmag");
     engine.registerMaterialFromFile("gizmo", "./examples/sill/vr-puzzle/materials/gizmo.shmag");
     engine.registerMaterialFromFile("reticle", "./examples/sill/vr-puzzle/materials/reticle.shmag");
     engine.registerMaterialFromFile("teleport-beam", "./examples/sill/vr-puzzle/materials/teleport-beam.shmag");

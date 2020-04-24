@@ -22,7 +22,6 @@ PhysicsComponent::Impl::Impl(GameEntity& entity)
 
 PhysicsComponent::Impl::~Impl()
 {
-    m_rigidBody->clearShapes();
     m_physicsEngine.remove(*m_rigidBody);
 }
 

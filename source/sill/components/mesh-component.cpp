@@ -291,6 +291,20 @@ void MeshComponent::category(RenderCategory category)
     }
 }
 
+void MeshComponent::enabled(bool enabled)
+{
+    if (m_enabled == enabled) return;
+    m_enabled = enabled;
+
+    for (auto& node : m_nodes) {
+        if (node.meshGroup == nullptr) continue;
+
+        for (auto& primitive : node.meshGroup->primitives()) {
+            primitive->enabled(enabled);
+        }
+    }
+}
+
 BoundingSphere MeshComponent::boundingSphere() const
 {
     BoundingSphere boundingSphere;

@@ -29,6 +29,10 @@ namespace lava::magma {
         Scene& scene() { return m_scene; }
         const Scene& scene() const { return m_scene; }
 
+        /// Whether the mesh should be rendered.
+        bool enabled() const { return m_enabled; }
+        void enabled(bool enabled) { m_enabled = enabled; }
+
         /**
          * @name Transform
          */
@@ -136,6 +140,7 @@ namespace lava::magma {
     private:
         // ----- References
         Scene& m_scene;
+        bool m_enabled = true;
 
         // ----- Transform
         glm::mat4 m_transform = glm::mat4(1.f);

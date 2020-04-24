@@ -29,7 +29,7 @@ void MeshAft::update()
 void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset,
                      uint32_t materialDescriptorSetIndex) const
 {
-    if (m_fore.indices().empty()) return;
+    if (!m_fore.enabled() || m_fore.indices().empty()) return;
 
     // Bind the material
     // @todo :CleverMaterialBinding Have this in a more clever render loop, and not called by this mesh
@@ -55,7 +55,7 @@ void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelin
 
 void MeshAft::renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const
 {
-    if (m_fore.indices().empty()) return;
+    if (!m_fore.enabled() || m_fore.indices().empty()) return;
 
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};

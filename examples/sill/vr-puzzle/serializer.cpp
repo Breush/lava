@@ -207,13 +207,33 @@ void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::
     for (auto& componentJson : json["components"].items()) {
         if (componentJson.key() == "mesh") {
             auto& meshComponent = entity.ensure<sill::MeshComponent>();
-
             auto path = componentJson.value()["path"].get<std::string>();
             sill::makers::glbMeshMaker(path)(meshComponent);
         }
+        else if (componentJson.key() == "physics") {
+            auto& physicsComponent = entity.ensure<sill::PhysicsComponent>();
+            physicsComponent.enabled(componentJson.value()["enabled"].get<bool>());
+            physicsComponent.dynamic(componentJson.value()["dynamic"].get<bool>());
+        }
+        else if (componentJson.key() == "collider") {
+            auto& colliderComponent = entity.ensure<sill::ColliderComponent>();
+            auto& meshComponent = entity.ensure<sill::MeshComponent>();
+            const auto& boxShapes = componentJson.value()["boxShapes"];
+            for (const auto& boxShape : boxShapes) {
+                auto offset = unserializeVec3(boxShape["offset"]);
+                auto extent = unserializeVec3(boxShape["extent"]);
+                colliderComponent.addBoxShape(offset, extent);
+
+                // @todo This looks like a dirty way of doing that.
+                // We should be able to serialize that it was made from specific a mesh maker...
+                sill::makers::boxMeshMaker(extent)(meshComponent);
+                meshComponent.category(RenderCategory::Translucent);
+                meshComponent.enabled(gameState.state == State::Editor);
+                meshComponent.primitive(0u, 0u).material(*gameState.editor.resources.colliderMaterial);
+            }
+        }
         else if (componentJson.key() == "sound-emitter") {
             auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
-
             const auto& sounds = componentJson.value()["sounds"];
             for (const auto& sound : sounds) {
                 soundEmitterComponent.add(sound["hrid"], sound["path"]);
@@ -240,11 +260,33 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
     auto& componentsJson = json["components"];
     for (const auto& componentHrid : entity.componentsHrids()) {
         if (componentHrid == "mesh") {
-            componentsJson[componentHrid] = {{"path", entity.get<sill::MeshComponent>().path()}};
+            const auto& path = entity.get<sill::MeshComponent>().path();
+            if (!path.empty()) {
+                componentsJson[componentHrid] = {{"path", path}};
+            }
+        }
+        else if (componentHrid == "physics") {
+            const auto& physicsComponent = entity.get<sill::PhysicsComponent>();
+            componentsJson[componentHrid] = {
+                {"enabled", physicsComponent.enabled()},
+                {"dynamic", physicsComponent.dynamic()},
+            };
+        }
+        else if (componentHrid == "collider") {
+            const auto& colliderComponent = entity.get<sill::ColliderComponent>();
+            auto boxShapes = nlohmann::json::array();
+            for (const auto& boxShape : colliderComponent.boxShapes()) {
+                boxShapes.emplace_back(nlohmann::json({
+                    {"offset", serialize(boxShape.offset)},
+                    {"extent", serialize(boxShape.extent)},
+                }));
+            }
+            componentsJson[componentHrid] = {{"boxShapes", boxShapes}};
         }
         else if (componentHrid == "sound-emitter") {
+            auto& soundEmitterComponent = entity.get<sill::SoundEmitterComponent>();
             auto sounds = nlohmann::json::array();
-            for (const auto& sound : entity.get<sill::SoundEmitterComponent>().sounds()) {
+            for (const auto& sound : soundEmitterComponent.sounds()) {
                 sounds.emplace_back(nlohmann::json({
                     {"hrid", sound.first},
                     {"path", sound.second},

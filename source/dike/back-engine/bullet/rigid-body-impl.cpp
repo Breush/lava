@@ -44,19 +44,40 @@ void RigidBody::Impl::dynamic(bool dynamic)
 
 void RigidBody::Impl::transform(const glm::mat4& transform)
 {
-    m_transform = transform;
+    // @note Bullet physics does not allow for scaling
+    // in rigid body transform, thus this decompose is needed,
+    // to apply it to the shape instead.
+
+    glm::vec3 scaling, skew;
+    glm::vec4 perspective;
+    glm::decompose(transform, scaling, m_rotation, m_translation, skew, perspective);
+
+    if (m_scaling != scaling) {
+        m_scaling = scaling;
+        m_shape.setLocalScaling(btVector3(m_scaling.x, m_scaling.y, m_scaling.z));
+        updateShape();
+    }
+
+    btVector3 btTranslation(m_translation.x, m_translation.y, m_translation.z);
+    btQuaternion btOrientation(m_rotation.x, m_rotation.y, m_rotation.z, m_rotation.w);
+    btTransform btWorldTransform;
+    btWorldTransform.setOrigin(btTranslation);
+    btWorldTransform.setRotation(btOrientation);
+
+    // @note m_transform will be updated within this function
+    m_motionState.setWorldTransform(btWorldTransform);
+
     if (m_rigidBody == nullptr) return;
 
-    btTransform worldTransform;
-    worldTransform.setFromOpenGLMatrix(reinterpret_cast<float*>(&m_transform));
-
-    m_rigidBody->setWorldTransform(worldTransform);
-    m_motionState.setWorldTransform(worldTransform);
+    m_rigidBody->setWorldTransform(btWorldTransform);
 
     m_rigidBody->activate(true);
     m_rigidBody->clearForces();
     m_rigidBody->setLinearVelocity(btVector3(0, 0, 0));
     m_rigidBody->setAngularVelocity(btVector3(0, 0, 0));
+
+    // @fixme Still don't know how to activate back everything
+    // when we move a non-dynamic object.
 }
 
 // ----- Shapes
@@ -68,6 +89,8 @@ void RigidBody::Impl::clearShapes()
         shapesCount -= 1;
         m_shape.removeChildShapeByIndex(shapesCount);
     }
+
+    m_shapes.clear();
 }
 
 void RigidBody::Impl::addBoxShape(const glm::vec3& offset, const glm::vec3& dimensions)
@@ -100,12 +123,15 @@ void RigidBody::Impl::addShape(const glm::vec3& offset, std::unique_ptr<btCollis
 
     auto& shape = m_shapes.emplace_back();
     shape = std::move(pShape);
+    shape->calculateLocalInertia(m_mass, m_inertia);
 
-    if (m_dynamic) {
-        shape->calculateLocalInertia(m_mass, m_inertia);
-    }
-
+    // @note As addChildShape does not apply the current scaling of the compound shape,
+    // we first revert it to default before adding the new child and re-applying it.
+    m_shape.setLocalScaling(btVector3(1.f, 1.f, 1.f));
     m_shape.addChildShape(localTransform, shape.get());
+    m_shape.setLocalScaling(btVector3(m_scaling.x, m_scaling.y, m_scaling.z));
+    m_shape.calculateLocalInertia(m_shapes.size() * m_mass, m_inertia);
+
     updateShape();
 }
 
@@ -113,6 +139,7 @@ void RigidBody::Impl::updateShape()
 {
     if (m_rigidBody != nullptr) {
         m_engine.dynamicsWorld().removeRigidBody(m_rigidBody.get());
+        m_rigidBody = nullptr;
     }
 
     btRigidBody::btRigidBodyConstructionInfo constructionInfo(m_dynamic ? m_mass : 0.f, &m_motionState, &m_shape, m_inertia);

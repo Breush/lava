@@ -19,8 +19,9 @@ namespace lava::sill {
     };
 
     enum class BoxCoordinatesSystem {
-        Unknown,
-        Box2x3,
+        None,
+        Box2x3,   // Used for packed skyboxes texture (two rows, three columns)
+        FullFace, // Each face has 0,0 -> 1,1 UVs
     };
 }
 
@@ -28,7 +29,7 @@ namespace lava::sill::makers {
     struct BoxMeshOptions {
         BoxOrigin origin = BoxOrigin::Center;
         BoxSiding siding = BoxSiding::Out;
-        BoxCoordinatesSystem coordinatesSystem = BoxCoordinatesSystem::Unknown;
+        BoxCoordinatesSystem coordinatesSystem = BoxCoordinatesSystem::FullFace;
         glm::vec3 offset = {0.f, 0.f, 0.f};
     };
 

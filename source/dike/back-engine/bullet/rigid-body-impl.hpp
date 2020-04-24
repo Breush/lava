@@ -46,7 +46,10 @@ namespace lava::dike {
         // @note This transform will always be up-to-date
         // thanks to the motion state bindings.
         glm::mat4 m_transform = glm::mat4(1.f);
-        MotionState m_motionState{m_transform};
+        glm::vec3 m_translation = glm::vec3{0.f};
+        glm::vec3 m_scaling = glm::vec3{1.f};
+        glm::quat m_rotation = glm::quat{1.f, 0.f, 0.f, 0.f};
+        MotionState m_motionState{m_transform, m_translation, m_rotation, m_scaling};
 
         btCompoundShape m_shape;
         std::vector<std::unique_ptr<btCollisionShape>> m_shapes;

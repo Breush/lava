@@ -13,7 +13,6 @@ Barrier::Barrier(GameState& gameState)
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::MeshComponent>();
     m_entity->make<sill::AnimationComponent>();
-    m_entity->make<sill::ColliderComponent>();
 
     auto& meshComponent = m_entity->get<sill::MeshComponent>();
     sill::makers::CylinderMeshOptions options = {.doubleSided = true, .offset = 1.5f};

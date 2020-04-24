@@ -120,5 +120,9 @@ struct GameState {
             float axisOffset = 0.f;
             float previousScaling = 1.f;
         } gizmo;
+
+        struct {
+            lava::magma::Material* colliderMaterial = nullptr;
+        } resources;
     } editor;
 };

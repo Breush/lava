@@ -60,7 +60,7 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
         gameState.editor.gizmo.translationToolEntity->get<sill::TransformComponent>().scaling(0.f);
         gameState.editor.gizmo.rotationToolEntity->get<sill::TransformComponent>().scaling(0.f);
         gameState.editor.gizmo.scalingToolEntity->get<sill::TransformComponent>().scaling(1.f);
-}
+    }
 }
 
 void onSelectionChanged(GameState& gameState)
@@ -260,6 +260,8 @@ void setupEditor(GameState& gameState)
     auto& engine = *gameState.engine;
     auto& input = engine.input();
 
+    gameState.editor.resources.colliderMaterial = &engine.scene().make<magma::Material>("collider");
+
     // Inputs
     input.bindAction("editor.toggle", Key::E);
     input.bindAction("editor.exit", Key::Escape);
@@ -285,10 +287,8 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
+    input.bindAction("add-collider", {Key::LeftShift, Key::A, Key::C});
     input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
-    // @fixme Disabling, need gizmo
-    // input.bindAction("scale-up", Key::S);
-    // input.bindAction("scale-down", {Key::LeftShift, Key::S});
     // @todo Make action to switch to rotation gizmo on R
 
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
@@ -415,8 +415,14 @@ void setupEditor(GameState& gameState)
             engine.physicsEngine().enabled(gameState.state != State::Editor);
             unselectAllObjects(gameState);
 
-            if (gameState.state == State::Editor) setCameraMode(gameState, CameraMode::Orbit);
-            else setCameraMode(gameState, CameraMode::FirstPerson);
+            setCameraMode(gameState, (gameState.state == State::Editor) ? CameraMode::Orbit : CameraMode::FirstPerson);
+
+            // All colliders are only visible in Editor state.
+            for (auto& generic : gameState.level.generics) {
+                if (generic->entity().name() == "collider") {
+                    generic->mesh().enabled(gameState.state == State::Editor);
+                }
+            }
         }
 
         if (gameState.state != State::Editor) return;
@@ -485,6 +491,22 @@ void setupEditor(GameState& gameState)
                 auto& entity = gameState.engine->make<sill::GameEntity>(fileName);
                 auto& meshComponent = entity.make<sill::MeshComponent>();
                 sill::makers::glbMeshMaker(filePath)(meshComponent);
+
+                auto generic = std::make_unique<Generic>(gameState);
+                generic->entity(entity);
+                gameState.level.generics.emplace_back(std::move(generic));
+                return;
+            }
+            else if (input.justDown("add-collider")) {
+                auto& entity = gameState.engine->make<sill::GameEntity>("collider");
+                auto& meshComponent = entity.make<sill::MeshComponent>();
+                sill::makers::boxMeshMaker(1.f)(meshComponent);
+                meshComponent.category(RenderCategory::Translucent);
+                meshComponent.primitive(0u, 0u).material(*gameState.editor.resources.colliderMaterial);
+
+                entity.make<sill::PhysicsComponent>().dynamic(false);
+                auto& colliderComponent = entity.make<sill::ColliderComponent>();
+                colliderComponent.addBoxShape();
 
                 auto generic = std::make_unique<Generic>(gameState);
                 generic->entity(entity);
