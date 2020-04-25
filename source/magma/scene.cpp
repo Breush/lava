@@ -44,10 +44,6 @@ Scene::~Scene()
         m_cameraAllocator.deallocate(camera);
     }
 
-    for (auto texture : m_textures) {
-        m_textureAllocator.deallocate(texture);
-    }
-
     for (auto mesh : m_meshes) {
         m_meshAllocator.deallocate(mesh);
     }
@@ -102,22 +98,26 @@ MaterialPtr Scene::makeMaterial(const std::string& hrid)
 {
     constexpr const auto size = sizeof(std::aligned_union<0, Material>::type) + sizeof(MaterialAft);
     auto resource = m_materialAllocator.allocateSized<Material>(size, *this, hrid);
+    MaterialPtr resourcePtr(resource, [this](Material* material) {
+        forget(*material);
+    });
 
     m_materials.emplace_back(resource);
     aft().foreAdd(*resource);
-    return MaterialPtr(resource, [this](Material* material) {
-        forget(*material);
-    });
+    return resourcePtr;
 }
 
-Texture& Scene::makeTexture(const std::string& imagePath)
+TexturePtr Scene::makeTexture(const std::string& imagePath)
 {
     constexpr const auto size = sizeof(std::aligned_union<0, Texture>::type) + sizeof(TextureAft);
     auto resource = m_textureAllocator.allocateSized<Texture>(size, *this, imagePath);
+    TexturePtr resourcePtr(resource, [this](Texture* texture) {
+        forget(*texture);
+    });
 
-    m_textures.emplace_back(resource);
+    m_textures.emplace(resource, resourcePtr);
     aft().foreAdd(*resource);
-    return *resource;
+    return resourcePtr;
 }
 
 Mesh& Scene::makeMesh()
@@ -140,15 +140,16 @@ Flat& Scene::makeFlat()
     return *resource;
 }
 
-Texture* Scene::findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
+TexturePtr Scene::findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
 {
     auto hash = Texture::hash(pixels, width, height, channels);
 
     // @todo We're computing the hash twice for the texture that do not match,
     // because we add it afterwards, there might be a way to return the hash info too.
     for (auto texture : m_textures) {
-        if (texture->cube() == false && texture->hash() == hash) {
-            return texture;
+        auto texturePtr = texture.second.lock();
+        if (texturePtr->cube() == false && texturePtr->hash() == hash) {
+            return texturePtr;
         }
     }
 
@@ -167,11 +168,6 @@ void Scene::remove(const Camera& camera)
     aft().foreRemove(camera);
 }
 
-void Scene::remove(const Texture& texture)
-{
-    aft().foreRemove(texture);
-}
-
 void Scene::remove(const Mesh& mesh)
 {
     aft().foreRemove(mesh);
@@ -182,14 +178,23 @@ void Scene::remove(const Flat& flat)
     aft().foreRemove(flat);
 }
 
-void Scene::forget(const Material& material)
+void Scene::forget(Material& material)
 {
     for (auto iMaterial = m_materials.begin(); iMaterial != m_materials.end(); ++iMaterial) {
         if (*iMaterial == &material) {
-            m_materialAllocator.deallocate(*iMaterial);
+            m_materialAllocator.deallocate(&material);
             m_materials.erase(iMaterial);
             break;
         }
+    }
+}
+
+void Scene::forget(Texture& texture)
+{
+    auto iTexture = m_textures.find(&texture);
+    if (iTexture != m_textures.end()) {
+        m_textureAllocator.deallocate(&texture);
+        m_textures.erase(iTexture);
     }
 }
 
@@ -210,17 +215,6 @@ void Scene::removeUnsafe(const Camera& camera)
         if (*iCamera == &camera) {
             m_cameraAllocator.deallocate(*iCamera);
             m_cameras.erase(iCamera);
-            break;
-        }
-    }
-}
-
-void Scene::removeUnsafe(const Texture& texture)
-{
-    for (auto iTexture = m_textures.begin(); iTexture != m_textures.end(); ++iTexture) {
-        if (*iTexture == &texture) {
-            m_textureAllocator.deallocate(*iTexture);
-            m_textures.erase(iTexture);
             break;
         }
     }
@@ -250,7 +244,7 @@ void Scene::removeUnsafe(const Flat& flat)
 
 // ----- Environment
 
-void Scene::environmentTexture(const Texture* texture)
+void Scene::environmentTexture(TexturePtr texture)
 {
     aft().foreEnvironmentTexture(texture);
 }

@@ -4,6 +4,8 @@
 
 namespace lava::magma {
     class Texture;
+
+    using TexturePtr = std::shared_ptr<Texture>;
 }
 
 namespace lava::magma {
@@ -20,7 +22,7 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
         void renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
 
-        void set(const Texture* texture);
+        void set(TexturePtr texture);
 
     protected:
         void computeRadiance();
@@ -36,8 +38,8 @@ namespace lava::magma {
         // References
         Scene& m_scene;
         bool m_initialized = false;
-        const Texture* m_texture = nullptr;
-        Texture* m_brdfLutTexture = nullptr;
+        TexturePtr m_texture = nullptr;
+        TexturePtr m_brdfLutTexture = nullptr;
 
         // Prefiltering
         EnvironmentPrefilteringStage m_radianceStage;

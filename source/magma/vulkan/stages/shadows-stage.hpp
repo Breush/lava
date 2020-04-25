@@ -35,8 +35,9 @@ namespace lava::magma {
 
     protected:
         struct Cascade {
-            vulkan::ImageHolder imageHolder;
-            vulkan::Framebuffer framebuffer;
+            // @fixme Why not unique_ptr, exactly?
+            std::shared_ptr<vulkan::ImageHolder> imageHolder;
+            std::shared_ptr<vulkan::Framebuffer> framebuffer;
             ShadowMapUbo ubo;
 
             Cascade(RenderEngine& engine);

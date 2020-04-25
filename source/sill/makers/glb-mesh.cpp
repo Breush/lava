@@ -22,7 +22,7 @@ namespace {
 
     struct CacheData {
         std::unique_ptr<ThreadPool> threadPool;
-        std::unordered_map<uint32_t, magma::Texture*> textures;
+        std::unordered_map<uint32_t, magma::TexturePtr> textures;
         std::unordered_map<uint32_t, magma::MaterialPtr> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
         std::unordered_map<uint32_t, uint32_t> nodeIndices;
@@ -71,12 +71,12 @@ namespace {
             // This findTexture is for already loaded textures from other meshes.
             auto existingTexture = engine.scene().findTexture(pixels, texWidth, texHeight, 4u);
             if (existingTexture != nullptr) {
-                cacheData.textures[textureIndex] = existingTexture;
+                cacheData.textures[textureIndex] = std::move(existingTexture);
             }
             else {
-                auto& texture = engine.scene().make<magma::Texture>();
-                texture.loadFromMemory(pixels, texWidth, texHeight, 4u);
-                cacheData.textures[textureIndex] = &texture;
+                auto texture = engine.scene().makeTexture();
+                texture->loadFromMemory(pixels, texWidth, texHeight, 4u);
+                cacheData.textures[textureIndex] = std::move(texture);
             }
 
             stbi_image_free(pixels);

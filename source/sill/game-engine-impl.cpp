@@ -148,15 +148,10 @@ void GameEngine::Impl::remove(const GameEntity& gameEntity)
 
 void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath, uint8_t sceneIndex)
 {
-    if (m_environmentTexture != nullptr) {
-        // @todo We currently have no way to remove a texture,
-        // but we should do that here.
-    }
-
     auto& scene = m_engine.scene(sceneIndex);
-    m_environmentTexture = &scene.make<magma::Texture>();
-    m_environmentTexture->loadCubeFromFiles(imagesPath);
-    scene.environmentTexture(m_environmentTexture);
+    auto environmentTexture = scene.makeTexture();
+    environmentTexture->loadCubeFromFiles(imagesPath);
+    scene.environmentTexture(environmentTexture);
 }
 
 //----- Internals

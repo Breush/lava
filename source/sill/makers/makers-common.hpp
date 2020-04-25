@@ -18,7 +18,7 @@ namespace lava::sill {
         std::vector<uint16_t> indices;
         std::vector<glm::vec2> positions;
         std::vector<glm::vec2> uvs;
-        magma::Texture* texture;
+        magma::TexturePtr texture;
     };
 
     // @todo :Refactor Could be shared with the TextFlat maker one

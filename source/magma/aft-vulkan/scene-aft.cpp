@@ -330,12 +330,6 @@ void SceneAft::foreRemove(const Camera& camera)
     m_fore.removeUnsafe(camera);
 }
 
-void SceneAft::foreRemove(const Texture& texture)
-{
-    m_engine.impl().device().waitIdle();
-    m_fore.removeUnsafe(texture);
-}
-
 void SceneAft::foreRemove(const Mesh& mesh)
 {
     m_pendingRemovedMeshes.emplace_back(&mesh);

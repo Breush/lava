@@ -83,7 +83,7 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, Te
     auto& indices = geometry.indices;
 
     auto& font = engine.font().get(options.fontHrid, options.fontSize);
-    geometry.texture = &font.texture();
+    geometry.texture = font.texture();
 
     float yOffset = 0.f;
     auto glyphsCount = 0u;

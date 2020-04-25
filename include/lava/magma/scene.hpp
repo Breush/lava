@@ -17,6 +17,7 @@ namespace lava::magma {
     class Flat;
 
     using MaterialPtr = std::shared_ptr<Material>;
+    using TexturePtr = std::shared_ptr<Texture>;
 }
 
 namespace lava::magma {
@@ -78,13 +79,13 @@ namespace lava::magma {
         Light& makeLight();
         Camera& makeCamera(Extent2d extent);
         MaterialPtr makeMaterial(const std::string& hrid);
-        Texture& makeTexture(const std::string& imagePath = "");
+        TexturePtr makeTexture(const std::string& imagePath = "");
         Mesh& makeMesh();
         Flat& makeFlat();
 
         /// Find an existing texture which has the same pixels.
         /// @note This done through an hash computation and can give a wrong texture sometimes.
-        Texture* findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
+        TexturePtr findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         /// @}
 
         /**
@@ -95,7 +96,6 @@ namespace lava::magma {
         /// @{
         void remove(const Light& light);
         void remove(const Camera& camera);
-        void remove(const Texture& texture);
         void remove(const Mesh& mesh);
         void remove(const Flat& flat);
 
@@ -106,7 +106,6 @@ namespace lava::magma {
          */
         void removeUnsafe(const Light& light);
         void removeUnsafe(const Camera& camera);
-        void removeUnsafe(const Texture& texture);
         void removeUnsafe(const Mesh& mesh);
         void removeUnsafe(const Flat& flat);
         /// @}
@@ -118,7 +117,6 @@ namespace lava::magma {
         const std::vector<Light*>& lights() const { return m_lights; }
         const std::vector<Camera*>& cameras() const { return m_cameras; }
         const std::vector<Material*>& materials() const { return m_materials; }
-        const std::vector<Texture*>& textures() const { return m_textures; }
         const std::vector<Mesh*>& meshes() const { return m_meshes; }
         const std::vector<Flat*>& flats() const { return m_flats; }
         /// @}
@@ -128,7 +126,7 @@ namespace lava::magma {
          */
         /// @{
         /// The global texture (cube) to be used as environment map within shaders' epiphany.
-        void environmentTexture(const Texture* texture);
+        void environmentTexture(TexturePtr texture);
         /// @}
 
         /**
@@ -156,8 +154,9 @@ namespace lava::magma {
         /// @}
 
     protected:
-        // Custom deleter for MaterialPtr. Internal usage.
-        void forget(const Material& material);
+        // Custom deleter for ResourcePtr. Internal usage.
+        void forget(Material& material);
+        void forget(Texture& texture);
 
     private:
         // ----- References
@@ -183,7 +182,7 @@ namespace lava::magma {
         std::vector<Light*> m_lights;
         std::vector<Camera*> m_cameras;
         std::vector<Material*> m_materials;
-        std::vector<Texture*> m_textures;
+        std::unordered_map<Texture*, std::weak_ptr<Texture>> m_textures;
         std::vector<Mesh*> m_meshes;
         std::vector<Flat*> m_flats;
     };

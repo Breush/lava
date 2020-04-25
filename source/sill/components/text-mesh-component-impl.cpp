@@ -55,7 +55,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
     primitive.category(RenderCategory::Translucent);
 
     auto material = m_entity.engine().scene().makeMaterial("font");
-    material->set("fontTexture", *geometry.texture);
+    material->set("fontTexture", geometry.texture);
     primitive.material(material);
 
     std::vector<MeshNode> nodes(1u);

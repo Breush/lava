@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <lava/core/macros/aft.hpp>
 #include <lava/core/filesystem.hpp>
+#include <memory>
 
 namespace lava::magma {
     class TextureAft;
@@ -48,4 +49,6 @@ namespace lava::magma {
         size_t m_hash = 0u;
         bool m_cube = false;
     };
+
+    using TexturePtr = std::shared_ptr<Texture>;
 }

@@ -36,6 +36,7 @@ Font::Font(GameEngine& engine, const std::string& path, uint32_t size)
     // because meshes could reference wrong UVs.
     m_textureWidth = m_glyphMaxWidth * m_maxRenderedGlyphsCount;
     m_textureHeight = m_glyphMaxHeight;
+    m_texture = m_engine.scene().makeTexture();
     m_pixels.resize(m_textureWidth * m_glyphMaxHeight);
 }
 
@@ -73,22 +74,11 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text, bool s
     }
 
     if (textureChanged) {
-        texture().loadFromMemory(m_pixels.data(), m_textureWidth, m_textureHeight, 1u);
+        m_texture->loadFromMemory(m_pixels.data(), m_textureWidth, m_textureHeight, 1u);
     }
 
     return glyphsInfos;
 }
-
-//---- Getters
-
-magma::Texture& Font::texture()
-{
-    if (m_texture == nullptr) {
-        m_texture = &m_engine.scene().make<magma::Texture>();
-    }
-    return *m_texture;
-}
-
 //----- Internal
 
 Font::GlyphInfo Font::packGlyph(wchar_t c)

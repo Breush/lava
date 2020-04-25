@@ -65,7 +65,7 @@ void Environment::renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayou
                                      &m_basicDescriptorSet, 0, nullptr);
 }
 
-void Environment::set(const Texture* texture)
+void Environment::set(TexturePtr texture)
 {
     m_texture = texture;
     updateBasicBindings();
@@ -193,7 +193,7 @@ void Environment::createResources()
                                    vk::ImageAspectFlagBits::eColor, 6u);
 
     // BRDF look-up texture
-    m_brdfLutTexture = &m_scene.make<Texture>();
+    m_brdfLutTexture = m_scene.makeTexture();
     m_brdfLutTexture->loadFromFile("./data/textures/brdf-lut.png");
 }
 

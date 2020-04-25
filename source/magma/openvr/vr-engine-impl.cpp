@@ -227,8 +227,8 @@ Mesh& VrEngine::Impl::deviceMesh(VrDeviceType deviceType, Scene& scene) const
 
     // Add material
     auto material = scene.makeMaterial("vr");
-    auto& diffuseTexture = scene.make<Texture>();
-    diffuseTexture.loadFromMemory(texture->rubTextureMapData, texture->unWidth, texture->unHeight, 4u);
+    auto diffuseTexture = scene.makeTexture();
+    diffuseTexture->loadFromMemory(texture->rubTextureMapData, texture->unWidth, texture->unHeight, 4u);
     material->set("diffuseMap", diffuseTexture);
 
     mesh.verticesCount(model->unVertexCount);

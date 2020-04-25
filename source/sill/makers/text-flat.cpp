@@ -34,7 +34,7 @@ std::function<FlatNode&(FlatComponent&)> makers::textFlatMaker(const std::wstrin
         primitive.indices(geometry.indices);
 
         auto material = flatComponent.entity().engine().scene2d().makeMaterial("font");
-        material->set("fontTexture", *geometry.texture);
+        material->set("fontTexture", geometry.texture);
         primitive.material(material);
 
         return node;

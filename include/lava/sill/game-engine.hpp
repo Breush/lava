@@ -143,6 +143,12 @@ namespace lava::sill {
     private:
         Impl* m_impl = nullptr;
 
+        // Resources
+        // @note Keep first because render engine should be destroyed
+        // only at the end, once everything else has deallocated its resources.
+        std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
+        std::vector<magma::Scene*> m_scenes;
+
         // Managers
         FontManager m_fontManager{*this};
         InputManager m_inputManager;
@@ -151,10 +157,6 @@ namespace lava::sill {
 
         std::vector<GameEntity*> m_entities;
         bool m_debugEntityPicking = false;
-
-        // Resources
-        std::unique_ptr<magma::RenderEngine> m_renderEngine = nullptr;
-        std::vector<magma::Scene*> m_scenes;
     };
 }
 

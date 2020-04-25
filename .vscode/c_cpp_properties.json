@@ -3,12 +3,11 @@
         {
             "name": "Linux",
             "includePath": [
-                "/usr/include/c++/8",
-                "/usr/include/x86_64-linux-gnu/c++/8",
-                "/usr/include/c++/8/backward",
-                "/usr/lib/gcc/x86_64-linux-gnu/8/include",
+                "/usr/include/c++/9",
+                "/usr/include/x86_64-linux-gnu/c++/9",
+                "/usr/include/c++/9/backward",
+                "/usr/lib/gcc/x86_64-linux-gnu/9/include",
                 "/usr/local/include",
-                "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed",
                 "/usr/include/x86_64-linux-gnu",
                 "/usr/include",
                 "${workspaceRoot}",
@@ -28,14 +27,6 @@
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
-                    "/usr/include/c++/8",
-                    "/usr/include/x86_64-linux-gnu/c++/8",
-                    "/usr/include/c++/8/backward",
-                    "/usr/lib/gcc/x86_64-linux-gnu/8/include",
-                    "/usr/local/include",
-                    "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed",
-                    "/usr/include/x86_64-linux-gnu",
-                    "/usr/include",
                     "${workspaceRoot}",
                     "${workspaceRoot}/include"
                 ],

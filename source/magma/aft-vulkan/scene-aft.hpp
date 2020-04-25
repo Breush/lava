@@ -105,10 +105,9 @@ namespace lava::magma {
         void foreAdd(Flat& /* flat  */) {}
         void foreRemove(const Light& light);
         void foreRemove(const Camera& camera);
-        void foreRemove(const Texture& texture);
         void foreRemove(const Mesh& mesh);
         void foreRemove(const Flat& flat);
-        void foreEnvironmentTexture(const Texture* texture) { m_environment.set(texture); }
+        void foreEnvironmentTexture(TexturePtr texture) { m_environment.set(texture); }
         void foreMsaaChanged();
 
     protected:

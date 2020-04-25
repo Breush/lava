@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <memory>
 #include <lava/core/macros/aft.hpp>
 #include <lava/magma/ubos.hpp>
 #include <lava/magma/uniform.hpp>
@@ -12,6 +13,8 @@ namespace lava::magma {
     class MaterialAft;
     class Scene;
     class Texture;
+
+    using TexturePtr = std::shared_ptr<Texture>;
 }
 
 namespace lava::magma {
@@ -25,7 +28,7 @@ namespace lava::magma {
             UniformFallback fallback; // Value to use if user does not change it.
             UniformFallback value;    // Last known value.
             uint32_t offset = -1u;
-            const Texture* texture = nullptr;
+            TexturePtr texture = nullptr;
         };
         using Attributes = std::unordered_map<std::string, Attribute>;
 
@@ -50,12 +53,10 @@ namespace lava::magma {
         void set(const std::string& uniformName, const glm::vec2& value);
         void set(const std::string& uniformName, const glm::vec3& value);
         void set(const std::string& uniformName, const glm::vec4& value);
-        void set(const std::string& uniformName, const Texture& texture);
+        void set(const std::string& uniformName, TexturePtr texture);
         void set(const std::string& uniformName, const uint32_t* values, uint32_t size);
-        void set(const std::string& uniformName, const Texture* texture) { set(uniformName, *texture); }
 
-        void setGlobal(const std::string& uniformName, const Texture& texture);
-        void setGlobal(const std::string& uniformName, const Texture* texture) { setGlobal(uniformName, *texture); }
+        void setGlobal(const std::string& uniformName, TexturePtr texture);
         /// @}
 
         /**

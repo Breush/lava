@@ -9,6 +9,8 @@
 
 namespace lava::magma {
     class Texture;
+
+    using TexturePtr = std::shared_ptr<Texture>;
 }
 
 namespace lava::sill {
@@ -46,7 +48,7 @@ namespace lava::sill {
         std::vector<GlyphInfo> glyphsInfos(std::wstring_view u16Text, bool skipWhite = true);
 
         // Getters
-        magma::Texture& texture();
+        magma::TexturePtr texture() const { return m_texture; }
 
     protected:
         // Internal
@@ -57,8 +59,8 @@ namespace lava::sill {
         GameEngine& m_engine;
 
         // Storage
-        magma::Texture* m_texture = nullptr; //< Font texture (containing drawn glyphs).
-        std::vector<uint8_t> m_pixels;       //< Font texture pixels.
+        magma::TexturePtr m_texture = nullptr; //< Font texture (containing drawn glyphs).
+        std::vector<uint8_t> m_pixels;         //< Font texture pixels.
         std::unordered_map<wchar_t, GlyphInfo> m_glyphsInfos;
         uint32_t m_textureWidth;
         uint32_t m_textureHeight;

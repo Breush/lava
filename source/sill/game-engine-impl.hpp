@@ -79,7 +79,6 @@ namespace lava::sill {
         bool m_fpsCounting = false;
         std::chrono::nanoseconds m_fpsElapsedTime;
         uint32_t m_fpsCount = 0u;
-        magma::Texture* m_environmentTexture = nullptr;
 
         // Physics
         std::unique_ptr<dike::PhysicsEngine> m_physicsEngine = nullptr;
