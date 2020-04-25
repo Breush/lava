@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "Vulkan SDK"
-local VERSION = "1.2.131.2"
+local VERSION = "1.2.135.0"
 
 -- Download
 
@@ -46,7 +46,9 @@ if not fileExists("./include/vulkan") then
         os.execute("mv vulkan-sdk.exe " .. localFile)
     end
 
-    os.execute("bash ../scripts/setup/vulkan-sdk.sh " .. VERSION)
+    if not os.execute("bash ../scripts/setup/vulkan-sdk.sh") then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook

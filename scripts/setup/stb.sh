@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e # exit if any command fails
+
 cd "$(dirname "$0")"
 ROOT_DIR="$(pwd)/../../external"
 

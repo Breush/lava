@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "GLM"
-local VERSION = "0.9.9.7"
+local VERSION = "0.9.9.8"
 
 -- Download
 
@@ -28,7 +28,10 @@ end
 
 if not fileExists("./include/glm") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
-    os.execute("cd ./.tmp && unzip -o glm_" .. VERSION .. ".zip && cp -r glm-" .. VERSION .. "/glm ../include")
+
+    if not os.execute("bash ../scripts/setup/glm.sh " .. VERSION) then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook

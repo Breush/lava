@@ -33,7 +33,9 @@ end
 if not fileExists("./include/bullet/btBulletCollisionCommon.h") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
 
-    os.execute("bash ../scripts/setup/bullet.sh " .. VERSION)
+    if not os.execute("bash ../scripts/setup/bullet.sh " .. VERSION) then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook

@@ -24,7 +24,9 @@ end
 if not fileExists("./include/stb") then
     print("[Dependencies] Setting " .. NAME .. " up...")
 
-    os.execute("bash ../scripts/setup/stb.sh")
+    if not os.execute("bash ../scripts/setup/stb.sh") then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook

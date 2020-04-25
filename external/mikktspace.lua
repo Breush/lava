@@ -24,7 +24,9 @@ end
 if not fileExists("./include/mikktspace") then
     print("[Dependencies] Setting " .. NAME .. " up...")
 
-    os.execute("bash ../scripts/setup/mikktspace.sh")
+    if not os.execute("bash ../scripts/setup/mikktspace.sh") then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook

@@ -1,7 +1,7 @@
 -- UPDATE THESE WHENEVER NEEDED
 
 local NAME = "OpenVR"
-local VERSION = "1.9.16"
+local VERSION = "1.11.11"
 
 -- Download
 
@@ -33,7 +33,9 @@ end
 if not fileExists("./include/openvr/openvr.h") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
 
-    os.execute("bash ../scripts/setup/openvr.sh")
+    if not os.execute("bash ../scripts/setup/openvr.sh") then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook

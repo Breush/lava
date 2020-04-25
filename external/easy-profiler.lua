@@ -33,7 +33,9 @@ end
 if not fileExists("./include/easy/profiler.h") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
 
-    os.execute("bash ../scripts/setup/easy-profiler.sh " .. VERSION)
+    if not os.execute("bash ../scripts/setup/easy-profiler.sh " .. VERSION) then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook
