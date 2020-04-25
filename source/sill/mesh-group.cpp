@@ -13,10 +13,6 @@ MeshGroup::MeshGroup(magma::Scene& scene)
 MeshGroup::~MeshGroup()
 {
     for (auto& primitive : m_primitives) {
-        // // @fixme :AutoMaterialDelete
-        // if (primitive->material() != nullptr) {
-        //     m_scene.remove(*primitive->material());
-        // }
         m_scene.remove(*primitive);
     }
 }

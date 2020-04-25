@@ -97,7 +97,7 @@ void setupCamera(GameState& gameState)
     auto& reticleEntity = engine.make<sill::GameEntity>("reticle");
     auto& reticleTransformComponent = reticleEntity.make<sill::TransformComponent>();
 
-    auto& reticleMaterial = engine.scene().make<magma::Material>("reticle");
+    auto reticleMaterial = engine.scene().makeMaterial("reticle");
     auto& reticleFlatComponent = reticleEntity.make<sill::FlatComponent>();
     sill::makers::quadFlatMaker({5.f, 5.f})(reticleFlatComponent);
     reticleFlatComponent.primitive(0u, 0u).material(reticleMaterial);

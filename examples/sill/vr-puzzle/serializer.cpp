@@ -229,7 +229,7 @@ void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::
                 sill::makers::boxMeshMaker(extent)(meshComponent);
                 meshComponent.category(RenderCategory::Translucent);
                 meshComponent.enabled(gameState.state == State::Editor);
-                meshComponent.primitive(0u, 0u).material(*gameState.editor.resources.colliderMaterial);
+                meshComponent.primitive(0u, 0u).material(gameState.editor.resources.colliderMaterial);
             }
         }
         else if (componentJson.key() == "sound-emitter") {

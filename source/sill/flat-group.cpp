@@ -13,11 +13,6 @@ FlatGroup::FlatGroup(GameEngine& engine)
 FlatGroup::~FlatGroup()
 {
     for (auto& primitive : m_primitives) {
-        if (primitive->material() != nullptr) {
-            // @fixme :AutoMaterialDelete Well... this seems to work only for non-shared materials
-            // and otherwise thanks to deallocator not doing anything...
-            m_engine.scene2d().remove(*primitive->material());
-        }
         m_engine.scene2d().remove(*primitive);
     }
 }

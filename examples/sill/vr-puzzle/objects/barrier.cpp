@@ -20,7 +20,7 @@ Barrier::Barrier(GameState& gameState)
     meshComponent.primitive(0u, 0u).category(RenderCategory::Translucent);
     meshComponent.primitive(0u, 0u).shadowsCastable(false);
 
-    auto& barrierMaterial = gameState.engine->scene().make<magma::Material>("barrier");
+    auto barrierMaterial = gameState.engine->scene().makeMaterial("barrier");
     meshComponent.primitive(0u, 0u).material(barrierMaterial);
 }
 

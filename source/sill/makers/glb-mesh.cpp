@@ -23,7 +23,7 @@ namespace {
     struct CacheData {
         std::unique_ptr<ThreadPool> threadPool;
         std::unordered_map<uint32_t, magma::Texture*> textures;
-        std::unordered_map<uint32_t, magma::Material*> materials;
+        std::unordered_map<uint32_t, magma::MaterialPtr> materials;
         std::unordered_map<uint32_t, bool> materialTranslucencies;
         std::unordered_map<uint32_t, uint32_t> nodeIndices;
 
@@ -153,14 +153,14 @@ namespace {
 
             // Material
             bool translucent = false;
-            magma::Material* rmMaterial = nullptr;
+            magma::MaterialPtr rmMaterial = nullptr;
             if (cacheData.materials.find(primitive.materialIndex) != cacheData.materials.end()) {
                 rmMaterial = cacheData.materials.at(primitive.materialIndex);
                 translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
             }
             else if (materials != json.end() && primitive.materialIndex != -1u) {
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
-                rmMaterial = &engine.scene().make<magma::Material>("roughness-metallic");
+                rmMaterial = engine.scene().makeMaterial("roughness-metallic");
                 translucent = material.translucent;
 
                 // Material textures
@@ -216,7 +216,7 @@ namespace {
                 meshPrimitive.computeTangents();
             }
 
-            if (rmMaterial != nullptr) meshPrimitive.material(*rmMaterial);
+            meshPrimitive.material(rmMaterial);
             meshPrimitive.category(translucent ? RenderCategory::Translucent : RenderCategory::Opaque);
         }
 

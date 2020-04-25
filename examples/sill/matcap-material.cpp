@@ -22,8 +22,8 @@ int main(void)
     float x = -5.5f;
     for (auto& matcapFile : matcapFiles) {
         auto& texture = engine.scene().make<magma::Texture>(matcapFile);
-        auto& material = engine.scene().make<magma::Material>("matcap");
-        material.set("matcapTexture", texture);
+        auto material = engine.scene().makeMaterial("matcap");
+        material->set("matcapTexture", texture);
 
         auto& sphereEntity = engine.make<sill::GameEntity>();
         auto& sphereMeshComponent = sphereEntity.make<sill::MeshComponent>();

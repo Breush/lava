@@ -31,9 +31,9 @@ void setupEnvironment(GameState& gameState)
         sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
         skyMeshComponent.category(RenderCategory::Depthless);
 
-        auto& skyboxMaterial = engine.scene().make<magma::Material>("skybox");
-        skyboxMaterial.set("useEnvironmentMap", true);
-        skyboxMaterial.set("lod", 1u);
+        auto skyboxMaterial = engine.scene().makeMaterial("skybox");
+        skyboxMaterial->set("useEnvironmentMap", true);
+        skyboxMaterial->set("lod", 1u);
         skyMeshComponent.primitive(0, 0).material(skyboxMaterial);
     }
 
@@ -56,15 +56,15 @@ void setupEnvironment(GameState& gameState)
         auto& waveTexture = engine.scene().make<magma::Texture>();
         waveTexture.loadFromFile("./assets/textures/vr-puzzle/water.png");
 
-        auto& material = engine.scene().make<magma::Material>("water");
-        material.set("waveMap", waveTexture);
+        auto material = engine.scene().makeMaterial("water");
+        material->set("waveMap", waveTexture);
         meshComponent.primitive(0, 0).material(material);
 
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-        behaviorComponent.onUpdate([&](float dt) {
+        behaviorComponent.onUpdate([material = material.get()](float dt) {
             static float time = 0.f;
             time += dt;
-            material.set("time", time);
+            material->set("time", time);
         });
     }
 }

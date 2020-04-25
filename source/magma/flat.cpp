@@ -104,9 +104,9 @@ void Flat::indices(VectorView<uint8_t> indices)
 
 // ----- Material
 
-void Flat::material(Material& material)
+void Flat::material(MaterialPtr material)
 {
-    m_material = &material;
+    m_material = std::move(material);
 }
 
 // ----- Updates

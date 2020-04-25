@@ -198,7 +198,7 @@ magma::Mesh& MeshComponent::primitive(uint32_t nodeIndex, uint32_t primitiveInde
     return m_nodes[nodeIndex].meshGroup->primitive(primitiveIndex);
 }
 
-magma::Material* MeshComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
+magma::MaterialPtr MeshComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
 {
     return m_nodes[nodeIndex].meshGroup->primitive(primitiveIndex).material();
 }

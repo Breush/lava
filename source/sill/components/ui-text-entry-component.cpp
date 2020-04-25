@@ -27,7 +27,7 @@ UiTextEntryComponent::UiTextEntryComponent(GameEntity& entity, const std::wstrin
     {
         auto& node = makers::quadFlatMaker(1.f)(m_flatComponent);
         node.name = "background";
-        node.flatGroup->primitive(0u).material(scene2d.make<magma::Material>("ui.quad"));
+        node.flatGroup->primitive(0u).material(scene2d.makeMaterial("ui.quad"));
         node.transform(glm::scale(glm::mat3(1.f), m_extent));
     }
 
@@ -35,7 +35,7 @@ UiTextEntryComponent::UiTextEntryComponent(GameEntity& entity, const std::wstrin
     {
         auto& node = makers::quadFlatMaker(1.f)(m_flatComponent);
         node.name = "cursor";
-        node.flatGroup->primitive(0u).material(scene2d.make<magma::Material>("ui.quad"));
+        node.flatGroup->primitive(0u).material(scene2d.makeMaterial("ui.quad"));
         updateCursor();
     }
 

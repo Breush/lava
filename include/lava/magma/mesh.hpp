@@ -13,6 +13,8 @@ namespace lava::magma {
     class MeshAft;
     class Material;
     class Scene;
+
+    using MaterialPtr = std::shared_ptr<Material>;
 }
 
 namespace lava::magma {
@@ -99,9 +101,8 @@ namespace lava::magma {
          */
         /// @{
         /// The mesh's material. Can be nullptr.
-        Material* material() { return m_material; }
-        const Material* material() const { return m_material; }
-        void material(Material& material);
+        MaterialPtr material() { return m_material; }
+        void material(MaterialPtr material);
 
         /// Whether the mesh can cast shadows.
         bool shadowsCastable() const { return m_shadowsCastable; }
@@ -161,7 +162,7 @@ namespace lava::magma {
         std::vector<uint16_t> m_indices;
 
         // ----- Material
-        Material* m_material = nullptr;
+        MaterialPtr m_material = nullptr;
         RenderCategory m_category = RenderCategory::Opaque;
         bool m_translucent = false;
         bool m_shadowsCastable = true;

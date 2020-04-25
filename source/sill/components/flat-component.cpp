@@ -71,7 +71,7 @@ magma::Flat& FlatComponent::primitive(uint32_t nodeIndex, uint32_t primitiveInde
     return m_nodes[nodeIndex].flatGroup->primitive(primitiveIndex);
 }
 
-magma::Material* FlatComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
+magma::MaterialPtr FlatComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
 {
     return m_nodes[nodeIndex].flatGroup->primitive(primitiveIndex).material();
 }

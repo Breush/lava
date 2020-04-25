@@ -38,7 +38,7 @@ void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelin
         m_fore.material()->aft().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
     else {
-        m_scene.fallbackMaterial().aft().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
+        m_scene.fallbackMaterial()->aft().render(commandBuffer, pipelineLayout, materialDescriptorSetIndex);
     }
 
     // Add the vertex buffer

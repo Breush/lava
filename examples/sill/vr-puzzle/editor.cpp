@@ -260,7 +260,7 @@ void setupEditor(GameState& gameState)
     auto& engine = *gameState.engine;
     auto& input = engine.input();
 
-    gameState.editor.resources.colliderMaterial = &engine.scene().make<magma::Material>("collider");
+    gameState.editor.resources.colliderMaterial = engine.scene().makeMaterial("collider");
 
     // Inputs
     input.bindAction("editor.toggle", Key::E);
@@ -299,7 +299,7 @@ void setupEditor(GameState& gameState)
         auto& multiEntity = engine.make<sill::GameEntity>("multi");
         auto& flatComponent = multiEntity.make<sill::FlatComponent>();
         auto& flatNode = sill::makers::quadFlatMaker(1.f)(flatComponent);
-        auto& material = engine.scene2d().make<magma::Material>("selection-rectangle");
+        auto material = engine.scene2d().makeMaterial("selection-rectangle");
         flatNode.flatGroup->primitive(0u).material(material);
         gameState.editor.selection.multiEntity = &multiEntity;
     }
@@ -335,8 +335,8 @@ void setupEditor(GameState& gameState)
 
         for (const auto& axis : g_axes) {
             auto& axisEntity = engine.make<sill::GameEntity>("gizmo-translation-axis");
-            auto& axisMaterial = engine.scene().make<magma::Material>("gizmo");
-            axisMaterial.set("color", axis);
+            auto axisMaterial = engine.scene().makeMaterial("gizmo");
+            axisMaterial->set("color", axis);
 
             auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
             sill::makers::CylinderMeshOptions options;
@@ -358,8 +358,8 @@ void setupEditor(GameState& gameState)
 
         for (const auto& axis : g_axes) {
             auto& axisEntity = engine.make<sill::GameEntity>("gizmo-rotation-axis");
-            auto& axisMaterial = engine.scene().make<magma::Material>("gizmo");
-            axisMaterial.set("color", axis);
+            auto axisMaterial = engine.scene().makeMaterial("gizmo");
+            axisMaterial->set("color", axis);
 
             auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
             auto transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
@@ -380,8 +380,8 @@ void setupEditor(GameState& gameState)
 
         for (const auto& axis : g_axes) {
             auto& axisEntity = engine.make<sill::GameEntity>("gizmo-scaling-axis");
-            auto& axisMaterial = engine.scene().make<magma::Material>("gizmo");
-            axisMaterial.set("color", axis);
+            auto axisMaterial = engine.scene().makeMaterial("gizmo");
+            axisMaterial->set("color", axis);
 
             auto transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
             transform = glm::rotate(transform, math::PI_OVER_TWO, axis);
@@ -502,7 +502,7 @@ void setupEditor(GameState& gameState)
                 auto& meshComponent = entity.make<sill::MeshComponent>();
                 sill::makers::boxMeshMaker(1.f)(meshComponent);
                 meshComponent.category(RenderCategory::Translucent);
-                meshComponent.primitive(0u, 0u).material(*gameState.editor.resources.colliderMaterial);
+                meshComponent.primitive(0u, 0u).material(gameState.editor.resources.colliderMaterial);
 
                 entity.make<sill::PhysicsComponent>().dynamic(false);
                 auto& colliderComponent = entity.make<sill::ColliderComponent>();

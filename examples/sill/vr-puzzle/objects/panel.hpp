@@ -93,8 +93,8 @@ private:
     std::vector<std::vector<SnappingPoint>> m_snappingPoints;
 
     // Mesh
-    lava::magma::Material* m_material = nullptr;
-    lava::magma::Material* m_borderMaterial = nullptr;
+    lava::magma::MaterialPtr m_material = nullptr;
+    lava::magma::MaterialPtr m_borderMaterial = nullptr;
 
     std::vector<std::function<void()>> m_solveCallbacks;
 };

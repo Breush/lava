@@ -136,8 +136,8 @@ void setupTeleportBeam(GameState& gameState)
     sill::makers::planeMeshMaker({1.f, 1.f}, planeMeshOptions)(meshComponent);
 
     teleportBeamEntity.get<sill::TransformComponent>().scaling(0.f);
-    auto& teleportBeamMaterial = engine.scene().make<magma::Material>("teleport-beam");
-    teleportBeamMaterial.set("length", 32.f);
+    auto teleportBeamMaterial = engine.scene().makeMaterial("teleport-beam");
+    teleportBeamMaterial->set("length", 32.f);
     meshComponent.primitive(0, 0).material(teleportBeamMaterial);
     meshComponent.primitive(0, 0).category(RenderCategory::Translucent);
     meshComponent.primitive(0, 0).shadowsCastable(false);
@@ -148,7 +148,7 @@ void setupTeleportBeam(GameState& gameState)
     gameState.teleport.areaEntity = &teleportAreaEntity;
 
     teleportAreaEntity.get<sill::TransformComponent>().scaling(0.f);
-    auto& teleportAreaMaterial = engine.scene().make<magma::Material>("teleport-area");
+    auto teleportAreaMaterial = engine.scene().makeMaterial("teleport-area");
     sill::makers::cylinderMeshMaker(32u, 0.75f, 0.25f, {.doubleSided = true})(teleportAreaMeshComponent);
     teleportAreaMeshComponent.primitive(0, 0).material(teleportAreaMaterial);
     teleportAreaMeshComponent.primitive(0, 0).category(RenderCategory::Translucent);
@@ -156,10 +156,10 @@ void setupTeleportBeam(GameState& gameState)
 
     // Update
     auto& behaviorComponent = teleportBeamEntity.make<sill::BehaviorComponent>();
-    behaviorComponent.onUpdate([&](float dt) {
+    behaviorComponent.onUpdate([&gameState, material = teleportBeamMaterial.get()](float dt) {
         static float time = 0.f;
         time += dt;
-        teleportBeamMaterial.set("time", time);
+        material->set("time", time);
 
         onUpdateVr(gameState);
     });

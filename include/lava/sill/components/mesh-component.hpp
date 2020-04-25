@@ -48,7 +48,7 @@ namespace lava::sill {
          */
         /// @{
         magma::Mesh& primitive(uint32_t nodeIndex, uint32_t primitiveIndex);
-        magma::Material* material(uint32_t nodeIndex, uint32_t primitiveIndex);
+        magma::MaterialPtr material(uint32_t nodeIndex, uint32_t primitiveIndex);
         float distanceFrom(Ray ray, PickPrecision pickPrecision) const;
         /// @}
 

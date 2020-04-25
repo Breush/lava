@@ -14,17 +14,17 @@ int main(void)
     auto& entity = engine.make<sill::GameEntity>();
 
     float roughness = 0.f;
-    float roughnessSpeed = 0.2f;
-    auto& material = engine.scene().make<magma::Material>("roughness-metallic");
-    material.set("roughnessFactor", roughness);
-    material.set("metallicFactor", 1.f);
+    auto material = engine.scene().makeMaterial("roughness-metallic");
+    material->set("roughnessFactor", roughness);
+    material->set("metallicFactor", 1.f);
 
     auto& meshComponent = entity.make<sill::MeshComponent>();
     sill::makers::sphereMeshMaker(32u, 1.f)(meshComponent);
     meshComponent.primitive(0, 0).material(material);
 
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
-    behaviorComponent.onUpdate([&](float dt) {
+    behaviorComponent.onUpdate([material = material.get(), &roughness](float dt) {
+        static float roughnessSpeed = 0.2f;
         roughness += roughnessSpeed * dt;
         if (roughness <= 0.f) {
             roughness = 0.f;
@@ -34,7 +34,7 @@ int main(void)
             roughness = 1.f;
             roughnessSpeed = -std::abs(roughnessSpeed);
         }
-        material.set("roughnessFactor", roughness);
+        material->set("roughnessFactor", roughness);
     });
 
     engine.run();

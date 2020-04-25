@@ -250,9 +250,9 @@ void Mesh::computeTangents()
 
 // ----- Material
 
-void Mesh::material(Material& material)
+void Mesh::material(MaterialPtr material)
 {
-    m_material = &material;
+    m_material = std::move(material);
 }
 
 // ----- Debug

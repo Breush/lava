@@ -23,7 +23,7 @@ UiButtonComponent::UiButtonComponent(GameEntity& entity, const std::wstring& tex
     // Background setup
     auto& node = makers::quadFlatMaker(1.f)(m_flatComponent);
     node.name = "background";
-    node.flatGroup->primitive(0u).material(scene2d.make<magma::Material>("ui.quad"));
+    node.flatGroup->primitive(0u).material(scene2d.makeMaterial("ui.quad"));
     updateHovered();
 
     // Affecting text

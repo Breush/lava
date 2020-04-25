@@ -25,7 +25,7 @@ Scene::Scene(RenderEngine& engine)
     new (&aft()) SceneAft(*this, engine);
 
     // Fallback material
-    m_fallbackMaterial = &make<Material>("fallback");
+    m_fallbackMaterial = makeMaterial("fallback");
 }
 
 Scene::~Scene()
@@ -34,16 +34,14 @@ Scene::~Scene()
     // because eveything is going to be removed anyway,
     // and no more used.
 
+    m_fallbackMaterial = nullptr;
+
     for (auto light : m_lights) {
         m_lightAllocator.deallocate(light);
     }
 
     for (auto camera : m_cameras) {
         m_cameraAllocator.deallocate(camera);
-    }
-
-    for (auto material : m_materials) {
-        m_materialAllocator.deallocate(material);
     }
 
     for (auto texture : m_textures) {
@@ -100,14 +98,16 @@ Camera& Scene::makeCamera(Extent2d extent)
     return *resource;
 }
 
-Material& Scene::makeMaterial(const std::string& hrid)
+MaterialPtr Scene::makeMaterial(const std::string& hrid)
 {
     constexpr const auto size = sizeof(std::aligned_union<0, Material>::type) + sizeof(MaterialAft);
     auto resource = m_materialAllocator.allocateSized<Material>(size, *this, hrid);
 
     m_materials.emplace_back(resource);
     aft().foreAdd(*resource);
-    return *resource;
+    return MaterialPtr(resource, [this](Material* material) {
+        forget(*material);
+    });
 }
 
 Texture& Scene::makeTexture(const std::string& imagePath)
@@ -167,11 +167,6 @@ void Scene::remove(const Camera& camera)
     aft().foreRemove(camera);
 }
 
-void Scene::remove(const Material& material)
-{
-    aft().foreRemove(material);
-}
-
 void Scene::remove(const Texture& texture)
 {
     aft().foreRemove(texture);
@@ -185,6 +180,17 @@ void Scene::remove(const Mesh& mesh)
 void Scene::remove(const Flat& flat)
 {
     aft().foreRemove(flat);
+}
+
+void Scene::forget(const Material& material)
+{
+    for (auto iMaterial = m_materials.begin(); iMaterial != m_materials.end(); ++iMaterial) {
+        if (*iMaterial == &material) {
+            m_materialAllocator.deallocate(*iMaterial);
+            m_materials.erase(iMaterial);
+            break;
+        }
+    }
 }
 
 void Scene::removeUnsafe(const Light& light)
@@ -204,17 +210,6 @@ void Scene::removeUnsafe(const Camera& camera)
         if (*iCamera == &camera) {
             m_cameraAllocator.deallocate(*iCamera);
             m_cameras.erase(iCamera);
-            break;
-        }
-    }
-}
-
-void Scene::removeUnsafe(const Material& material)
-{
-    for (auto iMaterial = m_materials.begin(); iMaterial != m_materials.end(); ++iMaterial) {
-        if (*iMaterial == &material) {
-            m_materialAllocator.deallocate(*iMaterial);
-            m_materials.erase(iMaterial);
             break;
         }
     }

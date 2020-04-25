@@ -15,6 +15,8 @@ namespace lava::magma {
     class Texture;
     class Mesh;
     class Flat;
+
+    using MaterialPtr = std::shared_ptr<Material>;
 }
 
 namespace lava::magma {
@@ -64,6 +66,9 @@ namespace lava::magma {
          * ```
          * auto& mesh = engine.make<Mesh>(); // Its lifetime is now managed by the engine.
          * ```
+         *
+         * Note that for material, the resource lifetime is handled
+         * by a smart pointer.
          */
         /// @{
         /// Make a new resource directly.
@@ -72,7 +77,7 @@ namespace lava::magma {
 
         Light& makeLight();
         Camera& makeCamera(Extent2d extent);
-        Material& makeMaterial(const std::string& hrid);
+        MaterialPtr makeMaterial(const std::string& hrid);
         Texture& makeTexture(const std::string& imagePath = "");
         Mesh& makeMesh();
         Flat& makeFlat();
@@ -90,7 +95,6 @@ namespace lava::magma {
         /// @{
         void remove(const Light& light);
         void remove(const Camera& camera);
-        void remove(const Material& material);
         void remove(const Texture& texture);
         void remove(const Mesh& mesh);
         void remove(const Flat& flat);
@@ -102,7 +106,6 @@ namespace lava::magma {
          */
         void removeUnsafe(const Light& light);
         void removeUnsafe(const Camera& camera);
-        void removeUnsafe(const Material& material);
         void removeUnsafe(const Texture& texture);
         void removeUnsafe(const Mesh& mesh);
         void removeUnsafe(const Flat& flat);
@@ -133,7 +136,7 @@ namespace lava::magma {
          */
         /// @{
         /// Automatically created material with hrid "fallback".
-        Material& fallbackMaterial() { return *m_fallbackMaterial; }
+        MaterialPtr fallbackMaterial() { return m_fallbackMaterial; }
         /// @}
 
         /**
@@ -152,6 +155,10 @@ namespace lava::magma {
         chamber::BucketAllocator& flatAllocator() { return m_flatAllocator; }
         /// @}
 
+    protected:
+        // Custom deleter for MaterialPtr. Internal usage.
+        void forget(const Material& material);
+
     private:
         // ----- References
         RenderEngine& m_engine;
@@ -161,7 +168,7 @@ namespace lava::magma {
         Msaa m_msaa = Msaa::Max;
 
         // ----- Fallbacks
-        Material* m_fallbackMaterial = nullptr;
+        MaterialPtr m_fallbackMaterial = nullptr;
 
         // ----- Allocators
         chamber::BucketAllocator m_lightAllocator;

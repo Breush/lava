@@ -21,8 +21,8 @@ int main(void)
     app.engine().registerMaterialFromFile("watched", "./data/tmp/watched-material.shmag");
 
     // Making a scene
-    auto& watchedMaterial = app.scene().make<magma::Material>("watched");
-    watchedMaterial.set("color", {0.4f, 0.05f, 0.6f, 1.f});
+    auto watchedMaterial = app.scene().makeMaterial("watched");
+    watchedMaterial->set("color", {0.4f, 0.05f, 0.6f, 1.f});
 
     auto& mesh = app.makePlane({1, 1});
     mesh.material(watchedMaterial);

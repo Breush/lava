@@ -21,6 +21,8 @@ MaterialAft::MaterialAft(Material& fore, Scene& scene)
 
 MaterialAft::~MaterialAft()
 {
+    m_scene.engine().impl().device().waitIdle();
+
     for (auto& descriptorSet : m_descriptorSets) {
         m_scene.aft().materialDescriptorHolder().freeSet(descriptorSet);
     }

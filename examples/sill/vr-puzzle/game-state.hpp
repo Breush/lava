@@ -122,7 +122,7 @@ struct GameState {
         } gizmo;
 
         struct {
-            lava::magma::Material* colliderMaterial = nullptr;
+            lava::magma::MaterialPtr colliderMaterial = nullptr;
         } resources;
     } editor;
 };

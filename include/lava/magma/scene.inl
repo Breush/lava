@@ -26,15 +26,6 @@ namespace lava::magma {
     };
 
     template <>
-    struct SceneResourceMaker<Material> {
-        template <class... Arguments>
-        static inline Material& make(Scene& scene, Arguments&&... arguments)
-        {
-            return scene.makeMaterial(std::forward<Arguments>(arguments)...);
-        }
-    };
-
-    template <>
     struct SceneResourceMaker<Texture> {
         template <class... Arguments>
         static inline Texture& make(Scene& scene, Arguments&&... arguments)

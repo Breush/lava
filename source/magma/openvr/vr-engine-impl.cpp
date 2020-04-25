@@ -226,10 +226,10 @@ Mesh& VrEngine::Impl::deviceMesh(VrDeviceType deviceType, Scene& scene) const
     memcpy(indices.data(), model->rIndexData, indices.size() * sizeof(uint16_t));
 
     // Add material
-    auto& material = scene.make<Material>("vr");
+    auto material = scene.makeMaterial("vr");
     auto& diffuseTexture = scene.make<Texture>();
     diffuseTexture.loadFromMemory(texture->rubTextureMapData, texture->unWidth, texture->unHeight, 4u);
-    material.set("diffuseMap", diffuseTexture);
+    material->set("diffuseMap", diffuseTexture);
 
     mesh.verticesCount(model->unVertexCount);
     mesh.verticesPositions(positions);

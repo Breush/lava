@@ -4,11 +4,14 @@
 #include <lava/core/vector-view.hpp>
 #include <lava/magma/ubos.hpp>
 #include <lava/magma/vertex.hpp>
+#include <memory>
 
 namespace lava::magma {
     class FlatAft;
     class Material;
     class Scene;
+
+    using MaterialPtr = std::shared_ptr<Material>;
 }
 
 namespace lava::magma {
@@ -73,9 +76,8 @@ namespace lava::magma {
          */
         /// @{
         /// The mesh's material. Can be nullptr.
-        Material* material() { return m_material; }
-        const Material* material() const { return m_material; }
-        void material(Material& material);
+        MaterialPtr material() { return m_material; }
+        void material(MaterialPtr material);
         /// @}
 
         /**
@@ -104,7 +106,7 @@ namespace lava::magma {
         std::vector<uint16_t> m_indices;
 
         // ----- Material
-        Material* m_material = nullptr;
+        MaterialPtr m_material = nullptr;
 
         // ----- Shader data
         FlatUbo m_ubo;

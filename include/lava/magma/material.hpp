@@ -35,6 +35,8 @@ namespace lava::magma {
 
         $aft_class(Material);
 
+        const std::string& hrid() const { return m_hrid; }
+
         Scene& scene() { return m_scene; }
         const Scene& scene() const { return m_scene; }
 
@@ -89,4 +91,6 @@ namespace lava::magma {
         static std::unordered_map<std::string, Attributes> s_globalAttributes;
         Attributes m_attributes;
     };
+
+    using MaterialPtr = std::shared_ptr<Material>;
 }

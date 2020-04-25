@@ -25,8 +25,8 @@ Panel::Panel(GameState& gameState)
     sill::makers::PlaneMeshOptions options;
     options.rootNodeHasGeometry = false;
     sill::makers::planeMeshMaker({blockExtent.x, blockExtent.y}, options)(meshComponent);
-    m_material = &engine.scene().make<magma::Material>("panel");
-    meshComponent.primitive(1, 0).material(*m_material);
+    m_material = engine.scene().makeMaterial("panel");
+    meshComponent.primitive(1, 0).material(m_material);
 
     // Create border
     auto& meshNode = meshComponent.addNode();
@@ -34,8 +34,8 @@ Panel::Panel(GameState& gameState)
     meshNode.meshGroup = std::make_unique<sill::MeshGroup>(meshComponent.scene());
     meshNode.parent = &meshComponent.node(0);
     meshComponent.node(0).children.emplace_back(&meshNode);
-    m_borderMaterial = &engine.scene().make<magma::Material>("roughness-metallic");
-    meshNode.meshGroup->addPrimitive().material(*m_borderMaterial);
+    m_borderMaterial = engine.scene().makeMaterial("roughness-metallic");
+    meshNode.meshGroup->addPrimitive().material(m_borderMaterial);
 
     m_entity->make<sill::ColliderComponent>();
     m_entity->get<sill::PhysicsComponent>().dynamic(false);
