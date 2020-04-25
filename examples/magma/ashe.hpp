@@ -237,8 +237,8 @@ namespace lava::ashe {
 
         void makeAxisGizmo(Axis axis, glm::vec4 color)
         {
-            auto& material = m_scene->make<magma::Material>("ashe");
-            material.set("color", color);
+            auto material = m_scene->makeMaterial("ashe");
+            material->set("color", color);
 
             // The cylinder
             auto& cylinder = makeCylinder(0.01f, 1.f, axis);
