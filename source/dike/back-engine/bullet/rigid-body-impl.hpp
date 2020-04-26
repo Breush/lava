@@ -16,6 +16,7 @@ namespace lava::dike {
         void addBoxShape(const glm::vec3& offset, const glm::vec3& dimensions);
         void addSphereShape(const glm::vec3& offset, float diameter);
         void addInfinitePlaneShape(const glm::vec3& offset, const glm::vec3& normal);
+        void addMeshShape(const glm::mat4& localTransform, VectorView<glm::vec3> vertices, const std::vector<uint16_t>& indices);
 
         // Physics world
         bool enabled() const { return m_enabled; }
@@ -32,7 +33,7 @@ namespace lava::dike {
 
     protected:
         // Internal
-        void addShape(const glm::vec3& offset, std::unique_ptr<btCollisionShape>&& pShape);
+        void addShape(const glm::mat4& localTransform, std::unique_ptr<btCollisionShape>&& pShape);
         void updateShape();
 
     private:
@@ -50,6 +51,8 @@ namespace lava::dike {
         glm::vec3 m_scaling = glm::vec3{1.f};
         glm::quat m_rotation = glm::quat{1.f, 0.f, 0.f, 0.f};
         MotionState m_motionState{m_transform, m_translation, m_rotation, m_scaling};
+
+        std::vector<std::unique_ptr<btTriangleIndexVertexArray>> m_meshShapeArrays;
 
         btCompoundShape m_shape;
         std::vector<std::unique_ptr<btCollisionShape>> m_shapes;

@@ -33,20 +33,23 @@ namespace lava {
         VectorView(const uint8_t* data, uint32_t size, uint32_t stride = 0u)
             : m_data(data)
             , m_size(size)
-            , m_stride(stride)
+            , m_stride(stride == sizeof(T) ? 0u : stride)
             , m_effectiveStride(stride != 0u ? stride : sizeof(T))
         {
         }
 
         const uint8_t* data() const { return m_data; }
         uint32_t size() const { return m_size; }
-        uint32_t stride() const { return m_stride; }
+        uint32_t originalStride() const { return m_stride; }
+        uint32_t stride() const { return m_effectiveStride; }
 
         const T& operator[](const uint32_t index) const
         {
             return *reinterpret_cast<const T*>(m_data + m_effectiveStride * index);
         }
 
+        // @fixme Without an iterator class, this is wrong
+        // if effectiveStride != sizeof(T)!
         const T* begin() const { return &operator[](0u); }
         const T* end() const { return &operator[](m_size); }
 

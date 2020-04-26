@@ -63,6 +63,11 @@ namespace {
 
     void ungrabBrick(GameState& gameState)
     {
+        if (!gameState.snapping.looksSnapped) {
+            auto transform = glm::translate(glm::mat4(1.f), gameState.player.headPosition + gameState.player.direction);
+            grabbedBrick->transform().worldTransform(transform);
+        }
+
         gameState.state = State::Idle;
         grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
         grabbedBrick->selectionHighlighted(false);
@@ -170,7 +175,7 @@ namespace {
         auto targetTransform = glm::mat4(1.f);
 
         // If the cursor is over a snapping point, we snap to it.
-        bool brickLooksSnapped = false;
+        gameState.snapping.looksSnapped = false;
         gameState.snapping.panel = nullptr;
         for (auto& panel : gameState.level.panels) {
             if (!panel->userInteractionAllowed()) continue;
@@ -178,7 +183,7 @@ namespace {
             // @todo We should find out which panel is the closest!
             Panel::SnappingInfo snappingInfo = panel->rayHitSnappingPoint(*grabbedBrick, gameState.pickingRay);
             if (snappingInfo.point != nullptr) {
-                brickLooksSnapped = true;
+                gameState.snapping.looksSnapped = true;
                 targetTransform = snappingInfo.point->worldTransform;
                 targetTransform *= baseRotationLevelMatrix();
 
@@ -197,7 +202,7 @@ namespace {
         }
 
         // If the brick is not snapped, we move the brick to the lower right corner of the screen.
-        if (!brickLooksSnapped) {
+        if (!gameState.snapping.looksSnapped) {
             grabbedBrick->errorHighlighted(false);
 
             const auto& extent = gameState.camera.component->extent();
@@ -223,6 +228,26 @@ void setupGameLogic(GameState& gameState)
         }
         else {
             onUpdateMouse(gameState);
+        }
+
+        // Teleport back brick that are infinitely falling.
+        if (gameState.state != State::Editor) {
+            for (auto& brick : gameState.level.bricks) {
+                if (brick->transform().translation().z < -20.f) {
+                    auto translation = brick->transform().translation();
+                    translation.z += 100.f;
+
+                    Ray ray;
+                    ray.origin = translation;
+                    ray.direction = glm::vec3{0.f, 0.f, -1.f};
+                    auto distance = gameState.terrain.entity->distanceFrom(ray);
+                    if (distance != 0.f) {
+                        translation = ray.origin + (distance - 0.1f) * ray.direction;
+                    }
+
+                    brick->transform().translation(translation);
+                }
+            }
         }
     });
 }

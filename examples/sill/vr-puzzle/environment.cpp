@@ -37,14 +37,6 @@ void setupEnvironment(GameState& gameState)
         skyMeshComponent.primitive(0, 0).material(skyboxMaterial);
     }
 
-    // Invisible but physically present ground
-    {
-        auto& entity = engine.make<sill::GameEntity>("ground");
-        entity.make<sill::ColliderComponent>();
-        entity.get<sill::ColliderComponent>().addInfinitePlaneShape();
-        entity.get<sill::PhysicsComponent>().dynamic(false);
-    }
-
     // Water
     {
         auto& entity = engine.make<sill::GameEntity>("water");
@@ -81,6 +73,8 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
 
     if (gameState.level.name == "intro") {
         gameState.terrain.entity = gameState.engine->findEntityByName("island-1");
+        gameState.terrain.entity->ensure<sill::PhysicsComponent>().dynamic(false);
+        gameState.terrain.entity->ensure<sill::ColliderComponent>().addMeshShape();
 
         auto& clockEntity = *gameState.engine->findEntityByName("clock");
         auto& clockMeshComponent = clockEntity.get<sill::MeshComponent>();

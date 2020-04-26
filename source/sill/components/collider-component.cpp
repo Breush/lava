@@ -8,7 +8,27 @@
 
 #include "./physics-component-impl.hpp"
 
+using namespace lava;
 using namespace lava::sill;
+
+namespace {
+    void addMeshNodeShape(dike::RigidBody& rigidBody, const MeshNode& node, const glm::mat4& parentTransform)
+    {
+        auto transform = parentTransform * node.localTransform;
+
+        if (node.meshGroup) {
+            for (auto& primitive : node.meshGroup->primitives()) {
+                auto& unlitVertices = primitive->unlitVertices();
+                VectorView<glm::vec3> vertices(reinterpret_cast<uint8_t*>(unlitVertices.data()) + offsetof(magma::UnlitVertex, pos), unlitVertices.size(), sizeof(magma::UnlitVertex));
+                rigidBody.addMeshShape(transform, vertices, primitive->indices());
+            }
+        }
+
+        for (auto child : node.children) {
+            addMeshNodeShape(rigidBody, *child, transform);
+        }
+    }
+}
 
 ColliderComponent::ColliderComponent(GameEntity& entity)
     : IComponent(entity)
@@ -80,6 +100,18 @@ void ColliderComponent::addInfinitePlaneShape(const glm::vec3& offset, const glm
     }
 }
 
+void ColliderComponent::addMeshShape()
+{
+    auto& meshComponent = m_entity.get<MeshComponent>();
+    auto& rigidBody = m_physicsComponent.impl().dike();
+
+    // @note The root nodes have just no parent!
+    for (auto& node : meshComponent.nodes()) {
+        if (node.parent != nullptr) continue;
+        addMeshNodeShape(rigidBody, node, glm::mat4(1.f));
+    }
+}
+
 //----- Debug
 
 void ColliderComponent::debugEnabled(bool debugEnabled)
@@ -98,8 +130,7 @@ void ColliderComponent::debugEnabled(bool debugEnabled)
             debugMeshComponent.category(RenderCategory::Wireframe);
         }
 
-        // @todo Debug for spheres
-        // @todo Debug for infinite planes
+        // @todo Debug for spheres and infinite planes
     }
     else {
         for (auto& boxShape : m_boxShapes) {

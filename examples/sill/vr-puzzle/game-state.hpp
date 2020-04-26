@@ -52,6 +52,7 @@ struct GameState {
     struct {
         Panel* panel;
         glm::uvec2 coordinates;
+        bool looksSnapped = false;
     } snapping;
 
     struct {

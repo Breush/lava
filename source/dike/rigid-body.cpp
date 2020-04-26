@@ -11,6 +11,7 @@ $pimpl_method(RigidBody, void, clearShapes);
 $pimpl_method(RigidBody, void, addBoxShape, const glm::vec3&, offset, const glm::vec3&, dimensions);
 $pimpl_method(RigidBody, void, addSphereShape, const glm::vec3&, offset, float, diameter);
 $pimpl_method(RigidBody, void, addInfinitePlaneShape, const glm::vec3&, offset, const glm::vec3&, normal);
+$pimpl_method(RigidBody, void, addMeshShape, const glm::mat4&, localTransform, VectorView<glm::vec3>, vertices, const std::vector<uint16_t>&, indices);
 
 // Physics world
 $pimpl_method_const(RigidBody, bool, enabled);

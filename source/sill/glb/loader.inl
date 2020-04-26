@@ -54,6 +54,6 @@ namespace lava::glb {
         BufferView bufferView(bufferViews[bufferViewIndex]);
 
         auto bufferVectorView = bufferView.get(buffer);
-        return VectorView<T>(bufferVectorView.data() + byteOffset, count, bufferVectorView.stride());
+        return VectorView<T>(bufferVectorView.data() + byteOffset, count, bufferVectorView.originalStride());
     }
 }

@@ -88,6 +88,9 @@ namespace lava::magma {
         const std::vector<UnlitVertex>& unlitVertices() const { return m_unlitVertices; };
         const std::vector<Vertex>& vertices() const { return m_vertices; };
         const std::vector<uint16_t>& indices() const { return m_indices; };
+        std::vector<UnlitVertex>& unlitVertices() { return m_unlitVertices; };
+        std::vector<Vertex>& vertices() { return m_vertices; };
+        std::vector<uint16_t>& indices() { return m_indices; };
 
         /// From current vertices positions, compute flat normals.
         void computeFlatNormals();

@@ -56,6 +56,8 @@ namespace lava::sill {
         void addSphereShape(const glm::vec3& offset, float diameter);
         /// Creates an non-dynamic infinte plane.
         void addInfinitePlaneShape(const glm::vec3& offset = {0.f, 0.f, 0.f}, const glm::vec3& normal = {0.f, 0.f, 1.f});
+        /// Creates a collider from the current mesh component primitives.
+        void addMeshShape();
 
         const std::vector<BoxShape>& boxShapes() const { return m_boxShapes; }
         const std::vector<SphereShape>& sphereShapes() const { return m_sphereShapes; }

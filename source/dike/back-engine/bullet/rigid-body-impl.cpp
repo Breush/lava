@@ -91,45 +91,73 @@ void RigidBody::Impl::clearShapes()
     }
 
     m_shapes.clear();
+    m_meshShapeArrays.clear();
 }
 
 void RigidBody::Impl::addBoxShape(const glm::vec3& offset, const glm::vec3& dimensions)
 {
+    // @fixme For all these shapes, we could get a localTransform instead of offset.
+
     // @note btBoxShape takes halfExtent
     auto pShape = std::make_unique<btBoxShape>(btVector3{dimensions.x / 2.f, dimensions.y / 2.f, dimensions.z / 2.f});
-    addShape(offset, std::move(pShape));
+    addShape(glm::translate(glm::mat4(1.f), offset), std::move(pShape));
 }
 
 void RigidBody::Impl::addSphereShape(const glm::vec3& offset, float diameter)
 {
     // @note btSphereShape takes radius
     auto pShape = std::make_unique<btSphereShape>(diameter / 2.f);
-    addShape(offset, std::move(pShape));
+    addShape(glm::translate(glm::mat4(1.f), offset), std::move(pShape));
 }
 
 void RigidBody::Impl::addInfinitePlaneShape(const glm::vec3& offset, const glm::vec3& normal)
 {
     auto pShape = std::make_unique<btStaticPlaneShape>(btVector3{normal.x, normal.y, normal.z}, 0.f);
-    addShape(offset, std::move(pShape));
+    addShape(glm::translate(glm::mat4(1.f), offset), std::move(pShape));
+}
+
+void RigidBody::Impl::addMeshShape(const glm::mat4& localTransform, VectorView<glm::vec3> vertices, const std::vector<uint16_t>& indices)
+{
+    btIndexedMesh indexedMesh;
+    indexedMesh.m_numTriangles = indices.size() / 3u;
+    indexedMesh.m_triangleIndexBase = reinterpret_cast<const uint8_t*>(&indices[0u]);
+    indexedMesh.m_triangleIndexStride = 3u * sizeof(uint16_t);
+    indexedMesh.m_numVertices = vertices.size();
+    indexedMesh.m_vertexBase = reinterpret_cast<const uint8_t*>(&vertices[0u]);
+    indexedMesh.m_vertexStride = vertices.stride();
+    indexedMesh.m_indexType = PHY_SHORT;
+    indexedMesh.m_vertexType = PHY_FLOAT;
+
+    auto& meshShapeArray = *m_meshShapeArrays.emplace_back(std::make_unique<btTriangleIndexVertexArray>());
+    meshShapeArray.addIndexedMesh(indexedMesh, PHY_SHORT);
+
+    auto pShape = std::make_unique<btBvhTriangleMeshShape>(&meshShapeArray, true);
+    addShape(localTransform, std::move(pShape));
 }
 
 // ----- Internal
 
-void RigidBody::Impl::addShape(const glm::vec3& offset, std::unique_ptr<btCollisionShape>&& pShape)
+void RigidBody::Impl::addShape(const glm::mat4& localTransform, std::unique_ptr<btCollisionShape>&& pShape)
 {
-    btTransform localTransform;
-    localTransform.setIdentity();
-    localTransform.setOrigin(btVector3{offset.x, offset.y, offset.z});
+    glm::vec3 translation, scaling, skew;
+    glm::vec4 perspective;
+    glm::quat rotation;
+    glm::decompose(localTransform, scaling, rotation, translation, skew, perspective);
+
+    btTransform btLocalTransform;
+    btLocalTransform.setOrigin(btVector3{translation.x, translation.y, translation.z});
+    btLocalTransform.setRotation(btQuaternion{rotation.x, rotation.y, rotation.z, rotation.w});
 
     auto& shape = m_shapes.emplace_back();
     shape = std::move(pShape);
     shape->calculateLocalInertia(m_mass, m_inertia);
+    shape->setLocalScaling(btVector3{scaling.x, scaling.y, scaling.z});
 
-    // @note As addChildShape does not apply the current scaling of the compound shape,
+    // @note As addChildShape does not apply the current global scaling of the compound shape,
     // we first revert it to default before adding the new child and re-applying it.
     m_shape.setLocalScaling(btVector3(1.f, 1.f, 1.f));
-    m_shape.addChildShape(localTransform, shape.get());
-    m_shape.setLocalScaling(btVector3(m_scaling.x, m_scaling.y, m_scaling.z));
+    m_shape.addChildShape(btLocalTransform, shape.get());
+    m_shape.setLocalScaling(btVector3{m_scaling.x, m_scaling.y, m_scaling.z});
     m_shape.calculateLocalInertia(m_shapes.size() * m_mass, m_inertia);
 
     updateShape();

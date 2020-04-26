@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <lava/core/vector-view.hpp>
 
 namespace lava::dike {
     class PhysicsEngine;
@@ -22,6 +23,9 @@ namespace lava::dike {
         void addBoxShape(const glm::vec3& offset = {0.f, 0.f, 0.f}, const glm::vec3& dimensions = {1.f, 1.f, 1.f});
         void addSphereShape(const glm::vec3& offset = {0.f, 0.f, 0.f}, float diameter = 1.f);
         void addInfinitePlaneShape(const glm::vec3& offset = {0.f, 0.f, 0.f}, const glm::vec3& normal = {0.f, 0.f, 1.f});
+
+        // @note The indices have to be tighly packed, therefore we use a vector directly.
+        void addMeshShape(const glm::mat4& localTransform, VectorView<glm::vec3> vertices, const std::vector<uint16_t>& indices);
 
         // Physics world
         bool enabled() const;
