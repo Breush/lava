@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <lava/core/ray.hpp>
 #include <lava/core/vector-view.hpp>
 
 namespace lava::dike {
@@ -39,6 +40,9 @@ namespace lava::dike {
 
         const glm::mat4& transform() const;
         void transform(const glm::mat4& transform);
+
+        // Helpers
+        float distanceFrom(const Ray& ray, float maxDistance = 1000.f) const;
 
     public:
         class Impl;

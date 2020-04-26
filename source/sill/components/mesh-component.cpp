@@ -203,7 +203,7 @@ magma::MaterialPtr MeshComponent::material(uint32_t nodeIndex, uint32_t primitiv
     return m_nodes[nodeIndex].meshGroup->primitive(primitiveIndex).material();
 }
 
-float MeshComponent::distanceFrom(Ray ray, PickPrecision pickPrecision) const
+float MeshComponent::distanceFrom(const Ray& ray, PickPrecision pickPrecision) const
 {
     const auto& bs = boundingSphere();
     float distance = intersectSphere(ray, bs.center, bs.radius);

@@ -52,7 +52,7 @@ struct GameState {
     struct {
         Panel* panel;
         glm::uvec2 coordinates;
-        bool looksSnapped = false;
+        bool looksSnapped = true; // true, so that VR behavior is coherent
     } snapping;
 
     struct {

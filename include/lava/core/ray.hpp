@@ -85,12 +85,24 @@ namespace lava {
     inline float intersectSphere(const Ray& ray, const glm::vec3& center, float radius)
     {
         auto originToCenter = center - ray.origin;
-        auto t = glm::dot(ray.direction, originToCenter);
-        if (t <= 0.f) return 0.f;
+        auto originDistanceToCenter = glm::length(originToCenter);
+        auto tCenter = glm::dot(ray.direction, originToCenter);
+        
+        float factor = 1.f;
+        if (originDistanceToCenter <= radius) {
+            // Special case: origin is inside the sphere, we're sure to intersect!
+            factor = -1.f;
+        }
+        else if (tCenter <= 0.f) {
+            // Origin is outside the sphere,
+            // therefore we cannot intersect if we are looking in opposite direction of the center.
+            return 0.f;
+        }
 
-        auto intersectionPoint = ray.origin + ray.direction * t;
-        if (glm::length(center - intersectionPoint) > radius) return 0.f;
+        auto centerProjection = ray.origin + ray.direction * tCenter;
+        auto centerDistanceToProjection = glm::length(center - centerProjection);
+        if (centerDistanceToProjection > radius) return 0.f;
 
-        return t;
+        return tCenter + factor * sqrt(radius * radius - centerDistanceToProjection * centerDistanceToProjection);
     }
 }

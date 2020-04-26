@@ -31,6 +31,8 @@ namespace lava::dike {
         const glm::mat4& transform() const { return m_transform; }
         void transform(const glm::mat4& transform);
 
+        float distanceFrom(const Ray& ray, float maxDistance) const;
+
     protected:
         // Internal
         void addShape(const glm::mat4& localTransform, std::unique_ptr<btCollisionShape>&& pShape);

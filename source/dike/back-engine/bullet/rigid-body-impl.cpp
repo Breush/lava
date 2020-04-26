@@ -135,6 +135,31 @@ void RigidBody::Impl::addMeshShape(const glm::mat4& localTransform, VectorView<g
     addShape(localTransform, std::move(pShape));
 }
 
+// ----- Helpers
+
+float RigidBody::Impl::distanceFrom(const Ray& ray, float maxDistance) const
+{
+    btVector3 from(ray.origin.x, ray.origin.y, ray.origin.z);
+    btVector3 direction(ray.direction.x, ray.direction.y, ray.direction.z);
+    btVector3 to = from + maxDistance * direction;
+
+    btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+    closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+
+    btTransform fromTransform(btQuaternion(0.f, 0.f, 0.f, 1.f), from);
+    btTransform toTransform(btQuaternion(0.f, 0.f, 0.f, 1.f), to);
+    btTransform transform = m_rigidBody->getWorldTransform();
+
+    m_engine.dynamicsWorld().rayTestSingle(fromTransform, toTransform, m_rigidBody.get(),
+                                           &m_shape, transform, closestResults);
+
+    if (closestResults.hasHit()) {
+        return (closestResults.m_hitPointWorld - from).length();
+    }
+
+    return 0.f;
+}
+
 // ----- Internal
 
 void RigidBody::Impl::addShape(const glm::mat4& localTransform, std::unique_ptr<btCollisionShape>&& pShape)

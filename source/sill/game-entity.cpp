@@ -1,6 +1,7 @@
 #include <lava/sill/game-entity.hpp>
 
 #include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/components/physics-component.hpp>
 
 #include "./game-entity-impl.hpp"
 
@@ -59,8 +60,14 @@ void GameEntity::add(const std::string& hrid, std::unique_ptr<IComponent>&& comp
 
 $pimpl_method(GameEntity, void, removeComponent, const std::string&, hrid);
 
-float GameEntity::distanceFrom(Ray ray, PickPrecision pickPrecision) const
+float GameEntity::distanceFrom(const Ray& ray, PickPrecision pickPrecision) const
 {
+    if (pickPrecision == PickPrecision::Collider) {
+        if (!has<PhysicsComponent>()) return 0.f;
+        const auto& physicsComponent = get<PhysicsComponent>();
+        return physicsComponent.distanceFrom(ray);
+    }
+
     if (!has<MeshComponent>()) return 0.f;
 
     const auto& meshComponent = get<MeshComponent>();

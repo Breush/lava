@@ -24,3 +24,5 @@ $pimpl_method_const(RigidBody, bool, transformChanged);
 
 $pimpl_method_const(RigidBody, const glm::mat4&, transform);
 $pimpl_method(RigidBody, void, transform, const glm::mat4&, transform);
+
+$pimpl_method_const(RigidBody, float, distanceFrom, const Ray&, ray, float, maxDistance);

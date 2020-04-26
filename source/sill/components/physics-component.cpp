@@ -1,16 +1,66 @@
 #include <lava/sill/components/physics-component.hpp>
 
-#include "./physics-component-impl.hpp"
+#include <lava/sill/components/transform-component.hpp>
+#include <lava/sill/game-engine.hpp>
+#include <lava/sill/game-entity.hpp>
 
 using namespace lava::sill;
 
-$pimpl_class_base(PhysicsComponent, IComponent, GameEntity&, entity);
+PhysicsComponent::PhysicsComponent(GameEntity& entity)
+    : IComponent(entity)
+    , m_physicsEngine(entity.engine().physicsEngine())
+    , m_transformComponent(entity.ensure<TransformComponent>())
+{
+    m_rigidBody = &m_physicsEngine.make<dike::RigidBody>();
 
-// IComponent
-$pimpl_method(PhysicsComponent, void, update, float, dt);
+    m_transformComponent.onWorldTransformChanged([this]() { m_rigidBody->transform(m_transformComponent.worldTransform()); },
+                                                 ~TransformComponent::ChangeReasonFlag::Physics);
 
-// Physics world
-$pimpl_method_const(PhysicsComponent, bool, enabled);
-$pimpl_method(PhysicsComponent, void, enabled, bool, enabled);
-$pimpl_method_const(PhysicsComponent, bool, dynamic);
-$pimpl_method(PhysicsComponent, void, dynamic, bool, dynamic);
+    // Init correctly on first creation
+    m_rigidBody->transform(m_transformComponent.worldTransform());
+}
+
+PhysicsComponent::~PhysicsComponent()
+{
+    m_physicsEngine.remove(*m_rigidBody);
+}
+
+// ----- IComponent
+
+void PhysicsComponent::update(float /* dt */)
+{
+    if (!m_rigidBody->transformChanged()) return;
+
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    m_transformComponent.worldTransform(m_rigidBody->transform(), TransformComponent::ChangeReasonFlag::Physics);
+}
+
+// ----- World
+
+bool PhysicsComponent::enabled() const
+{
+    return m_rigidBody->enabled();
+}
+
+void PhysicsComponent::enabled(bool enabled)
+{
+    m_rigidBody->enabled(enabled);
+}
+
+bool PhysicsComponent::dynamic() const
+{
+    return m_rigidBody->dynamic();
+}
+
+void PhysicsComponent::dynamic(bool dynamic)
+{
+    m_rigidBody->dynamic(dynamic);
+}
+
+// ----- Helpers
+
+float PhysicsComponent::distanceFrom(const Ray& ray) const
+{
+    return m_rigidBody->distanceFrom(ray);
+}

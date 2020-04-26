@@ -3,7 +3,16 @@
 #include <lava/sill/components/i-component.hpp>
 
 #include <glm/glm.hpp>
+#include <lava/core/ray.hpp>
 #include <string>
+
+namespace lava::dike {
+    class RigidBody;
+}
+
+namespace lava::sill {
+    class TransformComponent;
+}
 
 namespace lava::sill {
     /**
@@ -17,6 +26,8 @@ namespace lava::sill {
         PhysicsComponent(GameEntity& entity);
         ~PhysicsComponent();
 
+        dike::RigidBody& rigidBody() { return *m_rigidBody; }
+
         // IComponent
         static std::string hrid() { return "physics"; }
         void update(float dt) final;
@@ -29,11 +40,18 @@ namespace lava::sill {
         bool dynamic() const;
         void dynamic(bool dynamic);
 
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
+        /**
+         * @name Helpers
+         */
+        /// @{
+        float distanceFrom(const Ray& ray) const;
+        /// @}
 
     private:
-        Impl* m_impl = nullptr;
+        // References
+        dike::PhysicsEngine& m_physicsEngine;
+        TransformComponent& m_transformComponent;
+
+        dike::RigidBody* m_rigidBody = nullptr;
     };
 }

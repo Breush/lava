@@ -5,3 +5,5 @@
 #include <lava/core.hpp>
 
 #include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/btBulletCollisionCommon.h>
+#include <bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>

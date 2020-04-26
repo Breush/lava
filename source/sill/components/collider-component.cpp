@@ -2,11 +2,10 @@
 
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/components/transform-component.hpp>
+#include <lava/sill/components/physics-component.hpp>
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/game-entity.hpp>
 #include <lava/sill/makers/box-mesh.hpp>
-
-#include "./physics-component-impl.hpp"
 
 using namespace lava;
 using namespace lava::sill;
@@ -55,7 +54,7 @@ void ColliderComponent::clearShapes()
     m_boxShapes.clear();
     m_sphereShapes.clear();
     m_infinitePlaneShapes.clear();
-    m_physicsComponent.impl().dike().clearShapes();
+    m_physicsComponent.rigidBody().clearShapes();
 
     // Refresh debug
     if (m_debugEnabled) {
@@ -67,7 +66,7 @@ void ColliderComponent::clearShapes()
 void ColliderComponent::addBoxShape(const glm::vec3& offset, const glm::vec3& dimensions)
 {
     m_boxShapes.emplace_back(BoxShape{offset, dimensions});
-    m_physicsComponent.impl().dike().addBoxShape(offset, dimensions);
+    m_physicsComponent.rigidBody().addBoxShape(offset, dimensions);
 
     // Refresh debug
     if (m_debugEnabled) {
@@ -79,7 +78,7 @@ void ColliderComponent::addBoxShape(const glm::vec3& offset, const glm::vec3& di
 void ColliderComponent::addSphereShape(const glm::vec3& offset, float diameter)
 {
     m_sphereShapes.emplace_back(SphereShape{offset, diameter});
-    m_physicsComponent.impl().dike().addSphereShape(offset, diameter);
+    m_physicsComponent.rigidBody().addSphereShape(offset, diameter);
 
     // Refresh debug
     if (m_debugEnabled) {
@@ -91,7 +90,7 @@ void ColliderComponent::addSphereShape(const glm::vec3& offset, float diameter)
 void ColliderComponent::addInfinitePlaneShape(const glm::vec3& offset, const glm::vec3& normal)
 {
     m_infinitePlaneShapes.emplace_back(InfinitePlaneShape{offset, normal});
-    m_physicsComponent.impl().dike().addInfinitePlaneShape(offset, normal);
+    m_physicsComponent.rigidBody().addInfinitePlaneShape(offset, normal);
 
     // Refresh debug
     if (m_debugEnabled) {
@@ -103,7 +102,7 @@ void ColliderComponent::addInfinitePlaneShape(const glm::vec3& offset, const glm
 void ColliderComponent::addMeshShape()
 {
     auto& meshComponent = m_entity.get<MeshComponent>();
-    auto& rigidBody = m_physicsComponent.impl().dike();
+    auto& rigidBody = m_physicsComponent.rigidBody();
 
     // @note The root nodes have just no parent!
     for (auto& node : meshComponent.nodes()) {

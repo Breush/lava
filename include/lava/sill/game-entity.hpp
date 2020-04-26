@@ -107,7 +107,7 @@ namespace lava::sill {
 
         /// Tools
         /// Returns 0.f if no intersection. Never returns a negative.
-        float distanceFrom(Ray ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
+        float distanceFrom(const Ray& ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
 
     public:
         class Impl;

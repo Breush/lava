@@ -87,7 +87,7 @@ $pimpl_method(GameEngine, void, run);
 
 // ----- Tools
 
-GameEntity* GameEngine::pickEntity(Ray ray, PickPrecision pickPrecision) const
+GameEntity* GameEngine::pickEntity(const Ray& ray, PickPrecision pickPrecision) const
 {
     GameEntity* pickedEntity = nullptr;
 

@@ -37,24 +37,21 @@ namespace {
                 auto headTranslation = glm::vec3(engine.vr().deviceTransform(VrDeviceType::Head)[3]) - engine.vr().translation();
                 target.x -= headTranslation.x;
                 target.y -= headTranslation.y;
-                target.z = 0.f;
                 engine.vr().translation(target);
             }
             return;
         }
 
         // Extract hand components
-        glm::vec3 scale;
-        glm::vec3 translation;
-        glm::vec3 skew;
+        glm::vec3 scale, translation, skew;
         glm::vec4 perspective;
         glm::quat orientation;
         auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
         glm::decompose(handTransform, scale, orientation, translation, skew, perspective);
         glm::vec3 angles = glm::eulerAngles(orientation);
 
-        gameState.teleport.beamEntity->get<sill::TransformComponent>().worldTransform(
-            glm::rotate(glm::translate(glm::mat4(1.f), translation), angles.z, {0, 0, 1}));
+        const auto beamWorldTransform = glm::rotate(glm::translate(glm::mat4(1.f), translation), angles.z, {0, 0, 1});
+        gameState.teleport.beamEntity->get<sill::TransformComponent>().worldTransform(beamWorldTransform);
 
         auto& teleportBeamPrimitive = gameState.teleport.beamEntity->get<sill::MeshComponent>().primitive(0, 0);
         bool anglesValid = !(angles.x < math::PI * 0.15f) && !(angles.x > math::PI * 0.75f);
@@ -72,36 +69,55 @@ namespace {
 
         // Dynamically update the teleport beam.
         static std::vector<glm::vec3> positions(teleportBeamPrimitive.verticesCount());
+        bool targetFound = false;
+        glm::vec3 previousDelta;
+        glm::vec3 target;
         for (auto i = 0u; i < 32u; ++i) {
             if (!anglesValid && i > 2) break;
 
             // @note We make more points at the start
             const float t = (0.05f * i) * (0.05f * i);
-            const auto delta = velocity * t + 0.5f * acceleration * t * t;
+            glm::vec3 delta = velocity * t + 0.5f * acceleration * t * t;
 
             positions[i] = originLeft + delta;
             positions[i + 32u] = originRight + delta;
+
+            // Detect where the beam lands!
+            if (!targetFound && i > 0u) {
+                // Go to world-space
+                Ray ray;
+                ray.origin = (positions[i - 1u] + positions[(i + 32u) - 1u]) / 2.f;
+                ray.origin = beamWorldTransform * glm::vec4(ray.origin, 1.f);
+
+                // @note We just don't check if the ray seems off-world.
+                if (ray.origin.z > -20.f) {
+                    ray.direction = glm::normalize(delta - previousDelta);
+                    ray.direction = beamWorldTransform * glm::vec4(ray.direction, 0.f);
+
+                    auto distance = gameState.terrain.entity->distanceFrom(ray, sill::PickPrecision::Collider);
+                    if (distance != 0.f && distance <= glm::length(delta - previousDelta)) {
+                        target = ray.origin + distance * ray.direction;
+                        targetFound = true;
+                    }
+                }
+            }
+
+            previousDelta = delta;
         }
         teleportBeamPrimitive.verticesPositions(positions);
 
-        // Detect where the beam lands!
-        // @note For f(t) = f(0) + v*t + a*t*t/2,
-        // we find t0 such that f(t0).z = 0,
-        // and thus we have f(t0) as the point of interest
-        float t0 = (-velocity.z - std::sqrt(velocity.z * velocity.z - 2 * acceleration.z * translation.z)) / acceleration.z;
-
-        glm::vec3 target = translation + velocity * t0 + 0.5f * acceleration * t0 * t0;
-        target = translation + glm::rotate(target - translation, angles.z, {0.f, 0.f, 1.f});
-        target.z += 0.125f; // Forcing it to show full cylinder (length / 2).
-
-        gameState.teleport.areaEntity->get<sill::TransformComponent>().translation(target);
-        gameState.teleport.target = target;
+        if (targetFound) {
+            // @note Offset is to show full cylinder (length / 2).
+            gameState.teleport.areaEntity->get<sill::TransformComponent>().translation(target + glm::vec3{0.f, 0.f, 0.125f});
+            gameState.teleport.target = target;
+        }
 
         // Teleportation is valid if:
+        // - the terrain has been hit (targetFound)
         // - all angles are not to sharp
         // - no barrier prevents us to do so
-        bool placeValid = true;
-        if (anglesValid) {
+        bool placeValid = targetFound;
+        if (targetFound && anglesValid) {
             for (const auto& barrier : gameState.level.barriers) {
                 if (barrier->powered()) continue;
 
