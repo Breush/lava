@@ -84,8 +84,15 @@ namespace {
 
     void onUpdateVr(GameState& gameState)
     {
+        // When the player is moved programatically (e.g. when loading a new level).
+        if (gameState.player.position != gameState.engine->vr().translation()) {
+            gameState.engine->vr().translation(gameState.player.position);
+        }
+
+        // @note This is always in sync.
+        // gameState.player.position = gameState.engine->vr().translation();
+
         gameState.player.headPosition = gameState.engine->vr().deviceTransform(VrDeviceType::Head)[3];
-        gameState.player.position = gameState.engine->vr().translation();
         // @note No direction to update
     }
 }

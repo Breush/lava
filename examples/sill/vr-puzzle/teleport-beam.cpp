@@ -38,6 +38,7 @@ namespace {
                 target.x -= headTranslation.x;
                 target.y -= headTranslation.y;
                 engine.vr().translation(target);
+                gameState.player.position = target;
             }
             return;
         }
