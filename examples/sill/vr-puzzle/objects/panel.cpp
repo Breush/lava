@@ -161,9 +161,9 @@ Panel::SnappingInfo Panel::rayHitSnappingPoint(const Brick& brick, const lava::R
     return snappingInfo;
 }
 
-void Panel::onSolve(std::function<void()> callback)
+void Panel::onSolvedChanged(SolvedChangedCallback callback)
 {
-    m_solveCallbacks.emplace_back(callback);
+    m_solvedChangedCallbacks.emplace_back(callback);
 }
 
 void Panel::pretendSolved(bool pretendSolved)
@@ -407,14 +407,14 @@ void Panel::updateSolved()
         // Visual feedback: unsolved panels are white, and solved panels green.
         animation().start(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", 0.1f);
         animation().target(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", glm::vec4{0.46, 0.95, 0.46, 1.f});
-
-        for (auto& callback : m_solveCallbacks) {
-            callback();
-        }
     }
     else {
         animation().start(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", 0.5f);
         animation().target(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", glm::vec4{1.f});
+    }
+
+    for (auto& callback : m_solvedChangedCallbacks) {
+        callback(m_solved);
     }
 }
 

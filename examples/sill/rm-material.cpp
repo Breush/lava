@@ -11,6 +11,8 @@ int main(void)
     ashe::Application app;
     auto& engine = app.engine();
 
+    engine.registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
+
     auto& entity = engine.make<sill::GameEntity>();
 
     float roughness = 0.f;

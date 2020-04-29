@@ -29,7 +29,6 @@ GameEngine::GameEngine()
     }
 
     registerMaterialFromFile("font", "./data/shaders/materials/font-material.shmag"); // (used in TextMeshComponent)
-    registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag"); // (used in GLB loader)
     registerMaterialFromFile("ui.quad", "./data/shaders/flat-materials/ui/quad.shmag"); // (UI)
 
     // ----- Impl
@@ -78,6 +77,7 @@ void GameEngine::remove(const GameEntity& entity)
 
 $pimpl_method(GameEngine, void, environmentTexture, const fs::Path&, imagesPath);
 
+// @fixme This wrapper is almost useless...
 void GameEngine::registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath)
 {
     m_renderEngine->registerMaterialFromFile(hrid, shaderPath);

@@ -77,6 +77,7 @@ namespace lava::glb {
         // @fixme We might to separate alpha blended (BLEND) materials
         // from MASK ones. Because the latter could go to the
         // opaque pipeline without too much issues.
+        std::string name;
         bool translucent = false;
         uint32_t baseColorTextureIndex = -1u;
         uint32_t metallicRoughnessTextureIndex = -1u;

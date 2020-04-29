@@ -159,8 +159,14 @@ namespace {
                 translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
             }
             else if (materials != json.end() && primitive.materialIndex != -1u) {
+                // @note We need "roughness-metallic" material.
+                if (engine.renderEngine().materialInfoIfExists("roughness-metallic") == nullptr) {
+                    engine.registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
+                } 
+
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
                 rmMaterial = engine.scene().makeMaterial("roughness-metallic");
+                rmMaterial->name(material.name);
                 translucent = material.translucent;
 
                 // Material textures

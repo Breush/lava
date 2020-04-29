@@ -29,7 +29,7 @@ The core principles of **lava** are:
 | **sill**-matcap-material | How to use a matcap material with the game engine. | ![](./doc/examples/sill-matcap-material.png) |
 | **sill**-mesh-makers | How to use makers to load *GLB* meshes or predefined shapes. | ![](./doc/examples/sill-mesh-makers.png) |
 | **sill**-physics-demo | How to use physics component. The examples expects the user to right-click to spawn bounceable spheres. | ![](./doc/examples/sill-physics-demo.png) |
-| **sill**-rm-material | How to use predefined PBR (roughness-metallic) material. The examples shows a fully metallic sphere varying its roughness over time. | ![](./doc/examples/sill-rm-material.png) |
+| **sill**-rm-material | How to use shipped PBR (roughness-metallic) material. The examples shows a fully metallic sphere varying its roughness over time. | ![](./doc/examples/sill-rm-material.png) |
 | **sill**-sponza | How to load a big mesh. The examples shows how it is rendered with shadows and PBR materials. | ![](./doc/examples/sill-sponza.png) |
 | **sill**-text | How to use the `sill::TextMeshComponent` to print text within a 3D scene. | ![](./doc/examples/sill-text.png) |
 | **sill**-vr-sandbox | How to use the `sill::BehaviorComponent` to react to VR events. The examples is playground with interactive cubes. It has a independently-controllable companion window which shows the same scene than what is projected into the headset. | ![](./doc/examples/sill-vr-sandbox.png) |

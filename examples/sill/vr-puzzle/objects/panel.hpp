@@ -12,6 +12,8 @@ class Barrier;
 
 class Panel : public Object {
 public:
+    using SolvedChangedCallback = std::function<void(bool)>;
+
     struct SnappingPoint {
         glm::mat4 worldTransform = glm::mat4(1.f);
         glm::uvec2 coordinates = glm::uvec2(-1u, -1u);
@@ -54,8 +56,8 @@ public:
     /// Find the closest snapping point.
     SnappingInfo rayHitSnappingPoint(const Brick& brick, const lava::Ray& ray);
 
-    /// Be warn whenever this panel goes from unsolve to solve status after a checkSolveStatus().
-    void onSolve(std::function<void()> callback);
+    /// Be warn whenever this panel solved status changed.
+    void onSolvedChanged(SolvedChangedCallback callback);
 
     /// Whether this panel is currently solved.
     bool solved() const { return m_solved; }
@@ -96,7 +98,7 @@ private:
     lava::magma::MaterialPtr m_material = nullptr;
     lava::magma::MaterialPtr m_borderMaterial = nullptr;
 
-    std::vector<std::function<void()>> m_solveCallbacks;
+    std::vector<SolvedChangedCallback> m_solvedChangedCallbacks;
 };
 
 Panel* findPanelByName(GameState& gameState, const std::string& name);

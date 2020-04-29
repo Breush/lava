@@ -40,6 +40,9 @@ namespace lava::magma {
 
         const std::string& hrid() const { return m_hrid; }
 
+        const std::string& name() const { return m_name; }
+        void name(const std::string& name) { m_name = name; }
+
         Scene& scene() { return m_scene; }
         const Scene& scene() const { return m_scene; }
 
@@ -83,7 +86,8 @@ namespace lava::magma {
     private:
         // ----- References
         Scene& m_scene;
-        std::string m_hrid = "";
+        std::string m_hrid;
+        std::string m_name;
 
         // ----- Shader data
         MaterialUbo m_ubo;

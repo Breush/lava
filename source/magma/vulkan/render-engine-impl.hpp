@@ -38,7 +38,8 @@ namespace lava::magma {
          */
         /// @{
         const MaterialInfo& materialInfo(const std::string& hrid) const;
-        uint32_t materialId(const std::string& hrid) const { return m_registeredMaterialsMap.at(hrid); }
+        const MaterialInfo* materialInfoIfExists(const std::string& hrid) const;
+        uint32_t materialId(const std::string& hrid) const { return m_materialInfos.at(hrid).id; }
         /// @}
 
         /**
@@ -134,7 +135,6 @@ namespace lava::magma {
         /// Shaders
         ShadersManager m_shadersManager{device()};
         std::unordered_map<std::string, MaterialInfo> m_materialInfos;
-        std::unordered_map<std::string, uint32_t> m_registeredMaterialsMap;
         chamber::FileWatcher m_shadersWatcher;
 
         /**

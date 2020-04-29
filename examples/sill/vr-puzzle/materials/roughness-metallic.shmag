@@ -13,20 +13,18 @@ struct {
     float(8) occlusion;
     float(8) roughness;
     float(8) metallic;
-    vec3(8) emissive;
 } gBuffer;
 
 // Everything that the user can control,
 // with their default values.
 uniform {
+    float ghostFactor = 0;
     vec4 albedoColor = vec4(1, 1, 1, 1);
     float roughnessFactor = 1;
     float metallicFactor = 1;
     texture2d normalMap = "normal";
     texture2d albedoMap = "white";
     texture2d occlusionMap = "white";           // Red channel.
-    texture2d roughnessMetallicMap = "white";   // Green and blue channels.
-    texture2d emissiveMap = "invisible";
 };
 
 // ----- GEOMETRY
@@ -39,18 +37,24 @@ geometry {
         if (albedo.a == 0) discard;
         albedo = srgbToLinearFast(albedo) * albedoColor;
 
-        vec3 emissive = srgbToLinearFast(texture(emissiveMap, uv).rgb);
         vec3 normal = 2 * texture(normalMap, uv).rgb - 1;
         float occlusion = texture(occlusionMap, uv).r;
-        vec4 roughnessMetallic = texture(roughnessMetallicMap, uv);
+
+        vec3 position = positionFromDepth(fragmentDepth, gl_FragCoord.xy);
+        vec3 v = normalize(camera.position.xyz - position);
+
+        // @note VR-puzzle specific
+        float ghostPower = dot(normalize(tbn * normal), v);
+        float ghostColor = max(0.5, abs(cos(ghostPower * 1000)));
+        albedo.rgb += ghostFactor * 0.9;
+        // albedo.rgb = vec3(ghostPower);
 
         gBuffer.opacity = albedo.a;
         gBuffer.albedo = albedo.rgb;
         gBuffer.normal = normalize(tbn * normal);
-        gBuffer.emissive = emissive;
         gBuffer.occlusion = occlusion;
-        gBuffer.roughness = clamp(roughnessFactor * roughnessMetallic.g, 0.04, 1);
-        gBuffer.metallic = clamp(metallicFactor * roughnessMetallic.b, 0, 1);
+        gBuffer.roughness = clamp(roughnessFactor, 0.04, 1);
+        gBuffer.metallic = clamp(metallicFactor, 0, 1);
 
         // Returns whether the fragment is considered translucent.
         return albedo.a < 1.0;
@@ -249,14 +253,6 @@ epiphany {
         // ----- Occlusion
 
         color *= gBuffer.occlusion;
-
-        // ----- Shadow
-
-        color *= (1.0 - shadow);
-
-        // ----- Emissive
-
-        color += gBuffer.emissive;
 
         return vec4(linearToSrgb(color), gBuffer.opacity);
     }

@@ -16,6 +16,27 @@
 using namespace lava;
 using namespace lava::chamber;
 
+namespace {
+    void levelMaterialGhostFactor(GameState& gameState, const std::string& materialName, float ghostFator)
+    {
+        for (auto& generic : gameState.level.generics) {
+            auto& entity = generic->entity();
+            if (!entity.has<sill::MeshComponent>()) continue;
+            for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
+                if (node.meshGroup == nullptr) continue;
+                for (auto primitive : node.meshGroup->primitives()) {
+                    auto material = primitive->material().get();
+                    if (material == nullptr) continue;
+                    if (material->name() != materialName) continue;
+                    auto& animationComponent = entity.ensure<sill::AnimationComponent>();
+                    animationComponent.start(sill::AnimationFlag::MaterialUniform, *material, "ghostFactor", 0.5f);
+                    animationComponent.target(sill::AnimationFlag::MaterialUniform, *material, "ghostFactor", ghostFator);
+                }
+            }
+        }
+    }
+}
+
 void setupEnvironment(GameState& gameState)
 {
     auto& engine = *gameState.engine;
@@ -76,47 +97,24 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
         gameState.terrain.entity->ensure<sill::PhysicsComponent>().dynamic(false);
         gameState.terrain.entity->ensure<sill::ColliderComponent>().addMeshShape();
 
-        auto& clockEntity = *gameState.engine->findEntityByName("clock");
-        auto& clockMeshComponent = clockEntity.get<sill::MeshComponent>();
-        clockMeshComponent.startAnimation("seconds-tick", -1u);
-        clockMeshComponent.startAnimation("seconds-bar-tick", -1u);
-
-        auto baseTransform = clockMeshComponent.node(2).transform();
-
-        clockEntity.make<sill::BehaviorComponent>().onUpdate([&clockMeshComponent, baseTransform](float dt) {
-            static float timePassed = 60.f;
-            timePassed += dt;
-
-            // We effectively update the clock each minute.
-            if (timePassed >= 60.f) {
-                timePassed -= 60.f;
-
-                auto theTime = time(NULL);
-                auto aTime = localtime(&theTime); // @note Don't free, according to spec'.
-                auto minutes = 60 * aTime->tm_hour + aTime->tm_min;
-                float rotation = (minutes / 720.f) * math::TWO_PI;
-
-                clockMeshComponent.node(2).transform(glm::rotate(baseTransform, rotation, {0, 0, 1}));
-            }
-        });
+        // @note Automatically replace all wood materials in the world.
+        levelMaterialGhostFactor(gameState, "wood", 1.f);
 
         // @fixme Have these stored in JSON somehow?
-        findPanelByName(gameState, "intro.waking-hall-clock-controller")->onSolve([&gameState]() {
-            // auto wakingHall = gameState.engine->findEntityByName("waking-hall");
-            // wakingHall->get<sill::MeshComponent>().startAnimation("open-clock");
-            // wakingHall->get<sill::SoundEmitterComponent>().start("open-clock");
+        findPanelByName(gameState, "intro.bridge-controller")->onSolvedChanged([&gameState](bool solved) {
+            levelMaterialGhostFactor(gameState, "wood", (solved) ? 0.f : 1.f);
         });
-        findPanelByName(gameState, "intro.easy-solo")->onSolve([&gameState]() {
-            findBarrierByName(gameState, "intro.easy-duo")->powered(true);
+        findPanelByName(gameState, "intro.easy-solo")->onSolvedChanged([&gameState](bool solved) {
+            findBarrierByName(gameState, "intro.easy-duo")->powered(solved);
         });
-        findPanelByName(gameState, "intro.easy-duo-1")->onSolve([&gameState]() {
+        findPanelByName(gameState, "intro.easy-duo-1")->onSolvedChanged([&gameState](bool solved) {
             if (findPanelByName(gameState, "intro.easy-duo-2")->solved()) {
-                findBarrierByName(gameState, "intro.hard-duo")->powered(true);
+                findBarrierByName(gameState, "intro.hard-duo")->powered(solved);
             }
         });
-        findPanelByName(gameState, "intro.easy-duo-2")->onSolve([&gameState]() {
+        findPanelByName(gameState, "intro.easy-duo-2")->onSolvedChanged([&gameState](bool solved) {
             if (findPanelByName(gameState, "intro.easy-duo-1")->solved()) {
-                findBarrierByName(gameState, "intro.hard-duo")->powered(true);
+                findBarrierByName(gameState, "intro.hard-duo")->powered(solved);
             }
         });
     }

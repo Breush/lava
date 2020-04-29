@@ -33,6 +33,9 @@ int main(void)
     engine.registerMaterialFromFile("selection-rectangle", "./examples/sill/vr-puzzle/materials/selection-rectangle.shmag");
     engine.registerMaterialFromFile("water", "./examples/sill/vr-puzzle/materials/water.shmag");
 
+    // @note Overiding default Roughness-Metallic material that automatically created in GLB loader.
+    engine.registerMaterialFromFile("roughness-metallic", "./examples/sill/vr-puzzle/materials/roughness-metallic.shmag");
+
     // Camera (for companion window)
     setupCamera(gameState);
 

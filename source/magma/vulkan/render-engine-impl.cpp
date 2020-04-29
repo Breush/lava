@@ -110,8 +110,12 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
 {
     PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
 
-    auto materialId = m_registeredMaterialsMap.size();
-    m_registeredMaterialsMap[hrid] = materialId;
+    if (m_materialInfos.find(hrid) != m_materialInfos.end()) {
+        logger.warning("magma.vulkan.render-engine").tab(1) << "Material " << hrid << " has already been registered." << std::endl;
+        return m_materialInfos[hrid].id;
+    }
+
+    auto materialId = m_materialInfos.size();
 
     logger.info("magma.vulkan.render-engine").tab(1) << "Registering material " << hrid << " as " << materialId << "." << std::endl;
     logger.log().tab(-1);
@@ -281,6 +285,15 @@ const MaterialInfo& RenderEngine::Impl::materialInfo(const std::string& hrid) co
         logger.error("magma.vulkan.render-engine") << "Material '" << hrid << "' has not been registered." << std::endl;
     }
     return iMaterialInfo->second;
+}
+
+const MaterialInfo* RenderEngine::Impl::materialInfoIfExists(const std::string& hrid) const
+{
+    const auto iMaterialInfo = m_materialInfos.find(hrid);
+    if (iMaterialInfo == m_materialInfos.end()) {
+        return nullptr;
+    }
+    return &iMaterialInfo->second;
 }
 
 void RenderEngine::Impl::createCommandPools(vk::SurfaceKHR* pSurface)

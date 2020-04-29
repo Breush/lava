@@ -34,6 +34,7 @@ namespace lava::magma {
 
         /// Receive all infos about a parsed registered material.
         const MaterialInfo& materialInfo(const std::string& hrid) const;
+        const MaterialInfo* materialInfoIfExists(const std::string& hrid) const;
 
         /**
          * Register a material (.shmag) to the engine.

@@ -297,6 +297,9 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
         else if (componentHrid == "transform") {
             // Nothing to do
         }
+        else if (componentHrid == "animation") {
+            // Nothing to do
+        }
         else {
             logger.warning("vr-puzzle") << "Unhandled component '" << componentHrid << "' to serialize '" << entity.name()
                                         << "' generic entity." << std::endl;
