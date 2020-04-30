@@ -2,6 +2,7 @@
 
 #include "./game-state.hpp"
 #include "./camera.hpp"
+#include "./environment.hpp"
 
 #include <lava/chamber/math.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -67,17 +68,24 @@ namespace {
         }
 
         // Stick to terrain
+        Generic* generic = nullptr;
         Ray ray;
         ray.origin = position + glm::vec3{0.f, 0.f, 20.f};
         ray.direction = glm::vec3{0.f, 0.f, -1.f};
-        auto distance = gameState.terrain.entity->distanceFrom(ray);
+        auto distance = distanceToTerrain(gameState, ray, &generic);
         if (distance != 0.f) {
             position = ray.origin + distance * ray.direction;
         }
 
         // Storing new info
-        gameState.player.position = position;
         gameState.player.direction = direction;
+
+        // Do not walk in water or non-active generics
+        if (position.z < -0.2f || (generic != nullptr && !generic->walkable())) {
+            return;
+        }
+
+        gameState.player.position = position;
         gameState.player.headPosition = position;
         gameState.player.headPosition.z += PLAYER_HEIGHT;
     }
@@ -89,11 +97,10 @@ namespace {
             gameState.engine->vr().translation(gameState.player.position);
         }
 
-        // @note This is always in sync.
+        // @note This is always in sync, and no direction to update.
         // gameState.player.position = gameState.engine->vr().translation();
 
         gameState.player.headPosition = gameState.engine->vr().deviceTransform(VrDeviceType::Head)[3];
-        // @note No direction to update
     }
 }
 

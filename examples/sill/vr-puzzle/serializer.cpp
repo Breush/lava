@@ -231,6 +231,8 @@ void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::
                 meshComponent.enabled(gameState.state == State::Editor);
                 meshComponent.primitive(0u, 0u).material(gameState.editor.resources.colliderMaterial);
             }
+
+            generic.walkable(json["walkable"]);
         }
         else if (componentJson.key() == "sound-emitter") {
             auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
@@ -282,6 +284,8 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
                 }));
             }
             componentsJson[componentHrid] = {{"boxShapes", boxShapes}};
+
+            json["walkable"] = generic.walkable();
         }
         else if (componentHrid == "sound-emitter") {
             auto& soundEmitterComponent = entity.get<sill::SoundEmitterComponent>();

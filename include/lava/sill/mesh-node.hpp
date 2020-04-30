@@ -24,8 +24,9 @@ namespace lava::sill {
         /// The local transform of the node, updating with animation.
         glm::mat4 localTransform = glm::mat4(1.f);
 
-        /// The last known world transform of the node.
-        glm::mat4 worldTransform = glm::mat4(1.f);
+        /// The last known entity-space transform of the node, updating with animation.
+        /// Basically always parent->plainLocalTransform * localTransform.
+        glm::mat4 plainLocalTransform = glm::mat4(1.f);
 
         /// A list of all children.
         std::vector<MeshNode*> children;
@@ -40,6 +41,7 @@ namespace lava::sill {
         {
             m_transform = transform;
             localTransform = transform;
+            plainLocalTransform = transform;
 
             glm::vec3 skew;
             glm::vec4 perspective;

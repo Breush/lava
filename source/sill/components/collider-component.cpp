@@ -10,25 +10,6 @@
 using namespace lava;
 using namespace lava::sill;
 
-namespace {
-    void addMeshNodeShape(dike::RigidBody& rigidBody, const MeshNode& node, const glm::mat4& parentTransform)
-    {
-        auto transform = parentTransform * node.localTransform;
-
-        if (node.meshGroup) {
-            for (auto& primitive : node.meshGroup->primitives()) {
-                auto& unlitVertices = primitive->unlitVertices();
-                VectorView<glm::vec3> vertices(reinterpret_cast<uint8_t*>(unlitVertices.data()) + offsetof(magma::UnlitVertex, pos), unlitVertices.size(), sizeof(magma::UnlitVertex));
-                rigidBody.addMeshShape(transform, vertices, primitive->indices());
-            }
-        }
-
-        for (auto child : node.children) {
-            addMeshNodeShape(rigidBody, *child, transform);
-        }
-    }
-}
-
 ColliderComponent::ColliderComponent(GameEntity& entity)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
@@ -99,15 +80,32 @@ void ColliderComponent::addInfinitePlaneShape(const glm::vec3& offset, const glm
     }
 }
 
+void ColliderComponent::addMeshNodeShape(const MeshNode& node)
+{
+    auto& rigidBody = m_physicsComponent.rigidBody();
+    const auto& transform = node.plainLocalTransform;
+
+    if (node.meshGroup) {
+        for (auto& primitive : node.meshGroup->primitives()) {
+            auto& unlitVertices = primitive->unlitVertices();
+            VectorView<glm::vec3> vertices(reinterpret_cast<uint8_t*>(unlitVertices.data()) + offsetof(magma::UnlitVertex, pos), unlitVertices.size(), sizeof(magma::UnlitVertex));
+            rigidBody.addMeshShape(transform, vertices, primitive->indices());
+        }
+    }
+
+    for (auto child : node.children) {
+        addMeshNodeShape(*child);
+    }
+}
+
 void ColliderComponent::addMeshShape()
 {
     auto& meshComponent = m_entity.get<MeshComponent>();
-    auto& rigidBody = m_physicsComponent.rigidBody();
 
     // @note The root nodes have just no parent!
     for (auto& node : meshComponent.nodes()) {
         if (node.parent != nullptr) continue;
-        addMeshNodeShape(rigidBody, node, glm::mat4(1.f));
+        addMeshNodeShape(node);
     }
 }
 

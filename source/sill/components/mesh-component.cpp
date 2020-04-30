@@ -10,16 +10,16 @@ using namespace lava::chamber;
 using namespace lava::sill;
 
 namespace {
-    void updateNodeTransforms(MeshNode& node, const glm::mat4& parentTransform)
+    void updateNodeTransforms(MeshNode& node, const glm::mat4& entityTransform, const glm::mat4& parentPlainLocalTransform)
     {
-        node.worldTransform = parentTransform * node.localTransform;
+        node.plainLocalTransform = parentPlainLocalTransform * node.localTransform;
 
         if (node.meshGroup) {
-            node.meshGroup->transform(node.worldTransform);
+            node.meshGroup->transform(entityTransform * node.plainLocalTransform);
         }
 
         for (auto child : node.children) {
-            updateNodeTransforms(*child, node.worldTransform);
+            updateNodeTransforms(*child, entityTransform, node.plainLocalTransform);
         }
     }
 
@@ -161,7 +161,11 @@ void MeshComponent::nodes(std::vector<MeshNode>&& nodes)
         }
     }
 
-    m_nodesTranformsDirty = true;
+    // @note This one is important not to dirty because
+    // otherwise the ColliderComponent::addMeshNodeShape()
+    // might not be correct if the MeshNode::plainLocalTransform
+    // is not yet updated.
+    updateNodesTransforms();
 }
 
 MeshNode& MeshComponent::addNode()
@@ -354,7 +358,7 @@ void MeshComponent::updateNodesTransforms()
     // @note The root nodes have just no parent!
     for (auto& node : m_nodes) {
         if (node.parent != nullptr) continue;
-        updateNodeTransforms(node, worldTransform);
+        updateNodeTransforms(node, worldTransform, glm::mat4{1.f});
     }
 
     m_nodesTranformsDirty = false;

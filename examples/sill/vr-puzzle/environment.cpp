@@ -17,6 +17,38 @@ using namespace lava;
 using namespace lava::chamber;
 
 namespace {
+    // @note Generic entities might have colliders expressed
+    // within their mesh component. These are the mesh nodes named ":collider".
+    void genericCollidersBuildPhysicsFromMesh(GameState& gameState)
+    {
+        for (auto& generic : gameState.level.generics) {
+            auto& entity = generic->entity();
+            if (!entity.has<sill::MeshComponent>()) continue;
+            for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
+                if (node.meshGroup == nullptr) continue;
+                if (node.name != ":collider") continue;
+
+                entity.ensure<sill::PhysicsComponent>().dynamic(false);
+                entity.ensure<sill::ColliderComponent>().addMeshNodeShape(node);
+            }
+        }
+    }
+
+    void genericCollidersVisible(GameState& gameState, bool enabled)
+    {
+        for (auto& generic : gameState.level.generics) {
+            auto& entity = generic->entity();
+            if (!entity.has<sill::MeshComponent>()) continue;
+            for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
+                if (node.meshGroup == nullptr) continue;
+                if (node.name != ":collider") continue;
+                for (auto primitive : node.meshGroup->primitives()) {
+                    primitive->enabled(enabled);
+                }
+            }
+        }
+    }
+
     void levelMaterialGhostFactor(GameState& gameState, const std::string& materialName, float ghostFator)
     {
         for (auto& generic : gameState.level.generics) {
@@ -97,12 +129,17 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
         gameState.terrain.entity->ensure<sill::PhysicsComponent>().dynamic(false);
         gameState.terrain.entity->ensure<sill::ColliderComponent>().addMeshShape();
 
-        // @note Automatically replace all wood materials in the world.
+        // Build collider components from the ":collider" meshes.
+        genericCollidersBuildPhysicsFromMesh(gameState);
+        genericCollidersVisible(gameState, false);
+
+        // Automatically replace all wood materials in the world.
         levelMaterialGhostFactor(gameState, "wood", 1.f);
 
         // @fixme Have these stored in JSON somehow?
         findPanelByName(gameState, "intro.bridge-controller")->onSolvedChanged([&gameState](bool solved) {
             levelMaterialGhostFactor(gameState, "wood", (solved) ? 0.f : 1.f);
+            findGenericByName(gameState, "bridge")->walkable(solved);
         });
         findPanelByName(gameState, "intro.easy-solo")->onSolvedChanged([&gameState](bool solved) {
             findBarrierByName(gameState, "intro.easy-duo")->powered(solved);
@@ -118,4 +155,35 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
             }
         });
     }
+}
+
+float distanceToTerrain(GameState& gameState, const Ray& ray, Generic** pGeneric, float maxDistance)
+{
+    auto distance = gameState.terrain.entity->distanceFrom(ray, sill::PickPrecision::Collider);
+
+    if (pGeneric != nullptr) {
+        *pGeneric = nullptr;
+    }
+
+    // Check generic colliders
+    for (auto& generic : gameState.level.generics) {
+        auto& entity = generic->entity();
+        if (!entity.has<sill::ColliderComponent>()) continue;
+        auto genericDistance = entity.distanceFrom(ray, sill::PickPrecision::Collider);
+        if (genericDistance != 0.f && (distance == 0.f || genericDistance < distance)) {
+            distance = genericDistance;
+            if (pGeneric != nullptr) {
+                *pGeneric = generic.get();
+            }
+        }
+    }
+
+    if (distance > maxDistance) {
+        if (pGeneric != nullptr) {
+            *pGeneric = nullptr;
+        }
+        return 0.f;
+    }
+
+    return distance;
 }

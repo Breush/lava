@@ -240,7 +240,7 @@ void setupGameLogic(GameState& gameState)
                     Ray ray;
                     ray.origin = translation;
                     ray.direction = glm::vec3{0.f, 0.f, -1.f};
-                    auto distance = gameState.terrain.entity->distanceFrom(ray);
+                    auto distance = distanceToTerrain(gameState, ray);
                     if (distance != 0.f) {
                         translation = ray.origin + (distance - 0.1f) * ray.direction;
                     }

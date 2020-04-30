@@ -6,6 +6,7 @@
 #include <lava/chamber/math.hpp>
 
 #include "./ray-picking.hpp"
+#include "./environment.hpp"
 
 using namespace lava;
 using namespace lava::chamber;
@@ -68,37 +69,62 @@ namespace {
         glm::vec3 originLeft = {-beamWidth / 2.f, 0.f, 0.f};
         glm::vec3 originRight = {beamWidth / 2.f, 0.f, 0.f};
 
+        Ray verticalRay{.origin = glm::vec3{0.f, 0.f, 100.f}, .direction = glm::vec3{0.f, 0.f, -1.f}};
+
         // Dynamically update the teleport beam.
         static std::vector<glm::vec3> positions(teleportBeamPrimitive.verticesCount());
         bool targetFound = false;
+        bool invalidPlaceCrossed = false;
         glm::vec3 previousDelta;
         glm::vec3 target;
         for (auto i = 0u; i < 32u; ++i) {
             if (!anglesValid && i > 2) break;
 
-            // @note We make more points at the start
-            const float t = (0.05f * i) * (0.05f * i);
-            glm::vec3 delta = velocity * t + 0.5f * acceleration * t * t;
+            // @note If a target has been found,
+            // we don't need to see the beam continuing below,
+            // that's why we are reaffecting previous delta.
+            glm::vec3 delta;
+            if (invalidPlaceCrossed || targetFound) {
+                delta = previousDelta;
+            } else {
+                // Have more points at the start
+                const float t = (0.05f * i) * (0.05f * i);
+                delta = velocity * t + 0.5f * acceleration * t * t;
+            }
 
             positions[i] = originLeft + delta;
             positions[i + 32u] = originRight + delta;
 
             // Detect where the beam lands!
-            if (!targetFound && i > 0u) {
+            if (!invalidPlaceCrossed && !targetFound && i > 0u) {
                 // Go to world-space
-                Ray ray;
-                ray.origin = (positions[i - 1u] + positions[(i + 32u) - 1u]) / 2.f;
-                ray.origin = beamWorldTransform * glm::vec4(ray.origin, 1.f);
+                glm::vec3 rayOrigin = (positions[i - 1u] + positions[(i + 32u) - 1u]) / 2.f;
+                rayOrigin = beamWorldTransform * glm::vec4(rayOrigin, 1.f);
 
                 // @note We just don't check if the ray seems off-world.
-                if (ray.origin.z > -20.f) {
-                    ray.direction = glm::normalize(delta - previousDelta);
-                    ray.direction = beamWorldTransform * glm::vec4(ray.direction, 0.f);
+                if (rayOrigin.z > -20.f) {
+                    // First check if we are crossing water or non-walkable place.
+                    Generic* generic = nullptr;
+                    verticalRay.origin.x = rayOrigin.x;
+                    verticalRay.origin.y = rayOrigin.y;
+                    auto distance = distanceToTerrain(gameState, verticalRay, &generic);
+                    if (distance == 0.f || verticalRay.origin.z - distance < -0.2f ||
+                        (generic != nullptr && !generic->walkable())) {
+                        invalidPlaceCrossed = true;
+                    }
+                    else {
+                        Ray ray;
+                        ray.origin = rayOrigin;
+                        ray.direction = glm::normalize(delta - previousDelta);
+                        ray.direction = beamWorldTransform * glm::vec4(ray.direction, 0.f);
 
-                    auto distance = gameState.terrain.entity->distanceFrom(ray, sill::PickPrecision::Collider);
-                    if (distance != 0.f && distance <= glm::length(delta - previousDelta)) {
-                        target = ray.origin + distance * ray.direction;
-                        targetFound = true;
+                        auto distance = distanceToTerrain(gameState, ray, &generic, glm::length(delta - previousDelta));
+                        if (generic != nullptr && !generic->walkable()) {
+                            invalidPlaceCrossed = true;
+                        } else if (distance != 0.f) {
+                            target = ray.origin + distance * ray.direction;
+                            targetFound = true;
+                        }
                     }
                 }
             }
@@ -115,6 +141,8 @@ namespace {
 
         // Teleportation is valid if:
         // - the terrain has been hit (targetFound)
+        //     by not crossing water (below z = -0.2f)
+        //     and by not walking on non-walkable generic
         // - all angles are not to sharp
         // - no barrier prevents us to do so
         bool placeValid = targetFound;

@@ -8,6 +8,7 @@
 namespace lava::sill {
     class TransformComponent;
     class PhysicsComponent;
+    class MeshNode;
 }
 
 namespace lava::sill {
@@ -58,6 +59,8 @@ namespace lava::sill {
         void addInfinitePlaneShape(const glm::vec3& offset = {0.f, 0.f, 0.f}, const glm::vec3& normal = {0.f, 0.f, 1.f});
         /// Creates a collider from the current mesh component primitives.
         void addMeshShape();
+        /// Add a collider from any mesh node, will also add all children.
+        void addMeshNodeShape(const MeshNode& node);
 
         const std::vector<BoxShape>& boxShapes() const { return m_boxShapes; }
         const std::vector<SphereShape>& sphereShapes() const { return m_sphereShapes; }

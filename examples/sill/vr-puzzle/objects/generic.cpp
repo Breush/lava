@@ -23,6 +23,17 @@ void Generic::clear(bool removeFromLevel)
 
 // -----
 
+Generic* findGenericByName(GameState& gameState, const std::string& name)
+{
+    for (const auto& generic : gameState.level.generics) {
+        if (generic->entity().name() == name) {
+            return generic.get();
+        }
+    }
+
+    return nullptr;
+}
+
 uint32_t findGenericIndex(GameState& gameState, const sill::GameEntity& entity)
 {
     for (auto i = 0u; i < gameState.level.generics.size(); ++i) {
