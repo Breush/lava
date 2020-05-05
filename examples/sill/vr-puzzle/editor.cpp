@@ -628,7 +628,7 @@ void setupEditor(GameState& gameState)
                 gameState.editor.gizmo.axisOffset = axisOffset;
 
                 for (auto object : gameState.editor.selection.objects) {
-                    object->transform().rotateAround(gameState.editor.gizmo.axis, -delta, barycenter);
+                    object->transform().rotateFrom(gameState.editor.gizmo.axis, -delta, barycenter);
                 }
             }
         }
@@ -645,9 +645,8 @@ void setupEditor(GameState& gameState)
                 auto scaleFactor = newScaling / gameState.editor.gizmo.previousScaling;
                 gameState.editor.gizmo.previousScaling = newScaling;
 
-                // @fixme Scaling multiple objects at once does not keep relative positions!
                 for (auto object : gameState.editor.selection.objects) {
-                    object->transform().scale(scaleFactor);
+                    object->transform().scaleFrom(scaleFactor, barycenter);
                 }
             }
         }

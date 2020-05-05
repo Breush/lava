@@ -67,7 +67,7 @@ void TransformComponent::rotation(const glm::quat& rotation, ChangeReasonFlag ch
     updateWorldTransform(changeReasonFlag);
 }
 
-void TransformComponent::rotateAround(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::rotateFrom(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
 {
     Transform rotationTransform;
     rotationTransform.rotation = glm::rotate(rotationTransform.rotation, angle, axis);
@@ -104,6 +104,17 @@ void TransformComponent::scaling2d(const glm::vec2& scaling, ChangeReasonFlag ch
     m_scaling2d = scaling;
     updateTransform2d(changeReasonFlag);
     updateWorldTransform2d(changeReasonFlag);
+}
+
+void TransformComponent::scaleFrom(float factor, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
+{
+    Transform scalingTransform;
+    scalingTransform.scaling = factor;
+
+    m_worldTransform.translation -= center;
+    m_worldTransform = scalingTransform * m_worldTransform;
+    m_worldTransform.translation += center;
+    worldTransform(m_worldTransform, changeReasonFlag);
 }
 
 //----- Transform

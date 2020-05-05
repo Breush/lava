@@ -53,13 +53,14 @@ namespace lava::sill {
         void rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
             rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_transform.rotation, changeReasonFlag);
         }
-        void rotateAround(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void rotateFrom(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
         float scaling() const { return m_transform.scaling; }
         void scaling(float scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void scale(float factor, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
             scaling(m_transform.scaling * factor, changeReasonFlag);
         }
+        void scaleFrom(float factor, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
         // 2D
         const glm::vec2& translation2d() const { return m_translation2d; }
