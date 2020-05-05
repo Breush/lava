@@ -9,6 +9,7 @@ constexpr const glm::vec3 blockExtent = {0.22f, 0.22f, 0.0625f};
 
 class Panel;
 class Barrier;
+class Pedestal;
 
 struct Block {
     // These are updated each time the rotationLevel is changed.
@@ -62,6 +63,7 @@ public:
     void fixed(bool fixed);
 
     /// Brick is stored in a pedestal.
+    void pedestal(Pedestal* pedestal) { m_pedestal = pedestal; }
     /// This is set to false when the brick is grabbed or snapped.
     bool stored() const { return m_stored; }
     void stored(bool stored);
@@ -94,7 +96,9 @@ private:
     Panel* m_snapPanel = nullptr;
     glm::uvec2 m_snapCoordinates = {0, 0};
 
+    Pedestal* m_pedestal = nullptr;
     bool m_stored = false;
+
     bool m_fixed = false;
     bool m_errorHighlighted = false;
     bool m_selectionHighlighted = false;

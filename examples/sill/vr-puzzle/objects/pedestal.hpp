@@ -18,6 +18,9 @@ public:
     bool powered() const { return m_powered; }
     void powered(bool powered);
 
+    // A brick informs us that it's stored status changed.
+    void brickStoredChanged(Brick& brick);
+
 protected:
     struct BrickInfo {
         // @note After deserialization and before call to consolidateReferences(),

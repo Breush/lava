@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "../game-state.hpp"
+#include "./pedestal.hpp"
 
 using namespace lava;
 
@@ -178,8 +179,8 @@ void Brick::stored(bool stored)
     if (m_stored == stored) return;
     m_stored = stored;
 
-    if (m_stored) {
-        animation().start(lava::sill::AnimationFlag::WorldTransform, 1.f, false);
+    if (m_pedestal) {
+        m_pedestal->brickStoredChanged(*this);
     }
 }
 

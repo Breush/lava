@@ -91,6 +91,7 @@ void unserializeBrick(Brick& brick, GameState& gameState, const nlohmann::json& 
 
     brick.color(unserializeVec3(json["color"]));
     brick.fixed(json["fixed"]);
+    brick.stored(json["stored"]);
     brick.baseRotationLevel(json["rotationLevel"]);
 
     auto& snapPanelJson = json["snapPanel"];
@@ -108,6 +109,7 @@ nlohmann::json serialize(GameState& gameState, const Brick& brick)
         {"barriers", nlohmann::json::array()},
         {"color", serialize(brick.color())},
         {"fixed", brick.fixed()},
+        {"stored", brick.stored()},
         {"rotationLevel", brick.rotationLevel()},
         {"snapPanel", {}},
     };

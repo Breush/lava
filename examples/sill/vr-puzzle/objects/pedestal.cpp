@@ -50,8 +50,8 @@ void Pedestal::consolidateReferences()
 
     for (auto& brickInfo : m_brickInfos) {
         brickInfo.brick = m_gameState.level.bricks[brickInfo.unconsolidatedBrickId].get();
-        brickInfo.brick->stored(true); // @fixme Have stored serialized, and we won't need that here.
-        m_bricksRoot->addChild(brickInfo.brick->entity());
+        brickInfo.brick->pedestal(this);
+        brickStoredChanged(*brickInfo.brick);
     }
 
     m_entity->ensure<sill::BehaviorComponent>().onUpdate([this](float dt) {
@@ -68,13 +68,23 @@ void Pedestal::consolidateReferences()
             target.rotation = glm::rotate(target.rotation, brickInfo.rotation1, {0.f, 2.f, 1.f});
             target.rotation = glm::rotate(target.rotation, brickInfo.rotation2, {1.f, 0.f, 2.f});
 
-            brick.animation().target(sill::AnimationFlag::WorldTransform, m_bricksRoot->get<sill::TransformComponent>().worldTransform() * target);
+            brick.animation().target(sill::AnimationFlag::Transform, target);
         }
     });
 
     // @fixme Left to implement:
     // - Close animation (open reversed?)
     // - Multiple bricks animations
+}
+
+void Pedestal::brickStoredChanged(Brick& brick)
+{
+    auto stored = brick.stored();
+    brick.entity().parent((stored) ? m_bricksRoot : nullptr);
+
+    if (stored) {
+        brick.animation().start(lava::sill::AnimationFlag::Transform, 1.f, false);
+    }
 }
 
 void Pedestal::powered(bool powered)
