@@ -25,7 +25,7 @@ namespace lava::sill {
 
         // Adders
         void add(std::unique_ptr<GameEntity>&& gameEntity);
-        void remove(const GameEntity& gameEntity);
+        void remove(GameEntity& gameEntity);
 
         // Materials
         void environmentTexture(const fs::Path& imagesPath, uint8_t sceneIndex = 0u);

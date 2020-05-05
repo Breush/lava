@@ -15,7 +15,7 @@ public:
     using SolvedChangedCallback = std::function<void(bool)>;
 
     struct SnappingPoint {
-        glm::mat4 worldTransform = glm::mat4(1.f);
+        lava::Transform worldTransform;
         glm::uvec2 coordinates = glm::uvec2(-1u, -1u);
         bool hasBrickSnapped = false;
     };

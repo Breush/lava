@@ -61,6 +61,11 @@ public:
     bool fixed() const { return m_fixed; }
     void fixed(bool fixed);
 
+    /// Brick is stored in a pedestal.
+    /// This is set to false when the brick is grabbed or snapped.
+    bool stored() const { return m_stored; }
+    void stored(bool stored);
+
     // Whether the entity is snapped to snapping point and its coordinates if it is.
     bool snapped() const { return m_snapPanel != nullptr; }
     const Panel& snapPanel() const { return *m_snapPanel; }
@@ -89,6 +94,7 @@ private:
     Panel* m_snapPanel = nullptr;
     glm::uvec2 m_snapCoordinates = {0, 0};
 
+    bool m_stored = false;
     bool m_fixed = false;
     bool m_errorHighlighted = false;
     bool m_selectionHighlighted = false;

@@ -3,13 +3,13 @@
 #include <cmath>
 #include <fstream>
 #include <glm/gtx/string_cast.hpp>
-#include <iostream>
 #include <lava/chamber/logger.hpp>
 #include <lava/chamber/math.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
 #include "./game-state.hpp"
+#include "./objects/pedestal.hpp"
 #include "./serializer.hpp"
 #include "./symbols.hpp"
 
@@ -49,11 +49,17 @@ namespace {
         }
     }
 
-    void levelMaterialGhostFactor(GameState& gameState, const std::string& materialName, float ghostFator)
+    void levelMaterialGhostFactor(GameState& gameState, const std::string& materialName, float ghostFactor)
     {
         for (auto& generic : gameState.level.generics) {
             auto& entity = generic->entity();
             if (!entity.has<sill::MeshComponent>()) continue;
+
+            // @todo We probably don't want to let that logic here...
+            if (generic->kind() == "pedestal" && generic->as<Pedestal>().material() == materialName) {
+                generic->as<Pedestal>().powered(ghostFactor == 0.f);
+            }
+
             for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
                 if (node.meshGroup == nullptr) continue;
                 for (auto primitive : node.meshGroup->primitives()) {
@@ -62,7 +68,7 @@ namespace {
                     if (material->name() != materialName) continue;
                     auto& animationComponent = entity.ensure<sill::AnimationComponent>();
                     animationComponent.start(sill::AnimationFlag::MaterialUniform, *material, "ghostFactor", 0.5f);
-                    animationComponent.target(sill::AnimationFlag::MaterialUniform, *material, "ghostFactor", ghostFator);
+                    animationComponent.target(sill::AnimationFlag::MaterialUniform, *material, "ghostFactor", ghostFactor);
                 }
             }
         }
@@ -133,7 +139,8 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
         genericCollidersBuildPhysicsFromMesh(gameState);
         genericCollidersVisible(gameState, false);
 
-        // Automatically replace all wood materials in the world.
+        // Automatically decide what is ghosted here...
+        levelMaterialGhostFactor(gameState, "rock", 0.f);
         levelMaterialGhostFactor(gameState, "wood", 1.f);
 
         // @fixme Have these stored in JSON somehow?

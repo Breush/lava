@@ -126,20 +126,20 @@ void GameEngine::Impl::run()
     }
 }
 
-void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& gameEntity)
+void GameEngine::Impl::add(std::unique_ptr<GameEntity>&& entity)
 {
-    logger.info("sill.game-engine").tab(1) << "Adding entity " << gameEntity.get() << " '" << gameEntity->name() << "'." << std::endl;
+    logger.info("sill.game-engine").tab(1) << "Adding entity " << entity.get() << " '" << entity->name() << "'." << std::endl;
 
-    m_pendingAddedEntities.emplace_back(std::move(gameEntity));
+    m_pendingAddedEntities.emplace_back(std::move(entity));
 
     logger.log().tab(-1);
 }
 
-void GameEngine::Impl::remove(const GameEntity& gameEntity)
+void GameEngine::Impl::remove(GameEntity& entity)
 {
-    logger.info("sill.game-engine").tab(1) << "Removing entity " << &gameEntity << " '" << gameEntity.name() << "'." << std::endl;
+    logger.info("sill.game-engine").tab(1) << "Removing entity " << &entity << " '" << entity.name() << "'." << std::endl;
 
-    m_pendingRemovedEntities.emplace_back(&gameEntity);
+    m_pendingRemovedEntities.emplace_back(&entity);
 
     logger.log().tab(-1);
 }
@@ -201,6 +201,7 @@ void GameEngine::Impl::updateEntities(float dt)
 
     // Indeed update entities
     for (auto& entity : m_entities) {
+        if (!entity->active()) continue;
         entity->impl().update(dt);
     }
 

@@ -44,17 +44,17 @@ Frustum Camera::frustum(const glm::vec2& topLeftRel, const glm::vec2& bottomRigh
 {
     Frustum frustum;
 
-    auto topLeftLocal = m_projectionTransformInverse * glm::vec4(topLeftRel.x, topLeftRel.y, 0.f, 1.f);
-    auto topRightLocal = m_projectionTransformInverse * glm::vec4(bottomRightRel.x, topLeftRel.y, 0.f, 1.f);
-    auto bottomLeftLocal = m_projectionTransformInverse * glm::vec4(topLeftRel.x, bottomRightRel.y, 0.f, 1.f);
-    auto bottomRightLocal = m_projectionTransformInverse * glm::vec4(bottomRightRel.x, bottomRightRel.y, 0.f, 1.f);
+    auto topLeftLocal = m_projectionMatrixInverse * glm::vec4(topLeftRel.x, topLeftRel.y, 0.f, 1.f);
+    auto topRightLocal = m_projectionMatrixInverse * glm::vec4(bottomRightRel.x, topLeftRel.y, 0.f, 1.f);
+    auto bottomLeftLocal = m_projectionMatrixInverse * glm::vec4(topLeftRel.x, bottomRightRel.y, 0.f, 1.f);
+    auto bottomRightLocal = m_projectionMatrixInverse * glm::vec4(bottomRightRel.x, bottomRightRel.y, 0.f, 1.f);
 
-    auto topLeft = glm::vec3(m_viewTransformInverse * (topLeftLocal / topLeftLocal.w));
-    auto topRight = glm::vec3(m_viewTransformInverse * (topRightLocal / topRightLocal.w));
-    auto bottomLeft = glm::vec3(m_viewTransformInverse * (bottomLeftLocal / bottomLeftLocal.w));
-    auto bottomRight = glm::vec3(m_viewTransformInverse * (bottomRightLocal / bottomRightLocal.w));
+    auto topLeft = glm::vec3(m_viewMatrixInverse * (topLeftLocal / topLeftLocal.w));
+    auto topRight = glm::vec3(m_viewMatrixInverse * (topRightLocal / topRightLocal.w));
+    auto bottomLeft = glm::vec3(m_viewMatrixInverse * (bottomLeftLocal / bottomLeftLocal.w));
+    auto bottomRight = glm::vec3(m_viewMatrixInverse * (bottomRightLocal / bottomRightLocal.w));
 
-    auto translation = glm::vec3(m_viewTransformInverse[3]);
+    auto translation = glm::vec3(m_viewMatrixInverse[3]);
 
     // Forward
     frustum.forward = glm::normalize(glm::cross(topLeft - bottomLeft, bottomRight - bottomLeft));
@@ -100,34 +100,36 @@ void Camera::extent(Extent2d extent)
 
 // ----- Transforms
 
-void Camera::viewTransform(const glm::mat4& viewTransform)
+void Camera::viewTransform(const lava::Transform& viewTransform)
 {
     m_viewTransform = viewTransform;
-    m_viewTransformInverse = glm::inverse(m_viewTransform);
-    m_viewProjectionTransformInverse = glm::inverse(m_projectionTransform * m_viewTransform);
+    m_viewMatrix = m_viewTransform.matrix();
+    m_viewMatrixInverse = m_viewTransform.inverse().matrix();
+    m_viewProjectionMatrixInverse = glm::inverse(m_projectionMatrix * m_viewMatrix);
     updateFrustum();
 
     // Update UBO
-    auto transposeViewTransform = glm::transpose(m_viewTransform);
-    m_ubo.viewTransform0 = transposeViewTransform[0];
-    m_ubo.viewTransform1 = transposeViewTransform[1];
-    m_ubo.viewTransform2 = transposeViewTransform[2];
+    // @fixme Now that we have the TRS info, this can be stored in one less member!
+    auto transposeViewMatrix = glm::transpose(m_viewMatrix);
+    m_ubo.viewTransform0 = transposeViewMatrix[0];
+    m_ubo.viewTransform1 = transposeViewMatrix[1];
+    m_ubo.viewTransform2 = transposeViewMatrix[2];
 }
 
-void Camera::projectionTransform(const glm::mat4& projectionTransform)
+void Camera::projectionMatrix(const glm::mat4& projectionMatrix)
 {
-    m_projectionTransform = projectionTransform;
-    m_projectionTransformInverse = glm::inverse(m_projectionTransform);
-    m_viewProjectionTransformInverse = glm::inverse(m_projectionTransform * m_viewTransform);
+    m_projectionMatrix = projectionMatrix;
+    m_projectionMatrixInverse = glm::inverse(m_projectionMatrix);
+    m_viewProjectionMatrixInverse = glm::inverse(m_projectionMatrix * m_viewMatrix);
     updateFrustum();
 
     // Update UBO
-    m_ubo.projectionFactors0[0] = m_projectionTransform[0][0];
-    m_ubo.projectionFactors0[1] = m_projectionTransform[1][1];
-    m_ubo.projectionFactors0[2] = m_projectionTransform[2][2];
-    m_ubo.projectionFactors0[3] = m_projectionTransform[3][2];
-    m_ubo.projectionFactors1[0] = m_projectionTransform[2][0];
-    m_ubo.projectionFactors1[1] = m_projectionTransform[2][1];
+    m_ubo.projectionFactors0[0] = m_projectionMatrix[0][0];
+    m_ubo.projectionFactors0[1] = m_projectionMatrix[1][1];
+    m_ubo.projectionFactors0[2] = m_projectionMatrix[2][2];
+    m_ubo.projectionFactors0[3] = m_projectionMatrix[3][2];
+    m_ubo.projectionFactors1[0] = m_projectionMatrix[2][0];
+    m_ubo.projectionFactors1[1] = m_projectionMatrix[2][1];
 }
 
 // ----- Updates

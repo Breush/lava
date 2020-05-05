@@ -55,7 +55,7 @@ void Shadows::update(uint32_t frameId)
 
     float nearClip = m_camera->nearClip();
     float farClip = m_camera->farClip();
-    const auto& viewProjectionTransformInverse = m_camera->viewProjectionTransformInverse();
+    const auto& viewProjectionMatrixInverse = m_camera->viewProjectionMatrixInverse();
 
     float clipRange = farClip - nearClip;
 
@@ -92,7 +92,7 @@ void Shadows::update(uint32_t frameId)
 
         // Project frustum corners into world space
         for (uint32_t i = 0; i < 8; i++) {
-            glm::vec4 invCorner = viewProjectionTransformInverse * glm::vec4(frustumCorners[i], 1.0f);
+            glm::vec4 invCorner = viewProjectionMatrixInverse * glm::vec4(frustumCorners[i], 1.0f);
             frustumCorners[i] = invCorner / invCorner.w;
         }
 

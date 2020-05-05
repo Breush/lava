@@ -2,7 +2,6 @@
 
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/vector_angle.hpp>
-#include <iostream>
 #include <lava/chamber/math.hpp>
 #include <lava/chamber/string-tools.hpp>
 #include <lava/dike.hpp>
@@ -429,7 +428,7 @@ void setupEditor(GameState& gameState)
 
         // Synchronize the overlay camera with the main one.
         gameState.editor.gizmo.camera->viewTransform(gameState.camera.component->camera().viewTransform());
-        gameState.editor.gizmo.camera->projectionTransform(gameState.camera.component->camera().projectionTransform());
+        gameState.editor.gizmo.camera->projectionMatrix(gameState.camera.component->camera().projectionMatrix());
 
         if (gameState.editor.state == EditorState::Idle) {
             // ----- Gizmos
@@ -644,11 +643,11 @@ void setupEditor(GameState& gameState)
                 const Ray axisRay = {.origin = barycenter, .direction = gameState.editor.gizmo.axis};
                 auto newScaling = projectOn(axisRay, gameState.pickingRay) / gameState.editor.gizmo.axisOffset;
                 auto scaleFactor = newScaling / gameState.editor.gizmo.previousScaling;
-                auto scaleFactors = (scaleFactor - 1.f) * gameState.editor.gizmo.axis + 1.f;
                 gameState.editor.gizmo.previousScaling = newScaling;
 
+                // @fixme Scaling multiple objects at once does not keep relative positions!
                 for (auto object : gameState.editor.selection.objects) {
-                    object->transform().scale(scaleFactors);
+                    object->transform().scale(scaleFactor);
                 }
             }
         }

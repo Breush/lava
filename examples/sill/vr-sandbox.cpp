@@ -48,14 +48,14 @@ int main(void)
             static sill::GameEntity* grabbedCube = nullptr;
             if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
-            auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
+            const auto& handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
             // When the user uses the trigger, we find the closest cube nearby, and grab it.
             if (engine.input().justDown("trigger")) {
                 float minDistance = 1000.f;
                 for (auto cube : cubes) {
                     auto cubeTranslation = cube->get<sill::TransformComponent>().translation();
-                    auto distance = glm::distance(cubeTranslation, glm::vec3(handTransform[3]));
+                    auto distance = glm::distance(cubeTranslation, handTransform.translation);
                     if (distance < minDistance) {
                         minDistance = distance;
                         grabbedCube = cube;

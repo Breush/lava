@@ -4,8 +4,10 @@
 #include <lava/core/extent.hpp>
 #include <lava/core/filesystem.hpp>
 #include <lava/core/input-axis.hpp>
+#include <lava/core/interpolation-ease.hpp>
 #include <lava/core/interpolation-type.hpp>
 #include <lava/core/macros.hpp>
+#include <lava/core/transform.hpp>
 #include <lava/core/vector-view.hpp>
 #include <lava/core/viewport.hpp>
 #include <lava/core/ws-event.hpp>

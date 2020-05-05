@@ -39,6 +39,7 @@ namespace lava::magma {
          * @name Transform
          */
         /// @{
+        // @todo :Terminology Should this still be called transform? Or is that term reserved for uniform scaling lava::Transform?
         /// The transform is `translation * rotation * scaling`.
         const glm::mat4& transform() const { return m_transform; }
         void transform(const glm::mat4& transform);

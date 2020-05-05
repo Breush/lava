@@ -4,7 +4,6 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <lava/chamber/math.hpp>
-#include <iostream>
 
 #include "./environment.hpp"
 #include "./ray-picking.hpp"
@@ -29,16 +28,9 @@ namespace {
     }
 
     /// Extract the rotation level of a transform.
-    uint32_t computeHandRotationLevel(const glm::mat4& transform)
+    uint32_t computeHandRotationLevel(const lava::Transform& transform)
     {
-        glm::vec3 scale;
-        glm::quat orientation;
-        glm::vec3 translation;
-        glm::vec3 skew;
-        glm::vec4 perspective;
-        glm::decompose(transform, scale, orientation, translation, skew, perspective);
-
-        auto eulerAngles = glm::eulerAngles(orientation);
+        auto eulerAngles = glm::eulerAngles(transform.rotation);
 
         int32_t handRotationLevel = std::round(-eulerAngles.y / (3.14156f / 2.f));
         if (handRotationLevel == 0 && eulerAngles.x < 0.f) handRotationLevel += 2;
@@ -52,6 +44,7 @@ namespace {
 
         grabbedBrick = brick;
         grabbedBrick->unsnap();
+        grabbedBrick->stored(false);
         rayPickingEnabled(gameState, false);
 
         // Update the panel filling information.
@@ -63,11 +56,6 @@ namespace {
 
     void ungrabBrick(GameState& gameState)
     {
-        if (!gameState.snapping.looksSnapped) {
-            auto transform = glm::translate(glm::mat4(1.f), gameState.player.headPosition + gameState.player.direction);
-            grabbedBrick->transform().worldTransform(transform);
-        }
-
         gameState.state = State::Idle;
         grabbedBrick->animation().stop(sill::AnimationFlag::WorldTransform);
         grabbedBrick->selectionHighlighted(false);
@@ -77,6 +65,9 @@ namespace {
             grabbedBrick->snap(*gameState.snapping.panel, gameState.snapping.coordinates);
             grabbedBrick->baseRotationLevel(grabbedBrick->rotationLevel());
             grabbedBrick->extraRotationLevel(0u);
+        }
+        else {
+            grabbedBrick->stored(true);
         }
 
         // Checking if the level is solved.
@@ -94,9 +85,18 @@ namespace {
         grabbedBrick->animation().start(sill::AnimationFlag::WorldTransform, 0.1f, false);
     }
 
-    glm::mat4 baseRotationLevelMatrix()
+    Transform rotationLevelTransform()
     {
-        return glm::rotate(glm::mat4(1.f), grabbedBrick->baseRotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+        Transform transform;
+        transform.rotation = glm::rotate(transform.rotation, grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+        return transform;
+    }
+
+    Transform baseRotationLevelTransform()
+    {
+        Transform transform;
+        transform.rotation = glm::rotate(transform.rotation, grabbedBrick->baseRotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+        return transform;
     }
 
     // Gameplay with VR controllers,
@@ -106,7 +106,7 @@ namespace {
         auto& engine = *gameState.engine;
         if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
-        auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
+        const auto& handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
         if (gameState.state == State::Idle && engine.input().justDown("trigger") && gameState.pointedBrick) {
@@ -130,16 +130,18 @@ namespace {
         grabbedBrick->extraRotationLevel(handRotationLevel);
 
         // Offsetting from hand transform a little bit.
-        auto targetTransform = glm::translate(handTransform, {0, 0, -0.2});
-        targetTransform = glm::rotate(targetTransform, -3.14156f * 0.25f, {1, 0, 0});
-        targetTransform = targetTransform * baseRotationLevelMatrix();
+        lava::Transform handBrickLocalTransform;
+        handBrickLocalTransform.translation = glm::vec3{0, 0, -0.2};
+
+        lava::Transform targetTransform = handTransform * handBrickLocalTransform;
+        targetTransform.rotation = glm::rotate(targetTransform.rotation, -3.14156f * 0.25f, {1, 0, 0});
+        targetTransform = targetTransform * baseRotationLevelTransform();
 
         // If the hand is close to a snapping point, we snap to it.
         gameState.snapping.panel = nullptr;
         for (auto& panel : gameState.level.panels) {
-            if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform[3])) {
-                targetTransform = snappingPoint->worldTransform;
-                targetTransform *= glm::rotate(glm::mat4(1.f), grabbedBrick->rotationLevel() * 3.14156f * 0.5f, {0, 0, 1});
+            if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform.translation)) {
+                targetTransform = snappingPoint->worldTransform * rotationLevelTransform();
 
                 // Set the coordinates of snapped snapping point.
                 gameState.snapping.panel = panel.get();
@@ -172,7 +174,7 @@ namespace {
             rotateGrabbedBrick();
         }
 
-        auto targetTransform = glm::mat4(1.f);
+        lava::Transform targetTransform;
 
         // If the cursor is over a snapping point, we snap to it.
         gameState.snapping.looksSnapped = false;
@@ -185,7 +187,7 @@ namespace {
             if (snappingInfo.point != nullptr) {
                 gameState.snapping.looksSnapped = true;
                 targetTransform = snappingInfo.point->worldTransform;
-                targetTransform *= baseRotationLevelMatrix();
+                targetTransform *= baseRotationLevelTransform();
 
                 // Set the coordinates of snapped snapping point.
                 if (snappingInfo.validForBrick) {
@@ -207,11 +209,11 @@ namespace {
 
             const auto& extent = gameState.camera.component->extent();
             auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};
-            auto screenMatrix = gameState.camera.component->unprojectAsTransform(coordinates, 0.5f);
-            screenMatrix = glm::rotate(screenMatrix, chamber::math::PI_OVER_TWO, {0, 1, 0});
-            screenMatrix = glm::scale(screenMatrix, glm::vec3{0.02f});
+            auto screenTransform = gameState.camera.component->unprojectAsTransform(coordinates, 0.5f);
+            screenTransform.rotation = glm::rotate(screenTransform.rotation, chamber::math::PI, {0, 1, 0});
+            screenTransform.scaling = 0.02f;
 
-            targetTransform = screenMatrix * baseRotationLevelMatrix();
+            targetTransform = screenTransform * baseRotationLevelTransform();
         }
 
         grabbedBrick->animation().target(sill::AnimationFlag::WorldTransform, targetTransform);

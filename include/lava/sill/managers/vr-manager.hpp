@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/mat4x4.hpp>
+#include <lava/core/transform.hpp>
 #include <lava/core/vr-device-type.hpp>
 
 namespace lava::sill {
@@ -25,7 +25,7 @@ namespace lava::sill {
         bool deviceValid(VrDeviceType deviceType) const;
 
         /// Get a device transform.
-        const glm::mat4& deviceTransform(VrDeviceType deviceType) const;
+        const lava::Transform& deviceTransform(VrDeviceType deviceType) const;
 
         /// The world translation of the VR area.
         const glm::vec3& translation() const { return m_tranlation; }

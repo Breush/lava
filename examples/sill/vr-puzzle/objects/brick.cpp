@@ -1,6 +1,5 @@
 #include "./brick.hpp"
 
-#include <iostream>
 #include <algorithm>
 
 #include "../game-state.hpp"
@@ -13,7 +12,6 @@ Brick::Brick(GameState& gameState)
     m_entity = &gameState.engine->make<sill::GameEntity>("brick");
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::AnimationComponent>();
-    m_entity->make<sill::ColliderComponent>();
 }
 
 void Brick::clear(bool removeFromLevel)
@@ -56,7 +54,6 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
         m_gameState.engine->remove(*block.entity);
     }
     m_blocks.resize(blocks.size());
-    m_entity->get<sill::ColliderComponent>().clearShapes();
 
     // Create blocks
     static auto blockMaker = sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-brick.glb");
@@ -68,13 +65,10 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
         auto& meshComponent = entity.make<sill::MeshComponent>();
         blockMaker(meshComponent);
         entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});
-        entity.get<sill::TransformComponent>().scale({blockScaling, blockScaling, 1.f});
+        entity.get<sill::TransformComponent>().scale(blockScaling);
 
         m_blocks[i].entity = &entity;
         m_entity->addChild(entity);
-        m_entity->get<sill::ColliderComponent>().addBoxShape(
-            {blocks[i].x * blockExtent.x, blocks[i].y * blockExtent.y, 0.5f * blockExtent.z},
-            {blockExtent.x * blockScaling, blockExtent.y * blockScaling, blockExtent.z});
     }
 
     // Update blocks
@@ -179,13 +173,22 @@ void Brick::fixed(bool fixed) {
     updateBlocksColor();
 }
 
+void Brick::stored(bool stored)
+{
+    if (m_stored == stored) return;
+    m_stored = stored;
+
+    if (m_stored) {
+        animation().start(lava::sill::AnimationFlag::WorldTransform, 1.f, false);
+    }
+}
+
 void Brick::unsnap()
 {
     if (m_snapPanel == nullptr) return;
 
     auto snapPanel = m_snapPanel;
     m_snapPanel = nullptr;
-    m_entity->get<sill::PhysicsComponent>().enabled(true);
 
     snapPanel->snappedBricksChanged();
 }
@@ -196,7 +199,6 @@ void Brick::snap(Panel& panel, const glm::uvec2& snapCoordinates)
 
     m_snapPanel = &panel;
     m_snapCoordinates = snapCoordinates;
-    m_entity->get<sill::PhysicsComponent>().enabled(false);
     m_snapPanel->snappedBricksChanged();
 }
 

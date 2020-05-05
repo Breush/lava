@@ -353,12 +353,12 @@ void MeshComponent::printHierarchy(std::ostream& s) const
 
 void MeshComponent::updateNodesTransforms()
 {
-    const auto& worldTransform = m_transformComponent.worldTransform();
+    auto worldMatrix = m_transformComponent.worldTransform().matrix();
 
     // @note The root nodes have just no parent!
     for (auto& node : m_nodes) {
         if (node.parent != nullptr) continue;
-        updateNodeTransforms(node, worldTransform, glm::mat4{1.f});
+        updateNodeTransforms(node, worldMatrix, glm::mat4{1.f});
     }
 
     m_nodesTranformsDirty = false;

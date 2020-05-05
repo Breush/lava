@@ -63,7 +63,7 @@ void VrEngine::Impl::update()
 {
     m_vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.f, m_devicesPoses.data(), vr::k_unMaxTrackedDeviceCount);
 
-    const auto& areaTransform = m_engine.transform();
+    const auto& areaMatrix = m_engine.matrix();
     for (auto deviceIndex = 0u; deviceIndex < vr::k_unMaxTrackedDeviceCount; ++deviceIndex) {
         const auto& pose = m_devicesPoses[deviceIndex];
 
@@ -76,12 +76,15 @@ void VrEngine::Impl::update()
         deviceInfo.valid = pose.bPoseIsValid;
 
         auto m = pose.mDeviceToAbsoluteTracking.m;
-        auto deviceTransform = glm::mat4(m[0][0], m[1][0], m[2][0], 0.f, // X
-                                         m[0][1], m[1][1], m[2][1], 0.f, // Y
-                                         m[0][2], m[1][2], m[2][2], 0.f, // Z
-                                         m[0][3], m[1][3], m[2][3], 1.f);
-        // @fixme Might not be our job to multiply by areaTransform
-        deviceInfo.transform = areaTransform * m_fixesTransform * deviceTransform;
+        auto deviceMatrix = glm::mat4(m[0][0], m[1][0], m[2][0], 0.f, // X
+                                      m[0][1], m[1][1], m[2][1], 0.f, // Y
+                                      m[0][2], m[1][2], m[2][2], 0.f, // Z
+                                      m[0][3], m[1][3], m[2][3], 1.f);
+        // @fixme Might not be our job to multiply by areaMatrix
+        deviceMatrix = areaMatrix * m_fixesMatrix * deviceMatrix;
+
+        deviceInfo.transform.translation = deviceMatrix[3];
+        deviceInfo.transform.rotation = glm::toQuat(deviceMatrix);
 
         deviceInfo.data[0u] = deviceIndex;
         deviceInfo.data[1u] = type;
@@ -255,21 +258,24 @@ Extent2d VrEngine::Impl::renderTargetExtent() const
     return extent;
 }
 
-glm::mat4 VrEngine::Impl::eyeProjectionTransform(VrEye eye, float nearClip, float farClip) const
+glm::mat4 VrEngine::Impl::eyeProjectionMatrix(VrEye eye, float nearClip, float farClip) const
 {
-    vr::HmdMatrix44_t mat =
-        m_vrSystem->GetProjectionMatrix((eye == VrEye::Left) ? vr::Eye_Left : vr::Eye_Right, nearClip, farClip);
-    auto transform =
-        glm::mat4(mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0], mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
-                  mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2], mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]);
-    transform[1][1] *= -1;
-    return transform;
+    auto mat = m_vrSystem->GetProjectionMatrix((eye == VrEye::Left) ? vr::Eye_Left : vr::Eye_Right, nearClip, farClip);
+    auto matrix = glm::mat4(mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0], mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
+                            mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2], mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]);
+    matrix[1][1] *= -1;
+    return matrix;
 }
 
-glm::mat4 VrEngine::Impl::eyeToHeadTransform(VrEye eye) const
+lava::Transform VrEngine::Impl::eyeToHeadTransform(VrEye eye) const
 {
     auto mat = m_vrSystem->GetEyeToHeadTransform((eye == VrEye::Left) ? vr::Eye_Left : vr::Eye_Right);
-    auto transform = glm::mat4(mat.m[0][0], mat.m[1][0], mat.m[2][0], 0.f, mat.m[0][1], mat.m[1][1], mat.m[2][1], 0.f,
-                               mat.m[0][2], mat.m[1][2], mat.m[2][2], 0.f, mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.f);
+    auto rotationMatrix = glm::mat3(mat.m[0][0], mat.m[1][0], mat.m[2][0],
+                                    mat.m[0][1], mat.m[1][1], mat.m[2][1],
+                                    mat.m[0][2], mat.m[1][2], mat.m[2][2]);
+
+    lava::Transform transform;
+    transform.translation = glm::vec3{mat.m[0][3], mat.m[1][3], mat.m[2][3]};
+    transform.rotation = glm::toQuat(rotationMatrix);
     return transform;
 }

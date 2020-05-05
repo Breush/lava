@@ -2,7 +2,6 @@
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <iostream>
 #include <lava/chamber/math.hpp>
 
 #include "./ray-picking.hpp"
@@ -35,7 +34,7 @@ namespace {
             // at the target point after teleportation.
             if (gameState.teleport.valid) {
                 auto target = gameState.teleport.target;
-                auto headTranslation = glm::vec3(engine.vr().deviceTransform(VrDeviceType::Head)[3]) - engine.vr().translation();
+                const auto& headTranslation = engine.vr().deviceTransform(VrDeviceType::Head).translation - engine.vr().translation();
                 target.x -= headTranslation.x;
                 target.y -= headTranslation.y;
                 engine.vr().translation(target);
@@ -45,14 +44,12 @@ namespace {
         }
 
         // Extract hand components
-        glm::vec3 scale, translation, skew;
-        glm::vec4 perspective;
-        glm::quat orientation;
-        auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
-        glm::decompose(handTransform, scale, orientation, translation, skew, perspective);
-        glm::vec3 angles = glm::eulerAngles(orientation);
+        const auto& handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
+        glm::vec3 angles = glm::eulerAngles(handTransform.rotation);
 
-        const auto beamWorldTransform = glm::rotate(glm::translate(glm::mat4(1.f), translation), angles.z, {0, 0, 1});
+        lava::Transform beamWorldTransform;
+        beamWorldTransform.translation = handTransform.translation;
+        beamWorldTransform.rotation = glm::rotate(beamWorldTransform.rotation, angles.z, {0, 0, 1});
         gameState.teleport.beamEntity->get<sill::TransformComponent>().worldTransform(beamWorldTransform);
 
         auto& teleportBeamPrimitive = gameState.teleport.beamEntity->get<sill::MeshComponent>().primitive(0, 0);
@@ -99,7 +96,7 @@ namespace {
             if (!invalidPlaceCrossed && !targetFound && i > 0u) {
                 // Go to world-space
                 glm::vec3 rayOrigin = (positions[i - 1u] + positions[(i + 32u) - 1u]) / 2.f;
-                rayOrigin = beamWorldTransform * glm::vec4(rayOrigin, 1.f);
+                rayOrigin = beamWorldTransform.matrix() * glm::vec4(rayOrigin, 1.f);
 
                 // @note We just don't check if the ray seems off-world.
                 if (rayOrigin.z > -20.f) {
@@ -116,7 +113,7 @@ namespace {
                         Ray ray;
                         ray.origin = rayOrigin;
                         ray.direction = glm::normalize(delta - previousDelta);
-                        ray.direction = beamWorldTransform * glm::vec4(ray.direction, 0.f);
+                        ray.direction = beamWorldTransform.rotation * ray.direction;
 
                         auto distance = distanceToTerrain(gameState, ray, &generic, glm::length(delta - previousDelta));
                         if (generic != nullptr && !generic->walkable()) {

@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <glm/glm.hpp>
+#include <lava/core/transform.hpp>
 #include <string>
 
 namespace lava::sill {
@@ -41,29 +42,23 @@ namespace lava::sill {
          */
         /// {
         // 3D
-        const glm::vec3& translation() const { return m_translation; }
+        const glm::vec3& translation() const { return m_transform.translation; }
         void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            translation(m_translation + delta, changeReasonFlag);
+            translation(m_transform.translation + delta, changeReasonFlag);
         }
 
-        const glm::quat& rotation() const { return m_rotation; }
+        const glm::quat& rotation() const { return m_transform.rotation; }
         void rotation(const glm::quat& rotation, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_rotation, changeReasonFlag);
+            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_transform.rotation, changeReasonFlag);
         }
         void rotateAround(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
-        const glm::vec3& scaling() const { return m_scaling; }
-        void scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
-        void scaling(float scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            this->scaling({scaling, scaling, scaling}, changeReasonFlag);
-        }
-        void scale(const glm::vec3& factors, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            scaling(m_scaling * factors, changeReasonFlag);
-        }
+        float scaling() const { return m_transform.scaling; }
+        void scaling(float scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void scale(float factor, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            scaling(m_scaling * factor, changeReasonFlag);
+            scaling(m_transform.scaling * factor, changeReasonFlag);
         }
 
         // 2D
@@ -93,19 +88,25 @@ namespace lava::sill {
         /// }
 
         /**
-         * @name World transform
+         * @name Transform
          *
          * Updating the world transform will change the local transform
          * accordingly, too.
          */
         /// {
         // 3D
-        const glm::mat4& worldTransform() const { return m_worldTransform; }
-        void worldTransform(const glm::mat4& transform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        const lava::Transform& transform() const { return m_transform; }
+        void transform(const lava::Transform& transform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+
+        const lava::Transform& worldTransform() const { return m_worldTransform; }
+        void worldTransform(const lava::Transform& worldTransform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
         // 2D
+        // @todo :Terminology Well, have lava::Transform2d!
+        // But be careful with non-uniform scaling that might be more used
+        // than in 3D.
         const glm::mat3& worldTransform2d() const { return m_worldTransform2d; }
-        void worldTransform2d(const glm::mat3& transform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void worldTransform2d(const glm::mat3& worldTransform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         /// }
 
         /**
@@ -139,11 +140,8 @@ namespace lava::sill {
 
     private:
         // 3D
-        glm::quat m_rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
-        glm::vec3 m_translation = glm::vec3(0.f);
-        glm::vec3 m_scaling = glm::vec3(1.f);
-        glm::mat4 m_transform = glm::mat4(1.f);
-        glm::mat4 m_worldTransform = glm::mat4(1.f);
+        lava::Transform m_transform;
+        lava::Transform m_worldTransform;
 
         // 2D
         float m_rotation2d = 0.f;

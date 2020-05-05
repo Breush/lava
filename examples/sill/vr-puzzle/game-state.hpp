@@ -9,6 +9,7 @@
 #include <lava/sill.hpp>
 #include <lava/magma.hpp>
 #include <unordered_map>
+#include <iostream>
 
 enum class State {
     Idle,

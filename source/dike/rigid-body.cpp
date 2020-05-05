@@ -22,7 +22,7 @@ $pimpl_method(RigidBody, void, dynamic, bool, dynamic);
 
 $pimpl_method_const(RigidBody, bool, transformChanged);
 
-$pimpl_method_const(RigidBody, const glm::mat4&, transform);
-$pimpl_method(RigidBody, void, transform, const glm::mat4&, transform);
+$pimpl_method_const(RigidBody, const lava::Transform&, transform);
+$pimpl_method(RigidBody, void, transform, const lava::Transform&, transform);
 
 $pimpl_method_const(RigidBody, float, distanceFrom, const Ray&, ray, float, maxDistance);

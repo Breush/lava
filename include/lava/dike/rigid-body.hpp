@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <lava/core/ray.hpp>
+#include <lava/core/transform.hpp>
 #include <lava/core/vector-view.hpp>
 
 namespace lava::dike {
@@ -38,8 +39,8 @@ namespace lava::dike {
         // Whether the transform changed during last update.
         bool transformChanged() const;
 
-        const glm::mat4& transform() const;
-        void transform(const glm::mat4& transform);
+        const lava::Transform& transform() const;
+        void transform(const lava::Transform& transform);
 
         // Helpers
         float distanceFrom(const Ray& ray, float maxDistance = 1000.f) const;

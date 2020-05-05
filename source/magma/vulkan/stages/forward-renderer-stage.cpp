@@ -85,7 +85,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     const auto& deviceHolder = m_scene.engine().impl().deviceHolder();
     deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer");
 
-    auto cameraTransform = m_camera->projectionTransform() * m_camera->viewTransform();
+    auto cameraMatrix = m_camera->projectionMatrix() * m_camera->viewMatrix();
 
     //----- Prologue
 
@@ -157,8 +157,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
         const auto& boundingSphere = mesh->boundingSphere();
         if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             if (category == RenderCategory::Translucent) {
-
-                auto distanceToCamera = (cameraTransform * glm::vec4(boundingSphere.center, 1.f)).z + boundingSphere.radius;
+                auto distanceToCamera = (cameraMatrix * glm::vec4(boundingSphere.center, 1.f)).z + boundingSphere.radius;
                 translucentMeshes.emplace_back(TranslucentMesh{mesh, distanceToCamera});
                 continue;
             }

@@ -27,6 +27,13 @@ namespace lava::sill {
         GameEngine& engine() { return m_engine; }
         const GameEngine& engine() const { return m_engine; }
 
+        /// An inactive entity will never update.
+        bool active() const { return m_active && m_alive; }
+        void active(bool active) { m_active = active; }
+
+        /// Called by GameEngine when an entity will be removed.
+        void alive(bool alive) { m_alive = alive; }
+
         /**
          * @name Attributes
          */
@@ -117,6 +124,9 @@ namespace lava::sill {
     private:
         GameEngine& m_engine;
         Impl* m_impl = nullptr;
+
+        bool m_alive = true;
+        bool m_active = true;
 
         std::vector<std::string> m_componentsHrids;
         std::vector<ParentChangedCallback> m_parentChangedCallbacks;

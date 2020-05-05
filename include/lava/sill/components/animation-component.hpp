@@ -2,6 +2,7 @@
 
 #include <lava/sill/components/i-component.hpp>
 
+#include <lava/core/transform.hpp>
 #include <lava/sill/animation-flags.hpp>
 #include <lava/magma/uniform.hpp>
 #include <unordered_map>
@@ -29,7 +30,7 @@ namespace lava::sill {
         void start(AnimationFlags flags, float time, bool autoStop = true);
         void start(AnimationFlags flags, magma::Material& material, const std::string& uniformName, float time, bool autoStop = true);
         void stop(AnimationFlags flags);
-        void target(AnimationFlag flag, const glm::mat4& target);
+        void target(AnimationFlag flag, const lava::Transform& target);
         void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, float target);
         void target(AnimationFlag flag, magma::Material& material, const std::string& uniformName, const glm::vec4& target);
 
@@ -39,8 +40,8 @@ namespace lava::sill {
             bool needUpdate = true; // When timeSpent < totalTime or if target or time has changed since last update.
             float timeSpent = 0.f;
             float totalTime = 0.f;
-            std::variant<glm::mat4, lava::magma::UniformFallback> startValue;
-            std::variant<glm::mat4, lava::magma::UniformFallback> targetValue;
+            std::variant<lava::Transform, lava::magma::UniformFallback> startValue;
+            std::variant<lava::Transform, lava::magma::UniformFallback> targetValue;
 
             // For AnimationFlag::MaterialUniform
             magma::Material* material;

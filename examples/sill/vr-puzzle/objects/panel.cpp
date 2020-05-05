@@ -2,7 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <iostream>
 
 #include "./brick.hpp"
 #include "../game-state.hpp"
@@ -121,7 +120,7 @@ Panel::SnappingPoint* Panel::closestSnappingPoint(const Brick& brick, const glm:
 
     for (auto& snappingPoints : m_snappingPoints) {
         for (auto& snappingPoint : snappingPoints) {
-            auto distance = glm::distance(glm::vec3(snappingPoint.worldTransform[3]), position);
+            auto distance = glm::distance(snappingPoint.worldTransform.translation, position);
             if (distance < minDistance) {
                 if (!isSnappingPointValid(brick, snappingPoint)) continue;
                 minDistance = distance;
@@ -143,7 +142,7 @@ Panel::SnappingInfo Panel::rayHitSnappingPoint(const Brick& brick, const lava::R
     float minDistance = 1000.f;
     for (auto& snappingPoints : m_snappingPoints) {
         for (auto& snappingPoint : snappingPoints) {
-            glm::vec3 bsCenter = snappingPoint.worldTransform[3];
+            auto bsCenter = snappingPoint.worldTransform.translation;
             auto rayOriginToBsCenter = bsCenter - ray.origin;
             auto bsCenterProjectionDistance = glm::dot(ray.direction, rayOriginToBsCenter);
             if (bsCenterProjectionDistance < 0.f) continue;
@@ -292,15 +291,17 @@ void Panel::updateSnappingPoints()
 
     // Update snappingPoints
     glm::vec3 fextent(1.f - glm::vec2(m_extent), 0.f);
-    glm::mat4 originTransform = glm::translate(glm::mat4(1.f), fextent * blockExtent / 2.f);
+    lava::Transform originTransform;
+    originTransform.translation = fextent * blockExtent / 2.f;
 
     m_snappingPoints.resize(m_extent.x);
     for (auto i = 0u; i < m_extent.x; ++i) {
         m_snappingPoints[i].resize(m_extent.y);
         for (auto j = 0u; j < m_extent.y; ++j) {
+            lava::Transform localOriginTransform = originTransform;
+            localOriginTransform.translation += glm::vec3(i * blockExtent.x, j * blockExtent.y, 0.f);
             m_snappingPoints[i][j].worldTransform =
-                m_entity->get<sill::TransformComponent>().worldTransform()
-                * glm::translate(originTransform, glm::vec3(i * blockExtent.x, j * blockExtent.y, 0.f));
+                m_entity->get<sill::TransformComponent>().worldTransform() * localOriginTransform;
             m_snappingPoints[i][j].coordinates = {i, j};
             m_snappingPoints[i][j].hasBrickSnapped = false;
         }

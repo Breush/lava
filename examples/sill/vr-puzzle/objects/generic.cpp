@@ -1,5 +1,6 @@
 #include "./generic.hpp"
 
+#include "./pedestal.hpp"
 #include "../game-state.hpp"
 
 using namespace lava;
@@ -19,6 +20,20 @@ void Generic::clear(bool removeFromLevel)
         });
         m_gameState.level.generics.erase(genericIt);
     }
+}
+
+Generic& Generic::make(GameState& gameState, const std::string& kind)
+{
+    std::unique_ptr<Generic> generic;
+    if (kind == "pedestal") {
+        generic = std::make_unique<Pedestal>(gameState);
+    }
+    else {
+        generic = std::make_unique<Generic>(gameState);
+    }
+
+    generic->m_kind = kind;
+    return *gameState.level.generics.emplace_back(std::move(generic));
 }
 
 // -----

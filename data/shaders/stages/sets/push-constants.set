@@ -39,9 +39,9 @@ layout(std430, push_constant) uniform PushConstantUbo {
 #if USE_CAMERA_PUSH_CONSTANT
 struct CameraUbo {
     mat4 viewTransform;
-    mat4 projectionTransform;
+    mat4 projectionMatrix;
     mat4 viewTransformInverse;
-    mat4 projectionTransformInverse;
+    mat4 projectionMatrixInverse;
     vec4 position;
     uvec2 extent;
 } camera;
@@ -52,17 +52,17 @@ void setupCamera() {
                                           pushConstants.cameraViewTransform2,
                                           vec4(0, 0, 0, 1)));
 
-    camera.projectionTransform = mat4(0);
-    camera.projectionTransform[0][0] = pushConstants.cameraProjectionFactors0[0];
-    camera.projectionTransform[1][1] = pushConstants.cameraProjectionFactors0[1];
-    camera.projectionTransform[2][2] = pushConstants.cameraProjectionFactors0[2];
-    camera.projectionTransform[3][2] = pushConstants.cameraProjectionFactors0[3];
-    camera.projectionTransform[2][0] = pushConstants.cameraProjectionFactors1[0];
-    camera.projectionTransform[2][1] = pushConstants.cameraProjectionFactors1[1];
-    camera.projectionTransform[2][3] = -1;
+    camera.projectionMatrix = mat4(0);
+    camera.projectionMatrix[0][0] = pushConstants.cameraProjectionFactors0[0];
+    camera.projectionMatrix[1][1] = pushConstants.cameraProjectionFactors0[1];
+    camera.projectionMatrix[2][2] = pushConstants.cameraProjectionFactors0[2];
+    camera.projectionMatrix[3][2] = pushConstants.cameraProjectionFactors0[3];
+    camera.projectionMatrix[2][0] = pushConstants.cameraProjectionFactors1[0];
+    camera.projectionMatrix[2][1] = pushConstants.cameraProjectionFactors1[1];
+    camera.projectionMatrix[2][3] = -1;
 
     camera.viewTransformInverse = inverse(camera.viewTransform);
-    camera.projectionTransformInverse = inverse(camera.projectionTransform);
+    camera.projectionMatrixInverse = inverse(camera.projectionMatrix);
 
     camera.position = camera.viewTransformInverse[3];
     camera.extent = uvec2(pushConstants.cameraProjectionFactors1[2], pushConstants.cameraProjectionFactors1[3]);

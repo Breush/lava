@@ -28,8 +28,8 @@ namespace lava::dike {
         void resetTransformChanged() { m_motionState.resetTransformChanged(); }
         bool transformChanged() const { return m_enabled && m_dynamic && m_motionState.transformChanged(); }
 
-        const glm::mat4& transform() const { return m_transform; }
-        void transform(const glm::mat4& transform);
+        const lava::Transform& transform() const { return m_transform; }
+        void transform(const lava::Transform& transform);
 
         float distanceFrom(const Ray& ray, float maxDistance) const;
 
@@ -48,11 +48,8 @@ namespace lava::dike {
 
         // @note This transform will always be up-to-date
         // thanks to the motion state bindings.
-        glm::mat4 m_transform = glm::mat4(1.f);
-        glm::vec3 m_translation = glm::vec3{0.f};
-        glm::vec3 m_scaling = glm::vec3{1.f};
-        glm::quat m_rotation = glm::quat{1.f, 0.f, 0.f, 0.f};
-        MotionState m_motionState{m_transform, m_translation, m_rotation, m_scaling};
+        lava::Transform m_transform;
+        MotionState m_motionState{m_transform};
 
         std::vector<std::unique_ptr<btTriangleIndexVertexArray>> m_meshShapeArrays;
 

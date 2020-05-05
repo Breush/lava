@@ -55,7 +55,7 @@ namespace lava::magma {
 
     protected:
         void updateCameraViewTransform();
-        void updateCameraProjectionTransform();
+        void updateCameraProjectionMatrix();
 
     private:
         Camera* m_camera;

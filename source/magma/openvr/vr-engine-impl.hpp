@@ -17,8 +17,8 @@ namespace lava::magma {
 
         // View
         Extent2d renderTargetExtent() const;
-        glm::mat4 eyeProjectionTransform(VrEye eye, float nearClip, float farClip) const;
-        glm::mat4 eyeToHeadTransform(VrEye eye) const;
+        glm::mat4 eyeProjectionMatrix(VrEye eye, float nearClip, float farClip) const;
+        lava::Transform eyeToHeadTransform(VrEye eye) const;
 
     private:
         VrEngine& m_engine;
@@ -26,10 +26,10 @@ namespace lava::magma {
         vr::IVRSystem* m_vrSystem = nullptr;
         std::vector<vr::TrackedDevicePose_t> m_devicesPoses;
 
-        const glm::mat4 m_fixesTransform = glm::mat4(-1, 0, 0, 0, // -X
-                                                     0, 0, 1, 0,  // Z
-                                                     0, 1, 0, 0,  // Y
-                                                     0, 0, 0, 1);
+        const glm::mat4 m_fixesMatrix = glm::mat4(-1, 0, 0, 0, // -X
+                                                  0, 0, 1, 0,  // Z
+                                                  0, 1, 0, 0,  // Y
+                                                  0, 0, 0, 1);
 
         // @note VrEngine::DeviceInfo.data
         // [0] uint32_t index = 0;                        // OpenVR's device index.

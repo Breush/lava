@@ -23,11 +23,14 @@ int main(void)
     // Falling sphere
     auto& sphere = engine.make<dike::RigidBody>();
     sphere.addSphereShape({0.f, 0.f, 0.f}, 0.1f);
-    sphere.transform(glm::translate(glm::mat4(1.f), {0, 0, 1.f}));
+
+    lava::Transform transform;
+    transform.translation = {0, 0, 1.f};
+    sphere.transform(transform);
 
     // Simulating the world
     for (auto i = 0u; i < 45u; i++) {
-        uint32_t distance = std::round(sphere.transform()[3].z * 80);
+        uint32_t distance = std::round(sphere.transform().translation.z * 80);
         for (auto j = 1u; j < distance; ++j) {
             std::cout << ' ';
         }

@@ -1,7 +1,6 @@
 #include "./ray-picking.hpp"
 
 #include <glm/gtx/string_cast.hpp>
-#include <iostream>
 
 using namespace lava;
 
@@ -45,13 +44,13 @@ namespace {
         if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
         // Let the ray mesh follow the hand
-        auto handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
+        const auto& handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
         gameState.rayPickingEntity->get<sill::TransformComponent>().worldTransform(handTransform);
 
         // Check if any brick is hit
         Ray ray;
-        ray.origin = handTransform[3];
-        ray.direction = glm::normalize(handTransform * glm::vec4{0, 0, -1, 0});
+        ray.origin = handTransform.translation;
+        ray.direction = handTransform.rotation * glm::vec3{0, 0, -1};
         gameState.pointedBrick = pickBrick(gameState, ray);
 
         showPointedBrick(gameState);

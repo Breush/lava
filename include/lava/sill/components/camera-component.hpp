@@ -60,15 +60,12 @@ namespace lava::sill {
          * @name Transforms
          */
         /// @{
-        const glm::mat4& viewTransform() const;
-        const glm::mat4& projectionTransform() const;
-
         /// Unproject screen-space coordinates to a 3D position.
         glm::vec3 unproject(const glm::vec2& coordinates, float depth = 0.f) const;
         /// Unproject screen-space coordinates to a ray going forward.
         Ray unprojectAsRay(const glm::vec2& coordinates, float depth = 0.f) const;
         /// Unproject screen-space coordinates to a forward-looking transform.
-        glm::mat4 unprojectAsTransform(const glm::vec2& coordinates, float depth = 0.f) const;
+        lava::Transform unprojectAsTransform(const glm::vec2& coordinates, float depth = 0.f) const;
         /// Unproject screen-space rectangle to a 3D view frustum.
         magma::Frustum unprojectAsFrustum(const glm::vec2& topLeftCoordinates, const glm::vec2& bottomRightCoordinates) const;
         /// @}

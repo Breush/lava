@@ -32,7 +32,7 @@ void main() {
     mat3 M3 = mat3(mesh.transform);
 
     vec4 vPosition = camera.viewTransform * mesh.transform * vec4(inMPosition, 1);
-    gl_Position = camera.projectionTransform * vPosition;
+    gl_Position = camera.projectionMatrix * vPosition;
 
     // Tangent-space
     vec3 wNormal = inMNormal;

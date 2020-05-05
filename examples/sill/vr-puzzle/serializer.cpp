@@ -3,8 +3,8 @@
 #include <cmath>
 #include <fstream>
 #include <glm/gtx/string_cast.hpp>
-#include <iostream>
 #include <lava/chamber/logger.hpp>
+#include <nlohmann/json.hpp>
 #include <sstream>
 
 #include "./game-state.hpp"
@@ -28,26 +28,18 @@ namespace {
         return glm::vec3{json[0], json[1], json[2]};
     }
 
-    glm::mat4 unserializeMat4(const nlohmann::json& json)
+    glm::quat unserializeQuat(const nlohmann::json& json)
     {
-        glm::mat4 matrix;
-        matrix[0u][0u] = json[0u];
-        matrix[0u][1u] = json[1u];
-        matrix[0u][2u] = json[2u];
-        matrix[0u][3u] = json[3u];
-        matrix[1u][0u] = json[4u];
-        matrix[1u][1u] = json[5u];
-        matrix[1u][2u] = json[6u];
-        matrix[1u][3u] = json[7u];
-        matrix[2u][0u] = json[8u];
-        matrix[2u][1u] = json[9u];
-        matrix[2u][2u] = json[10u];
-        matrix[2u][3u] = json[11u];
-        matrix[3u][0u] = json[12u];
-        matrix[3u][1u] = json[13u];
-        matrix[3u][2u] = json[14u];
-        matrix[3u][3u] = json[15u];
-        return matrix;
+        return glm::quat{json[0], json[1], json[2], json[3]};
+    }
+
+    Transform unserializeTransform(const nlohmann::json& json)
+    {
+        Transform transform;
+        transform.translation = unserializeVec3(json["translation"]);
+        transform.rotation = unserializeQuat(json["rotation"]);
+        transform.scaling = json["scaling"];
+        return transform;
     }
 
     nlohmann::json serialize(const glm::ivec2& vector)
@@ -65,25 +57,17 @@ namespace {
         return nlohmann::json::array({vector.r, vector.g, vector.b});
     }
 
-    nlohmann::json serialize(const glm::mat4& matrix)
+    nlohmann::json serialize(const glm::quat& rotation)
     {
-        nlohmann::json json = nlohmann::json::array();
-        json[0u] = matrix[0u][0u];
-        json[1u] = matrix[0u][1u];
-        json[2u] = matrix[0u][2u];
-        json[3u] = matrix[0u][3u];
-        json[4u] = matrix[1u][0u];
-        json[5u] = matrix[1u][1u];
-        json[6u] = matrix[1u][2u];
-        json[7u] = matrix[1u][3u];
-        json[8u] = matrix[2u][0u];
-        json[9u] = matrix[2u][1u];
-        json[10u] = matrix[2u][2u];
-        json[11u] = matrix[2u][3u];
-        json[12u] = matrix[3u][0u];
-        json[13u] = matrix[3u][1u];
-        json[14u] = matrix[3u][2u];
-        json[15u] = matrix[3u][3u];
+        return nlohmann::json::array({rotation.w, rotation.x, rotation.y, rotation.z});
+    }
+
+    nlohmann::json serialize(const lava::Transform& transform)
+    {
+        nlohmann::json json;
+        json["translation"] = serialize(transform.translation);
+        json["rotation"] = serialize(transform.rotation);
+        json["scaling"] = transform.scaling;
         return json;
     }
 }
@@ -92,7 +76,7 @@ namespace {
 
 void unserializeBrick(Brick& brick, GameState& gameState, const nlohmann::json& json)
 {
-    brick.transform().worldTransform(unserializeMat4(json["transform"]));
+    brick.transform().worldTransform(unserializeTransform(json["transform"]));
 
     std::vector<glm::ivec2> blocks;
     for (auto& blockJson : json["blocks"]) {
@@ -156,7 +140,7 @@ void unserializePanel(Panel& panel, GameState& gameState, const nlohmann::json& 
         panel.addBarrier(*gameState.level.barriers[barrierJson]);
     }
 
-    panel.transform().worldTransform(unserializeMat4(json["transform"]));
+    panel.transform().worldTransform(unserializeTransform(json["transform"]));
 }
 
 nlohmann::json serialize(GameState& gameState, const Panel& panel)
@@ -180,7 +164,7 @@ nlohmann::json serialize(GameState& gameState, const Panel& panel)
 void unserializeBarrier(Barrier& barrier, GameState& /* gameState */, const nlohmann::json& json)
 {
     barrier.name(json["name"]);
-    barrier.transform().worldTransform(unserializeMat4(json["transform"]));
+    barrier.transform().worldTransform(unserializeTransform(json["transform"]));
     barrier.diameter(json["diameter"]);
     barrier.powered(json["powered"]);
 }
@@ -202,7 +186,11 @@ nlohmann::json serialize(GameState& /* gameState */, const Barrier& barrier)
 void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::json& json)
 {
     auto& entity = gameState.engine->make<sill::GameEntity>(json["name"].get<std::string>());
-    entity.ensure<sill::TransformComponent>().worldTransform(unserializeMat4(json["transform"]));
+    entity.ensure<sill::TransformComponent>().worldTransform(unserializeTransform(json["transform"]));
+
+    if (json.find("data") != json.end()) {
+        generic.unserialize(json["data"]);
+    }
 
     for (auto& componentJson : json["components"].items()) {
         if (componentJson.key() == "mesh") {
@@ -258,6 +246,11 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
         {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
         {"components", nlohmann::json()},
     };
+
+    if (!generic.kind().empty()) {
+        json["kind"] = generic.kind();
+        json["data"] = generic.serialize();
+    }
 
     auto& componentsJson = json["components"];
     for (const auto& componentHrid : entity.componentsHrids()) {
@@ -361,8 +354,13 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         unserializeBrick(*brick, gameState, brickJson);
     }
     for (auto& genericJson : levelJson["generics"]) {
-        auto& generic = gameState.level.generics.emplace_back(std::make_unique<Generic>(gameState));
-        unserializeGeneric(*generic, gameState, genericJson);
+        auto kind = (genericJson.find("kind") == genericJson.end()) ? std::string() : genericJson["kind"].get<std::string>();
+        auto& generic = Generic::make(gameState, kind);
+        unserializeGeneric(generic, gameState, genericJson);
+    }
+
+    for (auto& generic : gameState.level.generics) {
+        generic->consolidateReferences();
     }
 }
 
@@ -440,7 +438,9 @@ Object& duplicateBySerialization(GameState& gameState, const Object& object)
 
     // Generics
     auto json = serialize(gameState, dynamic_cast<const Generic&>(object));
-    auto& generic = *gameState.level.generics.emplace_back(std::make_unique<Generic>(gameState));
+    auto kind = (json.find("kind") == json.end()) ? std::string() : json["kind"].get<std::string>();
+    auto& generic = Generic::make(gameState, kind);
     unserializeGeneric(generic, gameState, json);
+    generic.consolidateReferences();
     return generic;
 }

@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <lava/core/extent.hpp>
 #include <lava/core/macros/aft.hpp>
+#include <lava/core/transform.hpp>
 #include <lava/magma/frustum.hpp>
 #include <lava/magma/polygon-mode.hpp>
 #include <lava/magma/render-image.hpp>
@@ -100,17 +101,20 @@ namespace lava::magma {
          */
         /// @{
         /// Translation, rotation of the camera within world-space.
-        const glm::mat4& viewTransform() const { return m_viewTransform; }
-        const glm::mat4& viewTransformInverse() const { return m_viewTransformInverse; }
-        void viewTransform(const glm::mat4& viewTransform);
+        const lava::Transform& viewTransform() const { return m_viewTransform; }
+        void viewTransform(const lava::Transform& viewTransform);
+
+        // @todo Would be nice to have these deprecated!
+        const glm::mat4& viewMatrix() const { return m_viewMatrix; }
+        const glm::mat4& viewMatrixInverse() const { return m_viewMatrixInverse; }
 
         /// Projection matrix to get Vulkan's Normalized Device Coordinates.
-        const glm::mat4& projectionTransform() const { return m_projectionTransform; }
-        const glm::mat4& projectionTransformInverse() const { return m_projectionTransformInverse; }
-        void projectionTransform(const glm::mat4& projectionTransform);
+        const glm::mat4& projectionMatrix() const { return m_projectionMatrix; }
+        const glm::mat4& projectionMatrixInverse() const { return m_projectionMatrixInverse; }
+        void projectionMatrix(const glm::mat4& projectionMatrix);
 
-        /// Pre-computed inverse(projectionTransform * viewTransform).
-        const glm::mat4& viewProjectionTransformInverse() const { return m_viewProjectionTransformInverse; }
+        /// Pre-computed inverse(projectionMatrix * viewTransform).
+        const glm::mat4& viewProjectionMatrixInverse() const { return m_viewProjectionMatrixInverse; }
         /// @}
 
         /**
@@ -143,10 +147,11 @@ namespace lava::magma {
         float m_farClip = 1000.f;
 
         // ----- Transforms
-        glm::mat4 m_viewTransform = glm::mat4(1.f);
-        glm::mat4 m_projectionTransform = glm::mat4(1.f);
-        glm::mat4 m_viewTransformInverse = glm::mat4(1.f);
-        glm::mat4 m_projectionTransformInverse = glm::mat4(1.f);
-        glm::mat4 m_viewProjectionTransformInverse = glm::mat4(1.f);
+        lava::Transform m_viewTransform;
+        glm::mat4 m_viewMatrix = glm::mat4(1.f);
+        glm::mat4 m_projectionMatrix = glm::mat4(1.f);
+        glm::mat4 m_viewMatrixInverse = glm::mat4(1.f);
+        glm::mat4 m_projectionMatrixInverse = glm::mat4(1.f);
+        glm::mat4 m_viewProjectionMatrixInverse = glm::mat4(1.f);
     };
 }

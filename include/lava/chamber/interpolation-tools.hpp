@@ -1,6 +1,8 @@
 #pragma once
 
+#include <lava/core/interpolation-ease.hpp>
 #include <lava/core/interpolation-type.hpp>
+#include <lava/core/transform.hpp>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>
@@ -28,5 +30,8 @@ namespace lava::chamber {
     inline glm::vec3 interpolateLinear(const glm::vec3& v0, const glm::vec3& v1, float t) { return v0 + t * (v1 - v0); }
     inline glm::vec4 interpolateLinear(const glm::vec4& v0, const glm::vec4& v1, float t) { return v0 + t * (v1 - v0); }
     inline glm::quat interpolateLinear(const glm::quat& q0, const glm::quat& q1, float t) { return glm::slerp(q0, q1, t); }
-    glm::mat4 interpolateLinear(const glm::mat4& m0, const glm::mat4& m1, float t);
+    lava::Transform interpolateLinear(const lava::Transform& m0, const lava::Transform& m1, float t);
+
+    lava::Transform interpolate(const lava::Transform& m0, const lava::Transform& m1, float t,
+                                lava::InterpolationEase translationEase, lava::InterpolationEase rotationEase, lava::InterpolationEase scalingEase);
 }

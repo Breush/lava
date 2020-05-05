@@ -1,6 +1,5 @@
 #include "./camera.hpp"
 
-#include <iostream>
 #include <lava/crater.hpp>
 #include <lava/chamber/math.hpp>
 

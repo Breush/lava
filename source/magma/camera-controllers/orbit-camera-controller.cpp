@@ -10,12 +10,12 @@ void OrbitCameraController::bind(Camera& camera)
     m_camera = &camera;
 
     updateCameraViewTransform();
-    updateCameraProjectionTransform();
+    updateCameraProjectionMatrix();
 }
 
 void OrbitCameraController::updateCamera()
 {
-    updateCameraProjectionTransform();
+    updateCameraProjectionMatrix();
 }
 
 // ----- Controls
@@ -94,17 +94,25 @@ void OrbitCameraController::updateCameraViewTransform()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    m_camera->viewTransform(glm::lookAtRH(m_origin, m_target, m_up));
+    lava::Transform transform;
+    transform.translation = m_origin;
+    transform.rotation = glm::quatLookAtRH(glm::normalize(m_target - m_origin), m_up);
+
+    // @note :CameraViewNeedInverse
+    // The view transform of the camera is meant to move models
+    // into the camera space, therefore it is the inverse
+    // of the effective camera's transform.
+    m_camera->viewTransform(transform.inverse());
 }
 
-void OrbitCameraController::updateCameraProjectionTransform()
+void OrbitCameraController::updateCameraProjectionMatrix()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     const auto aspectRatio = static_cast<float>(m_camera->extent().width) / static_cast<float>(m_camera->extent().height);
 
-    auto projectionTransform = glm::perspectiveRH(m_camera->fovY(), aspectRatio, m_camera->nearClip(), m_camera->farClip());
-    projectionTransform[1][1] *= -1;
+    auto projectionMatrix = glm::perspectiveRH(m_camera->fovY(), aspectRatio, m_camera->nearClip(), m_camera->farClip());
+    projectionMatrix[1][1] *= -1;
 
-    m_camera->projectionTransform(projectionTransform);
+    m_camera->projectionMatrix(projectionMatrix);
 }

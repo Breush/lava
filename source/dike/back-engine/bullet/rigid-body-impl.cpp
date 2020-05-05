@@ -42,24 +42,22 @@ void RigidBody::Impl::dynamic(bool dynamic)
     updateShape();
 }
 
-void RigidBody::Impl::transform(const glm::mat4& transform)
+void RigidBody::Impl::transform(const lava::Transform& transform)
 {
     // @note Bullet physics does not allow for scaling
     // in rigid body transform, thus this decompose is needed,
     // to apply it to the shape instead.
 
-    glm::vec3 scaling, skew;
-    glm::vec4 perspective;
-    glm::decompose(transform, scaling, m_rotation, m_translation, skew, perspective);
+    bool scalingChanged = (m_transform.scaling != transform.scaling);
+    m_transform = transform;
 
-    if (m_scaling != scaling) {
-        m_scaling = scaling;
-        m_shape.setLocalScaling(btVector3(m_scaling.x, m_scaling.y, m_scaling.z));
+    if (scalingChanged) {
+        m_shape.setLocalScaling(btVector3(transform.scaling, transform.scaling, transform.scaling));
         updateShape();
     }
 
-    btVector3 btTranslation(m_translation.x, m_translation.y, m_translation.z);
-    btQuaternion btOrientation(m_rotation.x, m_rotation.y, m_rotation.z, m_rotation.w);
+    btVector3 btTranslation(m_transform.translation.x, m_transform.translation.y, m_transform.translation.z);
+    btQuaternion btOrientation(m_transform.rotation.x, m_transform.rotation.y, m_transform.rotation.z, m_transform.rotation.w);
     btTransform btWorldTransform;
     btWorldTransform.setOrigin(btTranslation);
     btWorldTransform.setRotation(btOrientation);
@@ -182,7 +180,7 @@ void RigidBody::Impl::addShape(const glm::mat4& localTransform, std::unique_ptr<
     // we first revert it to default before adding the new child and re-applying it.
     m_shape.setLocalScaling(btVector3(1.f, 1.f, 1.f));
     m_shape.addChildShape(btLocalTransform, shape.get());
-    m_shape.setLocalScaling(btVector3{m_scaling.x, m_scaling.y, m_scaling.z});
+    m_shape.setLocalScaling(btVector3{m_transform.scaling, m_transform.scaling, m_transform.scaling});
     m_shape.calculateLocalInertia(m_shapes.size() * m_mass, m_inertia);
 
     updateShape();

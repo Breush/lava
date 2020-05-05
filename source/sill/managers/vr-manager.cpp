@@ -16,15 +16,15 @@ void VrManager::update()
 
     if (renderEngine.vr().deviceValid(VrDeviceType::LeftHand)) {
         auto& mesh = renderEngine.vr().deviceMesh(VrDeviceType::LeftHand, m_engine.scene());
-        mesh.transform(renderEngine.vr().deviceTransform(VrDeviceType::LeftHand));
+        mesh.transform(renderEngine.vr().deviceTransform(VrDeviceType::LeftHand).matrix());
     }
     if (renderEngine.vr().deviceValid(VrDeviceType::RightHand)) {
         auto& mesh = renderEngine.vr().deviceMesh(VrDeviceType::RightHand, m_engine.scene());
-        mesh.transform(renderEngine.vr().deviceTransform(VrDeviceType::RightHand));
+        mesh.transform(renderEngine.vr().deviceTransform(VrDeviceType::RightHand).matrix());
     }
     if (renderEngine.vr().deviceValid(VrDeviceType::Head)) {
         auto& mesh = renderEngine.vr().deviceMesh(VrDeviceType::Head, m_engine.scene());
-        mesh.transform(renderEngine.vr().deviceTransform(VrDeviceType::Head));
+        mesh.transform(renderEngine.vr().deviceTransform(VrDeviceType::Head).matrix());
     }
 }
 
@@ -38,7 +38,7 @@ bool VrManager::deviceValid(VrDeviceType deviceType) const
     return m_engine.renderEngine().vr().deviceValid(deviceType);
 }
 
-const glm::mat4& VrManager::deviceTransform(VrDeviceType deviceType) const
+const lava::Transform& VrManager::deviceTransform(VrDeviceType deviceType) const
 {
     return m_engine.renderEngine().vr().deviceTransform(deviceType);
 }
@@ -48,7 +48,8 @@ void VrManager::translation(const glm::vec3& translation)
     m_tranlation = translation;
 
     // @todo Currently only handling translation for the area transform!
-    auto transform = glm::translate(glm::mat4{1.f}, translation);
+    // It could be a lava::Transform directly!
+    auto matrix = glm::translate(glm::mat4{1.f}, translation);
 
-    m_engine.renderEngine().vr().transform(transform);
+    m_engine.renderEngine().vr().matrix(matrix);
 }

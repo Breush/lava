@@ -4,11 +4,8 @@ namespace lava::dike {
     class MotionState final : public btMotionState {
     public:
         // This referenced transform will be automatically updated
-        MotionState(glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scaling)
+        MotionState(lava::Transform& transform)
             : m_transform(transform)
-            , m_translation(translation)
-            , m_rotation(rotation)
-            , m_scaling(scaling)
         {
         }
 
@@ -19,8 +16,8 @@ namespace lava::dike {
 
         void getWorldTransform(btTransform& worldTrans) const override final
         {
-            btVector3 btTranslation(m_translation.x, m_translation.y, m_translation.z);
-            btQuaternion btOrientation(m_rotation.x, m_rotation.y, m_rotation.z, m_rotation.w);
+            btVector3 btTranslation(m_transform.translation.x, m_transform.translation.y, m_transform.translation.z);
+            btQuaternion btOrientation(m_transform.rotation.x, m_transform.rotation.y, m_transform.rotation.z, m_transform.rotation.w);
             worldTrans.setOrigin(btTranslation);
             worldTrans.setRotation(btOrientation);
         }
@@ -28,15 +25,12 @@ namespace lava::dike {
         void setWorldTransform(const btTransform& worldTrans) override final
         {
             m_transformChanged = true;
-            worldTrans.getOpenGLMatrix(reinterpret_cast<float*>(&m_transform));
-            m_transform = glm::scale(m_transform, m_scaling);
+            m_transform.translation = glm::vec3{worldTrans.getOrigin().getX(), worldTrans.getOrigin().getY(), worldTrans.getOrigin().getZ()};
+            m_transform.rotation = glm::quat{worldTrans.getRotation().getW(), worldTrans.getRotation().getX(), worldTrans.getRotation().getY(), worldTrans.getRotation().getZ()};
         }
 
     private:
-        glm::mat4& m_transform;
-        glm::vec3& m_translation;
-        glm::quat& m_rotation;
-        glm::vec3& m_scaling;
+        lava::Transform& m_transform;
         bool m_transformChanged = false;
     };
 }

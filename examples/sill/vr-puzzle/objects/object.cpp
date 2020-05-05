@@ -2,8 +2,6 @@
 
 #include "../game-state.hpp"
 
-#include <iostream>
-
 Object::Object(GameState& gameState)
     : m_gameState(gameState)
 {

@@ -1,6 +1,6 @@
 vec3 positionFromDepth(float depth, vec2 coord) {
     vec4 pPosition = vec4(2 * coord - 1, depth, 1);
-    vec4 vPosition = camera.projectionTransformInverse * pPosition;
+    vec4 vPosition = camera.projectionMatrixInverse * pPosition;
     vPosition /= vPosition.w;
     return (camera.viewTransformInverse * vPosition).xyz;
 }

@@ -37,7 +37,16 @@ void AnimationComponent::update(float dt)
 
 void AnimationComponent::start(AnimationFlags flags, float time, bool autoStop)
 {
-    if (flags & AnimationFlag::WorldTransform) {
+    if (flags & AnimationFlag::Transform) {
+        auto& animationInfo = findOrCreateAnimationInfo(AnimationFlag::Transform);
+        animationInfo.autoStop = autoStop;
+        animationInfo.timeSpent = 0.f;
+        animationInfo.totalTime = time;
+        animationInfo.startValue = m_entity.get<TransformComponent>().transform();
+        animationInfo.targetValue = animationInfo.startValue;
+        animationInfo.needUpdate = true;
+    }
+    else if (flags & AnimationFlag::WorldTransform) {
         auto& animationInfo = findOrCreateAnimationInfo(AnimationFlag::WorldTransform);
         animationInfo.autoStop = autoStop;
         animationInfo.timeSpent = 0.f;
@@ -69,7 +78,7 @@ void AnimationComponent::stop(AnimationFlags flags)
     }
 }
 
-void AnimationComponent::target(AnimationFlag flag, const glm::mat4& target)
+void AnimationComponent::target(AnimationFlag flag, const lava::Transform& target)
 {
     auto animationInfo = findAnimationInfo(flag);
     if (animationInfo == nullptr) {
@@ -109,7 +118,13 @@ AnimationComponent::AnimationInfo* AnimationComponent::findAnimationInfo(Animati
         return nullptr;
     }
 
-    if (flag == AnimationFlag::WorldTransform) {
+    if (flag == AnimationFlag::Transform) {
+        if (animationInfosIt->second.size() == 0) {
+            return nullptr;
+        }
+        return &animationInfosIt->second.at(0);
+    }
+    else if (flag == AnimationFlag::WorldTransform) {
         if (animationInfosIt->second.size() == 0) {
             return nullptr;
         }
@@ -139,7 +154,12 @@ AnimationComponent::AnimationInfo* AnimationComponent::findAnimationInfo(Animati
 
 AnimationComponent::AnimationInfo& AnimationComponent::findOrCreateAnimationInfo(AnimationFlag flag)
 {
-    if (flag == AnimationFlag::WorldTransform) {
+    if (flag == AnimationFlag::Transform) {
+        auto& animationInfos = m_animationsInfos[AnimationFlag::Transform];
+        animationInfos.resize(1);
+        return animationInfos[0];
+    }
+    else if (flag == AnimationFlag::WorldTransform) {
         auto& animationInfos = m_animationsInfos[AnimationFlag::WorldTransform];
         animationInfos.resize(1);
         return animationInfos[0];
@@ -172,12 +192,20 @@ void AnimationComponent::updateInterpolation(AnimationFlag flag, AnimationInfo& 
     // We need to update next loop, because animation is not over yet.
     animationInfo.needUpdate = (timeRatio < 1.f);
 
-    if (flag == AnimationFlag::WorldTransform) {
-        const auto& startValue = std::get<glm::mat4>(animationInfo.startValue);
-        const auto& targetValue = std::get<glm::mat4>(animationInfo.targetValue);
+    if (flag == AnimationFlag::Transform) {
+        const auto& startValue = std::get<lava::Transform>(animationInfo.startValue);
+        const auto& targetValue = std::get<lava::Transform>(animationInfo.targetValue);
 
-        glm::mat4 value = targetValue;
-        if (animationInfo.needUpdate) value = chamber::interpolateLinear(startValue, targetValue, timeRatio);
+        lava::Transform value = targetValue;
+        if (animationInfo.needUpdate) value = chamber::interpolate(startValue, targetValue, timeRatio, InterpolationEase::In, InterpolationEase::None, InterpolationEase::In);
+        m_entity.get<TransformComponent>().transform(value, TransformComponent::ChangeReasonFlag::Animation);
+    }
+    else if (flag == AnimationFlag::WorldTransform) {
+        const auto& startValue = std::get<lava::Transform>(animationInfo.startValue);
+        const auto& targetValue = std::get<lava::Transform>(animationInfo.targetValue);
+
+        lava::Transform value = targetValue;
+        if (animationInfo.needUpdate) value = chamber::interpolate(startValue, targetValue, timeRatio, InterpolationEase::In, InterpolationEase::None, InterpolationEase::In);
         m_entity.get<TransformComponent>().worldTransform(value, TransformComponent::ChangeReasonFlag::Animation);
     }
     else if (flag == AnimationFlag::MaterialUniform) {

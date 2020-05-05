@@ -63,13 +63,6 @@ Mesh& VrEngine::deviceMesh(VrDeviceType deviceType, Scene& scene)
     return *m_devicesMeshes[deviceType];
 }
 
-// ----- Area
-
-void VrEngine::transform(const glm::mat4& transform)
-{
-    m_transform = transform;
-}
-
 // ----- View
 
 Extent2d VrEngine::renderTargetExtent() const
@@ -77,13 +70,13 @@ Extent2d VrEngine::renderTargetExtent() const
     return m_impl->renderTargetExtent();
 }
 
-glm::mat4 VrEngine::eyeProjectionTransform(VrEye eye, float nearClip, float farClip) const
+glm::mat4 VrEngine::eyeProjectionMatrix(VrEye eye, float nearClip, float farClip) const
 {
-    return m_impl->eyeProjectionTransform(eye, nearClip, farClip);
+    return m_impl->eyeProjectionMatrix(eye, nearClip, farClip);
 }
 
-glm::mat4 VrEngine::eyeViewTransform(VrEye eye) const
+lava::Transform VrEngine::eyeViewTransform(VrEye eye) const
 {
-    // @todo Not sure why we would need inverse here...
-    return glm::inverse(m_devicesInfos.at(VrDeviceType::Head).transform * m_impl->eyeToHeadTransform(eye));
+    // @note :CameraViewNeedInverse
+    return (m_devicesInfos.at(VrDeviceType::Head).transform * m_impl->eyeToHeadTransform(eye)).inverse();
 }

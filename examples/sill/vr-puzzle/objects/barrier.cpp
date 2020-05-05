@@ -1,7 +1,5 @@
 #include "./barrier.hpp"
 
-#include <iostream>
-
 #include "../game-state.hpp"
 
 using namespace lava;
@@ -15,8 +13,8 @@ Barrier::Barrier(GameState& gameState)
     m_entity->make<sill::AnimationComponent>();
 
     auto& meshComponent = m_entity->get<sill::MeshComponent>();
-    sill::makers::CylinderMeshOptions options = {.doubleSided = true, .offset = 1.5f};
-    sill::makers::cylinderMeshMaker(16u, 1.f, 3.f, options)(meshComponent);
+    sill::makers::CylinderMeshOptions options = {.doubleSided = true, .offset = 0.125f};
+    sill::makers::cylinderMeshMaker(16u, 1.f, 0.25f, options)(meshComponent);
     meshComponent.primitive(0u, 0u).category(RenderCategory::Translucent);
     meshComponent.primitive(0u, 0u).shadowsCastable(false);
 
@@ -46,8 +44,12 @@ void Barrier::clear(bool removeFromLevel)
 
 void Barrier::diameter(float diameter)
 {
+    if (m_diameter == diameter) return;
     m_diameter = diameter;
-    transform().scaling(glm::vec3{diameter, diameter, 1.f});
+
+    auto matrix = glm::scale(glm::mat4(1.f), {diameter, diameter, 1.f});
+    mesh().node(0u).transform(matrix); // @todo We went through this setter, maybe we don't really need the explicit call below.
+    mesh().dirtifyNodesTransforms();
 }
 
 void Barrier::powered(bool powered)

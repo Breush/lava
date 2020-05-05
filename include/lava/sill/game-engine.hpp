@@ -96,7 +96,7 @@ namespace lava::sill {
         /// @{
         void add(std::unique_ptr<GameEntity>&& entity);
 
-        void remove(const GameEntity& entity);
+        void remove(GameEntity& entity);
         /// @}
 
         /**

@@ -100,7 +100,7 @@ namespace {
         // @note This is always in sync, and no direction to update.
         // gameState.player.position = gameState.engine->vr().translation();
 
-        gameState.player.headPosition = gameState.engine->vr().deviceTransform(VrDeviceType::Head)[3];
+        gameState.player.headPosition = gameState.engine->vr().deviceTransform(VrDeviceType::Head).translation;
     }
 }
 

@@ -55,30 +55,33 @@ void TransformComponent::update(float /* dt */)
 
 void TransformComponent::translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag)
 {
-    m_translation = translation;
-    updateTransform(changeReasonFlag);
+    m_transform.translation = translation;
+    callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
     updateWorldTransform(changeReasonFlag);
 }
 
 void TransformComponent::rotation(const glm::quat& rotation, ChangeReasonFlag changeReasonFlag)
 {
-    m_rotation = rotation;
-    updateTransform(changeReasonFlag);
+    m_transform.rotation = rotation;
+    callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
     updateWorldTransform(changeReasonFlag);
 }
 
 void TransformComponent::rotateAround(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
 {
-    m_worldTransform[3] -= glm::vec4(center, 0.f);
-    m_worldTransform = glm::toMat4(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis)) * m_worldTransform;
-    m_worldTransform[3] += glm::vec4(center, 0.f);
+    Transform rotationTransform;
+    rotationTransform.rotation = glm::rotate(rotationTransform.rotation, angle, axis);
+
+    m_worldTransform.translation -= center;
+    m_worldTransform = rotationTransform * m_worldTransform;
+    m_worldTransform.translation += center;
     worldTransform(m_worldTransform, changeReasonFlag);
 }
 
-void TransformComponent::scaling(const glm::vec3& scaling, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::scaling(float scaling, ChangeReasonFlag changeReasonFlag)
 {
-    m_scaling = scaling;
-    updateTransform(changeReasonFlag);
+    m_transform.scaling = scaling;
+    callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
     updateWorldTransform(changeReasonFlag);
 }
 
@@ -103,32 +106,35 @@ void TransformComponent::scaling2d(const glm::vec2& scaling, ChangeReasonFlag ch
     updateWorldTransform2d(changeReasonFlag);
 }
 
-//----- World transform
+//----- Transform
 
-void TransformComponent::worldTransform(const glm::mat4& transform, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::transform(const lava::Transform& transform, ChangeReasonFlag changeReasonFlag)
 {
-    m_worldTransform = transform;
+    m_transform = transform;
+
+    callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
+    updateWorldTransform(changeReasonFlag);
+}
+
+void TransformComponent::worldTransform(const lava::Transform& worldTransform, ChangeReasonFlag changeReasonFlag)
+{
+    m_worldTransform = worldTransform;
 
     if (m_entity.parent() != nullptr) {
-        m_transform = glm::inverse(m_entity.parent()->ensure<TransformComponent>().worldTransform()) * m_worldTransform;
+        m_transform = m_entity.parent()->ensure<TransformComponent>().worldTransform().inverse() * m_worldTransform;
     }
     else {
         m_transform = m_worldTransform;
     }
-
-    // Update TRS
-    glm::vec3 skew;
-    glm::vec4 perspective;
-    glm::decompose(m_transform, m_scaling, m_rotation, m_translation, skew, perspective);
 
     updateChildrenWorldTransform();
     callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
     callTransformChanged(m_worldTransformChangedCallbacks, changeReasonFlag);
 }
 
-void TransformComponent::worldTransform2d(const glm::mat3& transform, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::worldTransform2d(const glm::mat3& worldTransform, ChangeReasonFlag changeReasonFlag)
 {
-    m_worldTransform2d = transform;
+    m_worldTransform2d = worldTransform;
 
     if (m_entity.parent() != nullptr) {
         m_transform2d = glm::inverse(m_entity.parent()->ensure<TransformComponent>().worldTransform2d()) * m_worldTransform2d;
@@ -172,15 +178,6 @@ void TransformComponent::onWorldTransform2dChanged(TransformChangedCallback call
 }
 
 // ----- Internal
-
-void TransformComponent::updateTransform(ChangeReasonFlag changeReasonFlag)
-{
-    m_transform = glm::scale(glm::mat4(1.f), m_scaling);
-    m_transform = glm::mat4(m_rotation) * m_transform;
-    m_transform[3] = glm::vec4(m_translation, 1.f);
-
-    callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
-}
 
 void TransformComponent::updateWorldTransform(ChangeReasonFlag changeReasonFlag)
 {

@@ -12,8 +12,8 @@ namespace lava::magma {
     class VrEngine {
     public:
         struct DeviceInfo {
-            bool valid = false;                        // Whether the device is valid.
-            glm::mat4 transform = glm::mat4(1.f);      // Last known world-space transform of the device.
+            bool valid = false;        // Whether the device is valid.
+            lava::Transform transform; // Last known world-space transform of the device.
             // Back-end specific data
             uint32_t data[2u];
         };
@@ -45,7 +45,7 @@ namespace lava::magma {
         bool deviceValid(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).valid; }
 
         /// Get a device transform.
-        const glm::mat4& deviceTransform(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).transform; }
+        const lava::Transform& deviceTransform(VrDeviceType deviceType) const { return m_devicesInfos.at(deviceType).transform; }
 
         /**
          * Get a device mesh.
@@ -70,9 +70,10 @@ namespace lava::magma {
          * @name Area
          */
         /// @{
-        /// World transform of the VR area.
-        const glm::mat4& transform() const { return m_transform; }
-        void transform(const glm::mat4&);
+        /// World matrix of the VR area.
+        // @todo Shouldn't we pass a transform instead?
+        const glm::mat4& matrix() const { return m_matrix; }
+        void matrix(const glm::mat4& matrix) { m_matrix = matrix; }
         /// @}
 
         /**
@@ -82,11 +83,11 @@ namespace lava::magma {
         /// Recommended render target size.
         Extent2d renderTargetExtent() const;
 
-        /// Get camera projection transform for an eye.
-        glm::mat4 eyeProjectionTransform(VrEye eye, float nearClip, float farClip) const;
+        /// Get camera projection matrix for an eye.
+        glm::mat4 eyeProjectionMatrix(VrEye eye, float nearClip, float farClip) const;
 
-        /// Get premultiplied (headTransform * eyeToHeadTransform) eye absolute transform.
-        glm::mat4 eyeViewTransform(VrEye eye) const;
+        /// Get premultiplied (headTransform * eyeToHeadTransform) eye world-space transform.
+        lava::Transform eyeViewTransform(VrEye eye) const;
         /// @}
 
     public:
@@ -102,6 +103,6 @@ namespace lava::magma {
         std::unordered_map<VrDeviceType, DeviceInfo> m_devicesInfos;
         std::unordered_map<VrDeviceType, Mesh*> m_devicesMeshes;
 
-        glm::mat4 m_transform = glm::mat4(1.f);
+        glm::mat4 m_matrix = glm::mat4(1.f);
     };
 }
