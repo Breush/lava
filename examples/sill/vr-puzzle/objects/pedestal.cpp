@@ -105,6 +105,8 @@ void Pedestal::brickStoredChanged(Brick& brick)
 
     if (stored) {
         brick.animation().start(lava::sill::AnimationFlag::Transform, 1.f, false);
+    } else {
+        brick.animation().stop(lava::sill::AnimationFlag::Transform);
     }
 }
 

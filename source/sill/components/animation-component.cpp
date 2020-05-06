@@ -73,7 +73,10 @@ void AnimationComponent::start(AnimationFlags flags, magma::Material& material, 
 
 void AnimationComponent::stop(AnimationFlags flags)
 {
-    if (flags & AnimationFlag::WorldTransform) {
+    if (flags & AnimationFlag::Transform) {
+        m_animationsInfos.erase(AnimationFlag::Transform);
+    }
+    else if (flags & AnimationFlag::WorldTransform) {
         m_animationsInfos.erase(AnimationFlag::WorldTransform);
     }
 }

@@ -135,7 +135,7 @@ namespace {
 
         lava::Transform targetTransform = handTransform * handBrickLocalTransform;
         targetTransform.rotation = glm::rotate(targetTransform.rotation, -3.14156f * 0.25f, {1, 0, 0});
-        targetTransform = targetTransform * baseRotationLevelTransform();
+        targetTransform *= baseRotationLevelTransform();
 
         // If the hand is close to a snapping point, we snap to it.
         gameState.snapping.panel = nullptr;
