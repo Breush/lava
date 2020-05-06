@@ -602,7 +602,7 @@ void setupEditor(GameState& gameState)
         // Computing barycenter of selected objects, this is where the gizmo will be.
         glm::vec3 barycenter = glm::vec3{0.f};
         for (auto object : gameState.editor.selection.objects) {
-            barycenter += object->transform().translation();
+            barycenter += object->transform().worldTransform().translation;
         }
         barycenter /= gameState.editor.selection.objects.size();
 
@@ -622,7 +622,7 @@ void setupEditor(GameState& gameState)
                 const auto delta = projectOn(axisRay, gameState.pickingRay) - gameState.editor.gizmo.axisOffset;
 
                 for (auto object : gameState.editor.selection.objects) {
-                    object->transform().translate(-delta * gameState.editor.gizmo.axis);
+                    object->transform().worldTranslate(-delta * gameState.editor.gizmo.axis);
                 }
             }
         }
@@ -639,7 +639,7 @@ void setupEditor(GameState& gameState)
                 gameState.editor.gizmo.axisOffset = axisOffset;
 
                 for (auto object : gameState.editor.selection.objects) {
-                    object->transform().rotateFrom(gameState.editor.gizmo.axis, -delta, barycenter);
+                    object->transform().worldRotateFrom(gameState.editor.gizmo.axis, -delta, barycenter);
                 }
             }
         }
@@ -657,7 +657,7 @@ void setupEditor(GameState& gameState)
                 gameState.editor.gizmo.previousScaling = newScaling;
 
                 for (auto object : gameState.editor.selection.objects) {
-                    object->transform().scaleFrom(scaleFactor, barycenter);
+                    object->transform().worldScaleFrom(scaleFactor, barycenter);
                 }
             }
         }

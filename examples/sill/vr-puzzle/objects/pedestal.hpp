@@ -24,6 +24,9 @@ public:
     void addBrick(Brick& brick);
 
 protected:
+    void updateBricksArms();
+
+protected:
     struct BrickInfo {
         // @note After deserialization and before call to consolidateReferences(),
         // unconsolidatedBrickId is the only valid value in this struct.
@@ -31,6 +34,7 @@ protected:
         uint32_t unconsolidatedBrickId = -1u;
         Brick* brick = nullptr;
 
+        lava::sill::GameEntity* arm = nullptr;
         float rotation1 = 0.f;
         float rotation2 = 0.f;
     };

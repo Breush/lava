@@ -32,14 +32,20 @@ Object* findObject(GameState& gameState, const lava::sill::GameEntity& entity)
 {
     auto pEntity = &entity;
 
-    // Object are root entities, we go find it.
-    while (pEntity->parent() != nullptr) {
-        pEntity = pEntity->parent();
-    }
-
     for (auto object : gameState.level.objects) {
         if (&object->entity() == pEntity) {
             return object;
+        }
+    }
+
+    // Climbing up the hierarchy until we find the object.
+    while (pEntity->parent() != nullptr) {
+        pEntity = pEntity->parent();
+
+        for (auto object : gameState.level.objects) {
+            if (&object->entity() == pEntity) {
+                return object;
+            }
         }
     }
 

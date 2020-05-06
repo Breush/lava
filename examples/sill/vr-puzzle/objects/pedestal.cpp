@@ -22,6 +22,10 @@ void Pedestal::clear(bool removeFromLevel)
     Generic::clear(removeFromLevel);
 
     m_gameState.engine->remove(*m_bricksRoot);
+
+    for (auto& brickInfo : m_brickInfos) {
+        m_gameState.engine->remove(*brickInfo.arm);
+    }
     m_brickInfos.clear();
 }
 
@@ -31,7 +35,10 @@ void Pedestal::unserialize(const nlohmann::json& data)
 
     m_brickInfos.clear();
     for (auto& brick : data["bricks"]) {
-        m_brickInfos.emplace_back(BrickInfo{.unconsolidatedBrickId = brick});
+        auto& brickInfo = m_brickInfos.emplace_back(BrickInfo{.unconsolidatedBrickId = brick});
+        brickInfo.arm = &m_gameState.engine->make<sill::GameEntity>("pedestal.bricks-root.arm");
+        brickInfo.arm->ensure<sill::TransformComponent>();
+        brickInfo.arm->parent(m_bricksRoot);
     }
 }
 
@@ -62,8 +69,11 @@ void Pedestal::consolidateReferences()
         brickStoredChanged(*brickInfo.brick);
     }
 
+    updateBricksArms();
+
     m_entity->ensure<sill::BehaviorComponent>().onUpdate([this](float dt) {
         if (!m_powered) return;
+        if (m_gameState.state == State::Editor) return;
 
         for (auto& brickInfo : m_brickInfos) {
             auto& brick = *brickInfo.brick;
@@ -82,13 +92,16 @@ void Pedestal::consolidateReferences()
 
     // @fixme Left to implement:
     // - Close animation (open reversed?)
-    // - Multiple bricks animations
 }
 
 void Pedestal::brickStoredChanged(Brick& brick)
 {
+    auto brickInfoIt = std::find_if(m_brickInfos.begin(), m_brickInfos.end(), [&brick](const BrickInfo& brickInfo) {
+        return brickInfo.brick == &brick;
+    });
+
     auto stored = brick.stored();
-    brick.entity().parent((stored) ? m_bricksRoot : nullptr);
+    brick.entity().parent((stored) ? brickInfoIt->arm : nullptr);
 
     if (stored) {
         brick.animation().start(lava::sill::AnimationFlag::Transform, 1.f, false);
@@ -104,12 +117,17 @@ void Pedestal::addBrick(Brick& brick)
     if (brickInfoIt == m_brickInfos.end()) {
         BrickInfo brickInfo;
         brickInfo.brick = &brick;
+        brickInfo.arm = &m_gameState.engine->make<sill::GameEntity>("pedestal.bricks-root.arm");
+        brickInfo.arm->ensure<sill::TransformComponent>();
+        brickInfo.arm->parent(m_bricksRoot);
         m_brickInfos.emplace_back(brickInfo);
     }
 
     brick.transform().translation({0.f, 0.f, 0.f});
     brick.pedestal(this);
     brick.stored(true);
+
+    updateBricksArms();
 }
 
 void Pedestal::powered(bool powered)
@@ -128,4 +146,16 @@ void Pedestal::powered(bool powered)
     auto& bricksRootAnimation = m_bricksRoot->get<sill::AnimationComponent>();
     bricksRootAnimation.start(sill::AnimationFlag::Transform, 1.f);
     bricksRootAnimation.target(sill::AnimationFlag::Transform, bricksRootTarget);
+}
+
+// ----- Internal
+
+void Pedestal::updateBricksArms()
+{
+    for (auto i = 0u; i < m_brickInfos.size(); ++i) {
+        glm::vec3 translation{0.f, 0.f, i * 0.5f};
+        m_brickInfos[i].rotation1 = i;
+        m_brickInfos[i].rotation2 = i;
+        m_brickInfos[i].arm->get<sill::TransformComponent>().translation(translation);
+    }
 }

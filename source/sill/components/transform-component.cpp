@@ -53,6 +53,14 @@ void TransformComponent::update(float /* dt */)
 
 //----- Local transform
 
+void TransformComponent::transform(const lava::Transform& transform, ChangeReasonFlag changeReasonFlag)
+{
+    m_transform = transform;
+
+    callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
+    updateWorldTransform(changeReasonFlag);
+}
+
 void TransformComponent::translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag)
 {
     m_transform.translation = translation;
@@ -65,17 +73,6 @@ void TransformComponent::rotation(const glm::quat& rotation, ChangeReasonFlag ch
     m_transform.rotation = rotation;
     callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
     updateWorldTransform(changeReasonFlag);
-}
-
-void TransformComponent::rotateFrom(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
-{
-    Transform rotationTransform;
-    rotationTransform.rotation = glm::rotate(rotationTransform.rotation, angle, axis);
-
-    m_worldTransform.translation -= center;
-    m_worldTransform = rotationTransform * m_worldTransform;
-    m_worldTransform.translation += center;
-    worldTransform(m_worldTransform, changeReasonFlag);
 }
 
 void TransformComponent::scaling(float scaling, ChangeReasonFlag changeReasonFlag)
@@ -106,26 +103,7 @@ void TransformComponent::scaling2d(const glm::vec2& scaling, ChangeReasonFlag ch
     updateWorldTransform2d(changeReasonFlag);
 }
 
-void TransformComponent::scaleFrom(float factor, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
-{
-    Transform scalingTransform;
-    scalingTransform.scaling = factor;
-
-    m_worldTransform.translation -= center;
-    m_worldTransform = scalingTransform * m_worldTransform;
-    m_worldTransform.translation += center;
-    worldTransform(m_worldTransform, changeReasonFlag);
-}
-
-//----- Transform
-
-void TransformComponent::transform(const lava::Transform& transform, ChangeReasonFlag changeReasonFlag)
-{
-    m_transform = transform;
-
-    callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
-    updateWorldTransform(changeReasonFlag);
-}
+//----- World transform
 
 void TransformComponent::worldTransform(const lava::Transform& worldTransform, ChangeReasonFlag changeReasonFlag)
 {
@@ -141,6 +119,34 @@ void TransformComponent::worldTransform(const lava::Transform& worldTransform, C
     updateChildrenWorldTransform();
     callTransformChanged(m_transformChangedCallbacks, changeReasonFlag);
     callTransformChanged(m_worldTransformChangedCallbacks, changeReasonFlag);
+}
+
+void TransformComponent::worldTranslate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag)
+{
+    m_worldTransform.translation += delta;
+    worldTransform(m_worldTransform, changeReasonFlag);
+}
+
+void TransformComponent::worldRotateFrom(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
+{
+    Transform rotationTransform;
+    rotationTransform.rotation = glm::rotate(rotationTransform.rotation, angle, axis);
+
+    m_worldTransform.translation -= center;
+    m_worldTransform = rotationTransform * m_worldTransform;
+    m_worldTransform.translation += center;
+    worldTransform(m_worldTransform, changeReasonFlag);
+}
+
+void TransformComponent::worldScaleFrom(float factor, const glm::vec3& center, ChangeReasonFlag changeReasonFlag)
+{
+    Transform scalingTransform;
+    scalingTransform.scaling = factor;
+
+    m_worldTransform.translation -= center;
+    m_worldTransform = scalingTransform * m_worldTransform;
+    m_worldTransform.translation += center;
+    worldTransform(m_worldTransform, changeReasonFlag);
 }
 
 void TransformComponent::worldTransform2d(const glm::mat3& worldTransform, ChangeReasonFlag changeReasonFlag)

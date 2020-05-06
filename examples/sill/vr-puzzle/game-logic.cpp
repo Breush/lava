@@ -210,7 +210,6 @@ namespace {
             const auto& extent = gameState.camera.component->extent();
             auto coordinates = glm::vec2{0.9f * extent.width, 0.9f * extent.height};
             auto screenTransform = gameState.camera.component->unprojectAsTransform(coordinates, 0.5f);
-            screenTransform.rotation = glm::rotate(screenTransform.rotation, chamber::math::PI, {0, 1, 0});
             screenTransform.scaling = 0.02f;
 
             targetTransform = screenTransform * baseRotationLevelTransform();

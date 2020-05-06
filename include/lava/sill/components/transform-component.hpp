@@ -42,6 +42,9 @@ namespace lava::sill {
          */
         /// {
         // 3D
+        const lava::Transform& transform() const { return m_transform; }
+        void transform(const lava::Transform& transform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+
         const glm::vec3& translation() const { return m_transform.translation; }
         void translation(const glm::vec3& translation, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void translate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
@@ -53,14 +56,12 @@ namespace lava::sill {
         void rotate(const glm::vec3& axis, float angle, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
             rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_transform.rotation, changeReasonFlag);
         }
-        void rotateFrom(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
         float scaling() const { return m_transform.scaling; }
         void scaling(float scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void scale(float factor, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
             scaling(m_transform.scaling * factor, changeReasonFlag);
         }
-        void scaleFrom(float factor, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
         // 2D
         const glm::vec2& translation2d() const { return m_translation2d; }
@@ -89,18 +90,19 @@ namespace lava::sill {
         /// }
 
         /**
-         * @name Transform
+         * @name World transform
          *
          * Updating the world transform will change the local transform
          * accordingly, too.
          */
         /// {
         // 3D
-        const lava::Transform& transform() const { return m_transform; }
-        void transform(const lava::Transform& transform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
-
         const lava::Transform& worldTransform() const { return m_worldTransform; }
         void worldTransform(const lava::Transform& worldTransform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+
+        void worldTranslate(const glm::vec3& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void worldRotateFrom(const glm::vec3& axis, float angle, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        void worldScaleFrom(float factor, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
         // 2D
         // @todo :Terminology Well, have lava::Transform2d!

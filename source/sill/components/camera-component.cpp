@@ -81,16 +81,9 @@ Ray CameraComponent::unprojectAsRay(const glm::vec2& coordinates, float depth) c
 
 lava::Transform CameraComponent::unprojectAsTransform(const glm::vec2& coordinates, float depth) const
 {
-    auto targetFront = unproject(coordinates, depth);
-    auto furtherFront = unproject(coordinates, depth + 10.f);
-    auto targetUp = unproject(coordinates - glm::vec2{0.f, 1.f}, depth);
-
-    auto front = glm::normalize(furtherFront - targetFront);
-    auto up = glm::normalize(targetUp - targetFront);
-
     lava::Transform transform;
-    transform.translation = targetFront;
-    transform.rotation = glm::quatLookAtRH(front, up);
+    transform.translation = unproject(coordinates, depth);
+    transform.rotation = glm::inverse(m_camera->viewTransform().rotation);
     return transform;
 }
 
