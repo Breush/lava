@@ -47,7 +47,7 @@ void Barrier::diameter(float diameter)
     if (m_diameter == diameter) return;
     m_diameter = diameter;
 
-    auto matrix = glm::scale(glm::mat4(1.f), {diameter / 2.f, diameter / 2.f, 1.f});
+    auto matrix = glm::scale(glm::mat4(1.f), {diameter, diameter, 1.f});
     mesh().node(0u).transform(matrix); // @todo We went through this setter, maybe we don't really need the explicit call below.
     mesh().dirtifyNodesTransforms();
 }

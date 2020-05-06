@@ -9,6 +9,7 @@
 #include "./game-state.hpp"
 #include "./camera.hpp"
 #include "./environment.hpp"
+#include "./objects/pedestal.hpp"
 #include "./serializer.hpp"
 
 using namespace lava;
@@ -285,9 +286,11 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-panel", {Key::LeftShift, Key::A, Key::P});
     input.bindAction("add-brick", {Key::LeftShift, Key::A, Key::B});
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
+    input.bindAction("add-pedestal", {Key::LeftShift, Key::A, Key::D});
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
     input.bindAction("add-collider", {Key::LeftShift, Key::A, Key::C});
     input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
+    input.bindAction("bind-to-pedestal", {Key::LeftAlt, Key::D});
     // @todo Make action to switch to rotation gizmo on R
 
     auto& editorEntity = engine.make<sill::GameEntity>("editor");
@@ -472,6 +475,14 @@ void setupEditor(GameState& gameState)
             else if (input.justDown("add-barrier")) {
                 auto barrier = std::make_unique<Barrier>(gameState);
                 gameState.level.barriers.emplace_back(std::move(barrier));
+                return;
+            }
+            else if (input.justDown("add-pedestal")) {
+                auto& generic = Generic::make(gameState, "pedestal");
+                lava::Transform transform;
+                transform.translation = gameState.camera.component->origin();
+                generic.consolidateReferences();
+                generic.transform().worldTransform(transform);
                 return;
             }
             else if (input.justDown("add-mesh")) {
@@ -664,7 +675,7 @@ void setupEditor(GameState& gameState)
             }
 
             // If there is one barrier in the multiple selection,
-            // we will be all panels and bricks to it.
+            // we will bind all panels and bricks to it.
             if (input.justDown("bind-to-barrier")) {
                 auto barriersCount = 0u;
                 Object* barrierObject = nullptr;
@@ -688,6 +699,29 @@ void setupEditor(GameState& gameState)
                         else if (object->entity().name() == "panel") {
                             auto& panel = dynamic_cast<Panel&>(*object);
                             panel.addBarrier(barrier);
+                        }
+                    }
+                }
+            }
+
+            // If there is one pedestal in the multiple selection,
+            // we will bind all bricks to it.
+            if (input.justDown("bind-to-pedestal")) {
+                auto pedestalCount = 0u;
+                Pedestal* pedestal = nullptr;
+                for (auto object : gameState.editor.selection.objects) {
+                    Pedestal* possiblePedestal = dynamic_cast<Pedestal*>(object);
+                    if (possiblePedestal != nullptr) {
+                        pedestalCount += 1u;
+                        pedestal = possiblePedestal;
+                    }
+                }
+
+                if (pedestalCount == 1u) {
+                    for (auto object : gameState.editor.selection.objects) {
+                        if (object->entity().name() == "brick") {
+                            auto& brick = dynamic_cast<Brick&>(*object);
+                            pedestal->addBrick(brick);
                         }
                     }
                 }

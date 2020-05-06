@@ -21,6 +21,8 @@ public:
     // A brick informs us that it's stored status changed.
     void brickStoredChanged(Brick& brick);
 
+    void addBrick(Brick& brick);
+
 protected:
     struct BrickInfo {
         // @note After deserialization and before call to consolidateReferences(),
@@ -34,7 +36,7 @@ protected:
     };
 
 private:
-    std::string m_material;
+    std::string m_material = "wood";
     bool m_powered = false;
 
     lava::sill::GameEntity* m_bricksRoot = nullptr;

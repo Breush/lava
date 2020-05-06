@@ -187,12 +187,9 @@ nlohmann::json serialize(GameState& /* gameState */, const Barrier& barrier)
 
 void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::json& json)
 {
-    auto& entity = gameState.engine->make<sill::GameEntity>(json["name"].get<std::string>());
+    auto& entity = generic.entity();
+    entity.name(json["name"].get<std::string>());
     entity.ensure<sill::TransformComponent>().worldTransform(unserializeTransform(json["transform"]));
-
-    if (json.find("data") != json.end()) {
-        generic.unserialize(json["data"]);
-    }
 
     for (auto& componentJson : json["components"].items()) {
         if (componentJson.key() == "mesh") {
@@ -236,7 +233,9 @@ void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::
         }
     }
 
-    generic.entity(entity);
+    if (json.find("data") != json.end()) {
+        generic.unserialize(json["data"]);
+    }
 }
 
 nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
@@ -297,6 +296,9 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
             // Nothing to do
         }
         else if (componentHrid == "animation") {
+            // Nothing to do
+        }
+        else if (componentHrid == "behavior") {
             // Nothing to do
         }
         else {

@@ -8,6 +8,7 @@ using namespace lava;
 Generic::Generic(GameState& gameState)
     : Object(gameState)
 {
+    m_entity = &gameState.engine->make<sill::GameEntity>("generic");
 }
 
 void Generic::clear(bool removeFromLevel)

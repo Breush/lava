@@ -11,6 +11,10 @@ Pedestal::Pedestal(GameState& gameState)
     m_bricksRoot->make<sill::AnimationComponent>();
     m_bricksRoot->ensure<sill::TransformComponent>().scaling(0.f);
     m_bricksRoot->get<sill::TransformComponent>().translation({0.f, 0.f, 0.75f});
+
+    m_entity->name("pedestal");
+    m_entity->ensure<sill::TransformComponent>();
+    m_entity->addChild(*m_bricksRoot);
 }
 
 void Pedestal::clear(bool removeFromLevel)
@@ -46,7 +50,11 @@ nlohmann::json Pedestal::serialize() const
 
 void Pedestal::consolidateReferences()
 {
-    m_entity->addChild(*m_bricksRoot);
+    // Create mesh if not yet referenced
+    if (!m_entity->has<sill::MeshComponent>()) {
+        auto& meshComponent = m_entity->make<sill::MeshComponent>();
+        sill::makers::glbMeshMaker("./assets/models/vr-puzzle/" + m_material + "-pedestal.glb")(meshComponent);
+    }
 
     for (auto& brickInfo : m_brickInfos) {
         brickInfo.brick = m_gameState.level.bricks[brickInfo.unconsolidatedBrickId].get();
@@ -85,6 +93,23 @@ void Pedestal::brickStoredChanged(Brick& brick)
     if (stored) {
         brick.animation().start(lava::sill::AnimationFlag::Transform, 1.f, false);
     }
+}
+
+void Pedestal::addBrick(Brick& brick)
+{
+    // Don't add the same brick twice!
+    auto brickInfoIt = std::find_if(m_brickInfos.begin(), m_brickInfos.end(), [&brick](const BrickInfo& brickInfo) {
+        return brickInfo.brick == &brick;
+    });
+    if (brickInfoIt == m_brickInfos.end()) {
+        BrickInfo brickInfo;
+        brickInfo.brick = &brick;
+        m_brickInfos.emplace_back(brickInfo);
+    }
+
+    brick.transform().translation({0.f, 0.f, 0.f});
+    brick.pedestal(this);
+    brick.stored(true);
 }
 
 void Pedestal::powered(bool powered)
