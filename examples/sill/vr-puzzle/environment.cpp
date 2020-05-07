@@ -161,6 +161,16 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
                 findBarrierByName(gameState, "intro.hard-duo")->powered(solved);
             }
         });
+        findPanelByName(gameState, "intro.big-key")->onSolvedChanged([&gameState](bool solved) {
+            if (!solved) return;
+
+            auto& boat = *findGenericByName(gameState, "env/boat");
+            auto transform = boat.transform().worldTransform();
+            transform.translation.z -= 5.5f;
+
+            boat.animation().start(sill::AnimationFlag::WorldTransform, 2.f);
+            boat.animation().target(sill::AnimationFlag::WorldTransform, transform);
+        });
     }
 }
 

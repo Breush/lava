@@ -498,13 +498,16 @@ void setupEditor(GameState& gameState)
                 std::cin >> fileName;
                 auto filePath = "./assets/models/vr-puzzle/" + fileName + ".glb";
 
-                auto& entity = gameState.engine->make<sill::GameEntity>(fileName);
+                auto& generic = Generic::make(gameState, "");
+                auto& entity = generic.entity();
+                entity.name(fileName);
                 auto& meshComponent = entity.make<sill::MeshComponent>();
                 sill::makers::glbMeshMaker(filePath)(meshComponent);
 
-                auto generic = std::make_unique<Generic>(gameState);
-                generic->entity(entity);
-                gameState.level.generics.emplace_back(std::move(generic));
+                lava::Transform transform;
+                transform.translation = gameState.camera.component->origin();
+                generic.consolidateReferences();
+                generic.transform().worldTransform(transform);
                 return;
             }
             else if (input.justDown("add-collider")) {
