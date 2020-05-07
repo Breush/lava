@@ -1,63 +1,4 @@
 {
-    "barriers": [
-        {
-            "diameter": 3.0,
-            "name": "intro.easy-solo",
-            "powered": true,
-            "transform": {
-                "rotation": [
-                    0.9981589913368225,
-                    0.0,
-                    0.0,
-                    0.06065250560641289
-                ],
-                "scaling": 1.0,
-                "translation": [
-                    12.24120807647705,
-                    2.522948741912842,
-                    2.3442142009735107
-                ]
-            }
-        },
-        {
-            "diameter": 5.0,
-            "name": "intro.easy-duo",
-            "powered": false,
-            "transform": {
-                "rotation": [
-                    0.9997090697288513,
-                    0.0,
-                    0.0,
-                    0.024120749905705452
-                ],
-                "scaling": 1.0,
-                "translation": [
-                    -6.679142951965332,
-                    -0.06651860475540161,
-                    2.758263111114502
-                ]
-            }
-        },
-        {
-            "diameter": 23.5,
-            "name": "intro.hard-duo",
-            "powered": false,
-            "transform": {
-                "rotation": [
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "scaling": 1.0,
-                "translation": [
-                    -29.927669525146484,
-                    10.932795524597168,
-                    1.375806450843811
-                ]
-            }
-        }
-    ],
     "bricks": [
         {
             "barriers": [],
@@ -1459,6 +1400,75 @@
         "version": 0
     },
     "generics": [
+        {
+            "components": null,
+            "data": {
+                "diameter": 3.0,
+                "powered": true
+            },
+            "kind": "barrier",
+            "name": "intro.easy-solo",
+            "transform": {
+                "rotation": [
+                    0.9981589913368225,
+                    0.0,
+                    0.0,
+                    0.06065250560641289
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    12.24120807647705,
+                    2.522948741912842,
+                    2.3442142009735107
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "diameter": 5.0,
+                "powered": false
+            },
+            "kind": "barrier",
+            "name": "intro.easy-duo",
+            "transform": {
+                "rotation": [
+                    0.9997090697288513,
+                    0.0,
+                    0.0,
+                    0.024120749905705452
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -6.679142951965332,
+                    -0.06651860475540161,
+                    2.758263111114502
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "diameter": 23.5,
+                "powered": false
+            },
+            "kind": "barrier",
+            "name": "intro.hard-duo",
+            "transform": {
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -29.927669525146484,
+                    10.932795524597168,
+                    1.375806450843811
+                ]
+            }
+        },
         {
             "components": {
                 "mesh": {

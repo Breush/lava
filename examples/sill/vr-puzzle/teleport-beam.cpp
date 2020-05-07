@@ -144,7 +144,7 @@ namespace {
         // - no barrier prevents us to do so
         bool placeValid = targetFound;
         if (targetFound && anglesValid) {
-            for (const auto& barrier : gameState.level.barriers) {
+            for (auto barrier : gameState.level.barriers) {
                 if (barrier->powered()) continue;
 
                 auto barrierPosition = glm::vec2(barrier->transform().translation());

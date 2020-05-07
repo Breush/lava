@@ -5,9 +5,11 @@
 using namespace lava;
 
 Barrier::Barrier(GameState& gameState)
-    : Object(gameState)
+    : Generic(gameState)
 {
-    m_entity = &gameState.engine->make<sill::GameEntity>("barrier");
+    gameState.level.barriers.emplace_back(this);
+
+    m_entity->name("barrier");
     m_entity->make<sill::TransformComponent>();
     m_entity->make<sill::MeshComponent>();
     m_entity->make<sill::AnimationComponent>();
@@ -24,7 +26,7 @@ Barrier::Barrier(GameState& gameState)
 
 void Barrier::clear(bool removeFromLevel)
 {
-    Object::clear(removeFromLevel);
+    Generic::clear(removeFromLevel);
 
     if (removeFromLevel) {
         for (auto& brick : m_gameState.level.bricks) {
@@ -35,12 +37,28 @@ void Barrier::clear(bool removeFromLevel)
             panel->removeBarrier(*this);
         }
 
-        auto barrierIt = std::find_if(m_gameState.level.barriers.begin(), m_gameState.level.barriers.end(), [this](const std::unique_ptr<Barrier>& barrier) {
-            return (barrier.get() == this);
+        auto barrierIt = std::find_if(m_gameState.level.barriers.begin(), m_gameState.level.barriers.end(), [this](Barrier* barrier) {
+            return (barrier == this);
         });
         m_gameState.level.barriers.erase(barrierIt);
     }
 }
+
+void Barrier::unserialize(const nlohmann::json& data)
+{
+    diameter(data["diameter"]);
+    powered(data["powered"]);
+}
+
+nlohmann::json Barrier::serialize() const
+{
+    nlohmann::json data;
+    data["diameter"] = m_diameter;
+    data["powered"] = m_powered;
+    return data;
+}
+
+// -----
 
 void Barrier::diameter(float diameter)
 {
@@ -65,9 +83,9 @@ void Barrier::powered(bool powered)
 
 Barrier* findBarrierByName(GameState& gameState, const std::string& name)
 {
-    for (const auto& barrier : gameState.level.barriers) {
+    for (auto barrier : gameState.level.barriers) {
         if (barrier->name() == name) {
-            return barrier.get();
+            return barrier;
         }
     }
 
@@ -76,9 +94,9 @@ Barrier* findBarrierByName(GameState& gameState, const std::string& name)
 
 Barrier* findBarrier(GameState& gameState, const sill::GameEntity& entity)
 {
-    for (const auto& barrier : gameState.level.barriers) {
+    for (auto barrier : gameState.level.barriers) {
         if (&barrier->entity() == &entity) {
-            return barrier.get();
+            return barrier;
         }
     }
 
@@ -88,7 +106,8 @@ Barrier* findBarrier(GameState& gameState, const sill::GameEntity& entity)
 uint32_t findBarrierIndex(GameState& gameState, const sill::GameEntity& entity)
 {
     for (uint32_t i = 0u; i < gameState.level.barriers.size(); ++i) {
-        if (&gameState.level.barriers[i]->entity() == &entity) {
+        auto barrier = gameState.level.barriers[i];
+        if (&barrier->entity() == &entity) {
             return i;
         }
     }

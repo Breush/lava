@@ -1,22 +1,23 @@
 #pragma once
 
-#include "./object.hpp"
+#include "./generic.hpp"
 
 #include <glm/glm.hpp>
 
 /**
  * A barrier prevents user to move bricks outside its limits.
  */
-class Barrier : public Object {
+class Barrier final : public Generic {
 public:
     Barrier(GameState& gameState);
     void clear(bool removeFromLevel = true) final;
+
+    void unserialize(const nlohmann::json& data);
+    nlohmann::json serialize() const;
+
     float halfSpan() const final { return m_diameter / 2.f; }
 
     lava::magma::Material& material() { return *mesh().primitive(0u, 0u).material(); }
-
-    const std::string& name() const { return m_name; }
-    void name(const std::string& name) { m_name = name; }
 
     /// An un-powered barrier doesn't allow anything to interact or go through.
     bool powered() const { return m_powered; }
@@ -26,7 +27,6 @@ public:
     void diameter(float diameter);
 
 private:
-    std::string m_name;
     float m_diameter = 1.f;
     bool m_powered = false;
 };

@@ -86,7 +86,7 @@ struct GameState {
 
         std::vector<std::unique_ptr<Panel>> panels;
         std::vector<std::unique_ptr<Brick>> bricks;
-        std::vector<std::unique_ptr<Barrier>> barriers;
+        std::vector<Barrier*> barriers;
         std::vector<std::unique_ptr<Generic>> generics;
 
         // All objects (including panels/bricks/barriers/generics)

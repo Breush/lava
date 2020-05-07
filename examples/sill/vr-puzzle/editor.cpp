@@ -74,6 +74,9 @@ void onSelectionChanged(GameState& gameState)
     // Create UI
     if (gameState.editor.selection.objects.size() == 1u) {
         auto& object = *gameState.editor.selection.objects[0u];
+        auto generic = dynamic_cast<Generic*>(&object);
+        auto kind = (generic != nullptr) ? generic->kind() : "";
+
         if (object.entity().name() == "brick") {
             auto& brick = dynamic_cast<Brick&>(object);
             auto& entity = gameState.engine->make<sill::GameEntity>("ui.brick.fixed");
@@ -107,8 +110,8 @@ void onSelectionChanged(GameState& gameState)
             }
             return;
         }
-        else if (object.entity().name() == "barrier") {
-            auto& barrier = dynamic_cast<Barrier&>(object);
+        else if (kind == "barrier") {
+            auto& barrier = dynamic_cast<Barrier&>(*generic);
             {
                 auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.name");
                 auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(barrier.name()));
@@ -207,6 +210,9 @@ void updateSelectedObject(GameState& gameState, Object& object)
 
     if (gameState.editor.selection.objects.size() != 1u) return;
 
+    auto generic = dynamic_cast<Generic*>(&object);
+    auto kind = (generic != nullptr) ? generic->kind() : "";
+
     if (entity.name() == "brick") {
         auto& brick = dynamic_cast<Brick&>(object);
 
@@ -239,7 +245,7 @@ void updateSelectedObject(GameState& gameState, Object& object)
             panel.extent(panel.extent() - glm::uvec2(1, 0));
         }
     }
-    else if (entity.name() == "barrier") {
+    else if (kind == "barrier") {
         auto& barrier = dynamic_cast<Barrier&>(object);
 
         if (input.justDown("up")) {
@@ -473,8 +479,12 @@ void setupEditor(GameState& gameState)
                 return;
             }
             else if (input.justDown("add-barrier")) {
-                auto barrier = std::make_unique<Barrier>(gameState);
-                gameState.level.barriers.emplace_back(std::move(barrier));
+                // @fixme Factorize when all adders are generics...
+                auto& generic = Generic::make(gameState, "barrier");
+                lava::Transform transform;
+                transform.translation = gameState.camera.component->origin();
+                generic.consolidateReferences();
+                generic.transform().worldTransform(transform);
                 return;
             }
             else if (input.justDown("add-pedestal")) {
@@ -680,28 +690,30 @@ void setupEditor(GameState& gameState)
             // If there is one barrier in the multiple selection,
             // we will bind all panels and bricks to it.
             if (input.justDown("bind-to-barrier")) {
-                auto barriersCount = 0u;
-                Object* barrierObject = nullptr;
+                auto barrierCount = 0u;
+                Barrier* barrier = nullptr;
                 for (auto object : gameState.editor.selection.objects) {
-                    if (object->entity().name() == "barrier") {
-                        barriersCount += 1u;
-                        barrierObject = object;
+                    // @fixme When "object" is no more because everything is generic,
+                    // just check the kind.
+                    Barrier* possibleBarrier = dynamic_cast<Barrier*>(object);
+                    if (possibleBarrier != nullptr) {
+                        barrierCount += 1u;
+                        barrier = possibleBarrier;
                     }
                 }
 
-                if (barriersCount == 1u) {
+                if (barrierCount == 1u) {
                     // @todo Leaving this message as long as we don't have a way to visualize bindings
                     std::cout << "Binding all selected panels and bricks to selected barrier." << std::endl;
 
-                    auto& barrier = dynamic_cast<Barrier&>(*barrierObject);
                     for (auto object : gameState.editor.selection.objects) {
                         if (object->entity().name() == "brick") {
                             auto& brick = dynamic_cast<Brick&>(*object);
-                            brick.addBarrier(barrier);
+                            brick.addBarrier(*barrier);
                         }
                         else if (object->entity().name() == "panel") {
                             auto& panel = dynamic_cast<Panel&>(*object);
-                            panel.addBarrier(barrier);
+                            panel.addBarrier(*barrier);
                         }
                     }
                 }

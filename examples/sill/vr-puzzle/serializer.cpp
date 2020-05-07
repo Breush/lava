@@ -161,34 +161,13 @@ nlohmann::json serialize(GameState& gameState, const Panel& panel)
     return json;
 }
 
-// ----- Barriers
-
-void unserializeBarrier(Barrier& barrier, GameState& /* gameState */, const nlohmann::json& json)
-{
-    barrier.name(json["name"]);
-    barrier.transform().worldTransform(unserializeTransform(json["transform"]));
-    barrier.diameter(json["diameter"]);
-    barrier.powered(json["powered"]);
-}
-
-nlohmann::json serialize(GameState& /* gameState */, const Barrier& barrier)
-{
-    nlohmann::json json = {
-        {"name", barrier.name()},
-        {"transform", serialize(barrier.transform().worldTransform())},
-        {"powered", barrier.powered()},
-        {"diameter", barrier.diameter()},
-    };
-
-    return json;
-}
-
 // ----- Generics
 
 void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::json& json)
 {
+    generic.name(json["name"].get<std::string>());
+
     auto& entity = generic.entity();
-    entity.name(json["name"].get<std::string>());
     entity.ensure<sill::TransformComponent>().worldTransform(unserializeTransform(json["transform"]));
 
     for (auto& componentJson : json["components"].items()) {
@@ -243,7 +222,7 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
     const auto& entity = generic.entity();
 
     nlohmann::json json = {
-        {"name", entity.name()},
+        {"name", generic.name()},
         {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
         {"components", nlohmann::json()},
     };
@@ -345,9 +324,10 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     // we go through gameState.level.bricks. So the brick has to be added
     // to the list beforehands.
 
-    for (auto& barrierJson : levelJson["barriers"]) {
-        auto& barrier = gameState.level.barriers.emplace_back(std::make_unique<Barrier>(gameState));
-        unserializeBarrier(*barrier, gameState, barrierJson);
+    for (auto& genericJson : levelJson["generics"]) {
+        auto kind = (genericJson.find("kind") == genericJson.end()) ? std::string() : genericJson["kind"].get<std::string>();
+        auto& generic = Generic::make(gameState, kind);
+        unserializeGeneric(generic, gameState, genericJson);
     }
     for (auto& panelJson : levelJson["panels"]) {
         auto& panel = gameState.level.panels.emplace_back(std::make_unique<Panel>(gameState));
@@ -356,11 +336,6 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     for (const auto& brickJson : levelJson["bricks"]) {
         auto& brick = gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
         unserializeBrick(*brick, gameState, brickJson);
-    }
-    for (auto& genericJson : levelJson["generics"]) {
-        auto kind = (genericJson.find("kind") == genericJson.end()) ? std::string() : genericJson["kind"].get<std::string>();
-        auto& generic = Generic::make(gameState, kind);
-        unserializeGeneric(generic, gameState, genericJson);
     }
 
     for (auto& generic : gameState.level.generics) {
@@ -383,12 +358,6 @@ void serializeLevel(GameState& gameState, const std::string& path)
         {"position", serialize(gameState.player.position)},
         {"direction", serialize(gameState.player.direction)},
     };
-
-    levelJson["barriers"] = nlohmann::json::array();
-    for (auto i = 0u; i < gameState.level.barriers.size(); ++i) {
-        const auto& barrier = *gameState.level.barriers[i];
-        levelJson["barriers"][i] = serialize(gameState, barrier);
-    }
 
     levelJson["panels"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
@@ -432,12 +401,6 @@ Object& duplicateBySerialization(GameState& gameState, const Object& object)
         auto& panel = *gameState.level.panels.emplace_back(std::make_unique<Panel>(gameState));
         unserializePanel(panel, gameState, json);
         return panel;
-    }
-    else if (entity.name() == "barrier") {
-        auto json = serialize(gameState, dynamic_cast<const Barrier&>(object));
-        auto& barrier = *gameState.level.barriers.emplace_back(std::make_unique<Barrier>(gameState));
-        unserializeBarrier(barrier, gameState, json);
-        return barrier;
     }
 
     // Generics

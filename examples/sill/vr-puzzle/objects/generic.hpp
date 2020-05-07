@@ -10,6 +10,8 @@ public:
     virtual ~Generic() = default;
     virtual void clear(bool removeFromLevel = true);
 
+    const std::string& name() const { return m_name; }
+    void name(const std::string& name) { m_name = name; }
     const std::string& kind() const { return m_kind; }
     template<class T> T& as() { return dynamic_cast<T&>(*this); }
 
@@ -26,6 +28,7 @@ public:
     void walkable(bool walkable) { m_walkable = walkable; }
 
 protected:
+    std::string m_name;
     std::string m_kind;
 
     bool m_walkable = true;

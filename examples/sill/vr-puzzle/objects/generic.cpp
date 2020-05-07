@@ -29,6 +29,9 @@ Generic& Generic::make(GameState& gameState, const std::string& kind)
     if (kind == "pedestal") {
         generic = std::make_unique<Pedestal>(gameState);
     }
+    else if (kind == "barrier") {
+        generic = std::make_unique<Barrier>(gameState);
+    }
     else {
         generic = std::make_unique<Generic>(gameState);
     }
@@ -42,7 +45,7 @@ Generic& Generic::make(GameState& gameState, const std::string& kind)
 Generic* findGenericByName(GameState& gameState, const std::string& name)
 {
     for (const auto& generic : gameState.level.generics) {
-        if (generic->entity().name() == name) {
+        if (generic->name() == name) {
             return generic.get();
         }
     }
