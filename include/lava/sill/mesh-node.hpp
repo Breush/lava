@@ -29,10 +29,14 @@ namespace lava::sill {
         glm::mat4 plainLocalTransform = glm::mat4(1.f);
 
         /// A list of all children.
-        std::vector<MeshNode*> children;
+        /// These indices are relative position from ourselves.
+        /// Which means that the corresponding node is (this + children[0]),
+        /// because the data locality is ensured within the same mesh component.
+        std::vector<int16_t> children;
 
         /// The parent will be set automatically by MeshComponent if the children are specified.
-        MeshNode* parent = nullptr;
+        /// A parent set to self (i.e. 0) means that we have no parent.
+        int16_t parent = 0;
 
     public:
         /// User-set local transform, with no animation.

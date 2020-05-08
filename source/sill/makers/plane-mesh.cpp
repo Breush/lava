@@ -79,10 +79,9 @@ std::function<void(MeshComponent&)> makers::planeMeshMaker(const glm::vec2& dime
         else {
             nodes.emplace_back();
             nodes[1u].meshGroup = std::move(meshGroup);
-            nodes[1u].parent = &nodes[0u];
-            nodes[0u].children.emplace_back(&nodes[1u]);
+            nodes[0u].children.emplace_back(1);
         }
 
-        meshComponent.nodes(std::move(nodes));
+        meshComponent.addNodes(std::move(nodes));
     };
 }

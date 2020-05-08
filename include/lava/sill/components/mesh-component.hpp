@@ -37,14 +37,17 @@ namespace lava::sill {
         MeshNode& node(uint32_t index) { return m_nodes[index]; }
         std::vector<MeshNode>& nodes() { return m_nodes; }
         const std::vector<MeshNode>& nodes() const { return m_nodes; }
-        void nodes(std::vector<MeshNode>&& nodes);
+
+        // Remove all previously added nodes.
+        void removeNodes() { m_nodes.clear(); }
 
         // @todo :Terminology These are non-uniform scaling transforms,
         // We might want to rename that matrix then.
         void dirtifyNodesTransforms() { m_nodesTranformsDirty = true; }
 
-        /// Emplace back a node.
+        /// Emplace back nodes.
         MeshNode& addNode();
+        void addNodes(std::vector<MeshNode>&& nodes);
         /// @}
 
         /**

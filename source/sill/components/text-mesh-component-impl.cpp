@@ -58,12 +58,12 @@ void TextMeshComponent::Impl::update(float /* dt */)
     material->set("fontTexture", geometry.texture);
     primitive.material(material);
 
-    std::vector<MeshNode> nodes(1u);
-    nodes[0u].meshGroup = std::move(meshGroup);
-    nodes[0u].transform(glm::scale(glm::mat4(1.f), glm::vec3{0.01f}));
-
     auto& meshComponent = m_entity.get<MeshComponent>();
-    meshComponent.nodes(std::move(nodes));
+    meshComponent.removeNodes();
+
+    auto& node = meshComponent.addNode();
+    node.meshGroup = std::move(meshGroup);
+    node.transform(glm::scale(glm::mat4(1.f), glm::vec3{0.01f}));
 }
 
 //----- Main interface

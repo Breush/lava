@@ -74,8 +74,7 @@ std::function<void(MeshComponent&)> makers::toreMeshMaker(uint32_t bigTessellati
         // @todo UVs
         primitive.indices(indices);
 
-        std::vector<MeshNode> nodes(1u);
-        nodes[0u].meshGroup = std::move(meshGroup);
-        meshComponent.nodes(std::move(nodes));
+        auto& node = meshComponent.addNode();
+        node.meshGroup = std::move(meshGroup);
     };
 }

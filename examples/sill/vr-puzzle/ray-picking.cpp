@@ -14,12 +14,10 @@ namespace {
         float minDistance = 50.f;
         for (auto& brick : gameState.level.bricks) {
             if (!brick->userInteractionAllowed()) continue;
-            for (auto& block : brick->blocks()) {
-                float distance = block.entity->distanceFrom(ray);
-                if (distance > 0.f && distance < minDistance) {
-                    minDistance = distance;
-                    pickedBrick = brick.get();
-                }
+            float distance = brick->entity().distanceFrom(ray);
+            if (distance > 0.f && distance < minDistance) {
+                minDistance = distance;
+                pickedBrick = brick.get();
             }
         }
 

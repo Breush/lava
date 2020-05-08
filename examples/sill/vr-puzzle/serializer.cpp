@@ -129,7 +129,7 @@ nlohmann::json serialize(GameState& gameState, const Brick& brick)
 
 // ----- Generics
 
-void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::json& json)
+void unserializeGeneric(Generic& generic, const nlohmann::json& json)
 {
     generic.name(json["name"].get<std::string>());
     generic.walkable(json["walkable"]);
@@ -265,7 +265,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     for (auto& genericJson : levelJson["generics"]) {
         auto kind = (genericJson.find("kind") == genericJson.end()) ? std::string() : genericJson["kind"].get<std::string>();
         auto& generic = Generic::make(gameState, kind);
-        unserializeGeneric(generic, gameState, genericJson);
+        unserializeGeneric(generic, genericJson);
     }
     for (const auto& brickJson : levelJson["bricks"]) {
         auto& brick = gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
@@ -329,7 +329,7 @@ Object& duplicateBySerialization(GameState& gameState, const Object& object)
     auto json = serialize(gameState, dynamic_cast<const Generic&>(object));
     auto kind = (json.find("kind") == json.end()) ? std::string() : json["kind"].get<std::string>();
     auto& generic = Generic::make(gameState, kind);
-    unserializeGeneric(generic, gameState, json);
+    unserializeGeneric(generic, json);
     generic.consolidateReferences();
     return generic;
 }

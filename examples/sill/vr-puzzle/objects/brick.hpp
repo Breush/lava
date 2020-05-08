@@ -15,7 +15,7 @@ struct Block {
     // These are updated each time the rotationLevel is changed.
     glm::ivec2 coordinates = {0, 0};
     glm::ivec2 nonRotatedCoordinates = {0, 0};
-    lava::sill::GameEntity* entity = nullptr;
+    uint32_t meshNodeIndex = 0u;
 };
 
 /**

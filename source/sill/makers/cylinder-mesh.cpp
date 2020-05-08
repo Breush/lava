@@ -88,8 +88,7 @@ std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellat
         primitive.verticesUvs(uvs);
         primitive.indices(indices);
 
-        std::vector<MeshNode> nodes(1u);
-        nodes[0u].meshGroup = std::move(meshGroup);
-        meshComponent.nodes(std::move(nodes));
+        auto& node = meshComponent.addNode();
+        node.meshGroup = std::move(meshGroup);
     };
 }

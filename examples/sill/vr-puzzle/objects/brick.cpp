@@ -11,17 +11,14 @@ Brick::Brick(GameState& gameState)
     : Object(gameState)
 {
     m_entity = &gameState.engine->make<sill::GameEntity>("brick");
-    m_entity->make<sill::TransformComponent>();
-    m_entity->make<sill::AnimationComponent>();
+    m_entity->ensure<sill::TransformComponent>();
+    m_entity->ensure<sill::AnimationComponent>();
+    m_entity->ensure<sill::MeshComponent>();
 }
 
 void Brick::clear(bool removeFromLevel)
 {
     Object::clear(removeFromLevel);
-
-    for (auto& block : m_blocks) {
-        m_gameState.engine->remove(*block.entity);
-    }
 
     if (removeFromLevel) {
         auto brickIt = std::find_if(m_gameState.level.bricks.begin(), m_gameState.level.bricks.end(), [this](const std::unique_ptr<Brick>& brick) {
@@ -48,12 +45,9 @@ float Brick::halfSpan() const
 
 void Brick::blocks(std::vector<glm::ivec2> blocks)
 {
-    auto blockScaling = 0.75f;
+    constexpr const auto blockScaling = 0.75f;
 
-    // Clean old entities...
-    for (auto& block : m_blocks) {
-        m_gameState.engine->remove(*block.entity);
-    }
+    // Clean
     m_blocks.resize(blocks.size());
 
     // Create blocks
@@ -61,15 +55,15 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
     for (auto i = 0u; i < blocks.size(); ++i) {
         m_blocks[i].nonRotatedCoordinates = blocks[i];
 
-        // Allocate block
-        auto& entity = m_gameState.engine->make<sill::GameEntity>("block");
-        auto& meshComponent = entity.make<sill::MeshComponent>();
-        blockMaker(meshComponent);
-        entity.get<sill::TransformComponent>().translate({glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0});
-        entity.get<sill::TransformComponent>().scale(blockScaling);
+        // Make block
+        blockMaker(mesh());
+        m_blocks[i].meshNodeIndex = mesh().nodes().size() - 1u;
 
-        m_blocks[i].entity = &entity;
-        m_entity->addChild(entity);
+        auto& rootNode = mesh().node(m_blocks[i].meshNodeIndex - 1u);
+        auto transform = glm::mat4(1.f);
+        transform = glm::translate(transform, {glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0.f});
+        transform = glm::scale(transform, {blockScaling, blockScaling, 1.f});
+        rootNode.transform(transform * rootNode.transform());
     }
 
     // Update blocks
@@ -242,7 +236,7 @@ void Brick::updateBlocksColor()
     }
 
     for (auto& block : m_blocks) {
-        block.entity->get<sill::MeshComponent>().material(1, 0)->set("albedoColor", color);
+        mesh().material(block.meshNodeIndex, 0u)->set("albedoColor", color);
     }
 }
 

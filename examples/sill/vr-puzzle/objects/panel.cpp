@@ -34,8 +34,7 @@ Panel::Panel(GameState& gameState)
     auto& meshNode = meshComponent.addNode();
     meshNode.name = "border";
     meshNode.meshGroup = std::make_unique<sill::MeshGroup>(meshComponent.scene());
-    meshNode.parent = &meshComponent.node(0);
-    meshComponent.node(0).children.emplace_back(&meshNode);
+    meshComponent.node(0).children.emplace_back(1);
     m_borderMaterial = engine.scene().makeMaterial("roughness-metallic");
     meshNode.meshGroup->addPrimitive().material(m_borderMaterial);
 

@@ -162,7 +162,7 @@ namespace {
                 // @note We need "roughness-metallic" material.
                 if (engine.renderEngine().materialInfoIfExists("roughness-metallic") == nullptr) {
                     engine.registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
-                } 
+                }
 
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
                 rmMaterial = engine.scene().makeMaterial("roughness-metallic");
@@ -229,7 +229,7 @@ namespace {
         return meshGroup;
     }
 
-    MeshNode* loadNode(MeshComponent& meshComponent, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
+    int32_t loadNode(MeshComponent& meshComponent, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
                        const nlohmann::json& json, CacheData& cacheData)
     {
         glb::Node node(json["nodes"][nodeIndex]);
@@ -237,7 +237,7 @@ namespace {
         if (node.children.empty() && node.meshIndex == -1u) {
             logger.warning("sill.makers.glb-maker")
                 << "Node '" << node.name << "' is empty and has no children, so it has been removed." << std::endl;
-            return nullptr;
+            return 0;
         }
 
         // @note We have one MeshNode per glb::Node,
@@ -245,6 +245,7 @@ namespace {
         cacheData.nodeIndices[nodeIndex] = meshNodes.size();
         meshNodes.emplace_back();
         auto& meshNode = meshNodes.back();
+        auto meshNodeIndex = meshNodes.size() - 1u;
 
         meshNode.name = node.name;
         meshNode.transform(node.transform);
@@ -262,13 +263,13 @@ namespace {
 
         // Recurse over children
         for (auto child : node.children) {
-            auto childNode = loadNode(meshComponent, child, meshNodes, binChunk, json, cacheData);
-            if (childNode != nullptr) {
-                meshNode.children.emplace_back(childNode);
+            auto childNodeIndex = loadNode(meshComponent, child, meshNodes, binChunk, json, cacheData);
+            if (childNodeIndex != 0) {
+                meshNode.children.emplace_back(childNodeIndex - meshNodeIndex);
             }
         }
 
-        return &meshNode;
+        return meshNodeIndex;
     }
 }
 
@@ -385,9 +386,9 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
         rootNode.name = fileName;
 
         for (uint32_t nodeIndex : nodes) {
-            auto node = loadNode(meshComponent, nodeIndex, meshNodes, binChunk, json, cacheData);
-            if (node != nullptr) {
-                rootNode.children.emplace_back(node);
+            auto meshNodeIndex = loadNode(meshComponent, nodeIndex, meshNodes, binChunk, json, cacheData);
+            if (meshNodeIndex != 0) {
+                rootNode.children.emplace_back(meshNodeIndex);
             }
         }
 
@@ -399,7 +400,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
 
         rootNode.transform(rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY));
 
-        meshComponent.nodes(std::move(meshNodes));
+        meshComponent.addNodes(std::move(meshNodes));
 
         // Bind all uniforms to textures once that are all done loaded
         if (cacheData.threadPool) {

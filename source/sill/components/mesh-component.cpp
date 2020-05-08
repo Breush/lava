@@ -18,8 +18,9 @@ namespace {
             node.meshGroup->transform(entityTransform * node.plainLocalTransform);
         }
 
-        for (auto child : node.children) {
-            updateNodeTransforms(*child, entityTransform, node.plainLocalTransform);
+        for (auto childIndex : node.children) {
+            auto& childNode = *(&node + childIndex);
+            updateNodeTransforms(childNode, entityTransform, node.plainLocalTransform);
         }
     }
 
@@ -35,8 +36,9 @@ namespace {
         }
         s << std::endl;
 
-        for (auto child : node.children) {
-            printNodeHierarchy(*child, s, tabs + 1u);
+        for (auto childIndex : node.children) {
+            auto& childNode = *(&node + childIndex);
+            printNodeHierarchy(childNode, s, tabs + 1u);
         }
     }
 }
@@ -146,53 +148,31 @@ void MeshComponent::updateFrame()
 
 // ----- Nodes
 
-void MeshComponent::nodes(std::vector<MeshNode>&& nodes)
+MeshNode& MeshComponent::addNode()
 {
-    m_nodes = std::move(nodes);
+    m_nodes.emplace_back();
+    m_nodesTranformsDirty = true;
+    return m_nodes.back();
+}
 
-    // Affect parents to each node.
-    for (auto& node : m_nodes) {
-        node.parent = nullptr;
+void MeshComponent::addNodes(std::vector<MeshNode>&& nodes)
+{
+    uint32_t previousSize = m_nodes.size();
+    m_nodes.resize(previousSize + nodes.size());
+
+    for (auto i = 0u; i < nodes.size(); ++i) {
+        m_nodes[previousSize + i] = std::move(nodes[i]);
     }
 
-    for (auto& node : m_nodes) {
-        for (auto& child : node.children) {
-            child->parent = &node;
-        }
-    }
-
-    // @note This one is important not to dirty because
+    // @note This direct call is important because
     // otherwise the ColliderComponent::addMeshNodeShape()
     // might not be correct if the MeshNode::plainLocalTransform
     // is not yet updated.
     updateNodesTransforms();
-}
 
-MeshNode& MeshComponent::addNode()
-{
-    MeshNode* rootNode = nullptr;
-    if (m_nodes.size() > 0u) {
-        rootNode = &m_nodes.at(0u);
-    }
-
-    m_nodes.emplace_back();
-
-    // @note As m_nodes might have reallocated some buffer,
-    // we update all previous pointers if needed.
-    if (rootNode != &m_nodes.at(0u)) {
-        for (auto i = 0u; i < m_nodes.size() - 1u; ++i) {
-            auto& node = m_nodes.at(i);
-            if (node.parent) {
-                node.parent = &m_nodes.at(node.parent - rootNode);
-            }
-            for (auto j = 0u; j < node.children.size(); ++j) {
-                node.children.at(j) = &m_nodes.at(node.children.at(j) - rootNode);
-            }
-        }
-    }
-
+    // Needed for one might have updated the localTransform
+    // after we return here.
     m_nodesTranformsDirty = true;
-    return m_nodes.back();
 }
 
 // ----- Helpers
@@ -344,8 +324,10 @@ void MeshComponent::printHierarchy(std::ostream& s) const
 {
     s << "[MeshComponent]" << std::endl;
 
-    if (nodes().size() > 0) {
-        printNodeHierarchy(nodes()[0], s, 1u);
+    // @note The root nodes have just no parent!
+    for (auto& node : m_nodes) {
+        if (node.parent != 0) continue;
+        printNodeHierarchy(node, s, 1u);
     }
 }
 
@@ -353,11 +335,22 @@ void MeshComponent::printHierarchy(std::ostream& s) const
 
 void MeshComponent::updateNodesTransforms()
 {
-    auto worldMatrix = m_transformComponent.worldTransform().matrix();
+    // Affect parents to each node.
+    for (auto& node : m_nodes) {
+        node.parent = 0;
+    }
+
+    for (auto& node : m_nodes) {
+        for (auto childIndex : node.children) {
+            auto& childNode = *(&node + childIndex);
+            childNode.parent = (&node - &childNode);
+        }
+    }
 
     // @note The root nodes have just no parent!
+    auto worldMatrix = m_transformComponent.worldTransform().matrix();
     for (auto& node : m_nodes) {
-        if (node.parent != nullptr) continue;
+        if (node.parent != 0) continue;
         updateNodeTransforms(node, worldMatrix, glm::mat4{1.f});
     }
 

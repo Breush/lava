@@ -93,8 +93,9 @@ void ColliderComponent::addMeshNodeShape(const MeshNode& node)
         }
     }
 
-    for (auto child : node.children) {
-        addMeshNodeShape(*child);
+    for (auto childIndex : node.children) {
+        auto& childNode = *(&node + childIndex);
+        addMeshNodeShape(childNode);
     }
 }
 
@@ -104,7 +105,7 @@ void ColliderComponent::addMeshShape()
 
     // @note The root nodes have just no parent!
     for (auto& node : meshComponent.nodes()) {
-        if (node.parent != nullptr) continue;
+        if (node.parent != 0) continue;
         addMeshNodeShape(node);
     }
 }
