@@ -4,7 +4,6 @@
 #include <fstream>
 #include <glm/gtx/string_cast.hpp>
 #include <lava/chamber/logger.hpp>
-#include <nlohmann/json.hpp>
 #include <sstream>
 
 #include "./game-state.hpp"
@@ -12,64 +11,62 @@
 using namespace lava;
 using namespace lava::chamber;
 
-namespace {
-    glm::ivec2 unserializeIvec2(const nlohmann::json& json)
-    {
-        return glm::ivec2{json[0], json[1]};
-    }
+glm::ivec2 unserializeIvec2(const nlohmann::json& json)
+{
+    return glm::ivec2{json[0], json[1]};
+}
 
-    glm::uvec2 unserializeUvec2(const nlohmann::json& json)
-    {
-        return glm::uvec2{json[0], json[1]};
-    }
+glm::uvec2 unserializeUvec2(const nlohmann::json& json)
+{
+    return glm::uvec2{json[0], json[1]};
+}
 
-    glm::vec3 unserializeVec3(const nlohmann::json& json)
-    {
-        return glm::vec3{json[0], json[1], json[2]};
-    }
+glm::vec3 unserializeVec3(const nlohmann::json& json)
+{
+    return glm::vec3{json[0], json[1], json[2]};
+}
 
-    glm::quat unserializeQuat(const nlohmann::json& json)
-    {
-        return glm::quat{json[0], json[1], json[2], json[3]};
-    }
+glm::quat unserializeQuat(const nlohmann::json& json)
+{
+    return glm::quat{json[0], json[1], json[2], json[3]};
+}
 
-    Transform unserializeTransform(const nlohmann::json& json)
-    {
-        Transform transform;
-        transform.translation = unserializeVec3(json["translation"]);
-        transform.rotation = unserializeQuat(json["rotation"]);
-        transform.scaling = json["scaling"];
-        return transform;
-    }
+Transform unserializeTransform(const nlohmann::json& json)
+{
+    Transform transform;
+    transform.translation = unserializeVec3(json["translation"]);
+    transform.rotation = unserializeQuat(json["rotation"]);
+    transform.scaling = json["scaling"];
+    return transform;
+}
 
-    nlohmann::json serialize(const glm::ivec2& vector)
-    {
-        return nlohmann::json::array({vector.x, vector.y});
-    }
+nlohmann::json serialize(const glm::ivec2& vector)
+{
+    return nlohmann::json::array({vector.x, vector.y});
+}
 
-    nlohmann::json serialize(const glm::uvec2& vector)
-    {
-        return nlohmann::json::array({vector.x, vector.y});
-    }
+nlohmann::json serialize(const glm::uvec2& vector)
+{
+    return nlohmann::json::array({vector.x, vector.y});
+}
 
-    nlohmann::json serialize(const glm::vec3& vector)
-    {
-        return nlohmann::json::array({vector.r, vector.g, vector.b});
-    }
+nlohmann::json serialize(const glm::vec3& vector)
+{
+    return nlohmann::json::array({vector.r, vector.g, vector.b});
+}
 
-    nlohmann::json serialize(const glm::quat& rotation)
-    {
-        return nlohmann::json::array({rotation.w, rotation.x, rotation.y, rotation.z});
-    }
+nlohmann::json serialize(const glm::quat& rotation)
+{
+    return nlohmann::json::array({rotation.w, rotation.x, rotation.y, rotation.z});
+}
 
-    nlohmann::json serialize(const lava::Transform& transform)
-    {
-        nlohmann::json json;
-        json["translation"] = serialize(transform.translation);
-        json["rotation"] = serialize(transform.rotation);
-        json["scaling"] = transform.scaling;
-        return json;
-    }
+nlohmann::json serialize(const Transform& transform)
+{
+    nlohmann::json json;
+    json["translation"] = serialize(transform.translation);
+    json["rotation"] = serialize(transform.rotation);
+    json["scaling"] = transform.scaling;
+    return json;
 }
 
 // ----- Bricks
@@ -130,42 +127,12 @@ nlohmann::json serialize(GameState& gameState, const Brick& brick)
     return json;
 }
 
-// ----- Panels
-
-void unserializePanel(Panel& panel, GameState& gameState, const nlohmann::json& json)
-{
-    panel.name(json["name"]);
-    panel.extent(unserializeUvec2(json["extent"]));
-
-    auto& barriersJson = json["barriers"];
-    for (auto& barrierJson : barriersJson) {
-        panel.addBarrier(*gameState.level.barriers[barrierJson]);
-    }
-
-    panel.transform().worldTransform(unserializeTransform(json["transform"]));
-}
-
-nlohmann::json serialize(GameState& gameState, const Panel& panel)
-{
-    nlohmann::json json = {
-        {"name", panel.name()},
-        {"transform", serialize(panel.transform().worldTransform())},
-        {"extent", serialize(panel.extent())},
-        {"barriers", nlohmann::json::array()},
-    };
-
-    for (const auto& barrier : panel.barriers()) {
-        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
-    }
-
-    return json;
-}
-
 // ----- Generics
 
 void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::json& json)
 {
     generic.name(json["name"].get<std::string>());
+    generic.walkable(json["walkable"]);
 
     auto& entity = generic.entity();
     entity.ensure<sill::TransformComponent>().worldTransform(unserializeTransform(json["transform"]));
@@ -181,25 +148,6 @@ void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::
             physicsComponent.enabled(componentJson.value()["enabled"].get<bool>());
             physicsComponent.dynamic(componentJson.value()["dynamic"].get<bool>());
         }
-        else if (componentJson.key() == "collider") {
-            auto& colliderComponent = entity.ensure<sill::ColliderComponent>();
-            auto& meshComponent = entity.ensure<sill::MeshComponent>();
-            const auto& boxShapes = componentJson.value()["boxShapes"];
-            for (const auto& boxShape : boxShapes) {
-                auto offset = unserializeVec3(boxShape["offset"]);
-                auto extent = unserializeVec3(boxShape["extent"]);
-                colliderComponent.addBoxShape(offset, extent);
-
-                // @todo This looks like a dirty way of doing that.
-                // We should be able to serialize that it was made from specific a mesh maker...
-                sill::makers::boxMeshMaker(extent)(meshComponent);
-                meshComponent.category(RenderCategory::Translucent);
-                meshComponent.enabled(gameState.state == State::Editor);
-                meshComponent.primitive(0u, 0u).material(gameState.editor.resources.colliderMaterial);
-            }
-
-            generic.walkable(json["walkable"]);
-        }
         else if (componentJson.key() == "sound-emitter") {
             auto& soundEmitterComponent = entity.ensure<sill::SoundEmitterComponent>();
             const auto& sounds = componentJson.value()["sounds"];
@@ -211,7 +159,6 @@ void unserializeGeneric(Generic& generic, GameState& gameState, const nlohmann::
             logger.warning("vr-puzzle") << "Unhandled component '" << componentJson.key() << "'." << std::endl;
         }
     }
-
     if (json.find("data") != json.end()) {
         generic.unserialize(json["data"]);
     }
@@ -225,6 +172,7 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
         {"name", generic.name()},
         {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
         {"components", nlohmann::json()},
+        {"walkable", generic.walkable()},
     };
 
     if (!generic.kind().empty()) {
@@ -247,19 +195,6 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
                 {"dynamic", physicsComponent.dynamic()},
             };
         }
-        else if (componentHrid == "collider") {
-            const auto& colliderComponent = entity.get<sill::ColliderComponent>();
-            auto boxShapes = nlohmann::json::array();
-            for (const auto& boxShape : colliderComponent.boxShapes()) {
-                boxShapes.emplace_back(nlohmann::json({
-                    {"offset", serialize(boxShape.offset)},
-                    {"extent", serialize(boxShape.extent)},
-                }));
-            }
-            componentsJson[componentHrid] = {{"boxShapes", boxShapes}};
-
-            json["walkable"] = generic.walkable();
-        }
         else if (componentHrid == "sound-emitter") {
             auto& soundEmitterComponent = entity.get<sill::SoundEmitterComponent>();
             auto sounds = nlohmann::json::array();
@@ -278,6 +213,9 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
             // Nothing to do
         }
         else if (componentHrid == "behavior") {
+            // Nothing to do
+        }
+        else if (componentHrid == "collider") {
             // Nothing to do
         }
         else {
@@ -314,8 +252,8 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     }
 
     gameState.level.barriers.clear();
-    gameState.level.panels.clear();
     gameState.level.bricks.clear();
+    gameState.level.panels.clear();
     gameState.level.generics.clear();
     gameState.level.objects.clear();
 
@@ -328,10 +266,6 @@ void unserializeLevel(GameState& gameState, const std::string& path)
         auto kind = (genericJson.find("kind") == genericJson.end()) ? std::string() : genericJson["kind"].get<std::string>();
         auto& generic = Generic::make(gameState, kind);
         unserializeGeneric(generic, gameState, genericJson);
-    }
-    for (auto& panelJson : levelJson["panels"]) {
-        auto& panel = gameState.level.panels.emplace_back(std::make_unique<Panel>(gameState));
-        unserializePanel(*panel, gameState, panelJson);
     }
     for (const auto& brickJson : levelJson["bricks"]) {
         auto& brick = gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
@@ -358,12 +292,6 @@ void serializeLevel(GameState& gameState, const std::string& path)
         {"position", serialize(gameState.player.position)},
         {"direction", serialize(gameState.player.direction)},
     };
-
-    levelJson["panels"] = nlohmann::json::array();
-    for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
-        const auto& panel = *gameState.level.panels[i];
-        levelJson["panels"][i] = serialize(gameState, panel);
-    }
 
     levelJson["bricks"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.bricks.size(); ++i) {
@@ -395,12 +323,6 @@ Object& duplicateBySerialization(GameState& gameState, const Object& object)
         auto& brick = *gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
         unserializeBrick(brick, gameState, json);
         return brick;
-    }
-    else if (entity.name() == "panel") {
-        auto json = serialize(gameState, dynamic_cast<const Panel&>(object));
-        auto& panel = *gameState.level.panels.emplace_back(std::make_unique<Panel>(gameState));
-        unserializePanel(panel, gameState, json);
-        return panel;
     }
 
     // Generics

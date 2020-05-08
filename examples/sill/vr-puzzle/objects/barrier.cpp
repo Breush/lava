@@ -33,7 +33,7 @@ void Barrier::clear(bool removeFromLevel)
             brick->removeBarrier(*this);
         }
 
-        for (auto& panel : m_gameState.level.panels) {
+        for (auto panel : m_gameState.level.panels) {
             panel->removeBarrier(*this);
         }
 

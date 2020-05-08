@@ -17,7 +17,7 @@ namespace {
     bool checkLevelSolveStatus(GameState& gameState)
     {
         bool allPanelsSolved = true;
-        for (auto& panel : gameState.level.panels) {
+        for (auto panel : gameState.level.panels) {
             allPanelsSolved = allPanelsSolved && panel->solved();
             if (!allPanelsSolved) {
                 break;
@@ -139,12 +139,12 @@ namespace {
 
         // If the hand is close to a snapping point, we snap to it.
         gameState.snapping.panel = nullptr;
-        for (auto& panel : gameState.level.panels) {
+        for (auto panel : gameState.level.panels) {
             if (auto snappingPoint = panel->closestSnappingPoint(*grabbedBrick, targetTransform.translation)) {
                 targetTransform = snappingPoint->worldTransform * rotationLevelTransform();
 
                 // Set the coordinates of snapped snapping point.
-                gameState.snapping.panel = panel.get();
+                gameState.snapping.panel = panel;
                 gameState.snapping.coordinates = snappingPoint->coordinates;
                 break;
             }
@@ -179,7 +179,7 @@ namespace {
         // If the cursor is over a snapping point, we snap to it.
         gameState.snapping.looksSnapped = false;
         gameState.snapping.panel = nullptr;
-        for (auto& panel : gameState.level.panels) {
+        for (auto panel : gameState.level.panels) {
             if (!panel->userInteractionAllowed()) continue;
 
             // @todo We should find out which panel is the closest!
@@ -192,7 +192,7 @@ namespace {
                 // Set the coordinates of snapped snapping point.
                 if (snappingInfo.validForBrick) {
                     grabbedBrick->errorHighlighted(false);
-                    gameState.snapping.panel = panel.get();
+                    gameState.snapping.panel = panel;
                     gameState.snapping.coordinates = snappingInfo.point->coordinates;
                 }
                 else {

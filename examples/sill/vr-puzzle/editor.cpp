@@ -77,40 +77,7 @@ void onSelectionChanged(GameState& gameState)
         auto generic = dynamic_cast<Generic*>(&object);
         auto kind = (generic != nullptr) ? generic->kind() : "";
 
-        if (object.entity().name() == "brick") {
-            auto& brick = dynamic_cast<Brick&>(object);
-            auto& entity = gameState.engine->make<sill::GameEntity>("ui.brick.fixed");
-            auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle fixed");
-            uiComponent.onClicked([&brick]() {
-                brick.fixed(!brick.fixed());
-            });
-            entity.get<sill::TransformComponent>().translation2d({100.f, 17.f});
-            gameState.ui.entities.emplace_back(&entity);
-            return;
-        }
-        else if (object.entity().name() == "panel") {
-            auto& panel = dynamic_cast<Panel&>(object);
-            {
-                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.name");
-                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(panel.name()));
-                uiComponent.onTextChanged([&panel](const std::wstring& text) {
-                    panel.name(utf16to8(text));
-                });
-                entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
-                gameState.ui.entities.emplace_back(&entity);
-            }
-            {
-                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.solved");
-                auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle solved");
-                uiComponent.onClicked([&panel]() {
-                    panel.pretendSolved(!panel.solved());
-                });
-                entity.get<sill::TransformComponent>().translation2d({100.f, 1.5f * 30.f + 2.f * 2.f});
-                gameState.ui.entities.emplace_back(&entity);
-            }
-            return;
-        }
-        else if (kind == "barrier") {
+        if (kind == "barrier") {
             auto& barrier = dynamic_cast<Barrier&>(*generic);
             {
                 auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.name");
@@ -126,6 +93,39 @@ void onSelectionChanged(GameState& gameState)
                 auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle powered");
                 uiComponent.onClicked([&barrier]() {
                     barrier.powered(!barrier.powered());
+                });
+                entity.get<sill::TransformComponent>().translation2d({100.f, 1.5f * 30.f + 2.f * 2.f});
+                gameState.ui.entities.emplace_back(&entity);
+            }
+            return;
+        }
+        else if (object.entity().name() == "brick") {
+            auto& brick = dynamic_cast<Brick&>(object);
+            auto& entity = gameState.engine->make<sill::GameEntity>("ui.brick.fixed");
+            auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle fixed");
+            uiComponent.onClicked([&brick]() {
+                brick.fixed(!brick.fixed());
+            });
+            entity.get<sill::TransformComponent>().translation2d({100.f, 17.f});
+            gameState.ui.entities.emplace_back(&entity);
+            return;
+        }
+        else if (kind == "panel") {
+            auto& panel = dynamic_cast<Panel&>(*generic);
+            {
+                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.name");
+                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(panel.name()));
+                uiComponent.onTextChanged([&panel](const std::wstring& text) {
+                    panel.name(utf16to8(text));
+                });
+                entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
+                gameState.ui.entities.emplace_back(&entity);
+            }
+            {
+                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.solved");
+                auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle solved");
+                uiComponent.onClicked([&panel]() {
+                    panel.pretendSolved(!panel.solved());
                 });
                 entity.get<sill::TransformComponent>().translation2d({100.f, 1.5f * 30.f + 2.f * 2.f});
                 gameState.ui.entities.emplace_back(&entity);
@@ -213,7 +213,17 @@ void updateSelectedObject(GameState& gameState, Object& object)
     auto generic = dynamic_cast<Generic*>(&object);
     auto kind = (generic != nullptr) ? generic->kind() : "";
 
-    if (entity.name() == "brick") {
+    if (kind == "barrier") {
+        auto& barrier = dynamic_cast<Barrier&>(*generic);
+
+        if (input.justDown("up")) {
+            barrier.diameter(barrier.diameter() + 0.5f);
+        }
+        if (input.justDown("down")) {
+            barrier.diameter(barrier.diameter() - 0.5f);
+        }
+    }
+    else if (entity.name() == "brick") {
         auto& brick = dynamic_cast<Brick&>(object);
 
         if (input.justDown("up")) {
@@ -229,8 +239,8 @@ void updateSelectedObject(GameState& gameState, Object& object)
             brick.addBlockH(0, false);
         }
     }
-    else if (entity.name() == "panel") {
-        auto& panel = dynamic_cast<Panel&>(object);
+    else if (kind == "panel") {
+        auto& panel = dynamic_cast<Panel&>(*generic);
 
         if (input.justDown("up")) {
             panel.extent(panel.extent() + glm::uvec2(0, 1));
@@ -243,16 +253,6 @@ void updateSelectedObject(GameState& gameState, Object& object)
         }
         if (input.justDown("left")) {
             panel.extent(panel.extent() - glm::uvec2(1, 0));
-        }
-    }
-    else if (kind == "barrier") {
-        auto& barrier = dynamic_cast<Barrier&>(object);
-
-        if (input.justDown("up")) {
-            barrier.diameter(barrier.diameter() + 0.5f);
-        }
-        if (input.justDown("down")) {
-            barrier.diameter(barrier.diameter() - 0.5f);
         }
     }
     else {
@@ -294,7 +294,6 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     input.bindAction("add-pedestal", {Key::LeftShift, Key::A, Key::D});
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
-    input.bindAction("add-collider", {Key::LeftShift, Key::A, Key::C});
     input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
     input.bindAction("bind-to-pedestal", {Key::LeftAlt, Key::D});
     // @todo Make action to switch to rotation gizmo on R
@@ -466,10 +465,13 @@ void setupEditor(GameState& gameState)
 
             // ----- Add
 
-            if (input.justDown("add-panel")) {
-                auto panel = std::make_unique<Panel>(gameState);
-                panel->extent({3, 3});
-                gameState.level.panels.emplace_back(std::move(panel));
+            if (input.justDown("add-barrier")) {
+                // @fixme Factorize when all adders are generics...
+                auto& generic = Generic::make(gameState, "barrier");
+                lava::Transform transform;
+                transform.translation = gameState.camera.component->origin();
+                generic.consolidateReferences();
+                generic.transform().worldTransform(transform);
                 return;
             }
             else if (input.justDown("add-brick")) {
@@ -478,9 +480,8 @@ void setupEditor(GameState& gameState)
                 gameState.level.bricks.emplace_back(std::move(brick));
                 return;
             }
-            else if (input.justDown("add-barrier")) {
-                // @fixme Factorize when all adders are generics...
-                auto& generic = Generic::make(gameState, "barrier");
+            else if (input.justDown("add-panel")) {
+                auto& generic = Generic::make(gameState, "panel");
                 lava::Transform transform;
                 transform.translation = gameState.camera.component->origin();
                 generic.consolidateReferences();
@@ -518,22 +519,6 @@ void setupEditor(GameState& gameState)
                 transform.translation = gameState.camera.component->origin();
                 generic.consolidateReferences();
                 generic.transform().worldTransform(transform);
-                return;
-            }
-            else if (input.justDown("add-collider")) {
-                auto& entity = gameState.engine->make<sill::GameEntity>("collider");
-                auto& meshComponent = entity.make<sill::MeshComponent>();
-                sill::makers::boxMeshMaker(1.f)(meshComponent);
-                meshComponent.category(RenderCategory::Translucent);
-                meshComponent.primitive(0u, 0u).material(gameState.editor.resources.colliderMaterial);
-
-                entity.make<sill::PhysicsComponent>().dynamic(false);
-                auto& colliderComponent = entity.make<sill::ColliderComponent>();
-                colliderComponent.addBoxShape();
-
-                auto generic = std::make_unique<Generic>(gameState);
-                generic->entity(entity);
-                gameState.level.generics.emplace_back(std::move(generic));
                 return;
             }
 

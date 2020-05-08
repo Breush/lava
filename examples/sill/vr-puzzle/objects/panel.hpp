@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./object.hpp"
+#include "./generic.hpp"
 
 #include <cstdint>
 #include <glm/glm.hpp>
@@ -10,7 +10,7 @@
 class Brick;
 class Barrier;
 
-class Panel : public Object {
+class Panel : public Generic {
 public:
     using SolvedChangedCallback = std::function<void(bool)>;
 
@@ -29,19 +29,16 @@ public:
     Panel(GameState& gameState);
     void clear(bool removeFromLevel = true) final;
 
-    const lava::sill::GameEntity& entity() const { return *m_entity; }
-    lava::sill::GameEntity& entity() { return *m_entity; }
-
-    const std::string& name() const { return m_name; }
-    void name(const std::string& name) { m_name = name; }
+    void unserialize(const nlohmann::json& data) final;
+    nlohmann::json serialize() const final;
+    void consolidateReferences() final;
 
     /// Update extent and associated materials visuals. This also resets all rules.
     const glm::uvec2& extent() const { return m_extent; }
     void extent(const glm::uvec2& extent);
 
     /// All barriers that allow the panel to be active.
-    const std::set<Barrier*>& barriers() const { return m_barriers; }
-    void addBarrier(Barrier& barrier) { m_barriers.emplace(&barrier); }
+    void addBarrier(Barrier& barrier);
     void removeBarrier(Barrier& barrier);
 
     /// Checks whether the user is allowed to snap brick to this panel.
@@ -80,15 +77,21 @@ protected:
 
     void updateSolved();
 
+protected:
+    struct BarrierInfo {
+        // @note :UnconsolidatedId
+        uint32_t unconsolidatedBarrierId = -1u;
+        Barrier* barrier = nullptr;
+    };
+
 private:
     bool m_solved = false;
     bool m_pretendSolved = false;
 
     // Configuration
-    std::string m_name;
     glm::uvec2 m_extent = {0u, 0u};
-    std::set<Barrier*> m_barriers;
-    std::vector<std::pair<glm::uvec2, glm::uvec2>> m_links;
+    std::vector<BarrierInfo> m_barrierInfos;
+    std::vector<std::pair<glm::uvec2, glm::uvec2>> m_links; // @todo Deprecated because unused?
 
     // Data
     std::vector<uint32_t> m_uniformData;

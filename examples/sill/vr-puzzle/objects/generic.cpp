@@ -26,11 +26,15 @@ void Generic::clear(bool removeFromLevel)
 Generic& Generic::make(GameState& gameState, const std::string& kind)
 {
     std::unique_ptr<Generic> generic;
-    if (kind == "pedestal") {
-        generic = std::make_unique<Pedestal>(gameState);
-    }
-    else if (kind == "barrier") {
+
+    if (kind == "barrier") {
         generic = std::make_unique<Barrier>(gameState);
+    }
+    else if (kind == "panel") {
+        generic = std::make_unique<Panel>(gameState);
+    }
+    else if (kind == "pedestal") {
+        generic = std::make_unique<Pedestal>(gameState);
     }
     else {
         generic = std::make_unique<Generic>(gameState);

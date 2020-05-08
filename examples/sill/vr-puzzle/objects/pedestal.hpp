@@ -9,9 +9,9 @@ public:
     Pedestal(GameState& gameState);
     void clear(bool removeFromLevel = true) final;
 
-    void unserialize(const nlohmann::json& data);
-    nlohmann::json serialize() const;
-    void consolidateReferences();
+    void unserialize(const nlohmann::json& data) final;
+    nlohmann::json serialize() const final;
+    void consolidateReferences() final;
 
     const std::string& material() const { return m_material; }
 
@@ -28,7 +28,7 @@ protected:
 
 protected:
     struct BrickInfo {
-        // @note After deserialization and before call to consolidateReferences(),
+        // @note :UnconsolidatedId After deserialization and before call to consolidateReferences(),
         // unconsolidatedBrickId is the only valid value in this struct.
         // During the game, it might become wrong and should not be used.
         uint32_t unconsolidatedBrickId = -1u;

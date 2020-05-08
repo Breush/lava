@@ -5,6 +5,7 @@
 
 #include "./brick.hpp"
 #include "../game-state.hpp"
+#include "../serializer.hpp"
 #include "../symbols.hpp"
 
 using namespace lava;
@@ -14,12 +15,14 @@ namespace {
 }
 
 Panel::Panel(GameState& gameState)
-    : Object(gameState)
+    : Generic(gameState)
 {
+    gameState.level.panels.emplace_back(this);
+
     auto& engine = *gameState.engine;
 
     // Create panel
-    m_entity = &engine.make<sill::GameEntity>("panel");
+    m_entity->name("panel");
     auto& meshComponent = m_entity->make<sill::MeshComponent>();
     sill::makers::PlaneMeshOptions options;
     options.rootNodeHasGeometry = false;
@@ -36,15 +39,13 @@ Panel::Panel(GameState& gameState)
     m_borderMaterial = engine.scene().makeMaterial("roughness-metallic");
     meshNode.meshGroup->addPrimitive().material(m_borderMaterial);
 
-    m_entity->make<sill::ColliderComponent>();
-    m_entity->get<sill::PhysicsComponent>().dynamic(false);
-    m_entity->make<sill::AnimationComponent>();
-    m_entity->get<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
+    m_entity->ensure<sill::AnimationComponent>();
+    m_entity->ensure<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
 }
 
 void Panel::clear(bool removeFromLevel)
 {
-    Object::clear(removeFromLevel);
+    Generic::clear(removeFromLevel);
 
     if (removeFromLevel) {
         for (auto& brick : m_gameState.level.bricks) {
@@ -53,28 +54,74 @@ void Panel::clear(bool removeFromLevel)
             }
         }
 
-        auto panelIt = std::find_if(m_gameState.level.panels.begin(), m_gameState.level.panels.end(), [this](const std::unique_ptr<Panel>& panel) {
-            return (panel.get() == this);
+        auto panelIt = std::find_if(m_gameState.level.panels.begin(), m_gameState.level.panels.end(), [this](Panel* panel) {
+            return (panel == this);
         });
         m_gameState.level.panels.erase(panelIt);
     }
 }
 
+void Panel::unserialize(const nlohmann::json& data)
+{
+    extent(unserializeUvec2(data["extent"]));
+
+    const auto& barriers = data["barriers"];
+    for (const auto& barrier : barriers) {
+        BarrierInfo barrierInfo;
+        barrierInfo.unconsolidatedBarrierId = barrier;
+        m_barrierInfos.emplace_back(barrierInfo);
+    }
+}
+
+nlohmann::json Panel::serialize() const
+{
+    nlohmann::json data;
+    data["extent"] = ::serialize(extent());
+    data["barriers"] = nlohmann::json::array();
+    for (const auto& barrierInfo : m_barrierInfos) {
+        data["barriers"].emplace_back(findBarrierIndex(m_gameState, barrierInfo.barrier->entity()));
+    }
+    return data;
+}
+
+void Panel::consolidateReferences()
+{
+    for (auto& barrierInfo : m_barrierInfos) {
+        barrierInfo.barrier = m_gameState.level.barriers[barrierInfo.unconsolidatedBarrierId];
+    }
+}
+
+// -----
+
+void Panel::addBarrier(Barrier& barrier)
+{
+    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
+        return barrierInfo.barrier == &barrier;
+    });
+    if (barrierInfoIt != m_barrierInfos.end()) return;
+
+    BarrierInfo barrierInfo;
+    barrierInfo.barrier = &barrier;
+    m_barrierInfos.emplace_back(barrierInfo);
+}
+
 void Panel::removeBarrier(Barrier& barrier)
 {
-    auto barrierIt = m_barriers.find(&barrier);
-    if (barrierIt == m_barriers.end()) return;
-    m_barriers.erase(barrierIt);
+    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
+        return barrierInfo.barrier == &barrier;
+    });
+    if (barrierInfoIt == m_barrierInfos.end()) return;
+    m_barrierInfos.erase(barrierInfoIt);
 }
 
 bool Panel::userInteractionAllowed() const
 {
     auto playerPosition = glm::vec2(m_gameState.player.position);
-    for (auto barrier : m_barriers) {
-        if (!barrier->powered()) return false;
+    for (const auto& barrierInfo : m_barrierInfos) {
+        if (!barrierInfo.barrier->powered()) return false;
 
-        auto barrierPosition = glm::vec2(barrier->transform().translation());
-        if (glm::distance(playerPosition, barrierPosition) >= barrier->diameter() / 2.f) {
+        auto barrierPosition = glm::vec2(barrierInfo.barrier->transform().translation());
+        if (glm::distance(playerPosition, barrierPosition) >= barrierInfo.barrier->diameter() / 2.f) {
             return false;
         }
     }
@@ -87,12 +134,8 @@ void Panel::extent(const glm::uvec2& extent)
     m_extent = extent;
     m_material->set("extent", extent);
     m_entity->get<sill::MeshComponent>().node(1).transform(glm::scale(glm::mat4(1.f), {m_extent.x, m_extent.y, 1}));
+    m_entity->get<sill::MeshComponent>().dirtifyNodesTransforms();
 
-    m_entity->get<sill::ColliderComponent>().clearShapes();
-    m_entity->get<sill::ColliderComponent>().addBoxShape({0.f, 0.f, 0.f},
-        {m_extent.x * blockExtent.x + 2.f * thickness,
-         m_extent.y * blockExtent.y + 2.f * thickness,
-         blockExtent.z});
 
     updateBorderMeshPrimitive();
 
@@ -183,7 +226,6 @@ void Panel::updateFromSnappedBricks()
     }
 
     for (auto& brick : m_gameState.level.bricks) {
-        if (!brick->snapped()) continue;
         if (&brick->snapPanel() != this) continue;
 
         for (const auto& block : brick->blocks()) {
@@ -261,7 +303,6 @@ void Panel::updateBorderMeshPrimitive()
         {halfWidth, -halfHeight, -halfDepth},
         {halfWidth, -halfHeight, halfDepth},
         {-halfWidth, -halfHeight, halfDepth},
-
     };
 
     std::vector<uint16_t> indices = {// BACK
@@ -440,9 +481,9 @@ bool Panel::isSnappingPointValid(const Brick& brick, const SnappingPoint& snappi
 
 Panel* findPanelByName(GameState& gameState, const std::string& name)
 {
-    for (const auto& panel : gameState.level.panels) {
+    for (auto panel : gameState.level.panels) {
         if (panel->name() == name) {
-            return panel.get();
+            return panel;
         }
     }
 
@@ -451,9 +492,9 @@ Panel* findPanelByName(GameState& gameState, const std::string& name)
 
 Panel* findPanel(GameState& gameState, const sill::GameEntity& entity)
 {
-    for (const auto& panel : gameState.level.panels) {
+    for (auto panel : gameState.level.panels) {
         if (&panel->entity() == &entity) {
-            return panel.get();
+            return panel;
         }
     }
 
@@ -463,7 +504,8 @@ Panel* findPanel(GameState& gameState, const sill::GameEntity& entity)
 uint32_t findPanelIndex(GameState& gameState, const sill::GameEntity& entity)
 {
     for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
-        if (&gameState.level.panels[i]->entity() == &entity) {
+        auto panel = gameState.level.panels[i];
+        if (&panel->entity() == &entity) {
             return i;
         }
     }
