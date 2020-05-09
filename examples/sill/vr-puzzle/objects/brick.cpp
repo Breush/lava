@@ -9,7 +9,7 @@
 using namespace lava;
 
 Brick::Brick(GameState& gameState)
-    : Generic(gameState)
+    : Object(gameState)
 {
     m_gameState.level.bricks.emplace_back(this);
 
@@ -24,14 +24,12 @@ Brick::Brick(GameState& gameState)
 void Brick::clear(bool removeFromLevel)
 {
     if (removeFromLevel) {
-        auto brickIt = std::find_if(m_gameState.level.bricks.begin(), m_gameState.level.bricks.end(), [this](Brick* brick) {
-            return (brick == this);
-        });
+        auto brickIt = std::find(m_gameState.level.bricks.begin(), m_gameState.level.bricks.end(), this);
         m_gameState.level.bricks.erase(brickIt);
     }
 
     // @note Keep last, this destroys us!
-    Generic::clear(removeFromLevel);
+    Object::clear(removeFromLevel);
 }
 
 void Brick::unserialize(const nlohmann::json& data)
@@ -150,12 +148,9 @@ void Brick::blocks(const std::vector<glm::ivec2>& blocks)
         rootNode.transform(transform * rootNode.transform());
     }
 
-    // Update blocks
-    m_baseRotationLevel = 0u;
-    m_extraRotationLevel = 0u;
-
     mesh().path(""); // So that the mesh component is not serialized.
 
+    // Update blocks
     updateBlocksColor();
     updateBlocksFromRotationLevel();
 }

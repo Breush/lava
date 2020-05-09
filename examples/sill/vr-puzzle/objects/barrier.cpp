@@ -5,7 +5,7 @@
 using namespace lava;
 
 Barrier::Barrier(GameState& gameState)
-    : Generic(gameState)
+    : Object(gameState)
 {
     gameState.level.barriers.emplace_back(this);
 
@@ -35,14 +35,12 @@ void Barrier::clear(bool removeFromLevel)
             panel->removeBarrier(*this);
         }
 
-        auto barrierIt = std::find_if(m_gameState.level.barriers.begin(), m_gameState.level.barriers.end(), [this](Barrier* barrier) {
-            return (barrier == this);
-        });
+        auto barrierIt = std::find(m_gameState.level.barriers.begin(), m_gameState.level.barriers.end(), this);
         m_gameState.level.barriers.erase(barrierIt);
     }
 
     // @note Keep last, this destroys us!
-    Generic::clear(removeFromLevel);
+    Object::clear(removeFromLevel);
 }
 
 void Barrier::unserialize(const nlohmann::json& data)

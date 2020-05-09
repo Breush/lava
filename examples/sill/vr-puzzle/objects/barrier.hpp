@@ -1,13 +1,13 @@
 #pragma once
 
-#include "./generic.hpp"
+#include "./object.hpp"
 
 #include <glm/glm.hpp>
 
 /**
  * A barrier prevents user to move bricks outside its limits.
  */
-class Barrier final : public Generic {
+class Barrier final : public Object {
 public:
     Barrier(GameState& gameState);
     void clear(bool removeFromLevel = true) final;

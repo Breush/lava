@@ -69,14 +69,13 @@ nlohmann::json serialize(const Transform& transform)
     return json;
 }
 
-// ----- Generics
+// ----- Objects
 
-void unserializeGeneric(Generic& generic, const nlohmann::json& json)
+void unserializeObject(Object& object, const nlohmann::json& json)
 {
-    generic.name(json["name"].get<std::string>());
-    generic.walkable(json["walkable"]);
+    object.name(json["name"].get<std::string>());
 
-    auto& entity = generic.entity();
+    auto& entity = object.entity();
     entity.ensure<sill::TransformComponent>().worldTransform(unserializeTransform(json["transform"]));
 
     for (auto& componentJson : json["components"].items()) {
@@ -101,25 +100,23 @@ void unserializeGeneric(Generic& generic, const nlohmann::json& json)
             logger.warning("vr-puzzle") << "Unhandled component '" << componentJson.key() << "'." << std::endl;
         }
     }
-    if (json.find("data") != json.end()) {
-        generic.unserialize(json["data"]);
-    }
+
+    object.unserialize(json["data"]);
 }
 
-nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
+nlohmann::json serialize(GameState& /* gameState */, const Object& object)
 {
-    const auto& entity = generic.entity();
+    const auto& entity = object.entity();
 
     nlohmann::json json = {
-        {"name", generic.name()},
+        {"name", object.name()},
         {"transform", serialize(entity.get<sill::TransformComponent>().worldTransform())},
         {"components", nlohmann::json()},
-        {"walkable", generic.walkable()},
+        {"data", object.serialize()},
     };
 
-    if (!generic.kind().empty()) {
-        json["kind"] = generic.kind();
-        json["data"] = generic.serialize();
+    if (!object.kind().empty()) {
+        json["kind"] = object.kind();
     }
 
     auto& componentsJson = json["components"];
@@ -162,7 +159,7 @@ nlohmann::json serialize(GameState& /* gameState */, const Generic& generic)
         }
         else {
             logger.warning("vr-puzzle") << "Unhandled component '" << componentHrid << "' to serialize '" << entity.name()
-                                        << "' generic entity." << std::endl;
+                                        << "' object entity." << std::endl;
         }
     }
 
@@ -189,7 +186,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     gameState.player.position = unserializeVec3(playerJson["position"]);
     gameState.player.direction = unserializeVec3(playerJson["direction"]);
 
-    for (auto object : gameState.level.objects) {
+    for (const auto& object : gameState.level.objects) {
         object->clear(false);
     }
 
@@ -199,14 +196,14 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     gameState.level.generics.clear();
     gameState.level.objects.clear();
 
-    for (auto& genericJson : levelJson["generics"]) {
-        auto kind = (genericJson.find("kind") == genericJson.end()) ? std::string() : genericJson["kind"].get<std::string>();
-        auto& generic = Generic::make(gameState, kind);
-        unserializeGeneric(generic, genericJson);
+    for (auto& objectJson : levelJson["objects"]) {
+        auto kind = objectJson["kind"].get<std::string>();
+        auto& object = Object::make(gameState, kind);
+        unserializeObject(object, objectJson);
     }
 
-    for (auto& generic : gameState.level.generics) {
-        generic->consolidateReferences();
+    for (auto& object : gameState.level.objects) {
+        object->consolidateReferences();
     }
 }
 
@@ -226,10 +223,10 @@ void serializeLevel(GameState& gameState, const std::string& path)
         {"direction", serialize(gameState.player.direction)},
     };
 
-    levelJson["generics"] = nlohmann::json::array();
-    for (auto i = 0u; i < gameState.level.generics.size(); ++i) {
-        const auto& generic = *gameState.level.generics[i];
-        levelJson["generics"][i] = serialize(gameState, generic);
+    levelJson["objects"] = nlohmann::json::array();
+    for (auto i = 0u; i < gameState.level.objects.size(); ++i) {
+        const auto& object = *gameState.level.objects[i];
+        levelJson["objects"][i] = serialize(gameState, object);
     }
 
     // Print out
@@ -243,11 +240,11 @@ void serializeLevel(GameState& gameState, const std::string& path)
 
 Object& duplicateBySerialization(GameState& gameState, const Object& object)
 {
-    auto json = serialize(gameState, dynamic_cast<const Generic&>(object));
-    auto kind = (json.find("kind") == json.end()) ? std::string() : json["kind"].get<std::string>();
-    auto& generic = Generic::make(gameState, kind);
-    generic.mutateBeforeDuplication(json["data"]);
-    unserializeGeneric(generic, json);
-    generic.consolidateReferences();
-    return generic;
+    auto json = serialize(gameState, object);
+    auto kind = json["kind"].get<std::string>();
+    auto& newObject = Object::make(gameState, kind);
+    newObject.mutateBeforeDuplication(json["data"]);
+    unserializeObject(newObject, json);
+    newObject.consolidateReferences();
+    return newObject;
 }

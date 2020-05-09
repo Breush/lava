@@ -2,6 +2,7 @@
 
 #include <lava/sill.hpp>
 #include <lava/magma.hpp>
+#include <nlohmann/json.hpp>
 
 struct GameState;
 
@@ -12,17 +13,30 @@ public:
     Object& operator=(const Object&) = delete;
     virtual ~Object() = default;
 
-    virtual const std::string& kind() const = 0;
+    const std::string& kind() const { return m_kind; }
+
+    /// Create an object of a certain kind.
+    static Object& make(GameState& gameState, const std::string& kind);
+    template<class T> T& as() { return dynamic_cast<T&>(*this); }
 
     /// Prepare the object to be removed.
     /// The destructor does not destroy anything
     /// so that shutting down the application is fast enough.
     virtual void clear(bool removeFromLevel = true);
 
+    /// Control serialization.
+    virtual nlohmann::json serialize() const { return nullptr; }
+    virtual void unserialize(const nlohmann::json& /* data */) {}
+    virtual void consolidateReferences() {}
+    virtual void mutateBeforeDuplication(nlohmann::json& /* data */) {}
+
     /// The offset by which duplication will occur on x axis.
     virtual float halfSpan() const {
         return mesh().boundingSphere().radius;
     }
+
+    const std::string& name() const { return m_name; }
+    void name(const std::string& name) { m_name = name; }
 
     const lava::sill::GameEntity& entity() const { return *m_entity; }
     lava::sill::GameEntity& entity() { return *m_entity; }
@@ -38,6 +52,9 @@ public:
 protected:
     GameState& m_gameState;
     lava::sill::GameEntity* m_entity = nullptr;
+
+    std::string m_kind;
+    std::string m_name;
 };
 
 Object* findObject(GameState& gameState, const lava::sill::GameEntity* entity);

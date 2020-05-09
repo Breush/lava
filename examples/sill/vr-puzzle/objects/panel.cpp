@@ -15,7 +15,7 @@ namespace {
 }
 
 Panel::Panel(GameState& gameState)
-    : Generic(gameState)
+    : Object(gameState)
 {
     gameState.level.panels.emplace_back(this);
 
@@ -51,14 +51,12 @@ void Panel::clear(bool removeFromLevel)
             }
         }
 
-        auto panelIt = std::find_if(m_gameState.level.panels.begin(), m_gameState.level.panels.end(), [this](Panel* panel) {
-            return (panel == this);
-        });
+        auto panelIt = std::find(m_gameState.level.panels.begin(), m_gameState.level.panels.end(), this);
         m_gameState.level.panels.erase(panelIt);
     }
 
     // @note Keep last, this destroys us!
-    Generic::clear(removeFromLevel);
+    Object::clear(removeFromLevel);
 }
 
 void Panel::unserialize(const nlohmann::json& data)

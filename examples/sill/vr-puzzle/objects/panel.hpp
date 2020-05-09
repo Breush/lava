@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./generic.hpp"
+#include "./object.hpp"
 
 #include <cstdint>
 #include <glm/glm.hpp>
@@ -10,7 +10,7 @@
 class Brick;
 class Barrier;
 
-class Panel : public Generic {
+class Panel : public Object {
 public:
     using SolvedChangedCallback = std::function<void(bool)>;
 

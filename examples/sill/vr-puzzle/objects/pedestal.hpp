@@ -1,10 +1,10 @@
 #pragma once
 
-#include "./generic.hpp"
+#include "./object.hpp"
 
 class Brick;
 
-class Pedestal final : public Generic {
+class Pedestal final : public Object {
 public:
     Pedestal(GameState& gameState);
     void clear(bool removeFromLevel = true) final;

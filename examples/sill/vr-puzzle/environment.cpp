@@ -21,7 +21,7 @@ namespace {
     // within their mesh component. These are the mesh nodes named ":collider".
     void genericCollidersBuildPhysicsFromMesh(GameState& gameState)
     {
-        for (auto& generic : gameState.level.generics) {
+        for (auto generic : gameState.level.generics) {
             auto& entity = generic->entity();
             if (!entity.has<sill::MeshComponent>()) continue;
             for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
@@ -36,7 +36,7 @@ namespace {
 
     void genericCollidersVisible(GameState& gameState, bool enabled)
     {
-        for (auto& generic : gameState.level.generics) {
+        for (auto generic : gameState.level.generics) {
             auto& entity = generic->entity();
             if (!entity.has<sill::MeshComponent>()) continue;
             for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
@@ -51,13 +51,13 @@ namespace {
 
     void levelMaterialGhostFactor(GameState& gameState, const std::string& materialName, float ghostFactor)
     {
-        for (auto& generic : gameState.level.generics) {
-            auto& entity = generic->entity();
+        for (auto& object : gameState.level.objects) {
+            auto& entity = object->entity();
             if (!entity.has<sill::MeshComponent>()) continue;
 
             // @todo We probably don't want to let that logic here...
-            if (generic->kind() == "pedestal" && generic->as<Pedestal>().material() == materialName) {
-                generic->as<Pedestal>().powered(ghostFactor == 0.f);
+            if (object->kind() == "pedestal" && object->as<Pedestal>().material() == materialName) {
+                object->as<Pedestal>().powered(ghostFactor == 0.f);
             }
 
             for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
@@ -183,14 +183,14 @@ float distanceToTerrain(GameState& gameState, const Ray& ray, Generic** pGeneric
     }
 
     // Check generic colliders
-    for (auto& generic : gameState.level.generics) {
+    for (auto generic : gameState.level.generics) {
         auto& entity = generic->entity();
         if (!entity.has<sill::ColliderComponent>()) continue;
         auto genericDistance = entity.distanceFrom(ray, sill::PickPrecision::Collider);
         if (genericDistance != 0.f && (distance == 0.f || genericDistance < distance)) {
             distance = genericDistance;
             if (pGeneric != nullptr) {
-                *pGeneric = generic.get();
+                *pGeneric = generic;
             }
         }
     }

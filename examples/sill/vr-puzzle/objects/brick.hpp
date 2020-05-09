@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./generic.hpp"
+#include "./object.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -22,7 +22,7 @@ struct Block {
  * A brick is composed of multiple blocks.
  * Making it be something like a tetris shape.
  */
-class Brick : public Generic {
+class Brick : public Object {
 public:
     Brick(GameState& gameState);
     void clear(bool removeFromLevel = true) final;

@@ -188,10 +188,10 @@ void selectMultiObjects(GameState& gameState, bool signalSelectionChanged = true
     auto bottomRight = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
     auto frustum = gameState.camera.component->unprojectAsFrustum(topLeft, bottomRight);
 
-    for (auto object : gameState.level.objects) {
+    for (const auto& object : gameState.level.objects) {
         auto position = object->transform().translation();
         if (frustum.canSee(position)) {
-            selectObject(gameState, object, true, false);
+            selectObject(gameState, object.get(), true, false);
         }
     }
 
@@ -415,13 +415,6 @@ void setupEditor(GameState& gameState)
             unselectAllObjects(gameState);
 
             setCameraMode(gameState, (gameState.state == State::Editor) ? CameraMode::Orbit : CameraMode::FirstPerson);
-
-            // All colliders are only visible in Editor state.
-            for (auto& generic : gameState.level.generics) {
-                if (generic->entity().name() == "collider") {
-                    generic->mesh().enabled(gameState.state == State::Editor);
-                }
-            }
         }
 
         if (gameState.state != State::Editor) return;
@@ -470,7 +463,7 @@ void setupEditor(GameState& gameState)
                 std::cin >> fileName;
                 auto filePath = "./assets/models/vr-puzzle/" + fileName + ".glb";
 
-                auto& generic = Generic::make(gameState, "");
+                auto& generic = Generic::make(gameState, "generic");
                 auto& entity = generic.entity();
                 entity.name(fileName);
                 auto& meshComponent = entity.make<sill::MeshComponent>();

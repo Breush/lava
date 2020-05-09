@@ -5,7 +5,7 @@
 using namespace lava;
 
 Pedestal::Pedestal(GameState& gameState)
-    : Generic(gameState)
+    : Object(gameState)
 {
     m_bricksRoot = &gameState.engine->make<sill::GameEntity>("pedestal.bricks-root");
     m_bricksRoot->make<sill::AnimationComponent>();
@@ -33,7 +33,7 @@ void Pedestal::clear(bool removeFromLevel)
     }
 
     // @note Keep last, this destroys us!
-    Generic::clear(removeFromLevel);
+    Object::clear(removeFromLevel);
 }
 
 void Pedestal::unserialize(const nlohmann::json& data)

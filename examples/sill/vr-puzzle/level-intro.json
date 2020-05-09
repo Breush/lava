@@ -3,7 +3,8 @@
         "type": "LEVEL",
         "version": 0
     },
-    "generics": [
+    "name": "intro",
+    "objects": [
         {
             "components": null,
             "data": {
@@ -51,8 +52,7 @@
                     -14.587013244628906,
                     1.8177378177642822
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -98,10 +98,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.5791826248168945,
-                    -0.5940043330192566,
-                    -0.06216880679130554,
-                    0.5548345446586609
+                    -0.5385624170303345,
+                    0.6636068820953369,
+                    -0.44133299589157104,
+                    0.27349895238876343
                 ],
                 "scaling": 1.000000238418579,
                 "translation": [
@@ -109,8 +109,7 @@
                     -12.796855926513672,
                     1.255725622177124
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -157,8 +156,7 @@
                     1.3070491552352905,
                     2.9845170974731445
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -205,8 +203,7 @@
                     1.3070491552352905,
                     2.9845170974731445
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -249,8 +246,7 @@
                     1.3070491552352905,
                     2.9845170974731445
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -293,8 +289,7 @@
                     1.9983338117599487,
                     3.5026156902313232
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -330,10 +325,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.04978476092219353,
-                    0.7507467269897461,
-                    -0.021466542035341263,
-                    0.6583572030067444
+                    0.04612921178340912,
+                    0.6469034552574158,
+                    -0.02848556451499462,
+                    0.7606375217437744
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -341,8 +336,7 @@
                     0.5230346322059631,
                     3.0737695693969727
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -378,10 +372,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.6404107213020325,
-                    -0.3535778820514679,
-                    -0.4288426637649536,
-                    0.5300426483154297
+                    0.5711560249328613,
+                    -0.4269750416278839,
+                    -0.5175054669380188,
+                    0.47292107343673706
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -389,8 +383,7 @@
                     0.5230346322059631,
                     3.0737695693969727
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -426,10 +419,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.7164328098297119,
-                    -0.11083716154098511,
-                    -0.5663875937461853,
-                    0.39196696877479553
+                    0.6263442039489746,
+                    -0.16671936213970184,
+                    -0.6646523475646973,
+                    0.37165501713752747
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -437,8 +430,7 @@
                     0.5230346322059631,
                     3.0737695693969727
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -470,10 +462,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.5773579478263855,
-                    0.265242338180542,
-                    0.6914125084877014,
-                    0.3438814580440521
+                    0.41308924555778503,
+                    0.33370932936668396,
+                    0.8004692792892456,
+                    0.2779318690299988
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -481,8 +473,7 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -514,10 +505,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.4741760790348053,
-                    0.46689194440841675,
-                    0.5784388780593872,
-                    0.4717830717563629
+                    0.3369600176811218,
+                    0.5583566427230835,
+                    0.6677519679069519,
+                    0.35889458656311035
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -525,8 +516,7 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -558,10 +548,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.7386062145233154,
-                    -0.06625629216432571,
-                    0.6687344312667847,
-                    -0.05354532599449158
+                    -0.8664140105247498,
+                    -0.07631931453943253,
+                    0.492008239030838,
+                    -0.03784655034542084
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -569,8 +559,7 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -606,10 +595,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.5261849761009216,
-                    0.4150886535644531,
-                    0.6754030585289001,
-                    0.30767378211021423
+                    0.36662551760673523,
+                    0.47208771109580994,
+                    0.773709237575531,
+                    0.20998819172382355
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -617,8 +606,7 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -671,8 +659,7 @@
                     9.376745223999023,
                     1.0290677547454834
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -706,10 +693,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.10464785993099213,
-                    -0.1496630311012268,
-                    0.5779893398284912,
-                    0.7953459620475769
+                    0.073874831199646,
+                    -0.16701102256774902,
+                    0.7203054428100586,
+                    0.669183075428009
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -717,8 +704,7 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -759,8 +745,7 @@
                     7.878862380981445,
                     2.5681889057159424
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -794,10 +779,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.8709716200828552,
-                    -0.48871850967407227,
-                    -0.030479170382022858,
-                    0.040380556136369705
+                    0.760581374168396,
+                    -0.6472653746604919,
+                    -0.022134318947792053,
+                    0.04549327865242958
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -805,8 +790,7 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -840,10 +824,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.04031234607100487,
-                    -0.06611370295286179,
-                    0.5345284938812256,
-                    0.8415938019752502
+                    -0.05228716507554054,
+                    -0.057115260511636734,
+                    0.6865620017051697,
+                    0.722933292388916
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -851,8 +835,7 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -886,10 +869,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.7370113134384155,
-                    -0.5704330801963806,
-                    -0.34580978751182556,
-                    0.10878077149391174
+                    0.6133947372436523,
+                    -0.7016592025756836,
+                    -0.31839579343795776,
+                    0.17332525551319122
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -897,8 +880,7 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -943,8 +925,7 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -989,8 +970,7 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1035,8 +1015,7 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1081,8 +1060,7 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1131,8 +1109,7 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1185,8 +1162,7 @@
                     8.969854354858398,
                     2.1003341674804688
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1239,8 +1215,7 @@
                     9.415127754211426,
                     2.3082327842712402
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1289,8 +1264,7 @@
                     9.402322769165039,
                     1.8818455934524536
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1339,8 +1313,7 @@
                     9.170110702514648,
                     1.458101511001587
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1393,8 +1366,7 @@
                     8.29877758026123,
                     1.6818886995315552
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1435,8 +1407,7 @@
                     8.724851608276367,
                     1.2502061128616333
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1489,8 +1460,7 @@
                     8.06015396118164,
                     1.0449540615081787
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1543,8 +1513,7 @@
                     8.092129707336426,
                     2.1109256744384766
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1593,8 +1562,7 @@
                     8.085753440856934,
                     1.8977299928665161
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1620,8 +1588,7 @@
                     -14.670124053955078,
                     1.9733021259307861
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1649,8 +1616,7 @@
                     1.75986909866333,
                     3.660370111465454
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1678,8 +1644,7 @@
                     2.124448537826538,
                     3.505039691925049
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1707,8 +1672,7 @@
                     -1.0611839294433594,
                     3.758366823196411
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1734,8 +1698,7 @@
                     20.816919326782227,
                     1.9537559747695923
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1761,8 +1724,7 @@
                     8.180319786071777,
                     2.6686408519744873
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1788,8 +1750,7 @@
                     8.737655639648438,
                     1.6765919923782349
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1812,8 +1773,7 @@
                     2.522948741912842,
                     2.3442142009735107
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1836,8 +1796,7 @@
                     -0.06651860475540161,
                     2.758263111114502
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": null,
@@ -1860,8 +1819,7 @@
                     10.932795524597168,
                     1.375806450843811
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -1869,6 +1827,10 @@
                     "path": "./assets/models/vr-puzzle/puzzle-table.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "puzzle-table",
             "transform": {
                 "rotation": [
@@ -1883,8 +1845,7 @@
                     1.7764174938201904,
                     2.403475522994995
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -1892,6 +1853,10 @@
                     "path": "./assets/models/vr-puzzle/puzzle-table.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "puzzle-table",
             "transform": {
                 "rotation": [
@@ -1906,8 +1871,7 @@
                     2.1338250637054443,
                     2.315305709838867
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -1915,6 +1879,10 @@
                     "path": "./assets/models/vr-puzzle/puzzle-table.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "puzzle-table",
             "transform": {
                 "rotation": [
@@ -1929,8 +1897,7 @@
                     20.79765510559082,
                     0.6104254722595215
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -1938,6 +1905,10 @@
                     "path": "./assets/models/vr-puzzle/puzzle-table.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "puzzle-table",
             "transform": {
                 "rotation": [
@@ -1952,8 +1923,7 @@
                     8.15811824798584,
                     1.375806450843811
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -1961,6 +1931,10 @@
                     "path": "./assets/models/vr-puzzle/puzzle-table.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "puzzle-table",
             "transform": {
                 "rotation": [
@@ -1975,8 +1949,7 @@
                     -1.0315742492675781,
                     2.510786294937134
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -1984,6 +1957,10 @@
                     "path": "./assets/models/vr-puzzle/env/rock-small-2.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/rock-small-2",
             "transform": {
                 "rotation": [
@@ -1998,8 +1975,7 @@
                     -11.514457702636719,
                     0.060332536697387695
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2007,6 +1983,10 @@
                     "path": "./assets/models/vr-puzzle/env/rock-small-1.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/rock-small-1",
             "transform": {
                 "rotation": [
@@ -2021,8 +2001,7 @@
                     -6.308760643005371,
                     -0.4291232228279114
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2030,6 +2009,10 @@
                     "path": "./assets/models/vr-puzzle/env/rock-small-2.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/rock-small-2",
             "transform": {
                 "rotation": [
@@ -2044,8 +2027,7 @@
                     -10.716160774230957,
                     -0.20882537961006165
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2053,6 +2035,10 @@
                     "path": "./assets/models/vr-puzzle/env/rock-small-1.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/rock-small-1",
             "transform": {
                 "rotation": [
@@ -2067,8 +2053,7 @@
                     -11.328057289123535,
                     -0.1734732985496521
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2076,6 +2061,10 @@
                     "path": "./assets/models/vr-puzzle/env/grass-1.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/grass-1",
             "transform": {
                 "rotation": [
@@ -2090,8 +2079,7 @@
                     -1.9802229404449463,
                     1.5758018493652344
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2099,6 +2087,10 @@
                     "path": "./assets/models/vr-puzzle/env/rock-small-2.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/rock-small-2",
             "transform": {
                 "rotation": [
@@ -2113,8 +2105,7 @@
                     -12.015264511108398,
                     -1.2297492027282715
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2122,6 +2113,10 @@
                     "path": "./assets/models/vr-puzzle/env/rock-tall-1.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/rock-tall-1",
             "transform": {
                 "rotation": [
@@ -2136,8 +2131,7 @@
                     -11.739996910095215,
                     -0.9507471919059753
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2145,6 +2139,10 @@
                     "path": "./assets/models/vr-puzzle/env/rock-tall-1.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/rock-tall-1",
             "transform": {
                 "rotation": [
@@ -2159,8 +2157,7 @@
                     -5.9294586181640625,
                     -0.20472738146781921
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2168,6 +2165,10 @@
                     "path": "./assets/models/vr-puzzle/env/fern-1.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/fern-1",
             "transform": {
                 "rotation": [
@@ -2182,8 +2183,7 @@
                     4.02799129486084,
                     0.9631410241127014
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2195,6 +2195,10 @@
                     "enabled": true
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "island-1",
             "transform": {
                 "rotation": [
@@ -2209,8 +2213,7 @@
                     0.0,
                     0.0
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2222,6 +2225,10 @@
                     "enabled": true
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "bridge",
             "transform": {
                 "rotation": [
@@ -2236,8 +2243,7 @@
                     -12.103416442871094,
                     -0.4507112503051758
                 ]
-            },
-            "walkable": false
+            }
         },
         {
             "components": {
@@ -2245,6 +2251,10 @@
                     "path": "./assets/models/vr-puzzle/env/wood-post.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/wood-post",
             "transform": {
                 "rotation": [
@@ -2259,8 +2269,7 @@
                     -14.651119232177734,
                     -0.28426429629325867
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2289,8 +2298,7 @@
                     -12.796855926513672,
                     0.005725353956222534
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2321,8 +2329,7 @@
                     1.3070491552352905,
                     2.2345170974731445
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2354,8 +2361,7 @@
                     -2.5463674068450928,
                     2.851369857788086
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2386,8 +2392,7 @@
                     0.5230346322059631,
                     2.327324390411377
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2420,8 +2425,7 @@
                     18.33260154724121,
                     0.70263671875
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2453,8 +2457,7 @@
                     6.903724670410156,
                     1.068650484085083
                 ]
-            },
-            "walkable": true
+            }
         },
         {
             "components": {
@@ -2462,6 +2465,10 @@
                     "path": "./assets/models/vr-puzzle/env/boat.glb"
                 }
             },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
             "name": "env/boat",
             "transform": {
                 "rotation": [
@@ -2476,21 +2483,19 @@
                     7.840408802032471,
                     5.298129081726074
                 ]
-            },
-            "walkable": true
+            }
         }
     ],
-    "name": "intro",
     "player": {
         "direction": [
-            0.8243578672409058,
-            0.5466126203536987,
-            -0.14713576436042786
+            0.849169135093689,
+            0.49756404757499695,
+            -0.17703597247600555
         ],
         "position": [
-            -18.367618560791016,
-            -28.89401626586914,
-            8.816978454589844
+            -19.06934356689453,
+            -30.379785537719727,
+            8.798810958862305
         ]
     }
 }

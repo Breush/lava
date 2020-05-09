@@ -2,8 +2,9 @@
 
 #include "./objects/barrier.hpp"
 #include "./objects/brick.hpp"
-#include "./objects/generic.hpp"
 #include "./objects/panel.hpp"
+#include "./objects/pedestal.hpp"
+#include "./objects/generic.hpp"
 
 #include <lava/core/ray.hpp>
 #include <lava/sill.hpp>
@@ -87,10 +88,10 @@ struct GameState {
         std::vector<Barrier*> barriers;
         std::vector<Brick*> bricks;
         std::vector<Panel*> panels;
-        std::vector<std::unique_ptr<Generic>> generics;
+        std::vector<Generic*> generics;
 
-        // All objects (including panels/bricks/barriers/generics)
-        std::vector<Object*> objects;
+        // All allocated objects.
+        std::vector<std::unique_ptr<Object>> objects;
     } level;
 
     struct {
