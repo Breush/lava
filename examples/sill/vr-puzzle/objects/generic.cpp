@@ -3,6 +3,8 @@
 #include "./pedestal.hpp"
 #include "../game-state.hpp"
 
+#include <lava/chamber/logger.hpp>
+
 using namespace lava;
 
 Generic::Generic(GameState& gameState)
@@ -30,14 +32,20 @@ Generic& Generic::make(GameState& gameState, const std::string& kind)
     if (kind == "barrier") {
         generic = std::make_unique<Barrier>(gameState);
     }
+    else if (kind == "brick") {
+        generic = std::make_unique<Brick>(gameState);
+    }
     else if (kind == "panel") {
         generic = std::make_unique<Panel>(gameState);
     }
     else if (kind == "pedestal") {
         generic = std::make_unique<Pedestal>(gameState);
     }
-    else {
+    else if (kind.empty()) {
         generic = std::make_unique<Generic>(gameState);
+    }
+    else {
+        chamber::logger.error("vr-puzzle.generic") << "Unknown generic kind '" << kind << "'." << std::endl;
     }
 
     generic->m_kind = kind;

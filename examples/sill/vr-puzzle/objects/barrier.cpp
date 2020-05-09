@@ -26,10 +26,8 @@ Barrier::Barrier(GameState& gameState)
 
 void Barrier::clear(bool removeFromLevel)
 {
-    Generic::clear(removeFromLevel);
-
     if (removeFromLevel) {
-        for (auto& brick : m_gameState.level.bricks) {
+        for (auto brick : m_gameState.level.bricks) {
             brick->removeBarrier(*this);
         }
 
@@ -42,6 +40,9 @@ void Barrier::clear(bool removeFromLevel)
         });
         m_gameState.level.barriers.erase(barrierIt);
     }
+
+    // @note Keep last, this destroys us!
+    Generic::clear(removeFromLevel);
 }
 
 void Barrier::unserialize(const nlohmann::json& data)
@@ -52,9 +53,10 @@ void Barrier::unserialize(const nlohmann::json& data)
 
 nlohmann::json Barrier::serialize() const
 {
-    nlohmann::json data;
-    data["diameter"] = m_diameter;
-    data["powered"] = m_powered;
+    nlohmann::json data = {
+        {"diameter", m_diameter},
+        {"powered", m_powered},
+    };
     return data;
 }
 

@@ -12,6 +12,7 @@ public:
     void unserialize(const nlohmann::json& data) final;
     nlohmann::json serialize() const final;
     void consolidateReferences() final;
+    void mutateBeforeDuplication(nlohmann::json& data) final;
 
     const std::string& material() const { return m_material; }
 

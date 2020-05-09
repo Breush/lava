@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./object.hpp"
+#include "./generic.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -22,17 +22,22 @@ struct Block {
  * A brick is composed of multiple blocks.
  * Making it be something like a tetris shape.
  */
-class Brick : public Object {
+class Brick : public Generic {
 public:
     Brick(GameState& gameState);
     void clear(bool removeFromLevel = true) final;
+
+    void unserialize(const nlohmann::json& data) final;
+    nlohmann::json serialize() const final;
+    void consolidateReferences() final;
+    void mutateBeforeDuplication(nlohmann::json& data) final;
     float halfSpan() const final;
 
     // The pairs of all blocks making this brick,
     // 0,0 should always be present. The pairs are expressed
     // in relative X,Y coordinates at rotationLevel 0.
     const std::vector<Block>& blocks() const { return m_blocks; }
-    void blocks(std::vector<glm::ivec2> blocks);
+    void blocks(const std::vector<glm::ivec2>& blocks);
 
     // Add a block at position (x, ??).
     void addBlockV(int32_t x, bool positive);
@@ -40,8 +45,7 @@ public:
     void addBlockH(int32_t y, bool positive);
 
     /// All barriers that prevents the brick from getting out.
-    const std::set<Barrier*>& barriers() const { return m_barriers; }
-    void addBarrier(Barrier& barrier) { m_barriers.emplace(&barrier); }
+    void addBarrier(Barrier& barrier);
     void removeBarrier(Barrier& barrier);
 
     /// Checks whether the user is allowed to grab that brick or not.
@@ -69,7 +73,6 @@ public:
     void stored(bool stored);
 
     // Whether the entity is snapped to snapping point and its coordinates if it is.
-    bool snapped() const { return m_snapPanel != nullptr; }
     const Panel& snapPanel() const { return *m_snapPanel; }
     const glm::uvec2& snapCoordinates() const { return m_snapCoordinates; }
     void unsnap();
@@ -88,11 +91,20 @@ protected:
     void updateBlocksColor();
     void updateBlocksFromRotationLevel();
 
+protected:
+    struct BarrierInfo {
+        // @note :UnconsolidatedId
+        uint32_t unconsolidatedBarrierId = -1u;
+        Barrier* barrier = nullptr;
+    };
+
 private:
+    std::vector<glm::ivec2> m_unconsolidatedBlocks;
     std::vector<Block> m_blocks;
-    std::set<Barrier*> m_barriers;
+    std::vector<BarrierInfo> m_barrierInfos;
     glm::vec3 m_color = {0.992, 0.992, 0.588};
 
+    uint32_t m_snapPanelUnconsolidatedId = -1u; // @note :UnconsolidatedId
     Panel* m_snapPanel = nullptr;
     glm::uvec2 m_snapCoordinates = {0, 0};
 

@@ -19,14 +19,21 @@ Pedestal::Pedestal(GameState& gameState)
 
 void Pedestal::clear(bool removeFromLevel)
 {
-    Generic::clear(removeFromLevel);
+    if (removeFromLevel) {
+        for (auto& brickInfo : m_brickInfos) {
+            brickInfo.brick->pedestal(nullptr);
+            brickInfo.brick->stored(false);
+        }
+    }
 
     m_gameState.engine->remove(*m_bricksRoot);
 
     for (auto& brickInfo : m_brickInfos) {
         m_gameState.engine->remove(*brickInfo.arm);
     }
-    m_brickInfos.clear();
+
+    // @note Keep last, this destroys us!
+    Generic::clear(removeFromLevel);
 }
 
 void Pedestal::unserialize(const nlohmann::json& data)
@@ -44,10 +51,11 @@ void Pedestal::unserialize(const nlohmann::json& data)
 
 nlohmann::json Pedestal::serialize() const
 {
-    nlohmann::json data;
-    data["material"] = m_material;
+    nlohmann::json data = {
+        {"material", m_material},
+        {"bricks", nlohmann::json::array()},
+    };
 
-    data["bricks"] = nlohmann::json::array();
     for (auto& brickInfo : m_brickInfos) {
         data["bricks"].emplace_back(findBrickIndex(m_gameState, brickInfo.brick->entity()));
     }
@@ -64,7 +72,7 @@ void Pedestal::consolidateReferences()
     }
 
     for (auto& brickInfo : m_brickInfos) {
-        brickInfo.brick = m_gameState.level.bricks[brickInfo.unconsolidatedBrickId].get();
+        brickInfo.brick = m_gameState.level.bricks[brickInfo.unconsolidatedBrickId];
         brickInfo.brick->pedestal(this);
         brickStoredChanged(*brickInfo.brick);
     }
@@ -93,6 +101,15 @@ void Pedestal::consolidateReferences()
     // @fixme Left to implement:
     // - Close animation (open reversed?)
 }
+
+void Pedestal::mutateBeforeDuplication(nlohmann::json& data)
+{
+    // @note The bricks we had attached to us cannot be attached
+    // to two pedestal. Therefore, this information cannot be duplicated.
+    data["bricks"] = nlohmann::json::array();
+}
+
+// -----
 
 void Pedestal::brickStoredChanged(Brick& brick)
 {

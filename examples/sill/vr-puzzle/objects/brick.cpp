@@ -3,28 +3,109 @@
 #include <algorithm>
 
 #include "../game-state.hpp"
+#include "../serializer.hpp"
 #include "./pedestal.hpp"
 
 using namespace lava;
 
 Brick::Brick(GameState& gameState)
-    : Object(gameState)
+    : Generic(gameState)
 {
-    m_entity = &gameState.engine->make<sill::GameEntity>("brick");
+    m_gameState.level.bricks.emplace_back(this);
+
+    m_entity->name("brick");
     m_entity->ensure<sill::TransformComponent>();
     m_entity->ensure<sill::AnimationComponent>();
     m_entity->ensure<sill::MeshComponent>();
+
+    m_unconsolidatedBlocks.emplace_back(0, 0);
 }
 
 void Brick::clear(bool removeFromLevel)
 {
-    Object::clear(removeFromLevel);
-
     if (removeFromLevel) {
-        auto brickIt = std::find_if(m_gameState.level.bricks.begin(), m_gameState.level.bricks.end(), [this](const std::unique_ptr<Brick>& brick) {
-            return (brick.get() == this);
+        auto brickIt = std::find_if(m_gameState.level.bricks.begin(), m_gameState.level.bricks.end(), [this](Brick* brick) {
+            return (brick == this);
         });
         m_gameState.level.bricks.erase(brickIt);
+    }
+
+    // @note Keep last, this destroys us!
+    Generic::clear(removeFromLevel);
+}
+
+void Brick::unserialize(const nlohmann::json& data)
+{
+    m_unconsolidatedBlocks.clear();
+    for (auto& blockData : data["blocks"]) {
+        m_unconsolidatedBlocks.emplace_back(unserializeIvec2(blockData));
+    }
+
+    m_barrierInfos.clear();
+    for (const auto& barrier : data["barriers"]) {
+        BarrierInfo barrierInfo;
+        barrierInfo.unconsolidatedBarrierId = barrier;
+        m_barrierInfos.emplace_back(barrierInfo);
+    }
+
+    color(unserializeVec3(data["color"]));
+    fixed(data["fixed"]);
+    stored(data["stored"]);
+    baseRotationLevel(data["rotationLevel"]);
+
+    auto& snapPanelData = data["snapPanel"];
+    if (!snapPanelData.is_null()) {
+        m_snapPanelUnconsolidatedId = snapPanelData;
+        m_snapCoordinates = unserializeUvec2(data["snapCoordinates"]);
+    }
+}
+
+nlohmann::json Brick::serialize() const
+{
+    nlohmann::json data = {
+        {"blocks", nlohmann::json::array()},
+        {"barriers", nlohmann::json::array()},
+        {"color", ::serialize(m_color)},
+        {"fixed", m_fixed},
+        {"stored", m_stored},
+        {"rotationLevel", m_rotationLevel},
+        {"snapPanel", {}},
+    };
+
+    for (const auto& block : m_blocks) {
+        data["blocks"].emplace_back(::serialize(block.nonRotatedCoordinates));
+    }
+
+    for (const auto& barrierInfo : m_barrierInfos) {
+        data["barriers"].emplace_back(findBarrierIndex(m_gameState, barrierInfo.barrier->entity()));
+    }
+
+    if (m_snapPanel != nullptr) {
+        data["snapPanel"] = findPanelIndex(m_gameState, m_snapPanel->entity());
+        data["snapCoordinates"] = ::serialize(m_snapCoordinates);
+    }
+
+    return data;
+}
+
+void Brick::mutateBeforeDuplication(nlohmann::json& data)
+{
+    // @note When duplicating an already stored brick,
+    // we don't attach it back to the same pedestal.
+    data["stored"] = false;
+}
+
+void Brick::consolidateReferences()
+{
+    blocks(m_unconsolidatedBlocks);
+
+    for (auto& barrierInfo : m_barrierInfos) {
+        barrierInfo.barrier = m_gameState.level.barriers[barrierInfo.unconsolidatedBarrierId];
+    }
+
+    if (m_snapPanelUnconsolidatedId != -1u) {
+        auto& panel = *m_gameState.level.panels[m_snapPanelUnconsolidatedId];
+        snap(panel, m_snapCoordinates);
     }
 }
 
@@ -43,12 +124,15 @@ float Brick::halfSpan() const
     return brickHalfSpan;
 }
 
-void Brick::blocks(std::vector<glm::ivec2> blocks)
+// -----
+
+void Brick::blocks(const std::vector<glm::ivec2>& blocks)
 {
     constexpr const auto blockScaling = 0.75f;
 
     // Clean
     m_blocks.resize(blocks.size());
+    mesh().removeNodes();
 
     // Create blocks
     static auto blockMaker = sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-brick.glb");
@@ -70,6 +154,8 @@ void Brick::blocks(std::vector<glm::ivec2> blocks)
     m_baseRotationLevel = 0u;
     m_extraRotationLevel = 0u;
 
+    mesh().path(""); // So that the mesh component is not serialized.
+
     updateBlocksColor();
     updateBlocksFromRotationLevel();
 }
@@ -79,7 +165,7 @@ void Brick::addBlockV(int32_t x, bool positive)
     std::vector<glm::ivec2> blocks;
 
     int32_t y = 0;
-    for (auto block : m_blocks) {
+    for (const auto& block : m_blocks) {
         blocks.emplace_back(block.nonRotatedCoordinates);
         if (block.nonRotatedCoordinates.x != x) continue;
         if (positive && block.nonRotatedCoordinates.y >= y) {
@@ -100,7 +186,7 @@ void Brick::addBlockH(int32_t y, bool positive)
     std::vector<glm::ivec2> blocks;
 
     int32_t x = 0;
-    for (auto block : m_blocks) {
+    for (const auto& block : m_blocks) {
         blocks.emplace_back(block.nonRotatedCoordinates);
         if (block.nonRotatedCoordinates.y != y) continue;
         if (positive && block.nonRotatedCoordinates.x >= x) {
@@ -116,11 +202,25 @@ void Brick::addBlockH(int32_t y, bool positive)
     this->blocks(blocks);
 }
 
+void Brick::addBarrier(Barrier& barrier)
+{
+    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
+        return barrierInfo.barrier == &barrier;
+    });
+    if (barrierInfoIt != m_barrierInfos.end()) return;
+
+    BarrierInfo barrierInfo;
+    barrierInfo.barrier = &barrier;
+    m_barrierInfos.emplace_back(barrierInfo);
+}
+
 void Brick::removeBarrier(Barrier& barrier)
 {
-    auto barrierIt = m_barriers.find(&barrier);
-    if (barrierIt == m_barriers.end()) return;
-    m_barriers.erase(barrierIt);
+    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
+        return barrierInfo.barrier == &barrier;
+    });
+    if (barrierInfoIt == m_barrierInfos.end()) return;
+    m_barrierInfos.erase(barrierInfoIt);
 }
 
 bool Brick::userInteractionAllowed() const
@@ -128,11 +228,11 @@ bool Brick::userInteractionAllowed() const
     if (m_fixed) return false;
 
     auto playerPosition = glm::vec2(m_gameState.player.position);
-    for (auto barrier : m_barriers) {
-        if (!barrier->powered()) return false;
+    for (const auto& barrierInfo : m_barrierInfos) {
+        if (!barrierInfo.barrier->powered()) return false;
 
-        auto barrierPosition = glm::vec2(barrier->transform().translation());
-        if (glm::distance(playerPosition, barrierPosition) >= barrier->diameter() / 2.f) {
+        auto barrierPosition = glm::vec2(barrierInfo.barrier->transform().translation());
+        if (glm::distance(playerPosition, barrierPosition) >= barrierInfo.barrier->diameter() / 2.f) {
             return false;
         }
     }
@@ -257,9 +357,9 @@ void Brick::updateBlocksFromRotationLevel()
 
 Brick* findBrick(GameState& gameState, const sill::GameEntity& entity)
 {
-    for (const auto& brick : gameState.level.bricks) {
+    for (auto brick : gameState.level.bricks) {
         if (&brick->entity() == &entity) {
-            return brick.get();
+            return brick;
         }
     }
 
@@ -269,7 +369,8 @@ Brick* findBrick(GameState& gameState, const sill::GameEntity& entity)
 uint32_t findBrickIndex(GameState& gameState, const sill::GameEntity& entity)
 {
     for (auto i = 0u; i < gameState.level.bricks.size(); ++i) {
-        if (&gameState.level.bricks[i]->entity() == &entity) {
+        auto& brick = *gameState.level.bricks[i];
+        if (&brick.entity() == &entity) {
             return i;
         }
     }

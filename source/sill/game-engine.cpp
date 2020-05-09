@@ -68,7 +68,8 @@ void GameEngine::add(std::unique_ptr<GameEntity>&& entity)
 
 void GameEngine::remove(GameEntity& entity)
 {
-    m_entities.erase(std::find(m_entities.begin(), m_entities.end(), &entity));
+    auto entityIt = std::find(m_entities.begin(), m_entities.end(), &entity);
+    m_entities.erase(entityIt);
     entity.alive(false);
 
     m_impl->remove(entity);

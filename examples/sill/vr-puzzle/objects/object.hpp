@@ -12,6 +12,8 @@ public:
     Object& operator=(const Object&) = delete;
     virtual ~Object() = default;
 
+    virtual const std::string& kind() const = 0;
+
     /// Prepare the object to be removed.
     /// The destructor does not destroy anything
     /// so that shutting down the application is fast enough.

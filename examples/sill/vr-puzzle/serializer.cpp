@@ -69,64 +69,6 @@ nlohmann::json serialize(const Transform& transform)
     return json;
 }
 
-// ----- Bricks
-
-void unserializeBrick(Brick& brick, GameState& gameState, const nlohmann::json& json)
-{
-    brick.transform().worldTransform(unserializeTransform(json["transform"]));
-
-    std::vector<glm::ivec2> blocks;
-    for (auto& blockJson : json["blocks"]) {
-        blocks.emplace_back(unserializeIvec2(blockJson));
-    }
-    brick.blocks(blocks);
-
-    auto& barriersJson = json["barriers"];
-    for (auto& barrierJson : barriersJson) {
-        brick.addBarrier(*gameState.level.barriers[barrierJson]);
-    }
-
-    brick.color(unserializeVec3(json["color"]));
-    brick.fixed(json["fixed"]);
-    brick.stored(json["stored"]);
-    brick.baseRotationLevel(json["rotationLevel"]);
-
-    auto& snapPanelJson = json["snapPanel"];
-    if (!snapPanelJson.is_null()) {
-        auto& panel = *gameState.level.panels[snapPanelJson];
-        brick.snap(panel, unserializeUvec2(json["snapCoordinates"]));
-    }
-}
-
-nlohmann::json serialize(GameState& gameState, const Brick& brick)
-{
-    nlohmann::json json = {
-        {"transform", serialize(brick.transform().worldTransform())},
-        {"blocks", nlohmann::json::array()},
-        {"barriers", nlohmann::json::array()},
-        {"color", serialize(brick.color())},
-        {"fixed", brick.fixed()},
-        {"stored", brick.stored()},
-        {"rotationLevel", brick.rotationLevel()},
-        {"snapPanel", {}},
-    };
-
-    for (auto block : brick.blocks()) {
-        json["blocks"].emplace_back(serialize(block.nonRotatedCoordinates));
-    }
-
-    for (auto barrier : brick.barriers()) {
-        json["barriers"].emplace_back(findBarrierIndex(gameState, barrier->entity()));
-    }
-
-    if (brick.snapped()) {
-        json["snapPanel"] = findPanelIndex(gameState, brick.snapPanel().entity());
-        json["snapCoordinates"] = serialize(brick.snapCoordinates());
-    }
-
-    return json;
-}
-
 // ----- Generics
 
 void unserializeGeneric(Generic& generic, const nlohmann::json& json)
@@ -257,19 +199,10 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     gameState.level.generics.clear();
     gameState.level.objects.clear();
 
-    // @note We add the object on the list before unserializing it.
-    // Because, for example, in Panel::updateFromSnappedBricks called by Brick,
-    // we go through gameState.level.bricks. So the brick has to be added
-    // to the list beforehands.
-
     for (auto& genericJson : levelJson["generics"]) {
         auto kind = (genericJson.find("kind") == genericJson.end()) ? std::string() : genericJson["kind"].get<std::string>();
         auto& generic = Generic::make(gameState, kind);
         unserializeGeneric(generic, genericJson);
-    }
-    for (const auto& brickJson : levelJson["bricks"]) {
-        auto& brick = gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
-        unserializeBrick(*brick, gameState, brickJson);
     }
 
     for (auto& generic : gameState.level.generics) {
@@ -293,12 +226,6 @@ void serializeLevel(GameState& gameState, const std::string& path)
         {"direction", serialize(gameState.player.direction)},
     };
 
-    levelJson["bricks"] = nlohmann::json::array();
-    for (auto i = 0u; i < gameState.level.bricks.size(); ++i) {
-        const auto& brick = *gameState.level.bricks[i];
-        levelJson["bricks"][i] = serialize(gameState, brick);
-    }
-
     levelJson["generics"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.generics.size(); ++i) {
         const auto& generic = *gameState.level.generics[i];
@@ -316,19 +243,10 @@ void serializeLevel(GameState& gameState, const std::string& path)
 
 Object& duplicateBySerialization(GameState& gameState, const Object& object)
 {
-    auto& entity = object.entity();
-
-    if (entity.name() == "brick") {
-        auto json = serialize(gameState, dynamic_cast<const Brick&>(object));
-        auto& brick = *gameState.level.bricks.emplace_back(std::make_unique<Brick>(gameState));
-        unserializeBrick(brick, gameState, json);
-        return brick;
-    }
-
-    // Generics
     auto json = serialize(gameState, dynamic_cast<const Generic&>(object));
     auto kind = (json.find("kind") == json.end()) ? std::string() : json["kind"].get<std::string>();
     auto& generic = Generic::make(gameState, kind);
+    generic.mutateBeforeDuplication(json["data"]);
     unserializeGeneric(generic, json);
     generic.consolidateReferences();
     return generic;

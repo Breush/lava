@@ -1,34 +1,43 @@
 {
-    "bricks": [
+    "file": {
+        "type": "LEVEL",
+        "version": 0
+    },
+    "generics": [
         {
-            "barriers": [],
-            "blocks": [
-                [
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        1,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ]
+                ],
+                "color": [
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                "fixed": true,
+                "rotationLevel": 0,
+                "snapCoordinates": [
                     0,
                     0
                 ],
-                [
-                    1,
-                    0
-                ],
-                [
-                    0,
-                    1
-                ]
-            ],
-            "color": [
-                0.5,
-                0.5,
-                0.5
-            ],
-            "fixed": true,
-            "rotationLevel": 0,
-            "snapCoordinates": [
-                0,
-                0
-            ],
-            "snapPanel": 0,
-            "stored": false,
+                "snapPanel": 0,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.8259725570678711,
@@ -42,51 +51,57 @@
                     -14.587013244628906,
                     1.8177378177642822
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        -1,
+                        1
+                    ],
+                    [
+                        -1,
+                        -1
+                    ],
+                    [
+                        0,
+                        -1
+                    ],
+                    [
+                        1,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    -1,
-                    1
-                ],
-                [
-                    -1,
-                    -1
-                ],
-                [
-                    0,
-                    -1
-                ],
-                [
-                    1,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 2,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 2,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.5433467030525208,
-                    -0.7726048231124878,
-                    -0.054425597190856934,
-                    0.32387328147888184
+                    -0.5791826248168945,
+                    -0.5940043330192566,
+                    -0.06216880679130554,
+                    0.5548345446586609
                 ],
                 "scaling": 1.000000238418579,
                 "translation": [
@@ -94,35 +109,41 @@
                     -12.796855926513672,
                     1.255725622177124
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                0
-            ],
-            "blocks": [
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     0
                 ],
-                [
-                    0,
-                    1
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 1,
-            "snapPanel": null,
-            "stored": true,
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 1,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.1813899278640747,
@@ -136,35 +157,41 @@
                     1.3070491552352905,
                     2.9845170974731445
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                0
-            ],
-            "blocks": [
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     0
                 ],
-                [
-                    0,
-                    1
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 3,
-            "snapPanel": null,
-            "stored": true,
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 3,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.1813899278640747,
@@ -178,31 +205,37 @@
                     1.3070491552352905,
                     2.9845170974731445
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                0
-            ],
-            "blocks": [
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     0
                 ],
-                [
-                    0,
-                    1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 0,
-            "snapPanel": null,
-            "stored": true,
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.1813899278640747,
@@ -216,31 +249,37 @@
                     1.3070491552352905,
                     2.9845170974731445
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                0
-            ],
-            "blocks": [
-                [
+            "components": null,
+            "data": {
+                "barriers": [
+                    0
+                ],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": true,
+                "rotationLevel": 0,
+                "snapCoordinates": [
                     0,
                     0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 0,
-            "snapCoordinates": [
-                0,
-                0
-            ],
-            "snapPanel": 1,
-            "stored": false,
+                ],
+                "snapPanel": 1,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     -0.23101915419101715,
@@ -254,41 +293,47 @@
                     1.9983338117599487,
                     3.5026156902313232
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                1
-            ],
-            "blocks": [
-                [
-                    0,
-                    0
-                ],
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     1
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 0,
-            "snapPanel": null,
-            "stored": true,
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.05077075585722923,
-                    0.781906247138977,
-                    -0.019017523154616356,
-                    0.6210296750068665
+                    0.04978476092219353,
+                    0.7507467269897461,
+                    -0.021466542035341263,
+                    0.6583572030067444
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -296,41 +341,47 @@
                     0.5230346322059631,
                     3.0737695693969727
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                1
-            ],
-            "blocks": [
-                [
-                    0,
-                    0
-                ],
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     1
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 1,
-            "snapPanel": null,
-            "stored": true,
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 1,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.6605280637741089,
-                    -0.3273557424545288,
-                    -0.3971584737300873,
-                    0.5466268658638
+                    0.6404107213020325,
+                    -0.3535778820514679,
+                    -0.4288426637649536,
+                    0.5300426483154297
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -338,41 +389,47 @@
                     0.5230346322059631,
                     3.0737695693969727
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                1
-            ],
-            "blocks": [
-                [
-                    0,
-                    0
-                ],
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     1
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 0,
-            "snapPanel": null,
-            "stored": true,
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.743155837059021,
-                    -0.0916244387626648,
-                    -0.5308395624160767,
-                    0.3968980014324188
+                    0.7164328098297119,
+                    -0.11083716154098511,
+                    -0.5663875937461853,
+                    0.39196696877479553
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -380,37 +437,43 @@
                     0.5230346322059631,
                     3.0737695693969727
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                1
-            ],
-            "blocks": [
-                [
-                    0,
-                    0
-                ],
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 0,
-            "snapPanel": null,
-            "stored": true,
+                ],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.6263204216957092,
-                    0.23941455781459808,
-                    0.6473917365074158,
-                    0.3623376786708832
+                    0.5773579478263855,
+                    0.265242338180542,
+                    0.6914125084877014,
+                    0.3438814580440521
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -418,37 +481,43 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                1
-            ],
-            "blocks": [
-                [
-                    0,
-                    0
-                ],
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 0,
-            "snapPanel": null,
-            "stored": true,
+                ],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.5151619911193848,
-                    0.43118277192115784,
-                    0.5422568917274475,
-                    0.5046272873878479
+                    0.4741760790348053,
+                    0.46689194440841675,
+                    0.5784388780593872,
+                    0.4717830717563629
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -456,37 +525,43 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                1
-            ],
-            "blocks": [
-                [
-                    0,
-                    0
-                ],
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 0,
-            "snapPanel": null,
-            "stored": true,
+                ],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.6877846717834473,
-                    -0.06216801330447197,
-                    0.7209001183509827,
-                    -0.058242037892341614
+                    -0.7386062145233154,
+                    -0.06625629216432571,
+                    0.6687344312667847,
+                    -0.05354532599449158
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -494,41 +569,47 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [
-                1
-            ],
-            "blocks": [
-                [
-                    0,
-                    0
-                ],
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [
                     1
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 0,
-            "snapPanel": null,
-            "stored": true,
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.5741147994995117,
-                    0.3915053904056549,
-                    0.6351630091667175,
-                    0.33717241883277893
+                    0.5261849761009216,
+                    0.4150886535644531,
+                    0.6754030585289001,
+                    0.30767378211021423
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -536,41 +617,47 @@
                     -2.5463674068450928,
                     3.5933661460876465
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        2
+                    ],
+                    [
+                        1,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": true,
+                "rotationLevel": 0,
+                "snapCoordinates": [
                     0,
                     0
                 ],
-                [
-                    0,
-                    1
-                ],
-                [
-                    0,
-                    2
-                ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 0,
-            "snapCoordinates": [
-                0,
-                0
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5801612734794617,
@@ -584,39 +671,45 @@
                     9.376745223999023,
                     1.0290677547454834
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 1,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 1,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.11408839374780655,
-                    -0.1425975114107132,
-                    0.5254560708999634,
-                    0.8309893012046814
+                    0.10464785993099213,
+                    -0.1496630311012268,
+                    0.5779893398284912,
+                    0.7953459620475769
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -624,29 +717,35 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 0,
-            "snapCoordinates": [
-                3,
-                1
-            ],
-            "snapPanel": 5,
-            "stored": false,
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": true,
+                "rotationLevel": 0,
+                "snapCoordinates": [
+                    3,
+                    1
+                ],
+                "snapPanel": 5,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.7418771386146545,
@@ -660,39 +759,45 @@
                     7.878862380981445,
                     2.5681889057159424
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 1,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 1,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.9006960988044739,
-                    -0.4314907193183899,
-                    -0.03302164003252983,
-                    0.03832937777042389
+                    0.8709716200828552,
+                    -0.48871850967407227,
+                    -0.030479170382022858,
+                    0.040380556136369705
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -700,39 +805,45 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 1,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 1,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.03596159815788269,
-                    -0.06857749074697495,
-                    0.47910115122795105,
-                    0.8743359446525574
+                    -0.04031234607100487,
+                    -0.06611370295286179,
+                    0.5345284938812256,
+                    0.8415938019752502
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -740,39 +851,45 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 2,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 2,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
-                    0.7722885608673096,
-                    -0.5216802358627319,
-                    -0.35210922360420227,
-                    0.08623681962490082
+                    0.7370113134384155,
+                    -0.5704330801963806,
+                    -0.34580978751182556,
+                    0.10878077149391174
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -780,33 +897,39 @@
                     7.000327110290527,
                     1.8124032020568848
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 2,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 2,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5285016894340515,
@@ -820,33 +943,39 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 2,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 2,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.8894535899162292,
@@ -860,33 +989,39 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 2,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 2,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     -0.026102973148226738,
@@ -900,33 +1035,39 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 2,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 2,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.03936566784977913,
@@ -940,37 +1081,43 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        -1
+                    ],
+                    [
+                        -1,
+                        -1
+                    ]
                 ],
-                [
-                    -1,
-                    0
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ],
-                [
-                    -1,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": false,
-            "rotationLevel": 2,
-            "snapPanel": null,
-            "stored": true,
+                "fixed": false,
+                "rotationLevel": 2,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.9988768696784973,
@@ -984,41 +1131,47 @@
                     18.33260154724121,
                     1.45263671875
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        2
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    0,
-                    1
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    2
+                "fixed": true,
+                "rotationLevel": 2,
+                "snapCoordinates": [
+                    2,
+                    5
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 2,
-            "snapCoordinates": [
-                2,
-                5
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5354236960411072,
@@ -1032,41 +1185,47 @@
                     8.969854354858398,
                     2.1003341674804688
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        2
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    0,
-                    1
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
+                "fixed": true,
+                "rotationLevel": 3,
+                "snapCoordinates": [
                     0,
-                    2
+                    6
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 3,
-            "snapCoordinates": [
-                0,
-                6
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     -0.0316217802464962,
@@ -1080,37 +1239,43 @@
                     9.415127754211426,
                     2.3082327842712402
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    0,
-                    1
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 3,
-            "snapCoordinates": [
-                0,
-                4
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "fixed": true,
+                "rotationLevel": 3,
+                "snapCoordinates": [
+                    0,
+                    4
+                ],
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     -0.0316217802464962,
@@ -1124,37 +1289,43 @@
                     9.402322769165039,
                     1.8818455934524536
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        -1
+                    ]
                 ],
-                [
-                    0,
-                    1
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    -1
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 2,
-            "snapCoordinates": [
-                1,
-                2
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "fixed": true,
+                "rotationLevel": 2,
+                "snapCoordinates": [
+                    1,
+                    2
+                ],
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5354236960411072,
@@ -1168,41 +1339,47 @@
                     9.170110702514648,
                     1.458101511001587
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        2
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    0,
-                    1
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    2
+                "fixed": true,
+                "rotationLevel": 2,
+                "snapCoordinates": [
+                    5,
+                    3
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 2,
-            "snapCoordinates": [
-                5,
-                3
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5354236960411072,
@@ -1216,29 +1393,35 @@
                     8.29877758026123,
                     1.6818886995315552
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 0,
-            "snapCoordinates": [
-                3,
-                1
-            ],
-            "snapPanel": 6,
-            "stored": false,
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": true,
+                "rotationLevel": 0,
+                "snapCoordinates": [
+                    3,
+                    1
+                ],
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5801612734794617,
@@ -1252,41 +1435,47 @@
                     8.724851608276367,
                     1.2502061128616333
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        -1,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        2
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": true,
+                "rotationLevel": 0,
+                "snapCoordinates": [
+                    6,
                     0
                 ],
-                [
-                    -1,
-                    0
-                ],
-                [
-                    0,
-                    1
-                ],
-                [
-                    0,
-                    2
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 0,
-            "snapCoordinates": [
-                6,
-                0
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5801612734794617,
@@ -1300,41 +1489,47 @@
                     8.06015396118164,
                     1.0449540615081787
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        0,
+                        2
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    0,
-                    1
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    0,
-                    2
+                "fixed": true,
+                "rotationLevel": 1,
+                "snapCoordinates": [
+                    6,
+                    5
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 1,
-            "snapCoordinates": [
-                6,
-                5
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.7888312339782715,
@@ -1348,37 +1543,43 @@
                     8.092129707336426,
                     2.1109256744384766
                 ]
-            }
+            },
+            "walkable": true
         },
         {
-            "barriers": [],
-            "blocks": [
-                [
-                    0,
-                    0
+            "components": null,
+            "data": {
+                "barriers": [],
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ]
                 ],
-                [
-                    0,
-                    1
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
                 ],
-                [
-                    1,
-                    0
-                ]
-            ],
-            "color": [
-                0.9919999837875366,
-                0.9919999837875366,
-                0.5879999995231628
-            ],
-            "fixed": true,
-            "rotationLevel": 2,
-            "snapCoordinates": [
-                6,
-                4
-            ],
-            "snapPanel": 6,
-            "stored": false,
+                "fixed": true,
+                "rotationLevel": 2,
+                "snapCoordinates": [
+                    6,
+                    4
+                ],
+                "snapPanel": 6,
+                "stored": false
+            },
+            "kind": "brick",
+            "name": "brick",
             "transform": {
                 "rotation": [
                     0.5354236960411072,
@@ -1392,14 +1593,9 @@
                     8.085753440856934,
                     1.8977299928665161
                 ]
-            }
-        }
-    ],
-    "file": {
-        "type": "LEVEL",
-        "version": 0
-    },
-    "generics": [
+            },
+            "walkable": true
+        },
         {
             "components": null,
             "data": {

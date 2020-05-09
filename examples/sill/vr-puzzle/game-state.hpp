@@ -85,7 +85,7 @@ struct GameState {
         std::string path;
 
         std::vector<Barrier*> barriers;
-        std::vector<std::unique_ptr<Brick>> bricks;
+        std::vector<Brick*> bricks;
         std::vector<Panel*> panels;
         std::vector<std::unique_ptr<Generic>> generics;
 

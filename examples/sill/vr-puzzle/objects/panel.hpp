@@ -85,11 +85,13 @@ protected:
     };
 
 private:
+    bool m_consolidated = false;
+
     bool m_solved = false;
     bool m_pretendSolved = false;
 
     // Configuration
-    glm::uvec2 m_extent = {0u, 0u};
+    glm::uvec2 m_extent = {3u, 3u};
     std::vector<BarrierInfo> m_barrierInfos;
     std::vector<std::pair<glm::uvec2, glm::uvec2>> m_links; // @todo Deprecated because unused?
 

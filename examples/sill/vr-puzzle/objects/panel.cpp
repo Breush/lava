@@ -44,11 +44,9 @@ Panel::Panel(GameState& gameState)
 
 void Panel::clear(bool removeFromLevel)
 {
-    Generic::clear(removeFromLevel);
-
     if (removeFromLevel) {
-        for (auto& brick : m_gameState.level.bricks) {
-            if (brick->snapped() && &brick->snapPanel() == this) {
+        for (auto brick : m_gameState.level.bricks) {
+            if (&brick->snapPanel() == this) {
                 brick->unsnap();
             }
         }
@@ -58,14 +56,17 @@ void Panel::clear(bool removeFromLevel)
         });
         m_gameState.level.panels.erase(panelIt);
     }
+
+    // @note Keep last, this destroys us!
+    Generic::clear(removeFromLevel);
 }
 
 void Panel::unserialize(const nlohmann::json& data)
 {
-    extent(unserializeUvec2(data["extent"]));
+    m_extent = unserializeUvec2(data["extent"]);
 
-    const auto& barriers = data["barriers"];
-    for (const auto& barrier : barriers) {
+    m_barrierInfos.clear();
+    for (const auto& barrier : data["barriers"]) {
         BarrierInfo barrierInfo;
         barrierInfo.unconsolidatedBarrierId = barrier;
         m_barrierInfos.emplace_back(barrierInfo);
@@ -74,17 +75,24 @@ void Panel::unserialize(const nlohmann::json& data)
 
 nlohmann::json Panel::serialize() const
 {
-    nlohmann::json data;
-    data["extent"] = ::serialize(extent());
-    data["barriers"] = nlohmann::json::array();
+    nlohmann::json data = {
+        {"extent", ::serialize(m_extent)},
+        {"barriers", nlohmann::json::array()},
+    };
+
     for (const auto& barrierInfo : m_barrierInfos) {
         data["barriers"].emplace_back(findBarrierIndex(m_gameState, barrierInfo.barrier->entity()));
     }
+
     return data;
 }
 
 void Panel::consolidateReferences()
 {
+    m_consolidated = true;
+
+    extent(m_extent);
+
     for (auto& barrierInfo : m_barrierInfos) {
         barrierInfo.barrier = m_gameState.level.barriers[barrierInfo.unconsolidatedBarrierId];
     }
@@ -224,7 +232,7 @@ void Panel::updateFromSnappedBricks()
         }
     }
 
-    for (auto& brick : m_gameState.level.bricks) {
+    for (auto brick : m_gameState.level.bricks) {
         if (&brick->snapPanel() != this) continue;
 
         for (const auto& block : brick->blocks()) {
@@ -392,6 +400,8 @@ void Panel::updateUniformData()
 
 void Panel::updateSolved()
 {
+    if (!m_consolidated) return;
+
     updateFromSnappedBricks();
 
     bool solved = true;
@@ -414,11 +424,11 @@ void Panel::updateSolved()
 
             // Find the brick that has 'from'.
             const Brick* fromBrick = nullptr;
-            for (const auto& brick : m_gameState.level.bricks) {
+            for (auto brick : m_gameState.level.bricks) {
                 for (const auto& block : brick->blocks()) {
                     if (brick->snapCoordinates().x + block.coordinates.x == from.x
                         && brick->snapCoordinates().y + block.coordinates.y == from.y) {
-                        fromBrick = brick.get();
+                        fromBrick = brick;
                         break;
                     }
                 }

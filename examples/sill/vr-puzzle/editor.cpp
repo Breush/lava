@@ -74,11 +74,10 @@ void onSelectionChanged(GameState& gameState)
     // Create UI
     if (gameState.editor.selection.objects.size() == 1u) {
         auto& object = *gameState.editor.selection.objects[0u];
-        auto generic = dynamic_cast<Generic*>(&object);
-        auto kind = (generic != nullptr) ? generic->kind() : "";
+        const auto& kind = object.kind();
 
         if (kind == "barrier") {
-            auto& barrier = dynamic_cast<Barrier&>(*generic);
+            auto& barrier = dynamic_cast<Barrier&>(object);
             {
                 auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.name");
                 auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(barrier.name()));
@@ -99,7 +98,7 @@ void onSelectionChanged(GameState& gameState)
             }
             return;
         }
-        else if (object.entity().name() == "brick") {
+        else if (kind == "brick") {
             auto& brick = dynamic_cast<Brick&>(object);
             auto& entity = gameState.engine->make<sill::GameEntity>("ui.brick.fixed");
             auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle fixed");
@@ -111,7 +110,7 @@ void onSelectionChanged(GameState& gameState)
             return;
         }
         else if (kind == "panel") {
-            auto& panel = dynamic_cast<Panel&>(*generic);
+            auto& panel = dynamic_cast<Panel&>(object);
             {
                 auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.name");
                 auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(panel.name()));
@@ -205,16 +204,13 @@ void selectMultiObjects(GameState& gameState, bool signalSelectionChanged = true
 // Specific behavior based on what it selected.
 void updateSelectedObject(GameState& gameState, Object& object)
 {
-    auto& input = gameState.engine->input();
-    auto& entity = object.entity();
-
     if (gameState.editor.selection.objects.size() != 1u) return;
 
-    auto generic = dynamic_cast<Generic*>(&object);
-    auto kind = (generic != nullptr) ? generic->kind() : "";
+    auto& input = gameState.engine->input();
+    const auto& kind = object.kind();
 
     if (kind == "barrier") {
-        auto& barrier = dynamic_cast<Barrier&>(*generic);
+        auto& barrier = dynamic_cast<Barrier&>(object);
 
         if (input.justDown("up")) {
             barrier.diameter(barrier.diameter() + 0.5f);
@@ -223,7 +219,7 @@ void updateSelectedObject(GameState& gameState, Object& object)
             barrier.diameter(barrier.diameter() - 0.5f);
         }
     }
-    else if (entity.name() == "brick") {
+    else if (kind == "brick") {
         auto& brick = dynamic_cast<Brick&>(object);
 
         if (input.justDown("up")) {
@@ -240,7 +236,7 @@ void updateSelectedObject(GameState& gameState, Object& object)
         }
     }
     else if (kind == "panel") {
-        auto& panel = dynamic_cast<Panel&>(*generic);
+        auto& panel = dynamic_cast<Panel&>(object);
 
         if (input.justDown("up")) {
             panel.extent(panel.extent() + glm::uvec2(0, 1));
@@ -254,10 +250,6 @@ void updateSelectedObject(GameState& gameState, Object& object)
         if (input.justDown("left")) {
             panel.extent(panel.extent() - glm::uvec2(1, 0));
         }
-    }
-    else {
-        // Nothing to do yet.
-        // auto& generic = dynamic_cast<Generic&>(object);
     }
 }
 
@@ -465,38 +457,7 @@ void setupEditor(GameState& gameState)
 
             // ----- Add
 
-            if (input.justDown("add-barrier")) {
-                // @fixme Factorize when all adders are generics...
-                auto& generic = Generic::make(gameState, "barrier");
-                lava::Transform transform;
-                transform.translation = gameState.camera.component->origin();
-                generic.consolidateReferences();
-                generic.transform().worldTransform(transform);
-                return;
-            }
-            else if (input.justDown("add-brick")) {
-                auto brick = std::make_unique<Brick>(gameState);
-                brick->blocks({{0, 0}});
-                gameState.level.bricks.emplace_back(std::move(brick));
-                return;
-            }
-            else if (input.justDown("add-panel")) {
-                auto& generic = Generic::make(gameState, "panel");
-                lava::Transform transform;
-                transform.translation = gameState.camera.component->origin();
-                generic.consolidateReferences();
-                generic.transform().worldTransform(transform);
-                return;
-            }
-            else if (input.justDown("add-pedestal")) {
-                auto& generic = Generic::make(gameState, "pedestal");
-                lava::Transform transform;
-                transform.translation = gameState.camera.component->origin();
-                generic.consolidateReferences();
-                generic.transform().worldTransform(transform);
-                return;
-            }
-            else if (input.justDown("add-mesh")) {
+            if (input.justDown("add-mesh")) {
                 std::cout << "Available meshes:" << std::endl;
                 for (const auto& entry : std::filesystem::recursive_directory_iterator("./assets/models/vr-puzzle/")) {
                     if (entry.path().extension() == ".glb") {
@@ -515,6 +476,29 @@ void setupEditor(GameState& gameState)
                 auto& meshComponent = entity.make<sill::MeshComponent>();
                 sill::makers::glbMeshMaker(filePath)(meshComponent);
 
+                lava::Transform transform;
+                transform.translation = gameState.camera.component->origin();
+                generic.consolidateReferences();
+                generic.transform().worldTransform(transform);
+                return;
+            }
+
+            std::string kindToAdd;
+            if (input.justDown("add-barrier")) {
+                kindToAdd = "barrier";
+            }
+            else if (input.justDown("add-brick")) {
+                kindToAdd = "brick";
+            }
+            else if (input.justDown("add-panel")) {
+                kindToAdd = "panel";
+            }
+            else if (input.justDown("add-pedestal")) {
+                kindToAdd = "pedestal";
+            }
+
+            if (!kindToAdd.empty()) {
+                auto& generic = Generic::make(gameState, kindToAdd);
                 lava::Transform transform;
                 transform.translation = gameState.camera.component->origin();
                 generic.consolidateReferences();
@@ -678,12 +662,9 @@ void setupEditor(GameState& gameState)
                 auto barrierCount = 0u;
                 Barrier* barrier = nullptr;
                 for (auto object : gameState.editor.selection.objects) {
-                    // @fixme When "object" is no more because everything is generic,
-                    // just check the kind.
-                    Barrier* possibleBarrier = dynamic_cast<Barrier*>(object);
-                    if (possibleBarrier != nullptr) {
+                    if (object->kind() == "barrier") {
                         barrierCount += 1u;
-                        barrier = possibleBarrier;
+                        barrier = dynamic_cast<Barrier*>(object);
                     }
                 }
 
@@ -692,11 +673,11 @@ void setupEditor(GameState& gameState)
                     std::cout << "Binding all selected panels and bricks to selected barrier." << std::endl;
 
                     for (auto object : gameState.editor.selection.objects) {
-                        if (object->entity().name() == "brick") {
+                        if (object->kind() == "brick") {
                             auto& brick = dynamic_cast<Brick&>(*object);
                             brick.addBarrier(*barrier);
                         }
-                        else if (object->entity().name() == "panel") {
+                        else if (object->kind() == "panel") {
                             auto& panel = dynamic_cast<Panel&>(*object);
                             panel.addBarrier(*barrier);
                         }
@@ -710,16 +691,15 @@ void setupEditor(GameState& gameState)
                 auto pedestalCount = 0u;
                 Pedestal* pedestal = nullptr;
                 for (auto object : gameState.editor.selection.objects) {
-                    Pedestal* possiblePedestal = dynamic_cast<Pedestal*>(object);
-                    if (possiblePedestal != nullptr) {
+                    if (object->kind() == "pedestal") {
                         pedestalCount += 1u;
-                        pedestal = possiblePedestal;
+                        pedestal = dynamic_cast<Pedestal*>(object);
                     }
                 }
 
                 if (pedestalCount == 1u) {
                     for (auto object : gameState.editor.selection.objects) {
-                        if (object->entity().name() == "brick") {
+                        if (object->kind() == "brick") {
                             auto& brick = dynamic_cast<Brick&>(*object);
                             pedestal->addBrick(brick);
                         }
@@ -741,7 +721,7 @@ void setupEditor(GameState& gameState)
                 auto minX = 0.f;
                 auto maxX = 0.f;
                 for (auto object : gameState.editor.selection.objects) {
-                    auto origin = object->transform().translation().x - barycenter.x;
+                    auto origin = object->transform().worldTransform().translation.x - barycenter.x;
                     auto halfSpan = object->halfSpan();
                     minX = std::min(minX, origin - halfSpan);
                     maxX = std::max(maxX, origin + halfSpan);
@@ -750,7 +730,7 @@ void setupEditor(GameState& gameState)
 
                 for (auto object : gameState.editor.selection.objects) {
                     auto& newObject = duplicateBySerialization(gameState, *object);
-                    newObject.transform().translate(glm::vec3{offset, 0.f, 0.f});
+                    newObject.transform().worldTranslate(glm::vec3{offset, 0.f, 0.f});
                 }
             }
 

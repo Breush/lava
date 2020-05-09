@@ -12,12 +12,12 @@ namespace {
         Brick* pickedBrick = nullptr;
 
         float minDistance = 50.f;
-        for (auto& brick : gameState.level.bricks) {
+        for (auto brick : gameState.level.bricks) {
             if (!brick->userInteractionAllowed()) continue;
             float distance = brick->entity().distanceFrom(ray);
             if (distance > 0.f && distance < minDistance) {
                 minDistance = distance;
-                pickedBrick = brick.get();
+                pickedBrick = brick;
             }
         }
 
@@ -27,7 +27,7 @@ namespace {
     void showPointedBrick(GameState& gameState)
     {
         // Reset color for all bricks first
-        for (auto& brick : gameState.level.bricks) {
+        for (auto brick : gameState.level.bricks) {
             brick->selectionHighlighted(false);
         }
 

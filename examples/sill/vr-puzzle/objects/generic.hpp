@@ -12,12 +12,13 @@ public:
 
     const std::string& name() const { return m_name; }
     void name(const std::string& name) { m_name = name; }
-    const std::string& kind() const { return m_kind; }
+    const std::string& kind() const final { return m_kind; }
     template<class T> T& as() { return dynamic_cast<T&>(*this); }
 
     virtual nlohmann::json serialize() const { return nullptr; }
     virtual void unserialize(const nlohmann::json& /* data */) {}
     virtual void consolidateReferences() {}
+    virtual void mutateBeforeDuplication(nlohmann::json& /* data */) {}
 
     static Generic& make(GameState& gameState, const std::string& kind);
 
