@@ -1,8 +1,10 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 #include <sstream>
 
 namespace lava {
@@ -33,19 +35,23 @@ namespace lava {
 
         Transform inverse() const {
             Transform result;
-            result.rotation = glm::inverse(rotation);
+            result.rotation = glm::conjugate(rotation);
             if (scaling == 0.f) {
                 result.scaling = 0.f;
-                result.translation = -result.rotation * translation;
+                result.translation = -result.rotate(translation);
             } else {
                 result.scaling = 1.f / scaling;
-                result.translation = -(result.rotation * translation) * result.scaling;
+                result.translation = -result.scaling * result.rotate(translation);
             }
             return result;
         }
 
+        glm::vec3 rotate(const glm::vec3& v) const {
+            return rotation * v;
+        }
+
         Transform& operator*=(const Transform& rhs) {
-            translation += rotation * (scaling * rhs.translation);
+            translation += rotate(scaling * rhs.translation);
             scaling *= rhs.scaling;
             rotation *= rhs.rotation;
             return *this;
@@ -59,6 +65,65 @@ namespace lava {
             std::stringstream s;
             s << "[T(" << translation.x << "," << translation.y << "," << translation.z << ") ";
             s << "R(" << rotation.w << "," << rotation.x << "," << rotation.y << "," << rotation.z << ") ";
+            s << "S(" << scaling << ")]";
+            return s.str();
+        }
+    };
+
+    /**
+     * A basic transform, stored as TRS, for 2D.
+     */
+    struct Transform2d {
+        glm::vec2 translation = {0.f, 0.f};
+        float rotation = 0.f;
+        float scaling = 1.f;
+
+        glm::mat3 matrix() const {
+            const auto c = scaling * cos(rotation);
+            const auto s = scaling * sin(rotation);
+            return glm::mat3( c, s, 0.f,
+                             -s, c, 0.f,
+                             translation.x, translation.y, 1.f);
+        }
+
+        Transform2d inverse() const {
+            Transform2d result;
+            result.rotation = -rotation;
+            if (scaling == 0.f) {
+                result.scaling = 0.f;
+                result.translation = -result.rotate(translation);
+            } else {
+                result.scaling = 1.f / scaling;
+                result.translation = -result.scaling * result.rotate(translation);
+            }
+            return result;
+        }
+
+        glm::vec2 rotate(const glm::vec2& v) const {
+            const auto c = cos(rotation);
+            const auto s = sin(rotation);
+
+            glm::vec2 result;
+            result.x = v.x * c - v.y * s;
+            result.y = v.x * s + v.y * c;
+            return result;
+        }
+
+        Transform2d& operator*=(const Transform2d& rhs) {
+            translation += rotate(scaling * rhs.translation);
+            scaling *= rhs.scaling;
+            rotation += rhs.rotation;
+            return *this;
+        }
+
+        Transform2d operator*(const Transform2d& rhs) const {
+            return Transform2d(*this) *= rhs;
+        }
+
+        std::string to_string() const {
+            std::stringstream s;
+            s << "[T(" << translation.x << "," << translation.y << ") ";
+            s << "R(" << rotation << ") ";
             s << "S(" << scaling << ")]";
             return s.str();
         }

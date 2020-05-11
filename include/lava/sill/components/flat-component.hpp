@@ -22,7 +22,6 @@ namespace lava::sill {
         FlatNode& node(const std::string& name);
         std::vector<FlatNode>& nodes() { return m_nodes; }
         const std::vector<FlatNode>& nodes() const { return m_nodes; }
-        void nodes(std::vector<FlatNode>&& nodes);
 
         FlatNode& addNode(); // Emplace back a node.
         void removeNode(const std::string& name);
@@ -35,6 +34,5 @@ namespace lava::sill {
         TransformComponent& m_transformComponent;
 
         std::vector<FlatNode> m_nodes;
-        bool m_nodesTranformsDirty = true;
     };
 }

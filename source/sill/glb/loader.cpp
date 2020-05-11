@@ -37,12 +37,12 @@ Node::Node(const typename nlohmann::json::basic_json& json)
     else {
         // @note Transform = T * R * S
 
-        if (json.find("translation") != json.end()) {
-            glm::vec3 translation;
-            translation.x = json["translation"][0u];
-            translation.y = json["translation"][1u];
-            translation.z = json["translation"][2u];
-            transform = glm::translate(transform, translation);
+        if (json.find("scale") != json.end()) {
+            glm::vec3 scale;
+            scale.x = json["scale"][0u];
+            scale.y = json["scale"][1u];
+            scale.z = json["scale"][2u];
+            transform = glm::scale(transform, scale);
         }
 
         if (json.find("rotation") != json.end()) {
@@ -51,15 +51,15 @@ Node::Node(const typename nlohmann::json::basic_json& json)
             rotation.y = json["rotation"][1u];
             rotation.z = json["rotation"][2u];
             rotation.w = json["rotation"][3u];
-            transform *= glm::mat4(rotation);
+            transform = glm::mat4(rotation) * transform;
         }
 
-        if (json.find("scale") != json.end()) {
-            glm::vec3 scale;
-            scale.x = json["scale"][0u];
-            scale.y = json["scale"][1u];
-            scale.z = json["scale"][2u];
-            transform = glm::scale(transform, scale);
+        if (json.find("translation") != json.end()) {
+            glm::vec3 translation;
+            translation.x = json["translation"][0u];
+            translation.y = json["translation"][1u];
+            translation.z = json["translation"][2u];
+            transform = glm::translate(glm::mat4(1.f), translation) * transform;
         }
     }
 }

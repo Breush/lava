@@ -11,23 +11,26 @@ FlatComponent::FlatComponent(GameEntity& entity)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<sill::TransformComponent>())
 {
-    m_transformComponent.onWorldTransform2dChanged([this]() { m_nodesTranformsDirty = true; });
+    m_transformComponent.onWorldTransform2dChanged([this]() {
+        for (auto& node : m_nodes) {
+            node.localTransformChanged = true;
+        }
+    });
 }
 
 void FlatComponent::updateFrame()
 {
     // Updating node transforms
+    // @todo No node parenting here?
     for (auto& node : m_nodes) {
         if (!node.flatGroup) continue;
 
-        if (m_nodesTranformsDirty || node.localTransformChanged) {
-            auto transform = m_transformComponent.worldTransform2d() * node.localTransform;
+        if (node.localTransformChanged) {
+            auto transform = m_transformComponent.worldTransform2d().matrix() * node.localTransform;
             node.flatGroup->transform(transform);
             node.localTransformChanged = false;
         }
     }
-
-    m_nodesTranformsDirty = false;
 }
 
 // ----- Nodes
@@ -40,15 +43,8 @@ FlatNode& FlatComponent::node(const std::string& name)
     return *nodeIt;
 }
 
-void FlatComponent::nodes(std::vector<FlatNode>&& nodes)
-{
-    m_nodes = std::move(nodes);
-    m_nodesTranformsDirty = true;
-}
-
 FlatNode& FlatComponent::addNode()
 {
-    m_nodesTranformsDirty = true;
     return m_nodes.emplace_back();
 }
 
@@ -61,7 +57,10 @@ void FlatComponent::removeNode(const std::string& name)
     if (nodeIt == m_nodes.end()) return;
 
     m_nodes.erase(nodeIt);
-    m_nodesTranformsDirty = true;
+
+    for (auto& node : m_nodes) {
+        node.localTransformChanged = true;
+    }
 }
 
 // ----- Helpers

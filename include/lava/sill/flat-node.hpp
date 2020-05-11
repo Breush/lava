@@ -13,22 +13,17 @@ namespace lava::sill {
         /// The optional flat geometry (and material).
         std::unique_ptr<FlatGroup> flatGroup = nullptr;
 
-        /// The local transform of the node, might be updated with animation.
+        /// The local transform of the node.
         glm::mat3 localTransform = glm::mat3(1.f);
 
         bool localTransformChanged = true;
 
     public:
         /// User-set local transform, with no animation.
-        inline const glm::mat3& transform() const { return m_transform; }
         inline void transform(const glm::mat3& transform)
         {
-            m_transform = transform;
             localTransform = transform;
             localTransformChanged = true;
         }
-
-    private:
-        glm::mat3 m_transform = glm::mat3(1.f);
     };
 }

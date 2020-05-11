@@ -174,9 +174,12 @@ void selectMultiObjectsUpdate(GameState& gameState)
 {
     auto topLeft = glm::min(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
     auto bottomRight = glm::max(gameState.editor.selection.multiStart, gameState.editor.selection.multiEnd);
+
+    auto& flatComponent = gameState.editor.selection.multiEntity->get<sill::FlatComponent>();
     gameState.editor.selection.multiEntity->get<sill::TransformComponent>().translation2d((topLeft + bottomRight) / 2.f);
-    gameState.editor.selection.multiEntity->get<sill::TransformComponent>().scaling2d(bottomRight - topLeft);
-    gameState.editor.selection.multiEntity->get<sill::FlatComponent>().primitive(0u, 0u).material()->set("extent", bottomRight - topLeft);
+    gameState.editor.selection.multiEntity->get<sill::TransformComponent>().scaling2d(1.f);
+    flatComponent.node(0u).transform(glm::scale(glm::mat3(1.f), bottomRight - topLeft));
+    flatComponent.material(0u, 0u)->set("extent", bottomRight - topLeft);
 }
 
 /// Update the current selection based on the multi rectangle.

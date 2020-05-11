@@ -84,22 +84,22 @@ void TransformComponent::scaling(float scaling, ChangeReasonFlag changeReasonFla
 
 void TransformComponent::translation2d(const glm::vec2& translation, ChangeReasonFlag changeReasonFlag)
 {
-    m_translation2d = translation;
-    updateTransform2d(changeReasonFlag);
+    m_transform2d.translation = translation;
+    callTransformChanged(m_transform2dChangedCallbacks, changeReasonFlag);
     updateWorldTransform2d(changeReasonFlag);
 }
 
 void TransformComponent::rotation2d(float rotation, ChangeReasonFlag changeReasonFlag)
 {
-    m_rotation2d = rotation;
-    updateTransform2d(changeReasonFlag);
+    m_transform2d.rotation = rotation;
+    callTransformChanged(m_transform2dChangedCallbacks, changeReasonFlag);
     updateWorldTransform2d(changeReasonFlag);
 }
 
-void TransformComponent::scaling2d(const glm::vec2& scaling, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::scaling2d(float scaling, ChangeReasonFlag changeReasonFlag)
 {
-    m_scaling2d = scaling;
-    updateTransform2d(changeReasonFlag);
+    m_transform2d.scaling = scaling;
+    callTransformChanged(m_transform2dChangedCallbacks, changeReasonFlag);
     updateWorldTransform2d(changeReasonFlag);
 }
 
@@ -149,23 +149,16 @@ void TransformComponent::worldScaleFrom(float factor, const glm::vec3& center, C
     worldTransform(m_worldTransform, changeReasonFlag);
 }
 
-void TransformComponent::worldTransform2d(const glm::mat3& worldTransform, ChangeReasonFlag changeReasonFlag)
+void TransformComponent::worldTransform2d(const lava::Transform2d& worldTransform, ChangeReasonFlag changeReasonFlag)
 {
     m_worldTransform2d = worldTransform;
 
     if (m_entity.parent() != nullptr) {
-        m_transform2d = glm::inverse(m_entity.parent()->ensure<TransformComponent>().worldTransform2d()) * m_worldTransform2d;
+        m_transform2d = m_entity.parent()->ensure<TransformComponent>().worldTransform2d().inverse() * m_worldTransform2d;
     }
     else {
         m_transform2d = m_worldTransform2d;
     }
-
-    // Update TRS
-    m_translation2d.x = m_transform2d[2].x;
-    m_translation2d.y = m_transform2d[2].y;
-    m_rotation2d = std::atan2(m_transform2d[0].y, m_transform2d[0].x);
-    m_scaling2d.x = glm::length(m_transform2d[0]);
-    m_scaling2d.y = glm::length(m_transform2d[1]);
 
     updateChildrenWorldTransform2d();
     callTransformChanged(m_transform2dChangedCallbacks, changeReasonFlag);
@@ -214,15 +207,6 @@ void TransformComponent::updateChildrenWorldTransform()
     for (auto& child : m_entity.children()) {
         child->ensure<TransformComponent>().updateWorldTransform(ChangeReasonFlag::Parent);
     }
-}
-
-void TransformComponent::updateTransform2d(ChangeReasonFlag changeReasonFlag)
-{
-    m_transform2d = glm::scale(glm::mat3(1.f), m_scaling2d);
-    m_transform2d = glm::rotate(glm::mat3(1.f), m_rotation2d) * m_transform2d;
-    m_transform2d[2] = glm::vec3(m_translation2d, 1.f);
-
-    callTransformChanged(m_transform2dChangedCallbacks, changeReasonFlag);
 }
 
 void TransformComponent::updateWorldTransform2d(ChangeReasonFlag changeReasonFlag)

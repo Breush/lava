@@ -64,28 +64,22 @@ namespace lava::sill {
         }
 
         // 2D
-        const glm::vec2& translation2d() const { return m_translation2d; }
+        const glm::vec2& translation2d() const { return m_transform2d.translation; }
         void translation2d(const glm::vec2& translation2d, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void translate2d(const glm::vec2& delta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            translation2d(m_translation2d + delta, changeReasonFlag);
+            translation2d(m_transform2d.translation + delta, changeReasonFlag);
         }
 
-        float rotation2d() const { return m_rotation2d; }
+        float rotation2d() const { return m_transform2d.rotation; }
         void rotation2d(float rotation, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void rotate2d(float angleDelta, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            rotation2d(m_rotation2d + angleDelta, changeReasonFlag);
+            rotation2d(m_transform2d.rotation + angleDelta, changeReasonFlag);
         }
 
-        const glm::vec2& scaling2d() const { return m_scaling2d; }
-        void scaling2d(const glm::vec2& scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
-        void scaling2d(float scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            scaling2d({scaling, scaling}, changeReasonFlag);
-        }
-        void scale2d(const glm::vec2& factors, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            scaling2d(factors * m_scaling2d, changeReasonFlag);
-        }
+        float scaling2d() const { return m_transform2d.scaling; }
+        void scaling2d(float scaling, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         void scale2d(float factor, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User) {
-            scaling2d(factor * m_scaling2d, changeReasonFlag);
+            scaling2d(factor * m_transform2d.scaling, changeReasonFlag);
         }
         /// }
 
@@ -105,11 +99,8 @@ namespace lava::sill {
         void worldScaleFrom(float factor, const glm::vec3& center, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
 
         // 2D
-        // @todo :Terminology Well, have lava::Transform2d!
-        // But be careful with non-uniform scaling that might be more used
-        // than in 3D.
-        const glm::mat3& worldTransform2d() const { return m_worldTransform2d; }
-        void worldTransform2d(const glm::mat3& worldTransform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
+        const lava::Transform2d& worldTransform2d() const { return m_worldTransform2d; }
+        void worldTransform2d(const lava::Transform2d& worldTransform, ChangeReasonFlag changeReasonFlag = ChangeReasonFlag::User);
         /// }
 
         /**
@@ -128,10 +119,8 @@ namespace lava::sill {
         /// }
 
     protected:
-        void updateTransform(ChangeReasonFlag changeReasonFlag);
         void updateWorldTransform(ChangeReasonFlag changeReasonFlag);
         void updateChildrenWorldTransform();
-        void updateTransform2d(ChangeReasonFlag changeReasonFlag);
         void updateWorldTransform2d(ChangeReasonFlag changeReasonFlag);
         void updateChildrenWorldTransform2d();
 
@@ -147,11 +136,8 @@ namespace lava::sill {
         lava::Transform m_worldTransform;
 
         // 2D
-        float m_rotation2d = 0.f;
-        glm::vec2 m_translation2d = glm::vec2{0.f};
-        glm::vec2 m_scaling2d = glm::vec2{1.f};
-        glm::mat3 m_transform2d = glm::mat3{1.f};
-        glm::mat3 m_worldTransform2d = glm::mat3{1.f};
+        lava::Transform2d m_transform2d;
+        lava::Transform2d m_worldTransform2d;
 
         // Callbacks
         std::vector<TransformChangedCallbackInfo> m_transformChangedCallbacks;
