@@ -8,9 +8,9 @@ project "lava-dike"
     function dikeDependencies()
         useGlm()
         useChamber()
-        useBullet()
     end
 
+    buildWithBullet()
     dikeDependencies()
 
     function useDike()

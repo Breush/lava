@@ -1,15 +1,16 @@
-local NAME = "Bullet"
-local VERSION = "2.89"
+local NAME = "Shaderc"
+local VERSION = "2020.0"
 
 -- Set up
 
-if not fileExists("./.tmp/bullet/" .. VERSION .. ".txt") then
+if not fileExists("./.tmp/shaderc/" .. VERSION .. ".txt") then
+    checkProgram("python", NAME)
     checkProgram("cmake", NAME)
     checkProgram("make", NAME)
 
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
 
-    if not os.execute("bash ../scripts/setup/bullet.sh") then
+    if not os.execute("bash ../scripts/setup/shaderc.sh") then
         error("[Dependencies] Cannot set " .. NAME .. " up.")
     end
 end
@@ -17,19 +18,11 @@ end
 -- Use hook
 
 local externalPath = path.getabsolute(".")
-function buildWithBullet()
+function buildWithShaderc()
     includedirs(externalPath .. "/include")
-
-    -- Sadly necessary... as this how bullet is referenced internally
-    includedirs(externalPath .. "/include/bullet")
-
     libdirs(externalPath .. "/lib")
 
-    links {
-        "BulletDynamics",
-        "BulletCollision",
-        "LinearMath",
-    }
+    links { "shaderc_combined" }
 end
 
 print("[Dependencies] " .. NAME .. " (" .. VERSION .. ") is ready.")

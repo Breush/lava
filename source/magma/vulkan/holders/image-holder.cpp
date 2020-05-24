@@ -408,7 +408,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
         }
     }
 
-    stbi_write_png(path.c_str(), width, height, 4u, pixels.data(), 0u);
+    stbi_write_png(path.string().c_str(), width, height, 4u, pixels.data(), 0u);
 
     m_engine.device().unmapMemory(stagingBufferMemory);
 }

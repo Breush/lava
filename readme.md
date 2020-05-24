@@ -39,6 +39,7 @@ The core principles of **lava** are:
 
 **lava** uses *Premake* as build configuration system,
 but some dependencies use:
+- *curl* ;
 - [cmake](https://cmake.org/) ;
 - [python](https://www.python.org/).
 
@@ -59,8 +60,6 @@ This will enable Vulkan's validation layer, check dependencies,
 compile only what's necessary, and run the associated executable.
 If you don't know any target name, run the command without any.
 Adding `debug` at the end of the command, will launch `gdb`.
-Similarly, adding `profile` at the end of the command, will enable
-profiling through `easy_profiler`, generating a `./build/profiling/xxx.prof` file.
 
 ### Compiling on Windows
 
@@ -77,9 +76,6 @@ cross-platform.
 
 You can then follow the contributing guide with `./scripts/setup.sh && ./scripts/build.sh`.
 
-__NOTE__ During the set-up phase, on *Windows*, you might be prompt with *Vulkan SDK*
-confirmation dialog. You have to accept.
-
 ### Generating documentation
 
 - Have [doxygen](www.doxygen.org/) installed on your system ;
@@ -91,13 +87,13 @@ Everything **lava** needs is downloaded via *Premake* to `external/`.
 
 Current awesome dependencies are:
 - [Bullet Physics](https://github.com/bulletphysics/bullet3)
-- [easy_profiler](https://github.com/yse/easy_profiler) (optional)
 - [MikkTSpace](https://github.com/tcoppex/ext-mikktspace)
 - [Nlohman's JSON](https://github.com/nlohmann/json)
 - [OpenGL Mathematics](http://glm.g-truc.net/)
 - [OpenVR](https://github.com/ValveSoftware/openvr)
+- [Shaderc]https://github.com/google/shaderc)
 - [STB libraries](https://github.com/nothings/stb)
-- [VulkanSDK](https://vulkan.lunarg.com/)
+- Vulkan [headers](https://github.com/KhronosGroup/Vulkan-Headers) and [loader](https://github.com/KhronosGroup/Vulkan-Loader)
 
 __NOTE__ The one guideline concerning dependencies is to not include within this repository any external source,
 keeping the project light-weight and up-to-date. The one drawback is that compiling this repository in the future

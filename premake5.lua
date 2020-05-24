@@ -6,17 +6,9 @@ workspace "lava-renderer"
     architecture "x86_64"
     cppdialect "C++17"
 
-    -- Arguments
-
-    newoption {
-        trigger     = "profile",
-        value       = "BOOL",
-        description = "Enable profiling dependencies"
-    }
-
     -- Configurations
 
-    configurations { "debug", "fast-compile", "profile", "release" }
+    configurations { "debug", "fast-compile", "release" }
     includedirs "include"
 
     if os.getenv("CXX") ~= nil and string.sub(os.getenv("CXX"), 1, 7)  == "clang++" then
@@ -42,10 +34,6 @@ workspace "lava-renderer"
         -- buildoptions { "-Wsuggest-override", "-Wsuggest-final-types", "-Wsuggest-final-methods" }
 
     filter { "configurations:fast-compile" }
-        symbols "off"
-        optimize "debug"
-
-    filter { "configurations:profile" }
         symbols "off"
         optimize "debug"
 

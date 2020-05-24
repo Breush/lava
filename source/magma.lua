@@ -22,10 +22,13 @@ project "lava-magma"
 
         useChamber()
         useGlm()
-        useOpenvr()
-        useVulkanSdk()
+        useOpenvr() -- Needed because it is a shared lib, while vulkan and shaderc are build statically
+        useVulkan() -- Just adding pthread option
     end
 
+    buildWithOpenvr()
+    buildWithShaderc()
+    buildWithVulkan()
     magmaDependencies()
 
     function useMagma()

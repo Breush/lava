@@ -40,11 +40,6 @@ project "lava-chamber"
 
         useMikkTSpace()
         useStb()
-
-        if _OPTIONS["profile"] then
-            useEasyProfiler()
-            defines { "LAVA_CHAMBER_PROFILER_ENABLED" }
-        end
     end
 
     -- This is a static lib, thus it shouldn't be linked multiple times

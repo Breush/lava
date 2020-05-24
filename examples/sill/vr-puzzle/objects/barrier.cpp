@@ -15,7 +15,7 @@ Barrier::Barrier(GameState& gameState)
     m_entity->make<sill::AnimationComponent>();
 
     auto& meshComponent = m_entity->get<sill::MeshComponent>();
-    sill::makers::CylinderMeshOptions options = {.doubleSided = true, .offset = 0.125f};
+    sill::makers::CylinderMeshOptions options = {.doubleSided = true, .transform = glm::mat4(1.f), .offset = 0.125f};
     sill::makers::cylinderMeshMaker(16u, 1.f, 0.25f, options)(meshComponent);
     meshComponent.primitive(0u, 0u).category(RenderCategory::Translucent);
     meshComponent.primitive(0u, 0u).shadowsCastable(false);

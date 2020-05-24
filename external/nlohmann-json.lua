@@ -1,35 +1,14 @@
--- UPDATE THESE WHENEVER NEEDED
-
 local NAME = "Nlohmann JSON"
 local VERSION = "3.7.3"
 
--- Download
-
-local localFile = "./.tmp/nlhomann-json_" .. VERSION .. ".hpp"
-if not fileValid(localFile) then
-    os.mkdir("./.tmp")
-    os.execute('bash -c "rm --recursive ./include/nlohmann 2> /dev/null"')
-    local url = "https://github.com/nlohmann/json/releases/download/v" .. VERSION .. "/json.hpp"
-    
-    downloadStart("Dependencies", NAME .. " (" .. VERSION .. ")")
-    local downloadResult = http.download(url, localFile, { progress = downloadProgress })
-
-    if downloadResult ~= "OK" then
-        downloadStop()
-        print("[Dependencies] FAILURE while downloading " .. NAME .. " (" .. VERSION .. ")...")
-        print("If it persists, please try downloading " .. url .. " by yourself")
-        print("and move it to " .. path.getabsolute(localFile))
-        print(downloadResult)
-        os.exit(1)
-    end
-end
-
 -- Set up
 
-if not fileExists("./include/nlohmann") then
+if not fileExists("./.tmp/nlohmann-json/" .. VERSION .. ".txt") then
     print("[Dependencies] Setting " .. NAME .. " (" .. VERSION .. ") up...")
-    os.mkdir("./include/nlohmann")
-    os.execute("cp " .. localFile .. " ./include/nlohmann/json.hpp")
+
+    if not os.execute("bash ../scripts/setup/nlohmann-json.sh") then
+        error("[Dependencies] Cannot set " .. NAME .. " up.")
+    end
 end
 
 -- Use hook

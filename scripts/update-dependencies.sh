@@ -120,10 +120,6 @@ updateDependencyByVersion "external/bullet.lua" "${LAST}"
 extractFromGithubTags "g-truc/glm"
 updateDependencyByVersion "external/glm.lua" "${LAST}"
 
-# EasyProfiler
-extractFromGithubTags "yse/easy_profiler"
-updateDependencyByVersion "external/easy-profiler.lua" "${LAST}"
-
 # MikkTSpace
 extractFromGithubLastCommit "tcoppex/ext-mikktspace"
 updateDependencyByDate "external/mikktspace.lua" "${LAST}"
@@ -136,13 +132,17 @@ updateDependencyByVersion "external/nlohmann-json.lua" "${LAST}"
 extractFromGithubTags "ValveSoftware/openvr"
 updateDependencyByVersion "external/openvr.lua" "${LAST}"
 
+# Shaderc
+extractFromGithubTags "google/shaderc"
+updateDependencyByVersion "external/shaderc.lua" "${LAST}"
+
 # STB libraries
 extractFromGithubLastCommit "nothings/stb"
 updateDependencyByDate "external/stb.lua" "${LAST}"
 
-# Vulkan SDK
+# Vulkan
 LAST=$(wget https://vulkan.lunarg.com/sdk/home -q -O - | grep linux | cut -d '"' -f2)
-updateDependencyByVersion "external/vulkan-sdk.lua" "${LAST}"
+updateDependencyByVersion "external/vulkan.lua" "${LAST}"
 
 # Do update
 

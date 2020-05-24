@@ -82,7 +82,8 @@ namespace lava::ashe {
 
             auto& skyboxEntity = m_engine.make<sill::GameEntity>("ashe.skybox");
             auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
-            sill::makers::BoxMeshOptions options{.siding = sill::BoxSiding::In};
+            sill::makers::BoxMeshOptions options;
+            options.siding = sill::BoxSiding::In;
             sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
             skyMeshComponent.category(RenderCategory::Depthless);
 
