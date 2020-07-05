@@ -124,8 +124,8 @@ void setupPlayer(GameState& gameState)
 
     // VR
     if (engine.vr().enabled()) {
-        engine.input().bindAction("trigger", VrButton::Trigger, VrDeviceType::RightHand); // @fixme Rename player.grab-brick
-        engine.input().bindAction("touchpad", VrButton::Touchpad, VrDeviceType::RightHand);
+        engine.input().bindAction("player.grab-brick", VrButton::Trigger, VrDeviceType::RightHand);
+        engine.input().bindAction("player.teleport", VrButton::Touchpad, VrDeviceType::RightHand);
     }
 
     auto& entity = engine.make<sill::GameEntity>("player");

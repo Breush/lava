@@ -6,7 +6,6 @@
 #include "./brick.hpp"
 #include "../game-state.hpp"
 #include "../serializer.hpp"
-#include "../symbols.hpp"
 
 using namespace lava;
 
@@ -141,23 +140,10 @@ void Panel::extent(const glm::uvec2& extent)
     m_entity->get<sill::MeshComponent>().node(1).transform(glm::scale(glm::mat4(1.f), {m_extent.x, m_extent.y, 1}));
     m_entity->get<sill::MeshComponent>().dirtifyNodesTransforms();
 
-
     updateBorderMeshPrimitive();
-
-    // Reset rules
-    m_links.clear();
-
-    m_uniformData.resize(extent.x * extent.y);
-    updateUniformData();
 
     updateSnappingPoints();
     updateSolved();
-}
-
-void Panel::addLink(const glm::uvec2& from, const glm::uvec2& to)
-{
-    m_links.emplace_back(from, to);
-    updateUniformData();
 }
 
 Panel::SnappingPoint* Panel::closestSnappingPoint(const Brick& brick, const glm::vec3& position, float minDistance)
@@ -354,48 +340,6 @@ void Panel::updateSnappingPoints()
     }
 }
 
-void Panel::updateUniformData()
-{
-    // Cleaning previous
-    for (auto i = 0u; i < m_extent.x * m_extent.y; ++i) {
-        m_uniformData[i] = 0u;
-    }
-
-    // Update from links
-    for (const auto& link : m_links) {
-        const auto& from = link.first;
-        const auto& to = link.second;
-        auto fromIndex = m_extent.y * from.x + from.y;
-        auto toIndex = m_extent.y * to.x + to.y;
-
-        m_uniformData[fromIndex] |= LINK_FLAG;
-        m_uniformData[toIndex] |= LINK_FLAG;
-
-        // EAST
-        if (from.x < to.x) {
-            m_uniformData[fromIndex] |= LINK_EAST_FLAG;
-            m_uniformData[toIndex] |= LINK_WEST_FLAG;
-        }
-        // NORTH
-        else if (from.y < to.y) {
-            m_uniformData[fromIndex] |= LINK_NORTH_FLAG;
-            m_uniformData[toIndex] |= LINK_SOUTH_FLAG;
-        }
-        // WEST
-        else if (from.x > to.x) {
-            m_uniformData[fromIndex] |= LINK_WEST_FLAG;
-            m_uniformData[toIndex] |= LINK_EAST_FLAG;
-        }
-        // SOUTH
-        else if (from.y > to.y) {
-            m_uniformData[fromIndex] |= LINK_SOUTH_FLAG;
-            m_uniformData[toIndex] |= LINK_NORTH_FLAG;
-        }
-    }
-
-    m_material->set("symbols", m_uniformData.data(), m_uniformData.size());
-}
-
 void Panel::updateSolved()
 {
     if (!m_consolidated) return;
@@ -412,39 +356,6 @@ void Panel::updateSolved()
                     solved = false;
                     break;
                 }
-            }
-        }
-
-        // Check that all links are correct.
-        for (const auto& link : m_links) {
-            const auto& from = link.first;
-            const auto& to = link.second;
-
-            // Find the brick that has 'from'.
-            const Brick* fromBrick = nullptr;
-            for (auto brick : m_gameState.level.bricks) {
-                for (const auto& block : brick->blocks()) {
-                    if (brick->snapCoordinates().x + block.coordinates.x == from.x
-                        && brick->snapCoordinates().y + block.coordinates.y == from.y) {
-                        fromBrick = brick;
-                        break;
-                    }
-                }
-            }
-
-            // Check that it also has 'to'.
-            bool foundTo = false;
-            for (const auto& block : fromBrick->blocks()) {
-                if (fromBrick->snapCoordinates().x + block.coordinates.x == to.x
-                    && fromBrick->snapCoordinates().y + block.coordinates.y == to.y) {
-                    foundTo = true;
-                    break;
-                }
-            }
-
-            if (!foundTo) {
-                // @fixme Add visual feedback, explaining why this has failed
-                solved = false;
             }
         }
     }

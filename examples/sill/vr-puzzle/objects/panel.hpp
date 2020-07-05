@@ -44,9 +44,6 @@ public:
     /// Checks whether the user is allowed to snap brick to this panel.
     bool userInteractionAllowed() const;
 
-    /// 'from' and 'to' should be at distance 1.
-    void addLink(const glm::uvec2& from, const glm::uvec2& to);
-
     /// Find the closest snapping point to is valid for the brick.
     SnappingPoint* closestSnappingPoint(const Brick& brick, const glm::vec3& position, float minDistance = 0.1f);
 
@@ -70,7 +67,6 @@ public:
 protected:
     void updateBorderMeshPrimitive();
     void updateSnappingPoints();
-    void updateUniformData();
     void updateFromSnappedBricks();
 
     bool isSnappingPointValid(const Brick& brick, const SnappingPoint& snappingPoint);
@@ -93,10 +89,8 @@ private:
     // Configuration
     glm::uvec2 m_extent = {3u, 3u};
     std::vector<BarrierInfo> m_barrierInfos;
-    std::vector<std::pair<glm::uvec2, glm::uvec2>> m_links; // @todo Deprecated because unused?
 
     // Data
-    std::vector<uint32_t> m_uniformData;
     std::vector<std::vector<SnappingPoint>> m_snappingPoints;
 
     // Mesh

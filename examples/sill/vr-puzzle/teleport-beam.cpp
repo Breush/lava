@@ -16,7 +16,7 @@ namespace {
         auto& engine = *gameState.engine;
         if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
-        if (gameState.state == State::Idle && engine.input().justDown("touchpad")) {
+        if (gameState.state == State::Idle && engine.input().justDown("player.teleport")) {
             gameState.state = State::TeleportBeam;
             gameState.teleport.beamEntity->get<sill::TransformComponent>().scaling(1.f);
             rayPickingEnabled(gameState, false);
@@ -24,7 +24,7 @@ namespace {
 
         if (gameState.state != State::TeleportBeam) return;
 
-        if (engine.input().justUp("touchpad")) {
+        if (engine.input().justUp("player.teleport")) {
             gameState.state = State::Idle;
             gameState.teleport.beamEntity->get<sill::TransformComponent>().scaling(0.f);
             gameState.teleport.areaEntity->get<sill::TransformComponent>().scaling(0.f);

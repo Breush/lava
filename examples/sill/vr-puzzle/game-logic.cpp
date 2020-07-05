@@ -109,19 +109,19 @@ namespace {
         const auto& handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);
 
         // When the user uses the trigger, we find the closest brick nearby, and grab it.
-        if (gameState.state == State::Idle && engine.input().justDown("trigger") && gameState.pointedBrick) {
+        if (gameState.state == State::Idle && engine.input().justDown("player.grab-brick") && gameState.pointedBrick) {
             grabBrick(gameState, gameState.pointedBrick);
         }
 
         if (gameState.state != State::GrabbedBrick) return;
 
-        if (engine.input().justUp("trigger")) {
+        if (engine.input().justUp("player.grab-brick")) {
             ungrabBrick(gameState);
             return;
         }
 
         // Update entity to us whenever it is in grabbing state.
-        if (engine.input().justDown("touchpad")) {
+        if (engine.input().justDown("player.teleport")) {
             rotateGrabbedBrick();
         }
 

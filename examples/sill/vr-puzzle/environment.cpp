@@ -11,7 +11,6 @@
 #include "./game-state.hpp"
 #include "./objects/pedestal.hpp"
 #include "./serializer.hpp"
-#include "./symbols.hpp"
 
 using namespace lava;
 using namespace lava::chamber;
