@@ -472,9 +472,6 @@ void RenderEngine::Impl::initVr()
     // @todo vr().init() / vr().update() should probably be called by RenderEngine itself (not Impl)
     // as this is not vulkan dependent
     m_engine.vr().init();
-    if (m_engine.vr().enabled()) {
-        registerMaterialFromFile("vr", "./data/shaders/materials/vr-material.shmag");
-    }
 
     logger.log().tab(-1);
 }

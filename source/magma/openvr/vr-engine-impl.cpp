@@ -229,7 +229,7 @@ Mesh& VrEngine::Impl::deviceMesh(VrDeviceType deviceType, Scene& scene) const
     memcpy(indices.data(), model->rIndexData, indices.size() * sizeof(uint16_t));
 
     // Add material
-    auto material = scene.makeMaterial("vr");
+    auto material = scene.makeMaterial("fallback");
     auto diffuseTexture = scene.makeTexture();
     diffuseTexture->loadFromMemory(texture->rubTextureMapData, texture->unWidth, texture->unHeight, 4u);
     material->set("diffuseMap", diffuseTexture);
