@@ -97,9 +97,6 @@ void Pedestal::consolidateReferences()
             brick.animation().target(sill::AnimationFlag::Transform, target);
         }
     });
-
-    // @fixme Left to implement:
-    // - Close animation (open reversed?)
 }
 
 void Pedestal::mutateBeforeDuplication(nlohmann::json& data)
@@ -154,16 +151,15 @@ void Pedestal::powered(bool powered)
     if (m_powered == powered) return;
     m_powered = powered;
 
-    if (m_powered) {
-        mesh().startAnimation("open");
-    }
+    // Closing is reversed open
+    mesh().startAnimation("open", 1u, (m_powered) ? 1.f : -6.f);
 
     lava::Transform bricksRootTarget;
     bricksRootTarget.translation = glm::vec3{0.f, 0.f, (m_powered) ? 1.25f : 0.75f};
     bricksRootTarget.scaling = (m_powered) ? 1.f : 0.f;
 
     auto& bricksRootAnimation = m_bricksRoot->get<sill::AnimationComponent>();
-    bricksRootAnimation.start(sill::AnimationFlag::Transform, 1.f);
+    bricksRootAnimation.start(sill::AnimationFlag::Transform, (m_powered) ? 1.f : 0.3f);
     bricksRootAnimation.target(sill::AnimationFlag::Transform, bricksRootTarget);
 }
 

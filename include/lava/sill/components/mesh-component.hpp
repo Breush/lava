@@ -64,8 +64,8 @@ namespace lava::sill {
          */
         /// @{
         void add(const std::string& hrid, const MeshAnimation& animation);
-        /// Start an animation. Use -1u for loops to get infinite looping.
-        void startAnimation(const std::string& hrid, uint32_t loops = 1u);
+        /// Start an animation. Use -1u for loops to get infinite looping. Use negative factor to reversed animation.
+        void startAnimation(const std::string& hrid, uint32_t loops = 1u, float factor = 1.f);
         /// Be warned whenever the animation loops or starts.
         void onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback);
         /// @}
@@ -112,6 +112,7 @@ namespace lava::sill {
 
         struct AnimationInfo {
             float time = 0.f;    // Current time of the animation.
+            float factor = 1.f;  // Playing speed, if negative, animation is reversed.
             uint32_t loops = 0u; // How many loops there are left to do. (-1u means infinite)
             uint32_t channelsCount = 0u;
             uint32_t pausedChannelsCount = 0u;

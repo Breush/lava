@@ -69,7 +69,10 @@ void MeshComponent::update(float dt)
             }
         }
 
-        time += dt;
+        time += animationInfo.factor * dt;
+
+        const bool reversed = (animationInfo.factor < 0.f);
+        const uint32_t stepIncrement = (reversed) ? -1u : 1u;
 
         // If all channels are paused, we loop over
         if (animationInfo.pausedChannelsCount == animationInfo.channelsCount) {
@@ -92,28 +95,34 @@ void MeshComponent::update(float dt)
                 const auto& channel = channelInfo.channel;
                 auto& step = channelInfo.step;
 
+                const uint32_t stepEnd = (reversed) ? 0u : channel.timeSteps.size() - 1u;
+
                 // Find the next step of the keyframes, and advance if neccessary
                 uint32_t nextStep;
                 float nextTime = 0.f;
                 while (!channelInfo.paused) {
-                    nextStep = step + 1u;
+                    nextStep = step + stepIncrement;
                     nextTime = channel.timeSteps[nextStep];
 
-                    // Advance a step if we've gone too far.
-                    if (time <= nextTime) break;
-                    step += 1u;
+                    // Advance a step only if we've gone too far.
+                    if ((!reversed && time <= nextTime) ||
+                        (reversed && time >= nextTime)) {
+                            break;
+                    }
+                    step += stepIncrement;
 
                     // Pausing if we went too far in the animation.
-                    if (step >= channel.timeSteps.size() - 1u) {
+                    if (step == stepEnd) {
                         channelInfo.paused = true;
                         animationInfo.pausedChannelsCount += 1u;
                     }
                 }
 
                 auto previousTime = channel.timeSteps[step];
-                if (time >= previousTime) {
-                    auto timeRange = std::max(nextTime - previousTime, 0.001f);
-                    auto t = (time - previousTime) / timeRange;
+                if ((!reversed && time >= previousTime) ||
+                    (reversed && time <= previousTime)) {
+                    auto timeRange = std::max(std::abs(nextTime - previousTime), 0.001f);
+                    auto t = std::abs(time - previousTime) / timeRange;
 
                     if (channel.path == MeshAnimationPath::Translation) {
                         translation = interpolate(channel.translation, step, t, timeRange, channel.interpolationType);
@@ -247,10 +256,11 @@ void MeshComponent::add(const std::string& hrid, const MeshAnimation& animation)
     }
 }
 
-void MeshComponent::startAnimation(const std::string& hrid, uint32_t loops)
+void MeshComponent::startAnimation(const std::string& hrid, uint32_t loops, float factor)
 {
     auto& animationInfo = m_animationsInfos.at(hrid);
     animationInfo.loops = loops;
+    animationInfo.factor = factor;
     resetAnimationInfo(animationInfo);
 }
 
@@ -359,12 +369,19 @@ void MeshComponent::updateNodesTransforms()
 
 void MeshComponent::resetAnimationInfo(AnimationInfo& animationInfo) const
 {
+    bool reversed = (animationInfo.factor < 0.f);
+
     animationInfo.time = 0.f;
     animationInfo.pausedChannelsCount = 0u;
     for (auto& channelsInfosPair : animationInfo.channelsInfos) {
         for (auto& channelInfo : channelsInfosPair.second) {
             channelInfo.paused = false;
-            channelInfo.step = 0u;
+            channelInfo.step = (reversed) ? channelInfo.channel.timeSteps.size() - 1u : 0u;
+
+            // @note On reversed animations, we set the starting time to the last possible step.
+            if (reversed && animationInfo.time < channelInfo.channel.timeSteps.back()) {
+                animationInfo.time = channelInfo.channel.timeSteps.back();
+            }
         }
     }
 }
