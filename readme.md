@@ -91,7 +91,7 @@ Current awesome dependencies are:
 - [Nlohman's JSON](https://github.com/nlohmann/json)
 - [OpenGL Mathematics](http://glm.g-truc.net/)
 - [OpenVR](https://github.com/ValveSoftware/openvr)
-- [Shaderc]https://github.com/google/shaderc)
+- [Shaderc](https://github.com/google/shaderc)
 - [STB libraries](https://github.com/nothings/stb)
 - Vulkan [headers](https://github.com/KhronosGroup/Vulkan-Headers) and [loader](https://github.com/KhronosGroup/Vulkan-Loader)
 
