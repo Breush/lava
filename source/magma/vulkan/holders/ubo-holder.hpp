@@ -51,7 +51,7 @@ namespace lava::magma::vulkan {
         std::vector<vulkan::BufferHolder> m_bufferHolders;
 
         // Internals
-        vk::DeviceSize m_offsetAlignment;
+        vk::DeviceSize m_offsetAlignment = 0u;
     };
 }
 

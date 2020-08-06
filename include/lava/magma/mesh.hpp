@@ -78,13 +78,13 @@ namespace lava::magma {
         /// @{
         uint32_t verticesCount() const { return m_vertices.size(); }
         void verticesCount(const uint32_t count);
-        void verticesPositions(VectorView<glm::vec3> positions);
-        void verticesUvs(VectorView<glm::vec2> uvs);
-        void verticesNormals(VectorView<glm::vec3> normals);
-        void verticesTangents(VectorView<glm::vec4> tangents);
-        void indices(VectorView<uint32_t> indices, bool flipTriangles = false);
-        void indices(VectorView<uint16_t> indices, bool flipTriangles = false);
-        void indices(VectorView<uint8_t> indices, bool flipTriangles = false);
+        void verticesPositions(const VectorView<glm::vec3>& positions);
+        void verticesUvs(const VectorView<glm::vec2>& uvs);
+        void verticesNormals(const VectorView<glm::vec3>& normals);
+        void verticesTangents(const VectorView<glm::vec4>& tangents);
+        void indices(const VectorView<uint32_t>& indices, bool flipTriangles = false);
+        void indices(const VectorView<uint16_t>& indices, bool flipTriangles = false);
+        void indices(const VectorView<uint8_t>& indices, bool flipTriangles = false);
 
         const std::vector<UnlitVertex>& unlitVertices() const { return m_unlitVertices; };
         const std::vector<Vertex>& vertices() const { return m_vertices; };

@@ -30,5 +30,5 @@ namespace lava::sill {
         Alignment alignment = Alignment::Center;
     };
 
-    TextGeometry textGeometry(GameEngine& engine, const std::wstring& text, TextOptions options);
+    TextGeometry textGeometry(GameEngine& engine, const std::wstring& text, const TextOptions& options);
 }

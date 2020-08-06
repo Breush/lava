@@ -46,10 +46,10 @@ namespace lava::sill {
         std::vector<std::unique_ptr<GameEntity>>& entities() { return m_entities; }
 
         // Callbacks
-        uint32_t onWindowExtentChanged(WindowExtentChangedCallback callback) {
+        uint32_t onWindowExtentChanged(WindowExtentChangedCallback&& callback) {
             auto id = m_windowExtentChangedNextId;
             m_windowExtentChangedNextId += 1u;
-            m_windowExtentChangedCallbacks[id] = callback;
+            m_windowExtentChangedCallbacks[id] = std::move(callback);
             return id;
         };
         void removeOnWindowExtentChanged(uint32_t id) {

@@ -6,7 +6,7 @@ using namespace lava::sill;
 namespace {
     void callParentChanged(const std::vector<GameEntity::ParentChangedCallback>& callbacks)
     {
-        for (auto callback : callbacks) {
+        for (const auto& callback : callbacks) {
             callback();
         }
     }

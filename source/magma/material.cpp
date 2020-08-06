@@ -79,7 +79,7 @@ void Material::set(const std::string& uniformName, const glm::vec4& value)
     aft().foreUboChanged();
 }
 
-void Material::set(const std::string& uniformName, TexturePtr texture)
+void Material::set(const std::string& uniformName, const TexturePtr& texture)
 {
     auto& attribute = findAttribute(uniformName);
     attribute.texture = texture;
@@ -101,7 +101,7 @@ void Material::set(const std::string& uniformName, const uint32_t* values, uint3
     aft().foreUboChanged();
 }
 
-void Material::setGlobal(const std::string& uniformName, TexturePtr texture)
+void Material::setGlobal(const std::string& uniformName, const TexturePtr& texture)
 {
     auto& attribute = findGlobalAttribute(uniformName);
     attribute.texture = texture;

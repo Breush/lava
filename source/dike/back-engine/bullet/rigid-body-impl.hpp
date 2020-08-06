@@ -16,7 +16,7 @@ namespace lava::dike {
         void addBoxShape(const glm::vec3& offset, const glm::vec3& dimensions);
         void addSphereShape(const glm::vec3& offset, float diameter);
         void addInfinitePlaneShape(const glm::vec3& offset, const glm::vec3& normal);
-        void addMeshShape(const glm::mat4& localTransform, VectorView<glm::vec3> vertices, const std::vector<uint16_t>& indices);
+        void addMeshShape(const glm::mat4& localTransform, const VectorView<glm::vec3>& vertices, const std::vector<uint16_t>& indices);
 
         // Physics world
         bool enabled() const { return m_enabled; }

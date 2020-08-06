@@ -4,12 +4,12 @@
 
 using namespace lava::sill;
 
-std::function<void(MeshComponent&)> makers::boxMeshMaker(float sidesLength, BoxMeshOptions options)
+std::function<void(MeshComponent&)> makers::boxMeshMaker(float sidesLength, const BoxMeshOptions& options)
 {
     return makers::boxMeshMaker({sidesLength, sidesLength, sidesLength}, options);
 }
 
-std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent, BoxMeshOptions options)
+std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent, const BoxMeshOptions& options)
 {
     const auto halfExtent = extent / 2.f;
 

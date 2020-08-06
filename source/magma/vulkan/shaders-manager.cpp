@@ -153,7 +153,7 @@ ShadersManager::ResolvedShader ShadersManager::resolveImpl(const std::string& ca
     return resolveShader(implCode, implTitle.str());
 }
 
-ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& textCode, std::string annotationMain)
+ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& textCode, const std::string& annotationMain)
 {
     std::stringstream textCodeStream(textCode);
     std::stringstream adaptedCode;
@@ -194,13 +194,13 @@ ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& 
                 offset = chamber::nextWord(line, category, offset);
                 adaptedCode << spacing << "// BEGIN @magma:impl:beginCases " << category << std::endl;
                 casesBuffering = true;
-                casesBuffer = "";
+                casesBuffer.clear();
                 implsDependencies.emplace(category);
                 continue;
             }
             // @magma:impl:endCases
             else if (word.find("@magma:impl:endCases") != std::string::npos) {
-                std::string callMark = "@magma:impl:call";
+                static std::string callMark = "@magma:impl:call";
                 auto callMarkPos = casesBuffer.find(callMark);
                 auto callMarkSize = callMark.size();
 
@@ -231,7 +231,7 @@ ShadersManager::ResolvedShader ShadersManager::resolveShader(const std::string& 
         }
 
         if (casesBuffering) {
-            casesBuffer += "\n";
+            casesBuffer += '\n';
             continue;
         }
 

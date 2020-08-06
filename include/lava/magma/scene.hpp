@@ -126,7 +126,7 @@ namespace lava::magma {
          */
         /// @{
         /// The global texture (cube) to be used as environment map within shaders' epiphany.
-        void environmentTexture(TexturePtr texture);
+        void environmentTexture(const TexturePtr& texture);
         /// @}
 
         /**

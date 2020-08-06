@@ -76,7 +76,7 @@ void Mesh::verticesCount(const uint32_t count)
     m_vertices.resize(count);
 }
 
-void Mesh::verticesPositions(VectorView<glm::vec3> positions)
+void Mesh::verticesPositions(const VectorView<glm::vec3>& positions)
 {
     // @note We compute the center of the bounding sphere
     // as the middle of each axis range.
@@ -112,7 +112,7 @@ void Mesh::verticesPositions(VectorView<glm::vec3> positions)
     aft().foreVerticesChanged();
 }
 
-void Mesh::verticesUvs(VectorView<glm::vec2> uvs)
+void Mesh::verticesUvs(const VectorView<glm::vec2>& uvs)
 {
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), uvs.size());
     for (uint32_t i = 0u; i < length; ++i) {
@@ -122,7 +122,7 @@ void Mesh::verticesUvs(VectorView<glm::vec2> uvs)
     aft().foreVerticesChanged();
 }
 
-void Mesh::verticesNormals(VectorView<glm::vec3> normals)
+void Mesh::verticesNormals(const VectorView<glm::vec3>& normals)
 {
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), normals.size());
     for (uint32_t i = 0u; i < length; ++i) {
@@ -132,7 +132,7 @@ void Mesh::verticesNormals(VectorView<glm::vec3> normals)
     aft().foreVerticesChanged();
 }
 
-void Mesh::verticesTangents(VectorView<glm::vec4> tangents)
+void Mesh::verticesTangents(const VectorView<glm::vec4>& tangents)
 {
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), tangents.size());
     for (uint32_t i = 0u; i < length; ++i) {
@@ -142,19 +142,19 @@ void Mesh::verticesTangents(VectorView<glm::vec4> tangents)
     aft().foreVerticesChanged();
 }
 
-void Mesh::indices(VectorView<uint32_t> indices, bool flipTriangles)
+void Mesh::indices(const VectorView<uint32_t>& indices, bool flipTriangles)
 {
     setIndices(m_indices, indices, flipTriangles, m_vertices.size());
     aft().foreIndicesChanged();
 }
 
-void Mesh::indices(VectorView<uint16_t> indices, bool flipTriangles)
+void Mesh::indices(const VectorView<uint16_t>& indices, bool flipTriangles)
 {
     setIndices(m_indices, indices, flipTriangles, m_vertices.size());
     aft().foreIndicesChanged();
 }
 
-void Mesh::indices(VectorView<uint8_t> indices, bool flipTriangles)
+void Mesh::indices(const VectorView<uint8_t>& indices, bool flipTriangles)
 {
     setIndices(m_indices, indices, flipTriangles, m_vertices.size());
     aft().foreIndicesChanged();

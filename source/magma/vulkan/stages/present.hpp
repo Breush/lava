@@ -21,7 +21,7 @@ namespace lava::magma {
         Present(RenderEngine::Impl& engine);
 
         void init();
-        void update(vk::Extent2D extent);
+        void update(const vk::Extent2D& extent);
         void render(vk::CommandBuffer commandBuffer);
 
         void bindSwapchainHolder(const vulkan::SwapchainHolder& swapchainHolder);

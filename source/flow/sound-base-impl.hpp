@@ -14,7 +14,7 @@ namespace lava::flow {
      */
     class SoundBaseImpl : public AudioSource::Impl {
     public:
-        SoundBaseImpl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundData);
+        SoundBaseImpl(AudioEngine::Impl& engine, const std::shared_ptr<SoundData>& soundData);
         virtual ~SoundBaseImpl() = default;
 
     public:

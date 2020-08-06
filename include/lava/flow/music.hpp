@@ -13,7 +13,7 @@ namespace lava::flow {
     class Music : public AudioSource {
     public:
         /// Create a new music.
-        Music(AudioEngine& engine, std::shared_ptr<IMusicData> musicData);
+        Music(AudioEngine& engine, const std::shared_ptr<IMusicData>& musicData);
 
         ~Music();
     };

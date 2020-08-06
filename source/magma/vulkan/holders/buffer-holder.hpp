@@ -38,7 +38,7 @@ namespace lava::magma::vulkan {
         $attribute(vulkan::Buffer, buffer);
         $attribute(vulkan::DeviceMemory, memory);
 
-        vk::BufferUsageFlagBits m_usage;
+        vk::BufferUsageFlagBits m_usage = vk::BufferUsageFlagBits::eUniformBuffer;
         vk::DeviceSize m_size = 0u;
     };
 }

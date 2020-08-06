@@ -5,7 +5,7 @@
 using namespace lava::flow;
 using namespace lava::chamber;
 
-SoundBaseImpl::SoundBaseImpl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundData)
+SoundBaseImpl::SoundBaseImpl(AudioEngine::Impl& engine, const std::shared_ptr<SoundData>& soundData)
     : AudioSource::Impl(engine)
     , m_soundData(soundData)
 {

@@ -18,7 +18,7 @@ void BehaviorComponent::Impl::update(float dt)
 }
 
 // BehaviorComponent
-void BehaviorComponent::Impl::onUpdate(UpdateCallback updateCallback)
+void BehaviorComponent::Impl::onUpdate(UpdateCallback&& updateCallback)
 {
-    m_updateCallback = updateCallback;
+    m_updateCallback = std::move(updateCallback);
 }

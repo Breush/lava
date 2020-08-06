@@ -56,10 +56,10 @@ namespace lava::magma {
         /// @{
         uint32_t verticesCount() const { return m_vertices.size(); }
         void verticesCount(const uint32_t count);
-        void verticesPositions(VectorView<glm::vec2> positions);
-        void verticesUvs(VectorView<glm::vec2> uvs);
-        void indices(VectorView<uint16_t> indices);
-        void indices(VectorView<uint8_t> indices);
+        void verticesPositions(const VectorView<glm::vec2>& positions);
+        void verticesUvs(const VectorView<glm::vec2>& uvs);
+        void indices(const VectorView<uint16_t>& indices);
+        void indices(const VectorView<uint8_t>& indices);
 
         const std::vector<FlatVertex>& vertices() const { return m_vertices; };
         const std::vector<uint16_t>& indices() const { return m_indices; };

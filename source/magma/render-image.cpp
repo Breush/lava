@@ -14,6 +14,8 @@ RenderImage::RenderImage(const RenderImage& renderImage)
 
 RenderImage& RenderImage::operator=(const RenderImage& renderImage)
 {
+    if (this == &renderImage) return *this;
+
     *m_impl = renderImage.impl();
     return *this;
 }

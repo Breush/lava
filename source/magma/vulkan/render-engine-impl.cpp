@@ -147,7 +147,7 @@ uint32_t RenderEngine::Impl::registerMaterialFromFile(const std::string& hrid, c
     return materialId;
 }
 
-uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport)
+uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& renderTarget, const Viewport& viewport)
 {
     const auto& renderImageImpl = renderImage.impl();
     if (renderImageImpl.uuid() == 0u) {

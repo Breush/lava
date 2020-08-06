@@ -9,7 +9,7 @@ ThreadPool::ThreadPool()
     }
 }
 
-void ThreadPool::job(std::function<void()> job)
+void ThreadPool::job(const std::function<void()>& job)
 {
     std::scoped_lock lock(m_mutex);
 
@@ -32,7 +32,7 @@ void ThreadPool::wait()
 
 // ----- Internal
 
-void ThreadPool::startJob(Thread& thread, std::function<void()> job)
+void ThreadPool::startJob(Thread& thread, const std::function<void()>& job)
 {
     thread.job([this, job, &thread] {
         job();

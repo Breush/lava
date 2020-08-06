@@ -108,7 +108,7 @@ void ForwardFlatStage::record(vk::CommandBuffer commandBuffer, uint32_t /* frame
     deviceHolder.debugEndRegion(commandBuffer);
 }
 
-void ForwardFlatStage::extent(vk::Extent2D extent)
+void ForwardFlatStage::extent(const vk::Extent2D& extent)
 {
     if (m_extent == extent) return;
     m_extent = extent;
@@ -165,10 +165,10 @@ void ForwardFlatStage::initPass()
 void ForwardFlatStage::updatePassShaders(bool firstTime)
 {
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "0";
-    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);
     moduleOptions.defines["MATERIAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);

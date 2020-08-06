@@ -62,17 +62,17 @@ namespace lava::sill {
         magma::TexturePtr m_texture = nullptr; //< Font texture (containing drawn glyphs).
         std::vector<uint8_t> m_pixels;         //< Font texture pixels.
         std::unordered_map<wchar_t, GlyphInfo> m_glyphsInfos;
-        uint32_t m_textureWidth;
-        uint32_t m_textureHeight;
+        uint32_t m_textureWidth = 0u;
+        uint32_t m_textureHeight = 0u;
         uint32_t m_nextGlyphStartPosition = 1u; //< Next empty position within texture.
 
         // Low-level font info.
         std::vector<uint8_t> m_buffer; //< Font file buffer.
         stbtt_fontinfo m_stbFont;      //< Internal STB font info.
-        uint32_t m_glyphMaxWidth;
-        uint32_t m_glyphMaxHeight;
-        float m_glyphsScale;
-        int m_glyphsAscent;
+        uint32_t m_glyphMaxWidth = 0u;
+        uint32_t m_glyphMaxHeight = 0u;
+        float m_glyphsScale = 0.f;
+        int m_glyphsAscent = 0;
 
         // @note This is to decide the texture size,
         // and is not really a "max" that will be checked.

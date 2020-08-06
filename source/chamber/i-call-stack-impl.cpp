@@ -30,7 +30,7 @@ std::string ICallStackImpl::toString() const
 
         std::string functionPrefix = entry.function.substr(0u, functionNameColon);
         std::string functionName = entry.function.substr(functionNameColon, leftParenthesis - functionNameColon);
-        std::string arguments = "";
+        std::string arguments;
         if (leftParenthesis != std::string::npos) {
             arguments = entry.function.substr(leftParenthesis);
         }

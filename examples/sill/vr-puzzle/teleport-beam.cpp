@@ -115,7 +115,7 @@ namespace {
                         ray.direction = glm::normalize(delta - previousDelta);
                         ray.direction = beamWorldTransform.rotation * ray.direction;
 
-                        auto distance = distanceToTerrain(gameState, ray, &generic, glm::length(delta - previousDelta));
+                        distance = distanceToTerrain(gameState, ray, &generic, glm::length(delta - previousDelta));
                         if (generic != nullptr && !generic->walkable()) {
                             invalidPlaceCrossed = true;
                         } else if (distance != 0.f) {

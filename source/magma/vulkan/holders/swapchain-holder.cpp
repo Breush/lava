@@ -38,7 +38,7 @@ namespace {
         return bestMode;
     }
 
-    vk::Extent2D swapchainExtent(const vk::SurfaceCapabilitiesKHR& capabilities, vk::Extent2D windowExtent)
+    vk::Extent2D swapchainExtent(const vk::SurfaceCapabilitiesKHR& capabilities, const vk::Extent2D& windowExtent)
     {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
             return capabilities.currentExtent;
@@ -64,14 +64,14 @@ SwapchainHolder::SwapchainHolder(const RenderEngine::Impl& engine)
 {
 }
 
-void SwapchainHolder::init(vk::SurfaceKHR surface, vk::Extent2D& windowExtent)
+void SwapchainHolder::init(vk::SurfaceKHR surface, const vk::Extent2D& windowExtent)
 {
     createSwapchain(surface, windowExtent);
     createImageViews();
     createSemaphore();
 }
 
-void SwapchainHolder::recreate(vk::SurfaceKHR surface, vk::Extent2D& windowExtent)
+void SwapchainHolder::recreate(vk::SurfaceKHR surface, const vk::Extent2D& windowExtent)
 {
     m_engine.device().waitIdle();
     createSwapchain(surface, windowExtent);
@@ -87,7 +87,7 @@ vk::Result SwapchainHolder::acquireNextImage()
 
 //----- Internal
 
-void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& windowExtent)
+void SwapchainHolder::createSwapchain(vk::SurfaceKHR surface, const vk::Extent2D& windowExtent)
 {
     auto details = swapchainSupportDetails(m_engine.physicalDevice(), surface);
 

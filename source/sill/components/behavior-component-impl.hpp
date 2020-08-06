@@ -13,7 +13,7 @@ namespace lava::sill {
         void update(float dt);
 
         // BehaviorComponent
-        void onUpdate(UpdateCallback updateCallback);
+        void onUpdate(UpdateCallback&& updateCallback);
 
     private:
         UpdateCallback m_updateCallback;

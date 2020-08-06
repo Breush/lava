@@ -68,8 +68,11 @@ void CallStack::Impl::refresh(uint32_t discardCount)
         std::string fileBuffer;
         fileBuffer.resize(1024);
         FILE* syscomFile = popen(addr2lineCommand.str().c_str(), "r");
-        fgets(const_cast<char*>(fileBuffer.data()), fileBuffer.size(), syscomFile);
+        auto success = fgets(const_cast<char*>(fileBuffer.data()), fileBuffer.size(), syscomFile);
         pclose(syscomFile);
+        if (!success) {
+            continue;
+        }
 
         //----- Function name
         // Tricky trick to add missing underscore of C++ functions

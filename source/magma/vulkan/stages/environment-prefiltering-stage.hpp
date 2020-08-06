@@ -32,7 +32,7 @@ namespace lava::magma {
 
         // Algorithm should be either "radiance" or "irrandiance".
         void init(Algorithm algorithm);
-        void update(vk::Extent2D extent);
+        void update(const vk::Extent2D& extent);
         void render(vk::CommandBuffer commandBuffer, uint8_t faceIndex);                   // For irradiance
         void render(vk::CommandBuffer commandBuffer, uint8_t faceIndex, uint8_t mipLevel); // For radiance
 

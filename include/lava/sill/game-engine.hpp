@@ -129,7 +129,7 @@ namespace lava::sill {
          * @name Callbacks
          */
         /// @{
-        uint32_t onWindowExtentChanged(WindowExtentChangedCallback callback);
+        uint32_t onWindowExtentChanged(WindowExtentChangedCallback&& callback);
         void removeOnWindowExtentChanged(uint32_t id);
         /// @}
 

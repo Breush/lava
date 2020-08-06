@@ -14,14 +14,14 @@ namespace lava::chamber {
         ThreadPool();
 
         /// Add a job to be done.
-        void job(std::function<void()> job);
+        void job(const std::function<void()>& job);
 
         /// Wait for the all jobs and threads to be done.
         void wait();
 
     protected:
         // Start a job on the specified thread.
-        void startJob(Thread& thread, std::function<void()> job);
+        void startJob(Thread& thread, const std::function<void()>& job);
 
         // Called automatically whenever a job within a thread finishes.
         void jobFinished(Thread& thread);

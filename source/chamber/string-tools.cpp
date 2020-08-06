@@ -23,9 +23,9 @@ namespace {
 
 using namespace lava;
 
-std::string chamber::camelToSnakeCase(const std::string& camelCaseString, std::string separator)
+std::string chamber::camelToSnakeCase(const std::string& camelCaseString, const std::string& separator)
 {
-    if (camelCaseString.empty()) return "";
+    if (camelCaseString.empty()) return std::string();
 
     std::stringstream snakeCaseStream;
 
@@ -61,14 +61,14 @@ std::vector<std::string> chamber::split(const std::string& s, char c)
 uint32_t chamber::nextWord(const std::string& line, std::string& word, uint32_t offset, std::string* spacing)
 {
     // Get spacing before word (if any)
-    if (spacing != nullptr) *spacing = "";
+    if (spacing != nullptr) spacing->clear();
     while (offset < line.size() && std::isspace(line[offset])) {
         if (spacing != nullptr) *spacing += line[offset];
         offset += 1u;
     }
 
     // Extract word
-    word = "";
+    word.clear();
     while (offset < line.size() && !std::isspace(line[offset])) {
         word += line[offset];
         offset += 1u;

@@ -15,7 +15,7 @@ namespace lava::flow {
     class Sound : public AudioSource {
     public:
         /// Create a new sound based on preexisting SoundData.
-        Sound(AudioEngine& engine, std::shared_ptr<SoundData> soundData);
+        Sound(AudioEngine& engine, const std::shared_ptr<SoundData>& soundData);
 
         /// Create a new sound and associated SoundData, the data won't be sharable.
         Sound(AudioEngine& engine, const std::string& fileName);

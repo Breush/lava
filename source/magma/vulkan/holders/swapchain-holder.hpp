@@ -13,10 +13,10 @@ namespace lava::magma::vulkan {
         SwapchainHolder(const RenderEngine::Impl& engine);
 
         /// Set up the swapchain given a valid surface.
-        void init(vk::SurfaceKHR surface, vk::Extent2D& windowExtent);
+        void init(vk::SurfaceKHR surface, const vk::Extent2D& windowExtent);
 
         /// Recreate the swapchain (the extent or the surface changed).
-        void recreate(vk::SurfaceKHR surface, vk::Extent2D& windowExtent);
+        void recreate(vk::SurfaceKHR surface, const vk::Extent2D& windowExtent);
 
         /// Acquire the next image.
         vk::Result acquireNextImage();
@@ -44,7 +44,7 @@ namespace lava::magma::vulkan {
         operator const vk::SwapchainKHR&() const { return m_swapchain; }
 
     protected:
-        void createSwapchain(vk::SurfaceKHR surface, vk::Extent2D& windowExtent);
+        void createSwapchain(vk::SurfaceKHR surface, const vk::Extent2D& windowExtent);
         void createImageViews();
         void createSemaphore();
 
@@ -63,6 +63,6 @@ namespace lava::magma::vulkan {
 
         // Data
         uint32_t m_currentIndex = 0u;
-        vk::Format m_imageFormat;
+        vk::Format m_imageFormat = vk::Format::eUndefined;
     };
 }

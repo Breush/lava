@@ -145,5 +145,9 @@ GameEntity* GameEngine::findEntityByName(const std::string& name) const
 
 // ----- Callbacks
 
-$pimpl_method(GameEngine, uint32_t, onWindowExtentChanged, WindowExtentChangedCallback, callback);
+uint32_t GameEngine::onWindowExtentChanged(WindowExtentChangedCallback&& callback)
+{
+    return m_impl->onWindowExtentChanged(std::move(callback));
+}
+
 $pimpl_method(GameEngine, void, removeOnWindowExtentChanged, uint32_t, id);

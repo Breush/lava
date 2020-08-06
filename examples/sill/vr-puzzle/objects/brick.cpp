@@ -148,7 +148,7 @@ void Brick::blocks(const std::vector<glm::ivec2>& blocks)
         rootNode.transform(transform * rootNode.transform());
     }
 
-    mesh().path(""); // So that the mesh component is not serialized.
+    mesh().path(std::string()); // So that the mesh component is not serialized.
 
     // Update blocks
     updateBlocksColor();

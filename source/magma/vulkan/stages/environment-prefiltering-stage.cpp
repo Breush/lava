@@ -36,7 +36,7 @@ void EnvironmentPrefilteringStage::init(Algorithm algorithm)
     logger.log().tab(-1);
 }
 
-void EnvironmentPrefilteringStage::update(vk::Extent2D extent)
+void EnvironmentPrefilteringStage::update(const vk::Extent2D& extent)
 {
     m_extent = extent;
 

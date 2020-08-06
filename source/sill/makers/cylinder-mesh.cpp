@@ -10,7 +10,7 @@ using namespace lava::sill;
 using namespace lava::chamber;
 
 std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellation, float diameter, float length,
-                                                              CylinderMeshOptions options)
+                                                              const CylinderMeshOptions& options)
 {
     auto radius = diameter / 2.f;
     return [tessellation, radius, length, options](MeshComponent& meshComponent) {

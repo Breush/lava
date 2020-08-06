@@ -41,7 +41,7 @@ void ShadowsStage::init(const Light& light)
     logger.log().tab(-1);
 }
 
-void ShadowsStage::update(vk::Extent2D extent)
+void ShadowsStage::update(const vk::Extent2D& extent)
 {
     m_extent = extent;
 
@@ -129,10 +129,10 @@ void ShadowsStage::initPass()
     //----- Shaders
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "0";
-    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "1";
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["SHADOWS_CASCADES_COUNT"] = std::to_string(SHADOWS_CASCADES_COUNT);
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;

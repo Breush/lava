@@ -69,7 +69,7 @@ namespace lava::magma {
         ResolvedShader resolveImpl(const std::string& category, const uint32_t implId, const std::string& implCode);
 
         /// Transform magma annotations to glsl code.
-        ResolvedShader resolveShader(const std::string& textCode, std::string annotationMain = "");
+        ResolvedShader resolveShader(const std::string& textCode, const std::string& annotationMain = std::string());
 
         /// Find magma annotations for impls and creates an array of it.
         std::vector<std::pair<std::string, std::string>> extractImpls(const std::string& rawCode);

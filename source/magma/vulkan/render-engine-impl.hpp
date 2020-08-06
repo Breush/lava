@@ -29,7 +29,7 @@ namespace lava::magma {
         void update();
         void draw();
         uint32_t registerMaterialFromFile(const std::string& hrid, const fs::Path& shaderPath);
-        uint32_t addView(RenderImage renderImage, IRenderTarget& renderTarget, Viewport viewport);
+        uint32_t addView(RenderImage renderImage, IRenderTarget& renderTarget, const Viewport& viewport);
         void removeView(uint32_t viewId);
         void logTrackingOnce() { m_logTracking = true; }
 

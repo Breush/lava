@@ -15,7 +15,7 @@ LoggerStream::LoggerStream(std::ostream& stream, const std::string& resetString)
 
 LoggerStream& LoggerStream::operator[](uint8_t i)
 {
-    const std::string tab("    ");
+    static const std::string tab = "    ";
     if (i == 1) (*this) << tab * i;
     return *this;
 }

@@ -10,7 +10,7 @@ namespace lava::flow {
      */
     class VorbisMusicDecoder : public IMusicDecoder {
     public:
-        VorbisMusicDecoder(std::shared_ptr<IMusicData> musicData);
+        VorbisMusicDecoder(const std::shared_ptr<IMusicData>& musicData);
         ~VorbisMusicDecoder();
 
         //----- IMusicDecoder

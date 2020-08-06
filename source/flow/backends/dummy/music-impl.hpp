@@ -8,7 +8,7 @@ namespace lava::flow {
      */
     class MusicImpl : public MusicBaseImpl {
     public:
-        MusicImpl(AudioEngine::Impl& engine, std::shared_ptr<IMusicData> /* musicData */)
+        MusicImpl(AudioEngine::Impl& engine, const std::shared_ptr<IMusicData>& /* musicData */)
             : MusicBaseImpl(engine)
         {
         }

@@ -87,7 +87,7 @@ void Present::init()
     logger.log().tab(-1);
 }
 
-void Present::update(vk::Extent2D extent)
+void Present::update(const vk::Extent2D& extent)
 {
     m_extent = extent;
 

@@ -64,7 +64,7 @@ void MeshComponent::update(float dt)
 
         // Call loop start callbacks
         if (time == 0.f) {
-            for (auto callback : animationInfo.loopStartCallbacks) {
+            for (const auto& callback : animationInfo.loopStartCallbacks) {
                 callback();
             }
         }
@@ -216,8 +216,8 @@ float MeshComponent::distanceFrom(const Ray& ray, PickPrecision pickPrecision) c
             }
 
             // Check against primitive's bounding sphere
-            const auto& bs = primitive->boundingSphere();
-            if (intersectSphere(ray, bs.center, bs.radius) == 0.f) continue;
+            const auto& primitiveBs = primitive->boundingSphere();
+            if (intersectSphere(ray, primitiveBs.center, primitiveBs.radius) == 0.f) continue;
 
             // Check against primitive's triangles
             const auto& transform = primitive->transform();

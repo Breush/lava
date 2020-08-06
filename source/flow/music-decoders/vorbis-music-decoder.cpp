@@ -3,7 +3,7 @@
 using namespace lava::chamber;
 using namespace lava::flow;
 
-VorbisMusicDecoder::VorbisMusicDecoder(std::shared_ptr<IMusicData> musicData)
+VorbisMusicDecoder::VorbisMusicDecoder(const std::shared_ptr<IMusicData>& musicData)
     : m_musicData(musicData)
 {
     m_decoder = stb_vorbis_open_memory(musicData->data(), musicData->size(), nullptr, nullptr);

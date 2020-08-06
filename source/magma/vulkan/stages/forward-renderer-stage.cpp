@@ -232,7 +232,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     deviceHolder.debugEndRegion(commandBuffer);
 }
 
-void ForwardRendererStage::extent(vk::Extent2D extent)
+void ForwardRendererStage::extent(const vk::Extent2D& extent)
 {
     if (m_extent == extent) return;
     m_extent = extent;
@@ -493,10 +493,10 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     // only the depth test and the color attachments differ.
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);

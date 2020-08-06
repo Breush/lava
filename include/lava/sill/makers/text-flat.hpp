@@ -19,5 +19,5 @@ namespace lava::sill::makers {
     };
 
     std::function<FlatNode&(FlatComponent&)> textFlatMaker(const std::wstring& text,
-                                                           TextFlatOptions options = TextFlatOptions());
+                                                           const TextFlatOptions& options = TextFlatOptions());
 }

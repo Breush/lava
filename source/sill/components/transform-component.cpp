@@ -167,24 +167,24 @@ void TransformComponent::worldTransform2d(const lava::Transform2d& worldTransfor
 
 // ----- Callbacks
 
-void TransformComponent::onTransformChanged(std::function<void()> callback, ChangeReasonFlags changeReasonFlags)
+void TransformComponent::onTransformChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags)
 {
-    m_transformChangedCallbacks.emplace_back(TransformChangedCallbackInfo{callback, changeReasonFlags});
+    m_transformChangedCallbacks.emplace_back(TransformChangedCallbackInfo{std::move(callback), changeReasonFlags});
 }
 
-void TransformComponent::onWorldTransformChanged(std::function<void()> callback, ChangeReasonFlags changeReasonFlags)
+void TransformComponent::onWorldTransformChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags)
 {
-    m_worldTransformChangedCallbacks.emplace_back(TransformChangedCallbackInfo{callback, changeReasonFlags});
+    m_worldTransformChangedCallbacks.emplace_back(TransformChangedCallbackInfo{std::move(callback), changeReasonFlags});
 }
 
-void TransformComponent::onTransform2dChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags)
+void TransformComponent::onTransform2dChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags)
 {
-    m_transform2dChangedCallbacks.emplace_back(TransformChangedCallbackInfo{callback, changeReasonFlags});
+    m_transform2dChangedCallbacks.emplace_back(TransformChangedCallbackInfo{std::move(callback), changeReasonFlags});
 }
 
-void TransformComponent::onWorldTransform2dChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags)
+void TransformComponent::onWorldTransform2dChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags)
 {
-    m_worldTransform2dChangedCallbacks.emplace_back(TransformChangedCallbackInfo{callback, changeReasonFlags});
+    m_worldTransform2dChangedCallbacks.emplace_back(TransformChangedCallbackInfo{std::move(callback), changeReasonFlags});
 }
 
 // ----- Internal

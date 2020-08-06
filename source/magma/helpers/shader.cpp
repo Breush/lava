@@ -11,7 +11,7 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
 
     if (!file.is_open()) {
         logger.warning("magma.helpers.shader") << "Unable to find shader file " << filename << "." << std::endl;
-        return "";
+        return std::string();
     }
 
     // Adapting the code
@@ -45,7 +45,7 @@ std::string magma::adaptGlslFile(const std::string& filename, const std::unorder
                 offset = chamber::nextWord(line, word, offset);
 
                 word = word.substr(1u, word.size() - 2u);
-                auto includeFilename = filename.substr(0u, filename.find_last_of("/") + 1u) + word;
+                auto includeFilename = filename.substr(0u, filename.find_last_of('/') + 1u) + word;
                 adaptedCode << "// BEGIN #include \"" << word << "\"" << std::endl;
                 adaptedCode << adaptGlslFile(includeFilename, defines) << std::endl;
                 adaptedCode << "// END #include \"" << word << "\"" << std::endl;

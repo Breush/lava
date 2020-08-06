@@ -65,7 +65,7 @@ void Environment::renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayou
                                      &m_basicDescriptorSet, 0, nullptr);
 }
 
-void Environment::set(TexturePtr texture)
+void Environment::set(const TexturePtr& texture)
 {
     m_texture = texture;
     updateBasicBindings();

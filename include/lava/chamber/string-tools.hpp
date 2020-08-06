@@ -10,7 +10,7 @@ inline std::string operator*(const std::string& word, uint32_t times)
 
 namespace lava::chamber {
     /// Convert a CamelCaseString to a snake-case-string.
-    std::string camelToSnakeCase(const std::string& camelCaseString, std::string separator = "-");
+    std::string camelToSnakeCase(const std::string& camelCaseString, const std::string& separator = "-");
 
     /// Split a string into a vector of string views.
     std::vector<std::string_view> splitAsViews(const std::string& s, char c);

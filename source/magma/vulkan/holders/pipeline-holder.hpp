@@ -50,7 +50,7 @@ namespace lava::magma::vulkan {
         PipelineHolder(RenderEngine::Impl& engine);
 
         void init(uint32_t subpassIndex);
-        void update(vk::Extent2D extent, vk::PolygonMode polygonMode = vk::PolygonMode::eFill);
+        void update(const vk::Extent2D& extent, vk::PolygonMode polygonMode = vk::PolygonMode::eFill);
 
         const vulkan::Pipeline& pipeline() const { return m_pipeline; }
         const vulkan::PipelineLayout& pipelineLayout() const { return m_pipelineLayout; }

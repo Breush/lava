@@ -114,7 +114,7 @@ void RigidBody::Impl::addInfinitePlaneShape(const glm::vec3& offset, const glm::
     addShape(glm::translate(glm::mat4(1.f), offset), std::move(pShape));
 }
 
-void RigidBody::Impl::addMeshShape(const glm::mat4& localTransform, VectorView<glm::vec3> vertices, const std::vector<uint16_t>& indices)
+void RigidBody::Impl::addMeshShape(const glm::mat4& localTransform, const VectorView<glm::vec3>& vertices, const std::vector<uint16_t>& indices)
 {
     btIndexedMesh indexedMesh;
     indexedMesh.m_numTriangles = indices.size() / 3u;

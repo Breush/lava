@@ -57,7 +57,7 @@ namespace lava::magma {
         void rebuild() final;
         void record(vk::CommandBuffer commandBuffer, uint32_t frameId) final;
 
-        void extent(vk::Extent2D extent) final;
+        void extent(const vk::Extent2D& extent) final;
         void sampleCount(vk::SampleCountFlagBits /* sampleCount */) final { /* Not handled */ }
         void polygonMode(vk::PolygonMode polygonMode) final;
 

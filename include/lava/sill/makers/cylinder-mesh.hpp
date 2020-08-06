@@ -14,5 +14,5 @@ namespace lava::sill::makers {
     };
 
     std::function<void(MeshComponent&)> cylinderMeshMaker(uint32_t tessellation, float diameter, float length,
-                                                          CylinderMeshOptions options = CylinderMeshOptions());
+                                                          const CylinderMeshOptions& options = CylinderMeshOptions());
 }

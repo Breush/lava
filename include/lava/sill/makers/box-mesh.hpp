@@ -33,6 +33,6 @@ namespace lava::sill::makers {
         glm::vec3 offset = {0.f, 0.f, 0.f};
     };
 
-    std::function<void(MeshComponent&)> boxMeshMaker(float sidesLength, BoxMeshOptions options = BoxMeshOptions());
-    std::function<void(MeshComponent&)> boxMeshMaker(const glm::vec3& extent, BoxMeshOptions options = BoxMeshOptions());
+    std::function<void(MeshComponent&)> boxMeshMaker(float sidesLength, const BoxMeshOptions& options = BoxMeshOptions());
+    std::function<void(MeshComponent&)> boxMeshMaker(const glm::vec3& extent, const BoxMeshOptions& options = BoxMeshOptions());
 }

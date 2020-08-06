@@ -75,7 +75,7 @@ FloatExtent2d sill::glyphsExtent(const std::vector<Font::GlyphInfo>& glyphsInfos
     return extent;
 }
 
-TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, TextOptions options)
+TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, const TextOptions& options)
 {
     TextGeometry geometry;
     auto& positions = geometry.positions;
@@ -88,8 +88,8 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, Te
     float yOffset = 0.f;
     auto glyphsCount = 0u;
     FloatExtent2d globalTextExtent;
-    for (auto& text : splitAsViews(text, '\n')) {
-        const auto glyphsInfos = font.glyphsInfos(text);
+    for (auto& textLine : splitAsViews(text, '\n')) {
+        const auto glyphsInfos = font.glyphsInfos(textLine);
         const auto textExtent = glyphsExtent(glyphsInfos);
 
         // @note These operation are valid because this is a left to right language

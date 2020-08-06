@@ -12,8 +12,11 @@ namespace {
     {
         char fileBuffer[1024];
         FILE* syscomFile = popen(command.c_str(), "r");
-        fgets(fileBuffer, sizeof(fileBuffer), syscomFile);
+        auto success = fgets(fileBuffer, sizeof(fileBuffer), syscomFile);
         pclose(syscomFile);
+        if (!success) {
+            return std::string();
+        }
 
         // Remove any line return
         for (auto i = 0u; i < 1024; ++i) {
@@ -44,16 +47,16 @@ void CallStack::Impl::refresh(uint32_t discardCount)
         std::string message = messages[i];
 
         // We'll get filename and line number through addr2line function
-        uint32_t leftParenthesisPos = message.find("(");
-        uint32_t plusPos = message.find("+", leftParenthesisPos);
+        uint32_t leftParenthesisPos = message.find('(');
+        uint32_t plusPos = message.find('+', leftParenthesisPos);
         if (plusPos > message.size()) plusPos = leftParenthesisPos;
-        uint32_t rightParenthesisPos = message.find(")", plusPos);
+        uint32_t rightParenthesisPos = message.find(')', plusPos);
 
         auto libPath = message.substr(0, leftParenthesisPos);
         auto reference = message.substr(leftParenthesisPos + 1, plusPos - leftParenthesisPos - 1);
         auto relativeOffset = message.substr(plusPos + 1, rightParenthesisPos - plusPos - 1);
 
-        if (relativeOffset == "") {
+        if (relativeOffset.empty()) {
             continue;
         }
 
@@ -95,9 +98,9 @@ void CallStack::Impl::refresh(uint32_t discardCount)
         if (entry.file[0] == '?' && dlinfo.dli_fname) {
             entry.file = dlinfo.dli_fname;
         }
-        entry.file = entry.file.substr(entry.file.rfind("/") + 1);
-        entry.file = entry.file.substr(0, entry.file.find(":"));
-        entry.line = atoi(fileInfo.substr(fileInfo.find(":") + 1).c_str());
+        entry.file = entry.file.substr(entry.file.rfind('/') + 1);
+        entry.file = entry.file.substr(0, entry.file.find(':'));
+        entry.line = atoi(fileInfo.substr(fileInfo.find(':') + 1).c_str());
         entry.function = functionName;
         m_entries.emplace_back(std::move(entry));
     }

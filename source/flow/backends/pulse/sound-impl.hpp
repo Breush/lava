@@ -11,7 +11,7 @@ namespace lava::flow {
      */
     class SoundImpl : public SoundBaseImpl {
     public:
-        SoundImpl(AudioEngine::Impl& engine, std::shared_ptr<SoundData> soundData);
+        SoundImpl(AudioEngine::Impl& engine, const std::shared_ptr<SoundData>& soundData);
         ~SoundImpl();
 
         // ----- AudioSource

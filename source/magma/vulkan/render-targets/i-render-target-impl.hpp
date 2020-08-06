@@ -40,7 +40,7 @@ namespace lava::magma {
 
         /// Render an image in a specific viewport.
         virtual uint32_t addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler,
-                                 Viewport viewport, uint32_t channelCount) = 0;
+                                 const Viewport& viewport, uint32_t channelCount) = 0;
 
         /// Remove the specified view.
         virtual void removeView(uint32_t viewId) = 0;

@@ -10,7 +10,7 @@
 
 using namespace lava::flow;
 
-Sound::Sound(AudioEngine& engine, std::shared_ptr<SoundData> soundData)
+Sound::Sound(AudioEngine& engine, const std::shared_ptr<SoundData>& soundData)
 {
     m_impl = new SoundImpl(engine.impl(), soundData);
 }

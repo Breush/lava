@@ -8,7 +8,7 @@
 
 using namespace lava::flow;
 
-Music::Music(AudioEngine& engine, std::shared_ptr<IMusicData> musicData)
+Music::Music(AudioEngine& engine, const std::shared_ptr<IMusicData>& musicData)
 {
     m_impl = new MusicImpl(engine.impl(), musicData);
 }

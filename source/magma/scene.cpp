@@ -146,7 +146,7 @@ TexturePtr Scene::findTexture(const uint8_t* pixels, uint32_t width, uint32_t he
 
     // @todo We're computing the hash twice for the texture that do not match,
     // because we add it afterwards, there might be a way to return the hash info too.
-    for (auto texture : m_textures) {
+    for (const auto& texture : m_textures) {
         auto texturePtr = texture.second.lock();
         if (texturePtr->cube() == false && texturePtr->hash() == hash) {
             return texturePtr;
@@ -244,7 +244,7 @@ void Scene::removeUnsafe(const Flat& flat)
 
 // ----- Environment
 
-void Scene::environmentTexture(TexturePtr texture)
+void Scene::environmentTexture(const TexturePtr& texture)
 {
     aft().foreEnvironmentTexture(texture);
 }

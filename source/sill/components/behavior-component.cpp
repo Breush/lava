@@ -10,4 +10,7 @@ $pimpl_class_base(BehaviorComponent, IComponent, GameEntity&, entity);
 $pimpl_method(BehaviorComponent, void, update, float, dt);
 
 // Callbacks
-$pimpl_method(BehaviorComponent, void, onUpdate, UpdateCallback, updateCallback);
+void BehaviorComponent::onUpdate(UpdateCallback&& updateCallback)
+{
+    m_impl->onUpdate(std::move(updateCallback));
+}

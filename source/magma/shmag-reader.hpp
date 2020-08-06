@@ -40,7 +40,7 @@ namespace lava::magma {
         };
 
         struct GBufferDeclaration {
-            GBufferType type;
+            GBufferType type = GBufferType::Unknown;
             GBufferRange range = GBufferRange::e32;
             std::string name;
         };
@@ -93,7 +93,7 @@ namespace lava::magma {
 
         std::string parseCurrentIdentifier();
         void remapBlock(std::stringstream& adaptedCode, const std::unordered_map<std::string, std::string>& extraMap,
-                        std::function<void(void)> onReturn);
+                        const std::function<void(void)>& onReturn);
 
         bool getNotToken(chamber::TokenType tokenType, chamber::Lexer::Token* token = nullptr);
 

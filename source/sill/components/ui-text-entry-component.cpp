@@ -10,7 +10,7 @@
 using namespace lava::sill;
 
 UiTextEntryComponent::UiTextEntryComponent(GameEntity& entity)
-    : UiTextEntryComponent(entity, L"")
+    : UiTextEntryComponent(entity, std::wstring())
 {
 }
 
@@ -119,7 +119,7 @@ void UiTextEntryComponent::updateText()
     // @todo And what if the text goes outside?
     // Do we want some clipping system or we just hide the flat primitives?
 
-    for (auto callback : m_textChangedCallbacks) {
+    for (const auto& callback : m_textChangedCallbacks) {
         callback(m_text);
     }
 }

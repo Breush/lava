@@ -35,7 +35,7 @@ namespace {
 
     void setTexture(GameEngine& engine, magma::Material& material, const std::string& uniformName, uint32_t textureIndex,
                     const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData,
-                    PixelsCallback pixelsCallback = nullptr)
+                    const PixelsCallback& pixelsCallback = nullptr)
     {
         if (textureIndex == -1u) return;
 
@@ -407,7 +407,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
             cacheData.threadPool->wait();
         }
 
-        for (auto it : cacheData.pendingUniformBindings) {
+        for (const auto& it : cacheData.pendingUniformBindings) {
             auto& texture = cacheData.textures[it.first];
             for (const auto& pair : it.second) {
                 pair.first->set(pair.second, texture); // Set material uniform

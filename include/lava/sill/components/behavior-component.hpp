@@ -18,7 +18,7 @@ namespace lava::sill {
         void update(float dt) final;
 
         // Interface
-        void onUpdate(UpdateCallback updateCallback);
+        void onUpdate(UpdateCallback&& updateCallback);
 
     public:
         class Impl;

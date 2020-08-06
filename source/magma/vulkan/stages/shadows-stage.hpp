@@ -20,7 +20,7 @@ namespace lava::magma {
         ShadowsStage(Scene& scene);
 
         void init(const Light& light);
-        void update(vk::Extent2D extent);
+        void update(const vk::Extent2D& extent);
         void updateFromCamerasCount();
         void record(vk::CommandBuffer commandBuffer, const Camera* camera);
 

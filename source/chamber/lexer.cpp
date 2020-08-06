@@ -20,7 +20,7 @@ std::optional<Lexer::Token> Lexer::nextToken()
         return std::nullopt;
     }
 
-    m_token.spacing = "";
+    m_token.spacing.clear();
     while (m_lexer.token == CLEX_white) {
         m_token.spacing += m_lexer.string;
         if (!stb_c_lexer_get_token(&m_lexer)) {

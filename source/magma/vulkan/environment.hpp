@@ -22,7 +22,7 @@ namespace lava::magma {
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
         void renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
 
-        void set(TexturePtr texture);
+        void set(const TexturePtr& texture);
 
     protected:
         void computeRadiance();

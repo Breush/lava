@@ -28,12 +28,12 @@ $pimpl_method_const(RenderEngine, const MaterialInfo&, materialInfo, const std::
 $pimpl_method_const(RenderEngine, const MaterialInfo*, materialInfoIfExists, const std::string&, hrid);
 $pimpl_method(RenderEngine, uint32_t, registerMaterialFromFile, const std::string&, hrid, const fs::Path&, shaderPath);
 
-uint32_t RenderEngine::addView(Camera& camera, IRenderTarget& renderTarget, Viewport viewport)
+uint32_t RenderEngine::addView(Camera& camera, IRenderTarget& renderTarget, const Viewport& viewport)
 {
     return addView(camera.renderImage(), renderTarget, viewport);
 }
 
-$pimpl_method(RenderEngine, uint32_t, addView, RenderImage, renderImage, IRenderTarget&, renderTarget, Viewport, viewport);
+$pimpl_method(RenderEngine, uint32_t, addView, RenderImage, renderImage, IRenderTarget&, renderTarget, const Viewport&, viewport);
 $pimpl_method(RenderEngine, void, removeView, uint32_t, viewId);
 
 //----- Makers

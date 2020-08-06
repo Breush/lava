@@ -19,7 +19,7 @@ void PipelineHolder::init(uint32_t subpassIndex)
     initPipelineLayout();
 }
 
-void PipelineHolder::update(vk::Extent2D extent, vk::PolygonMode polygonMode)
+void PipelineHolder::update(const vk::Extent2D& extent, vk::PolygonMode polygonMode)
 {
     // Cannot reconstruct pipeline with an active GPU
     m_engine.device().waitIdle();

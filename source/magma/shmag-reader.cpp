@@ -248,7 +248,7 @@ UniformDefinition ShmagReader::parseUniformDefinition(uint32_t& basicOffset, uin
     }
     else if (m_lexer->currentToken()->type == chamber::TokenType::Semicolon) {
         // We clean the biggest member, so that everything is defaulted to 0
-        memset(&uniformDefinition.fallback.uintArrayValue, 0, sizeof(UniformFallback));
+        memset(&uniformDefinition.fallback.uintArrayValue, 0, sizeof(uniformDefinition.fallback.uintArrayValue));
     }
     else {
         errorExpected(chamber::TokenType::Semicolon);
@@ -837,7 +837,7 @@ std::string ShmagReader::parseCurrentIdentifier()
 }
 
 void ShmagReader::remapBlock(std::stringstream& adaptedCode, const std::unordered_map<std::string, std::string>& extraMap,
-                             std::function<void(void)> onReturn)
+                             const std::function<void(void)>& onReturn)
 {
     auto bracesCount = 1u;
     while (auto token = m_lexer->nextToken()) {

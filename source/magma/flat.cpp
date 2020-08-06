@@ -70,7 +70,7 @@ void Flat::verticesCount(const uint32_t count)
     m_vertices.resize(count);
 }
 
-void Flat::verticesPositions(VectorView<glm::vec2> positions)
+void Flat::verticesPositions(const VectorView<glm::vec2>& positions)
 {
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), positions.size());
     for (uint32_t i = 0u; i < length; ++i) {
@@ -80,7 +80,7 @@ void Flat::verticesPositions(VectorView<glm::vec2> positions)
     aft().foreVerticesChanged();
 }
 
-void Flat::verticesUvs(VectorView<glm::vec2> uvs)
+void Flat::verticesUvs(const VectorView<glm::vec2>& uvs)
 {
     auto length = std::min(static_cast<uint32_t>(m_vertices.size()), uvs.size());
     for (uint32_t i = 0u; i < length; ++i) {
@@ -90,13 +90,13 @@ void Flat::verticesUvs(VectorView<glm::vec2> uvs)
     aft().foreVerticesChanged();
 }
 
-void Flat::indices(VectorView<uint16_t> indices)
+void Flat::indices(const VectorView<uint16_t>& indices)
 {
     setIndices(m_indices, indices, m_vertices.size());
     aft().foreIndicesChanged();
 }
 
-void Flat::indices(VectorView<uint8_t> indices)
+void Flat::indices(const VectorView<uint8_t>& indices)
 {
     setIndices(m_indices, indices, m_vertices.size());
     aft().foreIndicesChanged();

@@ -22,7 +22,8 @@
                 "LAVA_FLOW_AUDIO_PULSE",
                 "VK_USE_PLATFORM_XCB_KHR",
                 "VULKAN_HPP_NO_EXCEPTIONS",
-                "LAVA_STB_C_LEXER"
+                "LAVA_STB_C_LEXER",
+                "STB_C_LEXER_IMPLEMENTATION"
             ],
             "intelliSenseMode": "clang-x64",
             "browse": {

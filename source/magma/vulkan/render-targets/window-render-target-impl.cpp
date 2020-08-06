@@ -121,7 +121,7 @@ void WindowRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& comman
 }
 
 uint32_t WindowRenderTarget::Impl::addView(vk::ImageView imageView, vk::ImageLayout imageLayout, vk::Sampler sampler,
-                                           Viewport viewport, uint32_t channelCount)
+                                           const Viewport& viewport, uint32_t channelCount)
 {
     // @fixme All these view managements should be a compositor thingy, and not present's business.
     return m_presentStage.addView(imageView, imageLayout, sampler, viewport, channelCount);

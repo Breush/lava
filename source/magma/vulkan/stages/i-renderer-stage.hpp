@@ -16,7 +16,7 @@ namespace lava::magma {
         virtual void rebuild() = 0;
         virtual void record(vk::CommandBuffer commandBuffer, uint32_t frameId) = 0;
 
-        virtual void extent(vk::Extent2D extent) = 0;
+        virtual void extent(const vk::Extent2D& extent) = 0;
         virtual void sampleCount(vk::SampleCountFlagBits sampleCount) = 0;
         virtual void polygonMode(vk::PolygonMode polygonMode) = 0;
 

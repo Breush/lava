@@ -108,14 +108,14 @@ namespace lava::sill {
          */
         /// {
         /// Called whenever the transform changed. Both transform and world transform have there correct values.
-        void onTransformChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onTransformChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
         /// Called whenever the world transform changed. Both transform and world transform have there correct values.
-        void onWorldTransformChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onWorldTransformChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
 
         /// Called whenever the 2D transform changed. Both 2D transform and 2D world transform have there correct values.
-        void onTransform2dChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onTransform2dChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
         /// Called whenever the 2D world transform changed. Both 2D transform and 2D world transform have there correct values.
-        void onWorldTransform2dChanged(TransformChangedCallback callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
+        void onWorldTransform2dChanged(TransformChangedCallback&& callback, ChangeReasonFlags changeReasonFlags = ChangeReasonFlag::All);
         /// }
 
     protected:

@@ -31,7 +31,7 @@ void ImageHolder::sampleCount(vk::SampleCountFlagBits sampleCount)
     m_sampleCountChanged = true;
 }
 
-void ImageHolder::create(vk::Format format, vk::Extent2D extent, vk::ImageAspectFlagBits imageAspect, uint8_t layersCount,
+void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::ImageAspectFlagBits imageAspect, uint8_t layersCount,
                          uint8_t mipLevelsCount)
 {
     if (!m_sampleCountChanged &&

@@ -212,7 +212,7 @@ void Window::Impl::initXcbConnection()
 
 void Window::Impl::setupWindow(VideoMode mode, const std::string& title)
 {
-    uint32_t value_mask, value_list[32];
+    uint32_t value_mask, value_list[3];
 
     m_window = xcb_generate_id(m_connection);
 

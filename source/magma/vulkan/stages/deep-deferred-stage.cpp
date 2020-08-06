@@ -202,7 +202,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
     deviceHolder.debugEndRegion(commandBuffer);
 }
 
-void DeepDeferredStage::extent(vk::Extent2D extent)
+void DeepDeferredStage::extent(const vk::Extent2D& extent)
 {
     if (m_extent == extent) return;
     m_extent = extent;
@@ -260,10 +260,10 @@ void DeepDeferredStage::initClearPass()
     m_clearPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
@@ -422,10 +422,10 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
     m_depthlessPipelineHolder.removeShaderStages();
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
@@ -467,10 +467,10 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
     m_epiphanyPipelineHolder.removeShaderStages();
 
     ShadersManager::ModuleOptions moduleOptions;
-    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = "0";
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = "1";
-    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = "0";
+    moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX);
