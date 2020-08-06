@@ -27,7 +27,7 @@ cd ${VERSION}/*
 FOLDER=`pwd`
 
 echo "... Syncing ${NAME} dependencies..."
-python ./utils/git-sync-deps
+python3 ./utils/git-sync-deps
 
 mkdir -p build
 cd build

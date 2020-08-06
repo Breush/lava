@@ -1,5 +1,5 @@
 local NAME = "STB libraries"
-local REPOSITORY = "git@github.com:nothings/stb.git"
+local REPOSITORY = "https://github.com/nothings/stb.git"
 
 -- Set up
 

@@ -1,5 +1,5 @@
 local NAME = "MikkTSpace"
-local REPOSITORY = "git@github.com:tcoppex/ext-mikktspace.git"
+local REPOSITORY = "https://github.com/tcoppex/ext-mikktspace.git"
 
 -- Set up
 
