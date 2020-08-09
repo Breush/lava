@@ -181,7 +181,7 @@ void setupTeleportBeam(GameState& gameState)
     auto teleportBeamMaterial = engine.scene().makeMaterial("teleport-beam");
     teleportBeamMaterial->set("length", 32.f);
     meshComponent.primitive(0, 0).material(teleportBeamMaterial);
-    meshComponent.primitive(0, 0).category(RenderCategory::Translucent);
+    meshComponent.primitive(0, 0).category(RenderCategory::Mask);
     meshComponent.primitive(0, 0).shadowsCastable(false);
 
     // Area

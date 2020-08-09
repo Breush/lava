@@ -20,7 +20,7 @@ layout(location = 0) out vec3 outColor;
 //----- Functions
 
 #include "../../helpers.sfunc"
-#include "./epiphany-compose.sfunc"
+#include "../epiphany-compose.sfunc"
 
 //----- Program
 

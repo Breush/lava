@@ -21,7 +21,7 @@ layout (location = 0) out uvec4 outGBufferRenderTargets[DEEP_DEFERRED_GBUFFER_RE
 //----- Functions
 
 #include "../../helpers.sfunc"
-#include "./geometry-compose.sfunc"
+#include "../geometry-compose.sfunc"
 
 //----- Program
 

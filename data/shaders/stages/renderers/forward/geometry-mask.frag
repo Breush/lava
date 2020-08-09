@@ -2,8 +2,8 @@
 #pragma shader_stage(fragment)
 #extension GL_ARB_separate_shader_objects : enable
 
-// Early depth test, as everything is sorted.
-layout(early_fragment_tests) in;
+// No early depth test, as everything some fragment might be discarded.
+// layout(early_fragment_tests) in;
 
 #include "../../sets/push-constants.set"
 #include "../../sets/material.set"
@@ -39,8 +39,10 @@ void main()
 
     uint materialId = material.id;
 
-    // @note We don't use the boolean result of geometry,
-    // as, in forward renderer, we have no way to change what we're doing.
     composeGeometry(materialId, gBufferData, gl_FragCoord.z);
     outColor = composeEpiphany(materialId, gBufferData, gl_FragCoord.z);
+
+    if (outColor.a < 0.5) {
+        discard;
+    }
 }

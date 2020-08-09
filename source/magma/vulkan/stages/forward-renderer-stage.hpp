@@ -44,6 +44,7 @@ namespace lava::magma {
 
     protected:
         void initOpaquePass();
+        void initMaskPass();
         void initDepthlessPass();
         void initWireframePass();
         void initTranslucentPass();
@@ -71,6 +72,7 @@ namespace lava::magma {
         // Pass and subpasses
         vulkan::RenderPassHolder m_renderPassHolder;
         vulkan::PipelineHolder m_opaquePipelineHolder;
+        vulkan::PipelineHolder m_maskPipelineHolder;
         vulkan::PipelineHolder m_depthlessPipelineHolder;
         vulkan::PipelineHolder m_wireframePipelineHolder;
         vulkan::PipelineHolder m_translucentPipelineHolder;

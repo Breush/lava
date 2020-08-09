@@ -24,7 +24,7 @@ namespace {
         std::unique_ptr<ThreadPool> threadPool;
         std::unordered_map<uint32_t, magma::TexturePtr> textures;
         std::unordered_map<uint32_t, magma::MaterialPtr> materials;
-        std::unordered_map<uint32_t, bool> materialTranslucencies;
+        std::unordered_map<uint32_t, RenderCategory> renderCategories;
         std::unordered_map<uint32_t, uint32_t> nodeIndices;
 
         // Key is textureId, value is a list of materials and uniformName waiting for that texture to be done.
@@ -152,11 +152,11 @@ namespace {
             }
 
             // Material
-            bool translucent = false;
+            RenderCategory renderCategory = RenderCategory::Opaque;
             magma::MaterialPtr rmMaterial = nullptr;
             if (cacheData.materials.find(primitive.materialIndex) != cacheData.materials.end()) {
                 rmMaterial = cacheData.materials.at(primitive.materialIndex);
-                translucent = cacheData.materialTranslucencies.at(primitive.materialIndex);
+                renderCategory = cacheData.renderCategories.at(primitive.materialIndex);
             }
             else if (materials != json.end() && primitive.materialIndex != -1u) {
                 // @note We need "roughness-metallic" material.
@@ -167,7 +167,7 @@ namespace {
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
                 rmMaterial = engine.scene().makeMaterial("roughness-metallic");
                 rmMaterial->name(material.name);
-                translucent = material.translucent;
+                renderCategory = material.renderCategory;
 
                 // Material textures
                 rmMaterial->set("albedoColor", material.baseColorFactor);
@@ -180,7 +180,7 @@ namespace {
                               binChunk, json, cacheData);
 
                 cacheData.materials[primitive.materialIndex] = rmMaterial;
-                cacheData.materialTranslucencies[primitive.materialIndex] = translucent;
+                cacheData.renderCategories[primitive.materialIndex] = renderCategory;
             }
 
             // Apply the geometry
@@ -223,7 +223,7 @@ namespace {
             }
 
             meshPrimitive.material(rmMaterial);
-            meshPrimitive.category(translucent ? RenderCategory::Translucent : RenderCategory::Opaque);
+            meshPrimitive.category(renderCategory);
         }
 
         return meshGroup;

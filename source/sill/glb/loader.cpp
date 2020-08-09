@@ -113,8 +113,11 @@ PbrMetallicRoughnessMaterial::PbrMetallicRoughnessMaterial(const typename nlohma
     }
 
     if (json.find("alphaMode") != json.end()) {
-        if (json["alphaMode"] != "OPAQUE") {
-            translucent = true;
+        if (json["alphaMode"] == "BLEND") {
+            renderCategory = RenderCategory::Translucent;
+        }
+        else if (json["alphaMode"] == "MASK") {
+            renderCategory = RenderCategory::Mask;
         }
     }
 

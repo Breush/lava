@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lava/core/render-category.hpp>
+
 namespace lava::glb {
     struct Header {
         uint8_t magic[4];
@@ -74,11 +76,8 @@ namespace lava::glb {
     };
 
     struct PbrMetallicRoughnessMaterial : public Material {
-        // @fixme We might to separate alpha blended (BLEND) materials
-        // from MASK ones. Because the latter could go to the
-        // opaque pipeline without too much issues.
         std::string name;
-        bool translucent = false;
+        RenderCategory renderCategory = RenderCategory::Opaque;
         uint32_t baseColorTextureIndex = -1u;
         uint32_t metallicRoughnessTextureIndex = -1u;
         glm::vec4 baseColorFactor = glm::vec4(1.f, 1.f, 1.f, 1.f);

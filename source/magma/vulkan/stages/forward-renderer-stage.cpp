@@ -23,6 +23,7 @@ ForwardRendererStage::ForwardRendererStage(Scene& scene)
     : m_scene(scene)
     , m_renderPassHolder(m_scene.engine().impl())
     , m_opaquePipelineHolder(m_scene.engine().impl())
+    , m_maskPipelineHolder(m_scene.engine().impl())
     , m_depthlessPipelineHolder(m_scene.engine().impl())
     , m_wireframePipelineHolder(m_scene.engine().impl())
     , m_translucentPipelineHolder(m_scene.engine().impl())
@@ -42,6 +43,7 @@ void ForwardRendererStage::init(const Camera& camera)
 
     updatePassShaders(true);
     initOpaquePass();
+    initMaskPass();
     initDepthlessPass();
     initWireframePass();
     initTranslucentPass();
@@ -49,6 +51,7 @@ void ForwardRendererStage::init(const Camera& camera)
     //----- Render pass
 
     m_renderPassHolder.add(m_opaquePipelineHolder);
+    m_renderPassHolder.add(m_maskPipelineHolder);
     m_renderPassHolder.add(m_depthlessPipelineHolder);
     m_renderPassHolder.add(m_wireframePipelineHolder);
     m_renderPassHolder.add(m_translucentPipelineHolder);
@@ -65,6 +68,7 @@ void ForwardRendererStage::rebuild()
 
     if (m_rebuildPipelines) {
         m_opaquePipelineHolder.update(m_extent, m_polygonMode);
+        m_maskPipelineHolder.update(m_extent, m_polygonMode);
         m_depthlessPipelineHolder.update(m_extent, m_polygonMode);
         m_wireframePipelineHolder.update(m_extent, vk::PolygonMode::eLine);
         m_translucentPipelineHolder.update(m_extent, m_polygonMode);
@@ -142,6 +146,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
         float distanceToCamera;
     };
 
+    std::vector<const Mesh*> maskMeshes;
     std::vector<const Mesh*> depthlessMeshes;
     std::vector<const Mesh*> wireframedMeshes;
     std::vector<TranslucentMesh> translucentMeshes;
@@ -156,7 +161,11 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
 
         const auto& boundingSphere = mesh->boundingSphere();
         if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
-            if (category == RenderCategory::Translucent) {
+            if (category == RenderCategory::Mask) {
+                maskMeshes.emplace_back(mesh);
+                continue;
+            }
+            else if (category == RenderCategory::Translucent) {
                 auto distanceToCamera = (cameraMatrix * glm::vec4(boundingSphere.center, 1.f)).z + boundingSphere.radius;
                 translucentMeshes.emplace_back(TranslucentMesh{mesh, distanceToCamera});
                 continue;
@@ -170,6 +179,21 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
             mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
                                MATERIAL_DESCRIPTOR_SET_INDEX);
         }
+    }
+
+    deviceHolder.debugEndRegion(commandBuffer);
+
+    //----- Mask pass
+
+    deviceHolder.debugBeginRegion(commandBuffer, "forward-renderer.mask");
+
+    commandBuffer.nextSubpass(vk::SubpassContents::eInline);
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_maskPipelineHolder.pipeline());
+
+    for (auto mesh : maskMeshes) {
+        tracker.counter("draw-calls.renderer") += 1u;
+        mesh->aft().render(commandBuffer, m_maskPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+                           MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
     deviceHolder.debugEndRegion(commandBuffer);
@@ -254,6 +278,7 @@ void ForwardRendererStage::sampleCount(vk::SampleCountFlagBits sampleCount)
     m_msaaEnabled = (sampleCount != vk::SampleCountFlagBits::e1);
 
     m_opaquePipelineHolder.set(sampleCount);
+    m_maskPipelineHolder.set(sampleCount);
     m_depthlessPipelineHolder.set(sampleCount);
     m_wireframePipelineHolder.set(sampleCount);
     m_translucentPipelineHolder.set(sampleCount);
@@ -347,6 +372,57 @@ void ForwardRendererStage::initOpaquePass()
                               {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
     m_opaquePipelineHolder.set(vertexInput);
+}
+
+void ForwardRendererStage::initMaskPass()
+{
+    // @note This is basically a copy of the opaque pass, the main difference is the shader,
+    // having no early depth test and discarding below 0.5 alpha fragments.
+    // We alpha blend for fragments from 0.5 to 1.0 alpha so that transitions
+    // are smooth. But do not expect this to work nicely with important translucency,
+    // this should only be used on borders.
+
+    //----- Descriptor set layouts
+
+    // @note Ordering is important
+    m_maskPipelineHolder.add(m_scene.aft().environmentDescriptorHolder().setLayout());
+    m_maskPipelineHolder.add(m_scene.aft().materialDescriptorHolder().setLayout());
+    m_maskPipelineHolder.add(m_scene.aft().materialGlobalDescriptorHolder().setLayout());
+    m_maskPipelineHolder.add(m_scene.aft().lightsDescriptorHolder().setLayout());
+    m_maskPipelineHolder.add(m_scene.aft().shadowsDescriptorHolder().setLayout());
+
+    //----- Push constants
+
+    m_maskPipelineHolder.addPushConstantRange(sizeof(MeshUbo));
+    m_maskPipelineHolder.addPushConstantRange(sizeof(CameraUbo));
+
+    //----- Rasterization
+
+    m_maskPipelineHolder.set(vk::CullModeFlagBits::eBack);
+
+    //----- Attachments
+
+    vulkan::PipelineHolder::DepthStencilAttachment depthStencilAttachment;
+    depthStencilAttachment.format = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
+    depthStencilAttachment.clear = false;
+    m_maskPipelineHolder.set(depthStencilAttachment);
+
+    vulkan::PipelineHolder::ColorAttachment finalColorAttachment;
+    finalColorAttachment.format = vk::Format::eR8G8B8A8Unorm;
+    finalColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    finalColorAttachment.blending = vulkan::PipelineHolder::ColorAttachmentBlending::AlphaBlending;
+    finalColorAttachment.clear = false;
+    m_maskPipelineHolder.add(finalColorAttachment);
+
+    //---- Vertex input
+
+    vulkan::PipelineHolder::VertexInput vertexInput;
+    vertexInput.stride = sizeof(Vertex);
+    vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},
+                              {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
+                              {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
+    m_maskPipelineHolder.set(vertexInput);
 }
 
 void ForwardRendererStage::initDepthlessPass()
@@ -518,6 +594,9 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     auto fragmentShaderModule =
         m_scene.engine().impl().shadersManager().module("./data/shaders/stages/renderers/forward/geometry.frag", moduleOptions);
 
+    auto maskFragmentShaderModule =
+        m_scene.engine().impl().shadersManager().module("./data/shaders/stages/renderers/forward/geometry-mask.frag", moduleOptions);
+
     auto depthlessVertexShaderModule =
         m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry-depthless.vert", moduleOptions);
 
@@ -529,6 +608,10 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     m_opaquePipelineHolder.removeShaderStages();
     m_opaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
     m_opaquePipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, "main"});
+
+    m_maskPipelineHolder.removeShaderStages();
+    m_maskPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, "main"});
+    m_maskPipelineHolder.add({shaderStageCreateFlags, vk::ShaderStageFlagBits::eFragment, maskFragmentShaderModule, "main"});
 
     m_depthlessPipelineHolder.removeShaderStages();
     m_depthlessPipelineHolder.add(
@@ -546,6 +629,7 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
 
     if (!firstTime) {
         m_opaquePipelineHolder.update(m_extent, m_polygonMode);
+        m_maskPipelineHolder.update(m_extent, m_polygonMode);
         m_depthlessPipelineHolder.update(m_extent, m_polygonMode);
         m_wireframePipelineHolder.update(m_extent, vk::PolygonMode::eLine);
         m_translucentPipelineHolder.update(m_extent, m_polygonMode);
@@ -575,7 +659,7 @@ void ForwardRendererStage::createFramebuffers()
     // Attachments
     std::vector<vk::ImageView> attachments;
 
-    for (auto i = 0u; i < 4u; ++i) { // For each subpass
+    for (auto i = 0u; i < 5u; ++i) { // For each subpass
         attachments.emplace_back(m_finalImageHolder.view());
         attachments.emplace_back(m_depthImageHolder.view());
     }
