@@ -26,9 +26,9 @@ ForwardRendererStage::ForwardRendererStage(Scene& scene)
     , m_depthlessPipelineHolder(m_scene.engine().impl())
     , m_wireframePipelineHolder(m_scene.engine().impl())
     , m_translucentPipelineHolder(m_scene.engine().impl())
-    , m_finalImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.final-image")
-    , m_finalResolveImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.final-resolve-image")
-    , m_depthImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-renderer.depth-image")
+    , m_finalImageHolder(m_scene.engine().impl(), "stages.forward-renderer.final")
+    , m_finalResolveImageHolder(m_scene.engine().impl(), "stages.forward-renderer.final-resolve")
+    , m_depthImageHolder(m_scene.engine().impl(), "stages.forward-renderer.depth")
     , m_framebuffer(m_scene.engine().impl().device())
 {
 }

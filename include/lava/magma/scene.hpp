@@ -79,13 +79,8 @@ namespace lava::magma {
         Light& makeLight();
         Camera& makeCamera(Extent2d extent);
         MaterialPtr makeMaterial(const std::string& hrid);
-        TexturePtr makeTexture(const std::string& imagePath = "");
         Mesh& makeMesh();
         Flat& makeFlat();
-
-        /// Find an existing texture which has the same pixels.
-        /// @note This done through an hash computation and can give a wrong texture sometimes.
-        TexturePtr findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         /// @}
 
         /**
@@ -148,7 +143,6 @@ namespace lava::magma {
         chamber::BucketAllocator& lightAllocator() { return m_lightAllocator; }
         chamber::BucketAllocator& cameraAllocator() { return m_cameraAllocator; }
         chamber::BucketAllocator& materialAllocator() { return m_materialAllocator; }
-        chamber::BucketAllocator& textureAllocator() { return m_textureAllocator; }
         chamber::BucketAllocator& meshAllocator() { return m_meshAllocator; }
         chamber::BucketAllocator& flatAllocator() { return m_flatAllocator; }
         /// @}
@@ -156,7 +150,6 @@ namespace lava::magma {
     protected:
         // Custom deleter for ResourcePtr. Internal usage.
         void forget(Material& material);
-        void forget(Texture& texture);
 
     private:
         // ----- References
@@ -173,7 +166,6 @@ namespace lava::magma {
         chamber::BucketAllocator m_lightAllocator;
         chamber::BucketAllocator m_cameraAllocator;
         chamber::BucketAllocator m_materialAllocator;
-        chamber::BucketAllocator m_textureAllocator;
         chamber::BucketAllocator m_meshAllocator;
         chamber::BucketAllocator m_flatAllocator;
 
@@ -182,7 +174,6 @@ namespace lava::magma {
         std::vector<Light*> m_lights;
         std::vector<Camera*> m_cameras;
         std::vector<Material*> m_materials;
-        std::unordered_map<Texture*, std::weak_ptr<Texture>> m_textures;
         std::vector<Mesh*> m_meshes;
         std::vector<Flat*> m_flats;
     };

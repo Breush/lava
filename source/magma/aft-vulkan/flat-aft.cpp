@@ -13,8 +13,8 @@ using namespace lava::magma;
 FlatAft::FlatAft(Flat& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_vertexBufferHolder(m_scene.engine().impl())
-    , m_indexBufferHolder(m_scene.engine().impl())
+    , m_vertexBufferHolder(m_scene.engine().impl(), "flat.vertex")
+    , m_indexBufferHolder(m_scene.engine().impl(), "flat.index")
 {
 }
 

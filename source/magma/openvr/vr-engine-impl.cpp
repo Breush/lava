@@ -1,6 +1,7 @@
 #include "./vr-engine-impl.hpp"
 
 #include <lava/magma/material.hpp>
+#include <lava/magma/render-engine.hpp>
 #include <lava/magma/scene.hpp>
 #include <lava/magma/texture.hpp>
 
@@ -230,7 +231,7 @@ Mesh& VrEngine::Impl::deviceMesh(VrDeviceType deviceType, Scene& scene) const
 
     // Add material
     auto material = scene.makeMaterial("fallback");
-    auto diffuseTexture = scene.makeTexture();
+    auto diffuseTexture = scene.engine().makeTexture();
     diffuseTexture->loadFromMemory(texture->rubTextureMapData, texture->unWidth, texture->unHeight, 4u);
     material->set("diffuseMap", diffuseTexture);
 

@@ -38,6 +38,6 @@ namespace lava::magma::vulkan {
 
         // Validation layers
         bool m_debugEnabled = true;
-        const std::vector<const char*> m_validationLayers = {"VK_LAYER_LUNARG_standard_validation"};
+        const std::vector<const char*> m_validationLayers = {"VK_LAYER_KHRONOS_validation"};
     };
 }

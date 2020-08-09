@@ -13,7 +13,7 @@ fi
 
 # These are needed for Vulkan validation layers to work
 export LD_LIBRARY_PATH=`pwd`/external/lib:${LD_LIBRARY_PATH}
-export VK_LAYER_PATH=`pwd`/external/etc/vulkan/explicit_layer.d
+export VK_LAYER_PATH=`pwd`/external/share/vulkan/explicit_layer.d
 
 echo -e "\e[35mSetting up dependencies...\e[39m"
 ./scripts/setup.sh

@@ -170,6 +170,7 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
     }
 
     // @fixme Do we /really/ want to bind all image memories?
+    m_engine.deviceHolder().debugObjectName(m_memory, "image-holder.memory." + m_name);
     m_engine.device().bindImageMemory(m_image, m_memory, 0);
 
     //----- Image view
@@ -229,6 +230,7 @@ void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffse
 
     createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
                  stagingBufferMemory);
+    m_engine.deviceHolder().debugObjectName(stagingBufferMemory, "image-holder.staging-buffer-memory." + m_name);
 
     //----- Copy indeed
 
@@ -378,6 +380,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
                  stagingBufferMemory);
+    m_engine.deviceHolder().debugObjectName(stagingBufferMemory, "image-holder.staging-buffer-memory." + m_name + "." + path.string());
 
     //----- Copy from device
 

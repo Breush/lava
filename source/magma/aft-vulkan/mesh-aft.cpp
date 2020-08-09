@@ -13,9 +13,9 @@ using namespace lava::magma;
 MeshAft::MeshAft(Mesh& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_unlitVertexBufferHolder(m_scene.engine().impl())
-    , m_vertexBufferHolder(m_scene.engine().impl())
-    , m_indexBufferHolder(m_scene.engine().impl())
+    , m_unlitVertexBufferHolder(m_scene.engine().impl(), "mesh.unlit-vertex")
+    , m_vertexBufferHolder(m_scene.engine().impl(), "mesh.vertex")
+    , m_indexBufferHolder(m_scene.engine().impl(), "mesh.index")
 {
 }
 

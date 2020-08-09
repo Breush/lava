@@ -16,7 +16,7 @@
                 },
                 {
                     "name": "VK_LAYER_PATH",
-                    "value": "${workspaceRoot}/external/etc/vulkan/explicit_layer.d"
+                    "value": "${workspaceRoot}/external/share/vulkan/explicit_layer.d"
                 }
             ],
             "externalConsole": false,

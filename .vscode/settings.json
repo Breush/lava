@@ -7,7 +7,7 @@
         "doc/technical/html": true,
         "external/lib": true,
         "external/bin": true,
-        "external/etc": true,
+        "external/share": true,
         "external/source": true,
         "assets": true
     },

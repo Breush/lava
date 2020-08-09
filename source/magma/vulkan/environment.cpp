@@ -14,8 +14,8 @@ Environment::Environment(Scene& scene, RenderEngine& engine)
     : m_scene(scene)
     , m_radianceStage(scene, engine)
     , m_irradianceStage(scene, engine)
-    , m_radianceImageHolder(engine.impl(), "magma.vulkan.environment.radiance-image")
-    , m_irradianceImageHolder(engine.impl(), "magma.vulkan.environment.irradiance-image")
+    , m_radianceImageHolder(engine.impl(), "environment.radiance")
+    , m_irradianceImageHolder(engine.impl(), "environment.irradiance")
 {
 }
 
@@ -193,7 +193,7 @@ void Environment::createResources()
                                    vk::ImageAspectFlagBits::eColor, 6u);
 
     // BRDF look-up texture
-    m_brdfLutTexture = m_scene.makeTexture();
+    m_brdfLutTexture = m_scene.engine().makeTexture();
     m_brdfLutTexture->loadFromFile("./data/textures/brdf-lut.png");
 }
 

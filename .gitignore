@@ -5,7 +5,7 @@ external/include/
 external/source/
 external/lib/
 external/bin/
-external/etc/
+external/share/
 source/_*
 data/tmp/*
 .vscode/ipch

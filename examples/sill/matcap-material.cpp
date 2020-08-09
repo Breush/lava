@@ -21,7 +21,7 @@ int main(void)
     // Create a sphere for each material
     float x = -5.5f;
     for (auto& matcapFile : matcapFiles) {
-        auto texture = engine.scene().makeTexture(matcapFile);
+        auto texture = engine.renderEngine().makeTexture(matcapFile);
         auto material = engine.scene().makeMaterial("matcap");
         material->set("matcapTexture", texture);
 

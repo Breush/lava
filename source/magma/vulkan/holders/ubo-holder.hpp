@@ -30,6 +30,9 @@ namespace lava::magma::vulkan {
     public:
         UboHolder() = delete;
         UboHolder(const RenderEngine::Impl& engine);
+        UboHolder(const RenderEngine::Impl& engine, const std::string& name);
+
+        void name(const std::string& name) { m_name = name; }
 
         /// Initialize the set to be used with all the sizes of the ubos.
         void init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, const std::vector<UboSize>& uboSizes);
@@ -44,6 +47,8 @@ namespace lava::magma::vulkan {
     private:
         // References
         const RenderEngine::Impl& m_engine;
+        std::string m_name;
+
         vk::DescriptorSet m_descriptorSet = nullptr;
         uint32_t m_bindingOffset = 0u;
 

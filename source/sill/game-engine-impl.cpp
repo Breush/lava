@@ -148,10 +148,9 @@ void GameEngine::Impl::remove(GameEntity& entity)
 
 void GameEngine::Impl::environmentTexture(const fs::Path& imagesPath, uint8_t sceneIndex)
 {
-    auto& scene = m_engine.scene(sceneIndex);
-    auto environmentTexture = scene.makeTexture();
+    auto environmentTexture = m_engine.renderEngine().makeTexture();
     environmentTexture->loadCubeFromFiles(imagesPath);
-    scene.environmentTexture(environmentTexture);
+    m_engine.scene(sceneIndex).environmentTexture(environmentTexture);
 }
 
 //----- Internals

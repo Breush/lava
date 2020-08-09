@@ -17,6 +17,7 @@
 #include "./vulkan/holders/buffer-holder.hpp"
 #include "./vulkan/stages/shadows-stage.hpp"
 
+using namespace lava::chamber;
 using namespace lava::magma;
 
 Scene::Scene(RenderEngine& engine)
@@ -50,6 +51,14 @@ Scene::~Scene()
 
     for (auto flat : m_flats) {
         m_flatAllocator.deallocate(flat);
+    }
+
+    if (!m_materials.empty()) {
+        logger.warning("magma.scene") << "Alive MaterialPtr: " << std::endl;
+        for (const auto& material : m_materials) {
+            logger.warning("magma.scene") << material << " " << material->hrid() << " (" << material->name() << ")" << std::endl;
+        }
+        logger.error("magma.scene") << "There are still MaterialPtr references alive. Please reset them all before destroying a scene." << std::endl;
     }
 
     // @note Keep last, deleting the aft after all resources
@@ -107,19 +116,6 @@ MaterialPtr Scene::makeMaterial(const std::string& hrid)
     return resourcePtr;
 }
 
-TexturePtr Scene::makeTexture(const std::string& imagePath)
-{
-    constexpr const auto size = sizeof(std::aligned_union<0, Texture>::type) + sizeof(TextureAft);
-    auto resource = m_textureAllocator.allocateSized<Texture>(size, *this, imagePath);
-    TexturePtr resourcePtr(resource, [this](Texture* texture) {
-        forget(*texture);
-    });
-
-    m_textures.emplace(resource, resourcePtr);
-    aft().foreAdd(*resource);
-    return resourcePtr;
-}
-
 Mesh& Scene::makeMesh()
 {
     constexpr const auto size = sizeof(std::aligned_union<0, Mesh>::type) + sizeof(MeshAft);
@@ -138,22 +134,6 @@ Flat& Scene::makeFlat()
     m_flats.emplace_back(resource);
     aft().foreAdd(*resource);
     return *resource;
-}
-
-TexturePtr Scene::findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
-{
-    auto hash = Texture::hash(pixels, width, height, channels);
-
-    // @todo We're computing the hash twice for the texture that do not match,
-    // because we add it afterwards, there might be a way to return the hash info too.
-    for (const auto& texture : m_textures) {
-        auto texturePtr = texture.second.lock();
-        if (texturePtr->cube() == false && texturePtr->hash() == hash) {
-            return texturePtr;
-        }
-    }
-
-    return nullptr;
 }
 
 // ----- Removers
@@ -186,15 +166,6 @@ void Scene::forget(Material& material)
             m_materials.erase(iMaterial);
             break;
         }
-    }
-}
-
-void Scene::forget(Texture& texture)
-{
-    auto iTexture = m_textures.find(&texture);
-    if (iTexture != m_textures.end()) {
-        m_textureAllocator.deallocate(&texture);
-        m_textures.erase(iTexture);
     }
 }
 

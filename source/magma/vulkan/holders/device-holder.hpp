@@ -20,6 +20,7 @@ namespace lava::magma::vulkan {
         void debugObjectName(vk::ImageView object, const std::string& name) const;
         void debugObjectName(vk::Image object, const std::string& name) const;
         void debugObjectName(vk::Semaphore object, const std::string& name) const;
+        void debugObjectName(vk::DeviceMemory object, const std::string& name) const;
 
         void debugBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const;
         void debugEndRegion(vk::CommandBuffer commandBuffer) const;

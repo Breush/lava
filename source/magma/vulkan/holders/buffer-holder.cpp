@@ -15,6 +15,12 @@ BufferHolder::BufferHolder(const RenderEngine::Impl& engine)
 {
 }
 
+BufferHolder::BufferHolder(const RenderEngine::Impl& engine, const std::string& name)
+    : BufferHolder(engine)
+{
+    m_name = name;
+}
+
 void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
 {
     if (usage != vk::BufferUsageFlagBits::eUniformBuffer && usage != vk::BufferUsageFlagBits::eStorageBuffer
@@ -45,6 +51,7 @@ void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
     usageFlags |= usage;
 
     vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_buffer, m_memory);
+    m_engine.deviceHolder().debugObjectName(m_memory, m_name + ".buffer");
 }
 
 void BufferHolder::copy(const void* data, vk::DeviceSize size, vk::DeviceSize offset)

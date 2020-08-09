@@ -5,10 +5,10 @@
 using namespace lava::chamber;
 using namespace lava::magma;
 
-Texture::Texture(Scene& scene, const std::string& imagePath)
-    : m_scene(scene)
+Texture::Texture(RenderEngine& engine, const std::string& imagePath)
+    : m_engine(engine)
 {
-    new (&aft()) TextureAft(*this, m_scene);
+    new (&aft()) TextureAft(*this, m_engine);
 
     if (!imagePath.empty()) {
         loadFromFile(imagePath);
@@ -51,6 +51,10 @@ void Texture::loadFromFile(const std::string& imagePath)
     if (!file.is_open()) {
         logger.warning("magma.texture") << "Unable to find file " << imagePath << "." << std::endl;
         return;
+    }
+
+    if (m_name.empty()) {
+        m_name = imagePath;
     }
 
     std::vector<uint8_t> buffer;

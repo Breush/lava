@@ -69,12 +69,12 @@ namespace {
             // @note Because this is threaded, a badly-made GLB can ask to load the same texture multiple times
             // if the data is duplicated. We cannot do anything at this level...
             // This findTexture is for already loaded textures from other meshes.
-            auto existingTexture = engine.scene().findTexture(pixels, texWidth, texHeight, 4u);
+            auto existingTexture = engine.renderEngine().findTexture(pixels, texWidth, texHeight, 4u);
             if (existingTexture != nullptr) {
                 cacheData.textures[textureIndex] = std::move(existingTexture);
             }
             else {
-                auto texture = engine.scene().makeTexture();
+                auto texture = engine.renderEngine().makeTexture();
                 texture->loadFromMemory(pixels, texWidth, texHeight, 4u);
                 cacheData.textures[textureIndex] = std::move(texture);
             }

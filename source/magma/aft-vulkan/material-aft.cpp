@@ -33,6 +33,7 @@ void MaterialAft::init()
     auto& descriptorHolder = m_scene.aft().materialDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = descriptorHolder.allocateSet("material." + std::to_string(i), true);
+        m_uboHolders[i].name("material#" + m_fore.hrid());
         m_uboHolders[i].init(m_descriptorSets[i], descriptorHolder.uniformBufferBindingOffset(), {sizeof(MaterialUbo)});
     }
 

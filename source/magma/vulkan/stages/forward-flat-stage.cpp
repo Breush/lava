@@ -18,7 +18,7 @@ ForwardFlatStage::ForwardFlatStage(Scene& scene)
     : m_scene(scene)
     , m_renderPassHolder(m_scene.engine().impl())
     , m_pipelineHolder(m_scene.engine().impl())
-    , m_finalImageHolder(m_scene.engine().impl(), "magma.vulkan.stages.forward-flat.final-image")
+    , m_finalImageHolder(m_scene.engine().impl(), "stages.forward-flat.final")
     , m_framebuffer(m_scene.engine().impl().device())
 {
 }

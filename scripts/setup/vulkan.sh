@@ -113,8 +113,40 @@ make -j 2
 make install
 cp -R install/lib/* ${ROOT_DIR}/lib
 
+#===== Vulkan Validation Layers
+
+cd "${ROOT_DIR}/.tmp/vulkan/${VERSION}"
+
+# ----- Download and unzip
+
+if [ ! -f validation-layers.zip ]; then
+    curl -L https://github.com/KhronosGroup/Vulkan-ValidationLayers/archive/sdk-${VERSION}.zip -o validation-layers.zip
+fi
+
+if [ ! -d validation-layers ]; then
+    unzip -n validation-layers.zip -d validation-layers
+fi
+
+# ----- Compile
+
+cd validation-layers/*
+VALIDATION_LAYERS_FOLDER=`pwd`
+SHADERC_VERSION=$(cat "$ROOT_DIR/shaderc.lua" | grep VERSION -m 1 | cut -d '"' -f 2)
+SHADERC_FOLDER=$(realpath ${ROOT_DIR}/.tmp/shaderc/${SHADERC_VERSION}/*/build/install)
+
+mkdir -p build
+cd build
+
+# @fixme Here we have -DBUILD_WSI_WAYLAND_SUPPORT=OFF which is surely bad if one wants to use Wayland...
+cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${VALIDATION_LAYERS_FOLDER}/build/install -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_WSI_XLIB_SUPPORT=OFF -DBUILD_WSI_WAYLAND_SUPPORT=OFF -DBUILD_TESTS=OFF -DVulkanHeaders_INCLUDE_DIR=${HEADERS_FOLDER}/build/install/include -DVulkanRegistry_DIR=${HEADERS_FOLDER}/build/install/share/vulkan/registry -DGLSLANG_INSTALL_DIR=${SHADERC_FOLDER}
+make -j 2
+
+# ----- Install
+
+make install
+cp -R install/lib/*.so ${ROOT_DIR}/lib
+cp -R install/share/* ${ROOT_DIR}/share
+
 #===== Vulkan
 
 echo "OK" > ${ROOT_DIR}/.tmp/vulkan/${VERSION}.txt
-
-# @todo Add validation layers back!

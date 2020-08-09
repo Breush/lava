@@ -36,7 +36,7 @@ Font::Font(GameEngine& engine, const std::string& path, uint32_t size)
     // because meshes could reference wrong UVs.
     m_textureWidth = m_glyphMaxWidth * m_maxRenderedGlyphsCount;
     m_textureHeight = m_glyphMaxHeight;
-    m_texture = m_engine.scene().makeTexture();
+    m_texture = m_engine.renderEngine().makeTexture();
     m_pixels.resize(m_textureWidth * m_glyphMaxHeight);
 }
 

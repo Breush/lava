@@ -1,6 +1,7 @@
 #include <lava/magma/mesh.hpp>
 
 #include <lava/chamber/mikktspace.hpp>
+#include <lava/magma/material.hpp>
 #include <lava/magma/scene.hpp>
 
 #include "./mesh-tools.hpp"
@@ -252,6 +253,10 @@ void Mesh::computeTangents()
 
 void Mesh::material(MaterialPtr material)
 {
+    if (material && &material->scene() != &m_scene) {
+        logger.error("magma.mesh") << "Setting material " << material->hrid() << " (" << material->name() << ") which has not been created on the same scene than the mesh." << std::endl;
+    }
+
     m_material = std::move(material);
 }
 

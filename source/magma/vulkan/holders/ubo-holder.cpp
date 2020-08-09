@@ -10,6 +10,12 @@ UboHolder::UboHolder(const RenderEngine::Impl& engine)
 {
 }
 
+UboHolder::UboHolder(const RenderEngine::Impl& engine, const std::string& name)
+    : m_engine(engine)
+{
+    m_name = name;
+}
+
 void UboHolder::init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, const std::vector<UboSize>& uboSizes)
 {
     m_descriptorSet = descriptorSet;
@@ -40,7 +46,7 @@ void UboHolder::init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, co
             alignedSize = (alignedSize / m_offsetAlignment + 1) * m_offsetAlignment;
         }
 
-        m_bufferHolders.emplace_back(m_engine);
+        m_bufferHolders.emplace_back(m_engine, m_name + ".ubo#" + std::to_string(bufferIndex));
         auto& bufferHolder = m_bufferHolders[bufferIndex];
         bufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, uboSize.count * alignedSize);
 

@@ -4,13 +4,13 @@
 
 namespace lava::magma {
     class Texture;
-    class Scene;
+    class RenderEngine;
 }
 
 namespace lava::magma {
     class TextureAft {
     public:
-        TextureAft(Texture& fore, Scene& scene);
+        TextureAft(Texture& fore, RenderEngine& engine);
 
         vk::ImageView imageView() const { return m_imageHolder.view(); }
         const vulkan::ImageHolder& imageHolder() const { return m_imageHolder; }
@@ -21,7 +21,7 @@ namespace lava::magma {
 
     private:
         Texture& m_fore;
-        Scene& m_scene;
+        RenderEngine& m_engine;
 
         vulkan::ImageHolder m_imageHolder;
     };

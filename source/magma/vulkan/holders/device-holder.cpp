@@ -112,6 +112,11 @@ void DeviceHolder::debugObjectName(vk::Semaphore object, const std::string& name
     debugObjectName(reinterpret_cast<uint64_t&>(object), vk::ObjectType::eSemaphore, name);
 }
 
+void DeviceHolder::debugObjectName(vk::DeviceMemory object, const std::string& name) const
+{
+    debugObjectName(reinterpret_cast<uint64_t&>(object), vk::ObjectType::eDeviceMemory, name);
+}
+
 void DeviceHolder::debugBeginRegion(vk::CommandBuffer commandBuffer, const std::string& name) const
 {
     if (!m_debugEnabled) return;

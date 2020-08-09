@@ -103,7 +103,7 @@ void setupEnvironment(GameState& gameState)
         meshComponent.category(RenderCategory::Translucent);
         entity.get<sill::TransformComponent>().translate({0.f, 0.f, -0.3f});
 
-        auto waveTexture = engine.scene().makeTexture();
+        auto waveTexture = engine.renderEngine().makeTexture();
         waveTexture->loadFromFile("./assets/textures/vr-puzzle/water.png");
 
         auto material = engine.scene().makeMaterial("water");

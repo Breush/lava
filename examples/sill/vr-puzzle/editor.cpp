@@ -337,7 +337,7 @@ void setupEditor(GameState& gameState)
 
         for (const auto& axis : g_axes) {
             auto& axisEntity = engine.make<sill::GameEntity>("gizmo-translation-axis");
-            auto axisMaterial = engine.scene().makeMaterial("gizmo");
+            auto axisMaterial = engine.scene(sceneIndex).makeMaterial("gizmo");
             axisMaterial->set("color", axis);
 
             auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
@@ -360,7 +360,7 @@ void setupEditor(GameState& gameState)
 
         for (const auto& axis : g_axes) {
             auto& axisEntity = engine.make<sill::GameEntity>("gizmo-rotation-axis");
-            auto axisMaterial = engine.scene().makeMaterial("gizmo");
+            auto axisMaterial = engine.scene(sceneIndex).makeMaterial("gizmo");
             axisMaterial->set("color", axis);
 
             auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
@@ -382,7 +382,7 @@ void setupEditor(GameState& gameState)
 
         for (const auto& axis : g_axes) {
             auto& axisEntity = engine.make<sill::GameEntity>("gizmo-scaling-axis");
-            auto axisMaterial = engine.scene().makeMaterial("gizmo");
+            auto axisMaterial = engine.scene(sceneIndex).makeMaterial("gizmo");
             axisMaterial->set("color", axis);
 
             auto transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});

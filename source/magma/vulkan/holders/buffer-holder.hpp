@@ -17,6 +17,7 @@ namespace lava::magma::vulkan {
     public:
         BufferHolder() = delete;
         BufferHolder(const RenderEngine::Impl& engine);
+        BufferHolder(const RenderEngine::Impl& engine, const std::string& name);
 
         /// Allocate all buffer memory.
         void create(vk::BufferUsageFlagBits usage, vk::DeviceSize size);
@@ -31,6 +32,7 @@ namespace lava::magma::vulkan {
     private:
         // References
         const RenderEngine::Impl& m_engine;
+        std::string m_name;
 
         // Resources
         vulkan::Buffer m_stagingBuffer;

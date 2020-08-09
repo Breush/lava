@@ -8,7 +8,7 @@
 
 namespace lava::magma {
     class TextureAft;
-    class Scene;
+    class RenderEngine;
 }
 
 namespace lava::magma {
@@ -17,13 +17,15 @@ namespace lava::magma {
      */
     class Texture {
     public:
-        Texture(Scene& scene, const std::string& imagePath);
+        Texture(RenderEngine& engine, const std::string& imagePath);
         ~Texture();
 
         $aft_class(Texture);
 
-        Scene& scene() { return m_scene; }
-        const Scene& scene() const { return m_scene; }
+        const std::string& name() const { return m_name; }
+
+        RenderEngine& engine() { return m_engine; }
+        const RenderEngine& engine() const { return m_engine; }
 
         size_t hash() const { return m_hash; }
         bool cube() const { return m_cube; }
@@ -44,7 +46,8 @@ namespace lava::magma {
 
     private:
         // ----- References
-        Scene& m_scene;
+        RenderEngine& m_engine;
+        std::string m_name;
 
         size_t m_hash = 0u;
         bool m_cube = false;

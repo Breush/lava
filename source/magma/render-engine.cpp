@@ -1,11 +1,14 @@
 #include <lava/magma/render-engine.hpp>
 
 #include <lava/magma/camera.hpp>
+#include <lava/magma/texture.hpp>
 
 #include "./aft-vulkan/scene-aft.hpp"
+#include "./aft-vulkan/texture-aft.hpp"
 #include "./vulkan/render-engine-impl.hpp"
 
 using namespace lava;
+using namespace lava::chamber;
 using namespace lava::magma;
 
 RenderEngine::RenderEngine()
@@ -20,6 +23,14 @@ RenderEngine::RenderEngine()
 RenderEngine::~RenderEngine()
 {
     delete m_impl;
+
+    if (!m_textures.empty()) {
+        logger.warning("magma.render-engine") << "Alive TexturePtr: " << std::endl;
+        for (const auto& texture : m_textures) {
+            logger.warning("magma.render-engine") << texture.first << " (" << texture.first->name() << ")" << std::endl;
+        }
+        logger.error("magma.render-engine") << "There are still TexturePtr references alive. Please reset them all before destroying the render engine." << std::endl;
+    }
 }
 
 $pimpl_method(RenderEngine, void, update);
@@ -48,6 +59,34 @@ Scene& RenderEngine::makeScene()
     return *resource;
 }
 
+TexturePtr RenderEngine::makeTexture(const std::string& imagePath)
+{
+    constexpr const auto size = sizeof(std::aligned_union<0, Texture>::type) + sizeof(TextureAft);
+    auto resource = m_textureAllocator.allocateSized<Texture>(size, *this, imagePath);
+    TexturePtr resourcePtr(resource, [this](Texture* texture) {
+        forget(*texture);
+    });
+
+    m_textures.emplace(resource, resourcePtr);
+    return resourcePtr;
+}
+
+TexturePtr RenderEngine::findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels)
+{
+    auto hash = Texture::hash(pixels, width, height, channels);
+
+    // @todo We're computing the hash twice for the texture that do not match,
+    // because we add it afterwards, there might be a way to return the hash info too.
+    for (const auto& texture : m_textures) {
+        auto texturePtr = texture.second.lock();
+        if (texturePtr->cube() == false && texturePtr->hash() == hash) {
+            return texturePtr;
+        }
+    }
+
+    return nullptr;
+}
+
 //----- Adders
 
 $pimpl_method(RenderEngine, void, add, Scene&, scene);
@@ -55,6 +94,17 @@ $pimpl_method(RenderEngine, void, add, Scene&, scene);
 void RenderEngine::add(std::unique_ptr<IRenderTarget>&& renderTarget)
 {
     m_impl->add(std::move(renderTarget));
+}
+
+//----- Removers
+
+void RenderEngine::forget(Texture& texture)
+{
+    auto iTexture = m_textures.find(&texture);
+    if (iTexture != m_textures.end()) {
+        m_textureAllocator.deallocate(&texture);
+        m_textures.erase(iTexture);
+    }
 }
 
 //----- Extra

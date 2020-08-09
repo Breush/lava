@@ -14,7 +14,9 @@ namespace lava::magma {
     class IRenderTarget;
     class RenderImage;
     class Scene;
-    class Mesh;
+    class Texture;
+
+    using TexturePtr = std::shared_ptr<Texture>;
 }
 
 namespace lava::magma {
@@ -73,6 +75,11 @@ namespace lava::magma {
         T& make(Arguments&&... arguments);
 
         Scene& makeScene();
+        TexturePtr makeTexture(const std::string& imagePath = "");
+
+        /// Find an existing texture which has the same pixels.
+        /// @note This done through an hash computation and can give a wrong texture sometimes.
+        TexturePtr findTexture(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels);
         /// @}
 
         /**
@@ -107,7 +114,12 @@ namespace lava::magma {
          */
         /// @{
         chamber::BucketAllocator& sceneAllocator() { return m_sceneAllocator; }
+        chamber::BucketAllocator& textureAllocator() { return m_textureAllocator; }
         /// @}
+
+    protected:
+        // Custom deleter for ResourcePtr. Internal usage.
+        void forget(Texture& texture);
 
     public:
         class Impl;
@@ -122,6 +134,11 @@ namespace lava::magma {
 
         // Allocators
         chamber::BucketAllocator m_sceneAllocator;
+        chamber::BucketAllocator m_textureAllocator;
+
+        // ----- Resources
+        // These raw pointers are pointing to bucket allocators' adresses.
+        std::unordered_map<Texture*, std::weak_ptr<Texture>> m_textures;
     };
 }
 
