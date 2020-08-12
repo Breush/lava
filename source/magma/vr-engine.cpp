@@ -34,6 +34,13 @@ void VrEngine::update()
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
     m_impl->update();
+
+    if (m_devicesInfos.at(VrDeviceType::LeftHand).vibrationEnabled) {
+        m_impl->pulseVibration(VrDeviceType::LeftHand);
+    }
+    if (m_devicesInfos.at(VrDeviceType::RightHand).vibrationEnabled) {
+        m_impl->pulseVibration(VrDeviceType::RightHand);
+    }
 }
 
 std::optional<VrEvent> VrEngine::pollEvent()

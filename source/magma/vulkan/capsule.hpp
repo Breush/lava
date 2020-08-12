@@ -16,6 +16,8 @@ namespace lava::magma::vulkan {
                                                                                                                                  \
     public:                                                                                                                      \
         Class() {}                                                                                                               \
+        Class(const Class& inClass) { *this = static_cast<const WrappedClass&>(inClass); }                                       \
+        Class(Class&& inClass) { *this = std::move(inClass); }                                                                   \
         ~Class() { cleanup(); }                                                                                                  \
                                                                                                                                  \
         $capsule_casts(Class);                                                                                                   \
@@ -48,6 +50,8 @@ namespace lava::magma::vulkan {
                                                                                                                                  \
     public:                                                                                                                      \
         Class() = delete;                                                                                                        \
+        Class(const Class& inClass) : m_instance(inClass.m_instance) { *this = static_cast<const WrappedClass&>(inClass); }      \
+        Class(Class&& inClass) : m_instance(inClass.m_instance) { *this = std::move(inClass); }                                  \
         Class(const vk::Instance& instance)                                                                                      \
             : m_instance(instance)                                                                                               \
         {                                                                                                                        \
@@ -86,6 +90,8 @@ namespace lava::magma::vulkan {
                                                                                                                                  \
     public:                                                                                                                      \
         Class() = delete;                                                                                                        \
+        Class(const Class& inClass) : m_device(inClass.m_device) { *this = static_cast<const WrappedClass&>(inClass); }          \
+        Class(Class&& inClass) : m_device(inClass.m_device) { *this = std::move(inClass); }                                      \
         Class(const vk::Device& device)                                                                                          \
             : m_device(device)                                                                                                   \
         {                                                                                                                        \
@@ -127,7 +133,11 @@ namespace lava::magma::vulkan {
         m_object = rhs;                                                                                                          \
     }                                                                                                                            \
                                                                                                                                  \
-    void operator=(const Class& rhs) { *this = static_cast<const WrappedClass&>(rhs); }
+    void operator=(const Class& rhs) { *this = static_cast<const WrappedClass&>(rhs); }                                          \
+    void operator=(Class&& rhs) {                                                                                                \
+        if (m_object == rhs.m_object) return;                                                                                    \
+        m_object = rhs.m_object;                                                                                                 \
+    }
 
 #define $capsule_attributes() WrappedClass m_object = nullptr;
 }

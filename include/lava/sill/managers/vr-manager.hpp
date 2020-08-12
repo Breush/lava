@@ -27,6 +27,9 @@ namespace lava::sill {
         /// Get a device transform.
         const lava::Transform& deviceTransform(VrDeviceType deviceType) const;
 
+        /// Set whether a device should vibrate. Only controllers are supported.
+        void deviceVibrationEnabled(VrDeviceType deviceType, bool enabled);
+
         /// The world translation of the VR area.
         const glm::vec3& translation() const { return m_tranlation; }
         void translation(const glm::vec3& translation);

@@ -73,9 +73,6 @@ void VrEngine::Impl::update()
         auto type = m_vrSystem->GetTrackedDeviceClass(deviceIndex);
         if (type == vr::TrackedDeviceClass_TrackingReference) continue;
 
-        DeviceInfo deviceInfo;
-        deviceInfo.valid = pose.bPoseIsValid;
-
         auto m = pose.mDeviceToAbsoluteTracking.m;
         auto deviceMatrix = glm::mat4(m[0][0], m[1][0], m[2][0], 0.f, // X
                                       m[0][1], m[1][1], m[2][1], 0.f, // Y
@@ -84,21 +81,27 @@ void VrEngine::Impl::update()
         // @fixme Might not be our job to multiply by areaMatrix
         deviceMatrix = areaMatrix * m_fixesMatrix * deviceMatrix;
 
-        deviceInfo.transform.translation = deviceMatrix[3];
-        deviceInfo.transform.rotation = glm::toQuat(deviceMatrix);
+        Transform transform;
+        transform.translation = deviceMatrix[3];
+        transform.rotation = glm::toQuat(deviceMatrix);
 
-        deviceInfo.data[0u] = deviceIndex;
-        deviceInfo.data[1u] = type;
-
+        DeviceInfo* deviceInfo = nullptr;
         if (type == vr::TrackedDeviceClass_HMD) {
-            m_engine.deviceInfo(VrDeviceType::Head) = deviceInfo;
+            deviceInfo = &m_engine.deviceInfo(VrDeviceType::Head);
         }
         else if (type == vr::TrackedDeviceClass_Controller) {
             auto deviceType = deviceTypeHandFromOpenVrDeviceIndex(*m_vrSystem, deviceIndex);
-            m_engine.deviceInfo(deviceType) = deviceInfo;
+            deviceInfo = &m_engine.deviceInfo(deviceType);
         }
         else {
             logger.warning("magma.openvr.vr-engine") << "Unknown VR device type." << std::endl;
+        }
+
+        if (deviceInfo != nullptr) {
+            deviceInfo->valid = pose.bPoseIsValid;
+            deviceInfo->transform = transform;
+            deviceInfo->data[0u] = deviceIndex;
+            deviceInfo->data[1u] = type;
         }
     }
 }
@@ -248,6 +251,15 @@ Mesh& VrEngine::Impl::deviceMesh(VrDeviceType deviceType, Scene& scene) const
 
     logger.log().tab(-1);
     return mesh;
+}
+
+void VrEngine::Impl::pulseVibration(VrDeviceType deviceType) const
+{
+    const auto& deviceInfo = m_engine.deviceInfo(deviceType);
+    if (!deviceInfo.valid) return;
+
+    auto deviceIndex = deviceInfo.data[0u];
+    m_vrSystem->TriggerHapticPulse(deviceIndex, vr::k_EButton_SteamVR_Touchpad, 65535 * deviceInfo.vibrationPower);
 }
 
 // ----- View

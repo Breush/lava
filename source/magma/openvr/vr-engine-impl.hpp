@@ -14,6 +14,7 @@ namespace lava::magma {
 
         // Devices
         Mesh& deviceMesh(VrDeviceType deviceType, Scene& scene) const;
+        void pulseVibration(VrDeviceType deviceType) const;
 
         // View
         Extent2d renderTargetExtent() const;

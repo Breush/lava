@@ -43,6 +43,11 @@ const lava::Transform& VrManager::deviceTransform(VrDeviceType deviceType) const
     return m_engine.renderEngine().vr().deviceTransform(deviceType);
 }
 
+void VrManager::deviceVibrationEnabled(VrDeviceType deviceType, bool enabled)
+{
+    m_engine.renderEngine().vr().deviceInfo(deviceType).vibrationEnabled = enabled;
+}
+
 void VrManager::translation(const glm::vec3& translation)
 {
     m_tranlation = translation;

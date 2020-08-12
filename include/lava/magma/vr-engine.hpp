@@ -12,8 +12,11 @@ namespace lava::magma {
     class VrEngine {
     public:
         struct DeviceInfo {
-            bool valid = false;        // Whether the device is valid.
-            lava::Transform transform; // Last known world-space transform of the device.
+            bool valid = false;             // Whether the device is valid.
+            lava::Transform transform;      // Last known world-space transform of the device.
+            // Controller specific data
+            float vibrationEnabled = false; // Whether we should vibrate this frame.
+            float vibrationPower = 0.8f;    // How much to vibrate. From 0 to 1.
             // Back-end specific data
             uint32_t data[2u];
         };
