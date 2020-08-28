@@ -30,15 +30,17 @@ namespace {
             gameState.teleport.areaEntity->get<sill::TransformComponent>().scaling(0.f);
             rayPickingEnabled(gameState, true);
 
-            // We want to teleport ourselves, so we say that we want our head to be
-            // at the target point after teleportation.
             if (gameState.teleport.valid) {
                 auto target = gameState.teleport.target;
+                gameState.player.position = target;
+
+                // We want to teleport ourselves, so we say that we want our head to be
+                // at the target point after teleportation.
                 const auto& headTranslation = engine.vr().deviceTransform(VrDeviceType::Head).translation - engine.vr().translation();
                 target.x -= headTranslation.x;
                 target.y -= headTranslation.y;
                 engine.vr().translation(target);
-                gameState.player.position = target;
+                gameState.player.vrAreaPosition = target;
             }
             return;
         }
@@ -145,10 +147,8 @@ namespace {
         bool placeValid = targetFound;
         if (targetFound && anglesValid) {
             for (auto barrier : gameState.level.barriers) {
-                if (barrier->powered()) continue;
-
-                auto barrierPosition = glm::vec2(barrier->transform().translation());
-                if (glm::distance(glm::vec2(target), barrierPosition) < barrier->diameter() / 2.f) {
+                if (barrier->teleportationBlocked() &&
+                    barrier->intersectSegment(gameState.player.position, target)) {
                     placeValid = false;
                     break;
                 }

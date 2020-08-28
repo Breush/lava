@@ -192,7 +192,7 @@ void selectMultiObjects(GameState& gameState, bool signalSelectionChanged = true
     auto frustum = gameState.camera.component->unprojectAsFrustum(topLeft, bottomRight);
 
     for (const auto& object : gameState.level.objects) {
-        auto position = object->transform().translation();
+        const auto& position = object->editorOrigin();
         if (frustum.canSee(position)) {
             selectObject(gameState, object.get(), true, false);
         }
@@ -212,17 +212,7 @@ void updateSelectedObject(GameState& gameState, Object& object)
     auto& input = gameState.engine->input();
     const auto& kind = object.kind();
 
-    if (kind == "barrier") {
-        auto& barrier = dynamic_cast<Barrier&>(object);
-
-        if (input.justDown("up")) {
-            barrier.diameter(barrier.diameter() + 0.5f);
-        }
-        if (input.justDown("down")) {
-            barrier.diameter(barrier.diameter() - 0.5f);
-        }
-    }
-    else if (kind == "brick") {
+    if (kind == "brick") {
         auto& brick = dynamic_cast<Brick&>(object);
 
         if (input.justDown("up")) {
@@ -289,7 +279,6 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     input.bindAction("add-pedestal", {Key::LeftShift, Key::A, Key::D});
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
-    input.bindAction("bind-to-barrier", {Key::LeftAlt, Key::R});
     input.bindAction("bind-to-pedestal", {Key::LeftAlt, Key::D});
     // @todo Make action to switch to rotation gizmo on R
 
@@ -557,9 +546,13 @@ void setupEditor(GameState& gameState)
 
             // Select entity on left click if any.
             if (input.justDownUp("editor.main-click")) {
-                auto pickedEntity = engine.pickEntity(gameState.pickingRay);
+                float distance = 0.f;
+                auto pickedEntity = engine.pickEntity(gameState.pickingRay, sill::PickPrecision::Mesh, &distance);
                 auto pickedObject = findObject(gameState, pickedEntity);
                 selectObject(gameState, pickedObject, input.down("editor.multiple-selection-modifier"));
+                if (pickedObject) {
+                    pickedObject->editorOnClicked(gameState.pickingRay.origin + distance * gameState.pickingRay.direction);
+                }
             }
         }
         else if (gameState.editor.state == EditorState::MultiSelection) {
@@ -580,7 +573,7 @@ void setupEditor(GameState& gameState)
         // Computing barycenter of selected objects, this is where the gizmo will be.
         glm::vec3 barycenter = glm::vec3{0.f};
         for (auto object : gameState.editor.selection.objects) {
-            barycenter += object->transform().worldTransform().translation;
+            barycenter += object->editorOrigin();
         }
         barycenter /= gameState.editor.selection.objects.size();
 
@@ -600,7 +593,7 @@ void setupEditor(GameState& gameState)
                 const auto delta = projectOn(axisRay, gameState.pickingRay) - gameState.editor.gizmo.axisOffset;
 
                 for (auto object : gameState.editor.selection.objects) {
-                    object->transform().worldTranslate(-delta * gameState.editor.gizmo.axis);
+                    object->editorTranslate(-delta * gameState.editor.gizmo.axis);
                 }
             }
         }
@@ -649,35 +642,6 @@ void setupEditor(GameState& gameState)
                 }
                 else if (gameState.editor.gizmo.tool == GizmoTool::Scaling) {
                     setGizmoTool(gameState, GizmoTool::Translation);
-                }
-            }
-
-            // If there is one barrier in the multiple selection,
-            // we will bind all panels and bricks to it.
-            if (input.justDown("bind-to-barrier")) {
-                auto barrierCount = 0u;
-                Barrier* barrier = nullptr;
-                for (auto object : gameState.editor.selection.objects) {
-                    if (object->kind() == "barrier") {
-                        barrierCount += 1u;
-                        barrier = dynamic_cast<Barrier*>(object);
-                    }
-                }
-
-                if (barrierCount == 1u) {
-                    // @todo Leaving this message as long as we don't have a way to visualize bindings
-                    std::cout << "Binding all selected panels and bricks to selected barrier." << std::endl;
-
-                    for (auto object : gameState.editor.selection.objects) {
-                        if (object->kind() == "brick") {
-                            auto& brick = dynamic_cast<Brick&>(*object);
-                            brick.addBarrier(*barrier);
-                        }
-                        else if (object->kind() == "panel") {
-                            auto& panel = dynamic_cast<Panel&>(*object);
-                            panel.addBarrier(*barrier);
-                        }
-                    }
                 }
             }
 

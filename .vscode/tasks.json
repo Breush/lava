@@ -4,16 +4,65 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build-debug",
+            "label": "build-debug sill-vr-puzzle",
             "type": "shell",
             "command": "make",
-            "args": ["CONFIG=debug", "-j3"],
-            "dependsOn": ["setup"],
+            "args": [
+                "CONFIG=debug",
+                "-j3",
+                "sill-vr-puzzle"
+            ],
+            "dependsOn": [
+                "setup"
+            ]
+        },
+        {
+            "label": "build-fast-compile",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "CONFIG=fast-compile",
+                "-j3",
+                "${input:app}"
+            ],
+            "dependsOn": [
+                "setup"
+            ]
         },
         {
             "label": "setup",
             "type": "shell",
-            "command": "${workspaceRoot}/scripts/setup.sh",
+            "command": "${workspaceRoot}/scripts/setup.sh"
         }
+    ],
+    "inputs": [
+      {
+        "type": "pickString",
+        "id": "app",
+        "description": "Which app to build?",
+        "options": [
+          "chamber-watcher",
+          "crater-events",
+          "dike-bouncy-spheres",
+          "flow-play-musics",
+          "flow-play-sounds",
+          "flow-spatialization-effect",
+          "magma-scenes-and-windows",
+          "magma-shader-watcher",
+          "magma-shadows",
+          "magma-translucency",
+          "magma-vr",
+          "sill-matcap-material",
+          "sill-mesh-makers",
+          "sill-physics-demo",
+          "sill-rm-material",
+          "sill-sponza",
+          "sill-text",
+          "sill-ui",
+          "sill-vr-puzzle",
+          "sill-vr-sandbox"
+        ],
+        "default": "sill-vr-puzzle"
+      }
     ]
 }

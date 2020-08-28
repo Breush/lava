@@ -30,6 +30,15 @@ public:
     virtual void consolidateReferences() {}
     virtual void mutateBeforeDuplication(nlohmann::json& /* data */) {}
 
+    // Editor controls
+    virtual void editorOnClicked(const glm::vec3& /* hitPoint */) {}
+    virtual const glm::vec3& editorOrigin() const {
+        return transform().worldTransform().translation;
+    }
+    virtual void editorTranslate(const glm::vec3& translation) {
+        transform().worldTranslate(translation);
+    }
+
     /// The offset by which duplication will occur on x axis.
     virtual float halfSpan() const {
         return mesh().boundingSphere().radius;

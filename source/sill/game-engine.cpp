@@ -89,7 +89,7 @@ $pimpl_method(GameEngine, void, run);
 
 // ----- Tools
 
-GameEntity* GameEngine::pickEntity(const Ray& ray, PickPrecision pickPrecision) const
+GameEntity* GameEngine::pickEntity(const Ray& ray, PickPrecision pickPrecision, float* distance) const
 {
     GameEntity* pickedEntity = nullptr;
 
@@ -112,6 +112,10 @@ GameEntity* GameEngine::pickEntity(const Ray& ray, PickPrecision pickPrecision) 
         else {
             g_debugEntityPickingEntity->get<TransformComponent>().scaling(0.f);
         }
+    }
+
+    if (distance != nullptr) {
+        *distance = minDistance;
     }
 
     return pickedEntity;

@@ -44,10 +44,6 @@ public:
     // Add a block at position (??, y).
     void addBlockH(int32_t y, bool positive);
 
-    /// All barriers that prevents the brick from getting out.
-    void addBarrier(Barrier& barrier);
-    void removeBarrier(Barrier& barrier);
-
     /// Checks whether the user is allowed to grab that brick or not.
     bool userInteractionAllowed() const;
 
@@ -91,17 +87,9 @@ protected:
     void updateBlocksColor();
     void updateBlocksFromRotationLevel();
 
-protected:
-    struct BarrierInfo {
-        // @note :UnconsolidatedId
-        uint32_t unconsolidatedBarrierId = -1u;
-        Barrier* barrier = nullptr;
-    };
-
 private:
     std::vector<glm::ivec2> m_unconsolidatedBlocks;
     std::vector<Block> m_blocks;
-    std::vector<BarrierInfo> m_barrierInfos;
     glm::vec3 m_color = {0.992, 0.992, 0.588};
 
     uint32_t m_snapPanelUnconsolidatedId = -1u; // @note :UnconsolidatedId

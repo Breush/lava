@@ -4,17 +4,13 @@ struct {
 } gBuffer;
 
 uniform {
-    float poweredRatio = 0.1;
+    float poweredRatio = 0.;
 };
 
 geometry {
     bool main() {
         gBuffer.poweredRatio = poweredRatio;
-
-        float poweredIntensity = uv.y * uv.y;
-        float unpoweredIntensity = uv.y;
-
-        gBuffer.intensity = mix(unpoweredIntensity, poweredIntensity, poweredRatio);
+        gBuffer.intensity = poweredRatio * (1. - uv.y) * (1. - uv.y);
 
         return true;
     }
@@ -22,11 +18,6 @@ geometry {
 
 epiphany {
     vec4 main() {
-        vec3 poweredColor = vec3(0.5, 1, 0.8);
-        vec3 unpoweredColor = vec3(0.25, 0.2, 0.2);
-
-        vec3 color = mix(unpoweredColor, poweredColor, gBuffer.poweredRatio);
-
-        return vec4(color, gBuffer.intensity);
+        return vec4(vec3(0.5, 1, 0.8), gBuffer.intensity);
     }
 }

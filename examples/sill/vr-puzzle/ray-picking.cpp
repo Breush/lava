@@ -21,6 +21,16 @@ namespace {
             }
         }
 
+        if (!pickedBrick) return nullptr;
+
+        // Checking if any barrier is preventing us
+        for (auto barrier : gameState.level.barriers) {
+            if (barrier->pickingBlocked() &&
+                barrier->intersectSegment(gameState.player.position, ray.origin + minDistance * ray.direction)) {
+                return nullptr;
+            }
+        }
+
         return pickedBrick;
     }
 

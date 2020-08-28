@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C++ Launch",
+            "name": "[debug] sill-vr-puzzle",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/build/debug/sill-vr-puzzle",
@@ -20,7 +20,58 @@
                 }
             ],
             "externalConsole": false,
-            "preLaunchTask": "build-debug",
+            "preLaunchTask": "build-debug ${input:app}",
+        },
+        {
+            "name": "[fast-compile] ${input:app}",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/build/fast-compile/${input:app}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceRoot}/external/lib:${LD_LIBRARY_PATH}"
+                },
+                {
+                    "name": "VK_LAYER_PATH",
+                    "value": "${workspaceRoot}/external/share/vulkan/explicit_layer.d"
+                }
+            ],
+            "externalConsole": false,
+            "preLaunchTask": "build-fast-compile",
         }
+    ],
+    "inputs": [
+      {
+        "type": "pickString",
+        "id": "app",
+        "description": "Which app to launch?",
+        "options": [
+          "chamber-watcher",
+          "crater-events",
+          "dike-bouncy-spheres",
+          "flow-play-musics",
+          "flow-play-sounds",
+          "flow-spatialization-effect",
+          "magma-scenes-and-windows",
+          "magma-shader-watcher",
+          "magma-shadows",
+          "magma-translucency",
+          "magma-vr",
+          "sill-matcap-material",
+          "sill-mesh-makers",
+          "sill-physics-demo",
+          "sill-rm-material",
+          "sill-sponza",
+          "sill-text",
+          "sill-ui",
+          "sill-vr-puzzle",
+          "sill-vr-sandbox"
+        ],
+        "default": "sill-vr-puzzle"
+      }
     ]
 }

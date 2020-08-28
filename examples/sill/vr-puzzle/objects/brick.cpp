@@ -39,13 +39,6 @@ void Brick::unserialize(const nlohmann::json& data)
         m_unconsolidatedBlocks.emplace_back(unserializeIvec2(blockData));
     }
 
-    m_barrierInfos.clear();
-    for (const auto& barrier : data["barriers"]) {
-        BarrierInfo barrierInfo;
-        barrierInfo.unconsolidatedBarrierId = barrier;
-        m_barrierInfos.emplace_back(barrierInfo);
-    }
-
     color(unserializeVec3(data["color"]));
     fixed(data["fixed"]);
     stored(data["stored"]);
@@ -62,7 +55,6 @@ nlohmann::json Brick::serialize() const
 {
     nlohmann::json data = {
         {"blocks", nlohmann::json::array()},
-        {"barriers", nlohmann::json::array()},
         {"color", ::serialize(m_color)},
         {"fixed", m_fixed},
         {"stored", m_stored},
@@ -72,10 +64,6 @@ nlohmann::json Brick::serialize() const
 
     for (const auto& block : m_blocks) {
         data["blocks"].emplace_back(::serialize(block.nonRotatedCoordinates));
-    }
-
-    for (const auto& barrierInfo : m_barrierInfos) {
-        data["barriers"].emplace_back(findBarrierIndex(m_gameState, barrierInfo.barrier->entity()));
     }
 
     if (m_snapPanel != nullptr) {
@@ -96,10 +84,6 @@ void Brick::mutateBeforeDuplication(nlohmann::json& data)
 void Brick::consolidateReferences()
 {
     blocks(m_unconsolidatedBlocks);
-
-    for (auto& barrierInfo : m_barrierInfos) {
-        barrierInfo.barrier = m_gameState.level.barriers[barrierInfo.unconsolidatedBarrierId];
-    }
 
     if (m_snapPanelUnconsolidatedId != -1u) {
         auto& panel = *m_gameState.level.panels[m_snapPanelUnconsolidatedId];
@@ -197,42 +181,9 @@ void Brick::addBlockH(int32_t y, bool positive)
     this->blocks(blocks);
 }
 
-void Brick::addBarrier(Barrier& barrier)
-{
-    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
-        return barrierInfo.barrier == &barrier;
-    });
-    if (barrierInfoIt != m_barrierInfos.end()) return;
-
-    BarrierInfo barrierInfo;
-    barrierInfo.barrier = &barrier;
-    m_barrierInfos.emplace_back(barrierInfo);
-}
-
-void Brick::removeBarrier(Barrier& barrier)
-{
-    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
-        return barrierInfo.barrier == &barrier;
-    });
-    if (barrierInfoIt == m_barrierInfos.end()) return;
-    m_barrierInfos.erase(barrierInfoIt);
-}
-
 bool Brick::userInteractionAllowed() const
 {
-    if (m_fixed) return false;
-
-    auto playerPosition = glm::vec2(m_gameState.player.position);
-    for (const auto& barrierInfo : m_barrierInfos) {
-        if (!barrierInfo.barrier->powered()) return false;
-
-        auto barrierPosition = glm::vec2(barrierInfo.barrier->transform().translation());
-        if (glm::distance(playerPosition, barrierPosition) >= barrierInfo.barrier->diameter() / 2.f) {
-            return false;
-        }
-    }
-
-    return true;
+    return !m_fixed;
 }
 
 void Brick::color(const glm::vec3& color)

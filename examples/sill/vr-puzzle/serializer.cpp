@@ -11,6 +11,11 @@
 using namespace lava;
 using namespace lava::chamber;
 
+glm::vec2 unserializeVec2(const nlohmann::json& json)
+{
+    return glm::vec2{json[0], json[1]};
+}
+
 glm::ivec2 unserializeIvec2(const nlohmann::json& json)
 {
     return glm::ivec2{json[0], json[1]};
@@ -38,6 +43,11 @@ Transform unserializeTransform(const nlohmann::json& json)
     transform.rotation = unserializeQuat(json["rotation"]);
     transform.scaling = json["scaling"];
     return transform;
+}
+
+nlohmann::json serialize(const glm::vec2& vector)
+{
+    return nlohmann::json::array({vector.x, vector.y});
 }
 
 nlohmann::json serialize(const glm::ivec2& vector)
@@ -71,7 +81,7 @@ nlohmann::json serialize(const Transform& transform)
 
 // ----- Objects
 
-void unserializeObject(Object& object, const nlohmann::json& json)
+void unserializeObject(GameState& gameState, Object& object, const nlohmann::json& json)
 {
     object.name(json["name"].get<std::string>());
 
@@ -101,10 +111,19 @@ void unserializeObject(Object& object, const nlohmann::json& json)
         }
     }
 
+    if (json.find("properties") != json.end()) {
+        auto& properties = json["properties"];
+        if (properties.find("terrain") != properties.end()) {
+            gameState.terrain.entity = &object.entity();
+            gameState.terrain.entity->ensure<sill::PhysicsComponent>().dynamic(false);
+            gameState.terrain.entity->ensure<sill::ColliderComponent>().addMeshShape();
+        }
+    }
+
     object.unserialize(json["data"]);
 }
 
-nlohmann::json serialize(GameState& /* gameState */, const Object& object)
+nlohmann::json serialize(GameState& gameState, const Object& object)
 {
     const auto& entity = object.entity();
 
@@ -163,6 +182,12 @@ nlohmann::json serialize(GameState& /* gameState */, const Object& object)
         }
     }
 
+    if (gameState.terrain.entity == &object.entity()) {
+        json["properties"] = {
+            {"terrain", true},
+        };
+    }
+
     return json;
 }
 
@@ -185,6 +210,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     const auto playerJson = levelJson["player"];
     gameState.player.position = unserializeVec3(playerJson["position"]);
     gameState.player.direction = unserializeVec3(playerJson["direction"]);
+    gameState.player.vrAreaPosition = gameState.player.position;
 
     for (const auto& object : gameState.level.objects) {
         object->clear(false);
@@ -199,7 +225,7 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     for (auto& objectJson : levelJson["objects"]) {
         auto kind = objectJson["kind"].get<std::string>();
         auto& object = Object::make(gameState, kind);
-        unserializeObject(object, objectJson);
+        unserializeObject(gameState, object, objectJson);
     }
 
     for (auto& object : gameState.level.objects) {
@@ -244,7 +270,7 @@ Object& duplicateBySerialization(GameState& gameState, const Object& object)
     auto kind = json["kind"].get<std::string>();
     auto& newObject = Object::make(gameState, kind);
     newObject.mutateBeforeDuplication(json["data"]);
-    unserializeObject(newObject, json);
+    unserializeObject(gameState, newObject, json);
     newObject.consolidateReferences();
     return newObject;
 }

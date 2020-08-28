@@ -130,10 +130,6 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
     unserializeLevel(gameState, levelPath);
 
     if (gameState.level.name == "intro") {
-        gameState.terrain.entity = &findGenericByName(gameState, "island-1")->entity();
-        gameState.terrain.entity->ensure<sill::PhysicsComponent>().dynamic(false);
-        gameState.terrain.entity->ensure<sill::ColliderComponent>().addMeshShape();
-
         // Build collider components from the ":collider" meshes.
         genericCollidersBuildPhysicsFromMesh(gameState);
         genericCollidersVisible(gameState, false);

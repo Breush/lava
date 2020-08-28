@@ -85,22 +85,56 @@ namespace {
             return;
         }
 
-        gameState.player.position = position;
-        gameState.player.headPosition = position;
+        // Do not cross barriers
+        if (gameState.player.position != position) {
+            for (auto barrier : gameState.level.barriers) {
+                if (barrier->teleportationBlocked() &&
+                    barrier->intersectSegment(gameState.player.position, position)) {
+                    return;
+                }
+            }
+
+            gameState.player.position = position;
+        }
+
+        gameState.player.headPosition = gameState.player.position;
         gameState.player.headPosition.z += PLAYER_HEIGHT;
     }
 
     void onUpdateVr(GameState& gameState)
     {
         // When the player is moved programatically (e.g. when loading a new level).
-        if (gameState.player.position != gameState.engine->vr().translation()) {
-            gameState.engine->vr().translation(gameState.player.position);
+        if (gameState.player.vrAreaPosition != gameState.engine->vr().translation()) {
+            gameState.engine->vr().translation(gameState.player.vrAreaPosition);
         }
 
         // @note This is always in sync, and no direction to update.
-        // gameState.player.position = gameState.engine->vr().translation();
+        // gameState.player.vrAreaPosition = gameState.engine->vr().translation();
 
         gameState.player.headPosition = gameState.engine->vr().deviceTransform(VrDeviceType::Head).translation;
+
+        // If any hand of the player is crossing a barrier, vibrate.
+        const auto& leftHandTranslation = gameState.engine->vr().deviceTransform(VrDeviceType::LeftHand).translation;
+        const auto& rightHandTranslation = gameState.engine->vr().deviceTransform(VrDeviceType::RightHand).translation;
+        bool invalidLeftHand = !gameState.engine->vr().deviceValid(VrDeviceType::LeftHand);
+        bool invalidRightHand = !gameState.engine->vr().deviceValid(VrDeviceType::RightHand);
+        for (auto barrier : gameState.level.barriers) {
+            if (barrier->teleportationBlocked()) {
+                if (!invalidLeftHand && barrier->intersectSegment(gameState.player.position, leftHandTranslation)) {
+                    invalidLeftHand = true;
+                }
+                if (!invalidRightHand && barrier->intersectSegment(gameState.player.position, rightHandTranslation)) {
+                    invalidRightHand = true;
+                }
+            }
+
+            if (invalidLeftHand && invalidRightHand) {
+                break;
+            }
+        }
+
+        gameState.engine->vr().deviceVibrationEnabled(VrDeviceType::LeftHand, invalidLeftHand);
+        gameState.engine->vr().deviceVibrationEnabled(VrDeviceType::RightHand, invalidRightHand);
     }
 }
 

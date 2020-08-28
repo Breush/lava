@@ -11,6 +11,7 @@
 #include <lava/magma.hpp>
 #include <unordered_map>
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 enum class State {
     Idle,
@@ -58,7 +59,13 @@ struct GameState {
     } snapping;
 
     struct {
-        glm::vec3 position; // Camera projection on terrain in FPS, area position in VR.
+        // In FPS, position is the camera projection on terrain.
+        // In VR, position is NOT the center of the area. (Use vrAreaPosition to get that.)
+        // This is instead the last known point where the player has teleported himself, which is always valid.
+        glm::vec3 position;
+        // In VR only, the vr area translation.
+        glm::vec3 vrAreaPosition;
+
         glm::vec3 direction = {1.f, 0.f, 0.f}; // Always normalized, not used in VR.
         glm::vec3 headPosition; // Camera in FPS, headset in VR.
     } player;

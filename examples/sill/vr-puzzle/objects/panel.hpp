@@ -37,10 +37,6 @@ public:
     const glm::uvec2& extent() const { return m_extent; }
     void extent(const glm::uvec2& extent);
 
-    /// All barriers that allow the panel to be active.
-    void addBarrier(Barrier& barrier);
-    void removeBarrier(Barrier& barrier);
-
     /// Checks whether the user is allowed to snap brick to this panel.
     bool userInteractionAllowed() const;
 
@@ -73,13 +69,6 @@ protected:
 
     void updateSolved();
 
-protected:
-    struct BarrierInfo {
-        // @note :UnconsolidatedId
-        uint32_t unconsolidatedBarrierId = -1u;
-        Barrier* barrier = nullptr;
-    };
-
 private:
     bool m_consolidated = false;
 
@@ -88,7 +77,6 @@ private:
 
     // Configuration
     glm::uvec2 m_extent = {3u, 3u};
-    std::vector<BarrierInfo> m_barrierInfos;
 
     // Data
     std::vector<std::vector<SnappingPoint>> m_snappingPoints;

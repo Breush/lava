@@ -61,25 +61,13 @@ void Panel::clear(bool removeFromLevel)
 void Panel::unserialize(const nlohmann::json& data)
 {
     m_extent = unserializeUvec2(data["extent"]);
-
-    m_barrierInfos.clear();
-    for (const auto& barrier : data["barriers"]) {
-        BarrierInfo barrierInfo;
-        barrierInfo.unconsolidatedBarrierId = barrier;
-        m_barrierInfos.emplace_back(barrierInfo);
-    }
 }
 
 nlohmann::json Panel::serialize() const
 {
     nlohmann::json data = {
         {"extent", ::serialize(m_extent)},
-        {"barriers", nlohmann::json::array()},
     };
-
-    for (const auto& barrierInfo : m_barrierInfos) {
-        data["barriers"].emplace_back(findBarrierIndex(m_gameState, barrierInfo.barrier->entity()));
-    }
 
     return data;
 }
@@ -89,47 +77,13 @@ void Panel::consolidateReferences()
     m_consolidated = true;
 
     extent(m_extent);
-
-    for (auto& barrierInfo : m_barrierInfos) {
-        barrierInfo.barrier = m_gameState.level.barriers[barrierInfo.unconsolidatedBarrierId];
-    }
 }
 
 // -----
 
-void Panel::addBarrier(Barrier& barrier)
-{
-    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
-        return barrierInfo.barrier == &barrier;
-    });
-    if (barrierInfoIt != m_barrierInfos.end()) return;
-
-    BarrierInfo barrierInfo;
-    barrierInfo.barrier = &barrier;
-    m_barrierInfos.emplace_back(barrierInfo);
-}
-
-void Panel::removeBarrier(Barrier& barrier)
-{
-    auto barrierInfoIt = std::find_if(m_barrierInfos.begin(), m_barrierInfos.end(), [&barrier](const BarrierInfo& barrierInfo) {
-        return barrierInfo.barrier == &barrier;
-    });
-    if (barrierInfoIt == m_barrierInfos.end()) return;
-    m_barrierInfos.erase(barrierInfoIt);
-}
-
 bool Panel::userInteractionAllowed() const
 {
-    auto playerPosition = glm::vec2(m_gameState.player.position);
-    for (const auto& barrierInfo : m_barrierInfos) {
-        if (!barrierInfo.barrier->powered()) return false;
-
-        auto barrierPosition = glm::vec2(barrierInfo.barrier->transform().translation());
-        if (glm::distance(playerPosition, barrierPosition) >= barrierInfo.barrier->diameter() / 2.f) {
-            return false;
-        }
-    }
-
+    // @todo We can have an unpowered version of panels if we want.
     return true;
 }
 
