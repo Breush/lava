@@ -10,12 +10,17 @@ namespace lava::sill {
     class IUiComponent : public IComponent {
     public:
         using ClickedCallback = std::function<void()>;
+        using ExtentChangedCallback = std::function<void(const glm::vec2&)>;
 
     public:
         IUiComponent(GameEntity& entity);
         ~IUiComponent();
 
+        // External API
         const glm::vec2& extent() const { return m_extent; }
+        void onExtentChanged(ExtentChangedCallback extentChangedCallback) {
+            m_extentChangedCallbacks.emplace_back(extentChangedCallback);
+        }
 
         // UI manager interaction
         bool checkHovered(const glm::ivec2& mousePosition);
@@ -26,6 +31,14 @@ namespace lava::sill {
         virtual void textEntered(Key /* key */, wchar_t /* code */, bool& /* propagate */) {}
 
     protected:
+        // Internal API
+        void warnExtentChanged() const {
+            for (const auto& callback : m_extentChangedCallbacks) {
+                callback(m_extent);
+            }
+        }
+
+    protected:
         TransformComponent& m_transformComponent;
 
         // Configuration
@@ -34,5 +47,7 @@ namespace lava::sill {
         // User interaction
         bool m_hovered = false;
 
+    private:
+        std::vector<ExtentChangedCallback> m_extentChangedCallbacks;
     };
 }

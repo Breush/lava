@@ -42,7 +42,9 @@ namespace lava::sill {
         std::wstring m_text;
         bool m_textDirty = false;
         const uint32_t m_fontSize = 30u;
-        const uint32_t m_horizontalPadding = 2u;
+
+        // @todo :UiPaddingMerge
+        const uint32_t m_horizontalPadding = 5u;
 
         uint32_t m_cursorPosition = 0u; // Within text
 

@@ -28,6 +28,7 @@ namespace lava::sill {
         Anchor horizontalAnchor = Anchor::Center;
         Anchor verticalAnchor = Anchor::Center;
         Alignment alignment = Alignment::Center;
+        FloatExtent2d* extentPtr = nullptr;
     };
 
     TextGeometry textGeometry(GameEngine& engine, const std::wstring& text, const TextOptions& options);

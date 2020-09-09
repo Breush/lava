@@ -106,6 +106,16 @@ float Brick::halfSpan() const
     return brickHalfSpan;
 }
 
+void Brick::uiWidgets(std::vector<UiWidget>& widgets)
+{
+    Object::uiWidgets(widgets);
+
+    widgets.emplace_back("fixed", "fixed",
+        [this]() -> bool { return fixed(); },
+        [this](bool fixed) { this->fixed(fixed); }
+    );
+}
+
 // -----
 
 void Brick::blocks(const std::vector<glm::ivec2>& blocks)

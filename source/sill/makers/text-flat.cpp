@@ -20,6 +20,7 @@ std::function<FlatNode&(FlatComponent&)> makers::textFlatMaker(const std::wstrin
     textOptions.horizontalAnchor = options.horizontalAnchor;
     textOptions.verticalAnchor = options.verticalAnchor;
     textOptions.alignment = options.alignment;
+    textOptions.extentPtr = options.extentPtr;
 
     return [text, textOptions](FlatComponent& flatComponent) -> FlatNode& {
         auto& engine = flatComponent.entity().engine();

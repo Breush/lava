@@ -134,7 +134,7 @@ void UiTextEntryComponent::updateHovered()
 
 void UiTextEntryComponent::updateCursor()
 {
-    auto translation = glm::vec2{-m_extent.x / 2.f + 2u, 0.f};
+    auto translation = glm::vec2{-m_extent.x / 2.f + m_horizontalPadding, 0.f};
 
     // Find the position to place the cursor
     if (m_cursorPosition > 0u) {

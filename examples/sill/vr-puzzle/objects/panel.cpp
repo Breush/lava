@@ -79,6 +79,16 @@ void Panel::consolidateReferences()
     extent(m_extent);
 }
 
+void Panel::uiWidgets(std::vector<UiWidget>& widgets)
+{
+    Object::uiWidgets(widgets);
+
+    widgets.emplace_back("pretendSolved", "pretendSolved",
+        [this]() -> bool { return pretendSolved(); },
+        [this](bool pretendSolved) { this->pretendSolved(pretendSolved); }
+    );
+}
+
 // -----
 
 bool Panel::userInteractionAllowed() const

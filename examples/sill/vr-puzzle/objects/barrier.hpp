@@ -26,6 +26,7 @@ public:
     float halfSpan() const final { return 1.f; } // @todo Well... Hard to answer that.
 
     // Editor controls
+    void uiWidgets(std::vector<UiWidget>& widgets) final;
     void editorOnClicked(const glm::vec3& hitPoint) final;
     const glm::vec3& editorOrigin() const final;
     void editorTranslate(const glm::vec3& translation) final;

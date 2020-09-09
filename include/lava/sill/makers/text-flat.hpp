@@ -16,6 +16,7 @@ namespace lava::sill::makers {
         Anchor horizontalAnchor = Anchor::Center;
         Anchor verticalAnchor = Anchor::Center;
         Alignment alignment = Alignment::Center;
+        FloatExtent2d* extentPtr = nullptr;
     };
 
     std::function<FlatNode&(FlatComponent&)> textFlatMaker(const std::wstring& text,

@@ -4,6 +4,8 @@
 #include <lava/magma.hpp>
 #include <nlohmann/json.hpp>
 
+#include "../ui-widget.hpp"
+
 struct GameState;
 
 class Object {
@@ -31,6 +33,12 @@ public:
     virtual void mutateBeforeDuplication(nlohmann::json& /* data */) {}
 
     // Editor controls
+    virtual void uiWidgets(std::vector<UiWidget>& widgets) {
+        widgets.emplace_back("name",
+            [this]() -> const std::string& { return name(); },
+            [this](const std::string& name) { this->name(name); }
+        );
+    }
     virtual void editorOnClicked(const glm::vec3& /* hitPoint */) {}
     virtual const glm::vec3& editorOrigin() const {
         return transform().worldTransform().translation;

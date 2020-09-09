@@ -72,16 +72,20 @@ void UiButtonComponent::updateText()
 {
     m_flatComponent.removeNode("text");
 
+    FloatExtent2d extent;
     makers::TextFlatOptions options;
     options.fontSize = 30u;
+    options.extentPtr = &extent;
     auto& node = makers::textFlatMaker(m_text, options)(m_flatComponent);
     node.name = "text";
 
-    // @todo We're missing the bounding box of flat - that would be useful here!
-    m_extent = {options.fontSize * m_text.size() * 0.4f, options.fontSize};
+    // @todo :UiPaddingMerge Merge this padding configurations with all UI components?
+    constexpr float horizontalPadding = 5.f;
+    m_extent = {2.f * horizontalPadding + extent.width, extent.height};
     m_flatComponent.node("background").transform(glm::scale(glm::mat3(1.f), m_extent));
 
     m_textDirty = false;
+    warnExtentChanged();
 }
 
 void UiButtonComponent::updateHovered()

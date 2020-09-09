@@ -33,6 +33,9 @@ public:
     void mutateBeforeDuplication(nlohmann::json& data) final;
     float halfSpan() const final;
 
+    // Editor controls
+    void uiWidgets(std::vector<UiWidget>& widgets) final;
+
     // The pairs of all blocks making this brick,
     // 0,0 should always be present. The pairs are expressed
     // in relative X,Y coordinates at rotationLevel 0.

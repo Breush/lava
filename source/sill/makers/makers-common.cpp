@@ -90,18 +90,18 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, co
     FloatExtent2d globalTextExtent;
     for (auto& textLine : splitAsViews(text, '\n')) {
         const auto glyphsInfos = font.glyphsInfos(textLine);
-        const auto textExtent = glyphsExtent(glyphsInfos);
+        const auto textLineExtent = glyphsExtent(glyphsInfos);
 
         // @note These operation are valid because this is a left to right language
-        globalTextExtent.width = std::max(globalTextExtent.width, textExtent.width);
-        globalTextExtent.height += textExtent.height;
+        globalTextExtent.width = std::max(globalTextExtent.width, textLineExtent.width);
+        globalTextExtent.height += textLineExtent.height;
 
         // Find offsets for alignment
         float xOffset = 0.f;
         switch (options.alignment) {
         case Alignment::Start: break;
-        case Alignment::Center: xOffset -= textExtent.width / 2.f; break;
-        case Alignment::End: xOffset -= textExtent.width; break;
+        case Alignment::Center: xOffset -= textLineExtent.width / 2.f; break;
+        case Alignment::End: xOffset -= textLineExtent.width; break;
         }
 
         // Fill up geometry
@@ -128,7 +128,7 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, co
             glyphsCount += 1u;
         }
 
-        yOffset += textExtent.height;
+        yOffset += textLineExtent.height;
     }
 
     //----- Adjust for anchors
@@ -164,6 +164,12 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, co
     for (auto& position : positions) {
         position.x *= options.fontSize;
         position.y *= options.fontSize;
+    }
+
+    if (options.extentPtr != nullptr) {
+        *options.extentPtr = globalTextExtent;
+        options.extentPtr->width *= options.fontSize;
+        options.extentPtr->height *= options.fontSize;
     }
 
     return geometry;

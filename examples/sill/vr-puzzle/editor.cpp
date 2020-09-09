@@ -63,6 +63,30 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
     }
 }
 
+void reflowUi(GameState& gameState)
+{
+    constexpr float xMargin = 4.f;
+    constexpr float yMargin = 4.f;
+    float y = yMargin;
+
+    for (const auto& widget : gameState.editor.ui.widgets) {
+        auto kind = widget.kind();
+        auto& entity = *widget.entity();
+        if (kind == UiWidgetKind::TextEntry) {
+            auto& uiComponent = entity.get<sill::UiTextEntryComponent>();
+            auto& extent = uiComponent.extent();
+            entity.get<sill::TransformComponent>().translation2d({xMargin + extent.x / 2.f, y + extent.y / 2.f});
+            y += yMargin + extent.y;
+        }
+        else if (kind == UiWidgetKind::ToggleButton) {
+            auto& uiComponent = entity.get<sill::UiButtonComponent>();
+            auto& extent = uiComponent.extent();
+            entity.get<sill::TransformComponent>().translation2d({xMargin + extent.x / 2.f, y + extent.y / 2.f});
+            y += yMargin + extent.y;
+        }
+    }
+}
+
 void onSelectionChanged(GameState& gameState)
 {
     // Erase UI
@@ -74,63 +98,36 @@ void onSelectionChanged(GameState& gameState)
     // Create UI
     if (gameState.editor.selection.objects.size() == 1u) {
         auto& object = *gameState.editor.selection.objects[0u];
-        const auto& kind = object.kind();
 
-        if (kind == "barrier") {
-            auto& barrier = dynamic_cast<Barrier&>(object);
-            {
-                auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.name");
-                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(barrier.name()));
-                uiComponent.onTextChanged([&barrier](const std::wstring& text) {
-                    barrier.name(utf16to8(text));
+        gameState.editor.ui.widgets.clear();
+        object.uiWidgets(gameState.editor.ui.widgets);
+
+        for (auto& widget : gameState.editor.ui.widgets) {
+            auto kind = widget.kind();
+            auto& entity = gameState.engine->make<sill::GameEntity>("ui." + widget.id());
+            if (kind == UiWidgetKind::TextEntry) {
+                auto& textEntry = widget.textEntry();
+                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(textEntry.getter()));
+                uiComponent.onTextChanged([textEntry](const std::wstring& text) {
+                    textEntry.setter(utf16to8(text));
                 });
-                entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
-                gameState.ui.entities.emplace_back(&entity);
             }
-            {
-                auto& entity = gameState.engine->make<sill::GameEntity>("ui.barrier.powered");
-                auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle powered");
-                uiComponent.onClicked([&barrier]() {
-                    barrier.powered(!barrier.powered());
+            else if (kind == UiWidgetKind::ToggleButton) {
+                auto& toggleButton = widget.toggleButton();
+                auto& uiComponent = entity.make<sill::UiButtonComponent>(utf8to16(toggleButton.text + ": " + std::to_string(toggleButton.getter())));
+                uiComponent.onClicked([toggleButton, &uiComponent]() {
+                    toggleButton.setter(!toggleButton.getter());
+                    uiComponent.text(utf8to16(toggleButton.text + ": " + std::to_string(toggleButton.getter())));
                 });
-                entity.get<sill::TransformComponent>().translation2d({100.f, 1.5f * 30.f + 2.f * 2.f});
-                gameState.ui.entities.emplace_back(&entity);
+                uiComponent.onExtentChanged([&gameState](const glm::vec2& /* extent */) {
+                    reflowUi(gameState);
+                });
             }
-            return;
-        }
-        else if (kind == "brick") {
-            auto& brick = dynamic_cast<Brick&>(object);
-            auto& entity = gameState.engine->make<sill::GameEntity>("ui.brick.fixed");
-            auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle fixed");
-            uiComponent.onClicked([&brick]() {
-                brick.fixed(!brick.fixed());
-            });
-            entity.get<sill::TransformComponent>().translation2d({100.f, 17.f});
             gameState.ui.entities.emplace_back(&entity);
-            return;
+            widget.entity(&entity);
         }
-        else if (kind == "panel") {
-            auto& panel = dynamic_cast<Panel&>(object);
-            {
-                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.name");
-                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(panel.name()));
-                uiComponent.onTextChanged([&panel](const std::wstring& text) {
-                    panel.name(utf16to8(text));
-                });
-                entity.get<sill::TransformComponent>().translation2d({4u + uiComponent.extent().x / 2.f, 17.f});
-                gameState.ui.entities.emplace_back(&entity);
-            }
-            {
-                auto& entity = gameState.engine->make<sill::GameEntity>("ui.panel.solved");
-                auto& uiComponent = entity.make<sill::UiButtonComponent>(L"toggle solved");
-                uiComponent.onClicked([&panel]() {
-                    panel.pretendSolved(!panel.solved());
-                });
-                entity.get<sill::TransformComponent>().translation2d({100.f, 1.5f * 30.f + 2.f * 2.f});
-                gameState.ui.entities.emplace_back(&entity);
-            }
-            return;
-        }
+
+        reflowUi(gameState);
     }
 }
 

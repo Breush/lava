@@ -134,5 +134,9 @@ struct GameState {
         struct {
             lava::magma::MaterialPtr colliderMaterial = nullptr;
         } resources;
+
+        struct {
+            std::vector<UiWidget> widgets;
+        } ui;
     } editor;
 };

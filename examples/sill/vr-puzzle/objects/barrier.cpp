@@ -68,6 +68,24 @@ void Barrier::consolidateReferences()
     updateFromControlPoints();
 }
 
+void Barrier::uiWidgets(std::vector<UiWidget>& widgets)
+{
+    Object::uiWidgets(widgets);
+
+    widgets.emplace_back("powered", "powered",
+        [this]() -> bool { return powered(); },
+        [this](bool powered) { this->powered(powered); }
+    );
+    widgets.emplace_back("pickingBlocked", "pickingBlocked",
+        [this]() -> bool { return pickingBlocked(); },
+        [this](bool pickingBlocked) { this->pickingBlocked(pickingBlocked); }
+    );
+    widgets.emplace_back("teleportationBlocked", "teleportationBlocked",
+        [this]() -> bool { return teleportationBlocked(); },
+        [this](bool teleportationBlocked) { this->teleportationBlocked(teleportationBlocked); }
+    );
+}
+
 void Barrier::editorOnClicked(const glm::vec3& hitPoint)
 {
     float minDistance = INFINITY;

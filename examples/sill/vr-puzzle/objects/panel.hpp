@@ -33,6 +33,9 @@ public:
     nlohmann::json serialize() const final;
     void consolidateReferences() final;
 
+    // Editor controls
+    void uiWidgets(std::vector<UiWidget>& widgets) final;
+
     /// Update extent and associated materials visuals. This also resets all rules.
     const glm::uvec2& extent() const { return m_extent; }
     void extent(const glm::uvec2& extent);
@@ -53,6 +56,7 @@ public:
     bool solved() const { return m_solved; }
 
     /// Hijack the system to make the game believe the panel is solved.
+    bool pretendSolved() const { return m_pretendSolved; }
     void pretendSolved(bool pretendSolved);
 
     lava::magma::Material& borderMaterial() { return *m_borderMaterial; }
