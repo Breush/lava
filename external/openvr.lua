@@ -1,5 +1,5 @@
 local NAME = "OpenVR"
-local VERSION = "1.11.11"
+local VERSION = "1.12.5"
 
 -- Set up
 
