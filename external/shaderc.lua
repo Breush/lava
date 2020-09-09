@@ -1,5 +1,5 @@
 local NAME = "Shaderc"
-local VERSION = "2020.0"
+local VERSION = "2020.3"
 
 -- Set up
 
