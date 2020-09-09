@@ -1,5 +1,5 @@
 local NAME = "Nlohmann JSON"
-local VERSION = "3.7.3"
+local VERSION = "3.9.1"
 
 -- Set up
 
