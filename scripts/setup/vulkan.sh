@@ -17,15 +17,21 @@ cd "${ROOT_DIR}/.tmp/vulkan/${VERSION}"
 
 # ----- Download and unzip
 
+HEADERS_VERSION=$(wget https://api.github.com/repos/KhronosGroup/Vulkan-Headers/git/refs/tags -q -O - | grep \"refs/tags/sdk-${VERSION} | tail -1 | cut -d'/' -f3 | cut -d'"' -f1)
+
 if [ ! -f headers.zip ]; then
-    curl -L https://github.com/KhronosGroup/Vulkan-Headers/archive/sdk-${VERSION}.zip -o headers.zip
+    echo "=> [vulkan/Headers] Downloading ${HEADERS_VERSION}"
+    curl -L -f0 https://github.com/KhronosGroup/Vulkan-Headers/archive/${HEADERS_VERSION}.zip -o headers.zip
 fi
 
 if [ ! -d headers ]; then
+    echo "=> [vulkan/Headers] Unzipping ${HEADERS_VERSION}"
     unzip -n headers.zip -d headers
 fi
 
 # ----- Compile
+
+echo "=> [vulkan/Headers] Compiling ${HEADERS_VERSION}"
 
 cd headers/*
 HEADERS_FOLDER=`pwd`
@@ -46,15 +52,21 @@ cd "${ROOT_DIR}/.tmp/vulkan/${VERSION}"
 
 # ----- Download and unzip
 
+LOADER_VERSION=$(wget https://api.github.com/repos/KhronosGroup/Vulkan-Loader/git/refs/tags -q -O - | grep \"refs/tags/sdk-${VERSION} | tail -1 | cut -d'/' -f3 | cut -d'"' -f1)
+
 if [ ! -f loader.zip ]; then
-    curl -L https://github.com/KhronosGroup/Vulkan-Loader/archive/sdk-${VERSION}.zip -o loader.zip
+    echo "=> [vulkan/Loader] Downloading ${LOADER_VERSION}"
+    curl -L -f0 https://github.com/KhronosGroup/Vulkan-Loader/archive/${LOADER_VERSION}.zip -o loader.zip
 fi
 
 if [ ! -d loader ]; then
+    echo "=> [vulkan/Loader] Unzipping ${LOADER_VERSION}"
     unzip -n loader.zip -d loader
 fi
 
 # ----- Compile
+
+echo "=> [vulkan/Loader] Compiling ${LOADER_VERSION}"
 
 cd loader/*
 LOADER_FOLDER=`pwd`
@@ -105,7 +117,7 @@ END
 fi
 
 # @fixme Here we have -DBUILD_WSI_WAYLAND_SUPPORT=OFF which is surely bad if one wants to use Wayland...
-cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LOADER_FOLDER}/build/install -DCMAKE_RC_COMPILER=/tmp/windres.exe -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_WSI_XLIB_SUPPORT=OFF -DBUILD_WSI_WAYLAND_SUPPORT=OFF -DBUILD_TESTS=OFF -DVulkanHeaders_INCLUDE_DIR=${HEADERS_FOLDER}/build/install/include -DVulkanRegistry_DIR=${HEADERS_FOLDER}/build/install/share/vulkan/registry
+cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LOADER_FOLDER}/build/install -DCMAKE_RC_COMPILER=/tmp/windres.exe -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_WSI_XLIB_SUPPORT=OFF -DBUILD_WSI_WAYLAND_SUPPORT=OFF -DBUILD_TESTS=OFF -DVULKAN_HEADERS_INSTALL_DIR=${HEADERS_FOLDER}/build/install
 make -j 2
 
 # ----- Install
@@ -119,16 +131,25 @@ cd "${ROOT_DIR}/.tmp/vulkan/${VERSION}"
 
 # ----- Download and unzip
 
+VALIDATION_LAYERS_VERSION=$(wget https://api.github.com/repos/KhronosGroup/Vulkan-ValidationLayers/git/refs/tags -q -O - | grep \"refs/tags/sdk-${VERSION} | tail -1 | cut -d'/' -f3 | cut -d'"' -f1)
+
 if [ ! -f validation-layers.zip ]; then
-    curl -L https://github.com/KhronosGroup/Vulkan-ValidationLayers/archive/sdk-${VERSION}.zip -o validation-layers.zip
+    echo "=> [vulkan/ValidationLayer] Downloading ${VALIDATION_LAYERS_VERSION}"
+    curl -L -f0 https://github.com/KhronosGroup/Vulkan-ValidationLayers/archive/${VALIDATION_LAYERS_VERSION}.zip -o validation-layers.zip
 fi
 
 if [ ! -d validation-layers ]; then
+    echo "=> [vulkan/ValidationLayer] Unzipping ${VALIDATION_LAYERS_VERSION}"
     unzip -n validation-layers.zip -d validation-layers
 fi
 
 # ----- Compile
 
+echo "=> [vulkan/ValidationLayers] Compiling ${VALIDATION_LAYERS_VERSION}"
+
+# @note Hopefully shaderc has been installed before vulkan
+# and thanks to alphabet, it should be the case...
+# That's awesome work there...
 cd validation-layers/*
 VALIDATION_LAYERS_FOLDER=`pwd`
 SHADERC_VERSION=$(cat "$ROOT_DIR/shaderc.lua" | grep VERSION -m 1 | cut -d '"' -f 2)
@@ -138,7 +159,7 @@ mkdir -p build
 cd build
 
 # @fixme Here we have -DBUILD_WSI_WAYLAND_SUPPORT=OFF which is surely bad if one wants to use Wayland...
-cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${VALIDATION_LAYERS_FOLDER}/build/install -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_WSI_XLIB_SUPPORT=OFF -DBUILD_WSI_WAYLAND_SUPPORT=OFF -DBUILD_TESTS=OFF -DVulkanHeaders_INCLUDE_DIR=${HEADERS_FOLDER}/build/install/include -DVulkanRegistry_DIR=${HEADERS_FOLDER}/build/install/share/vulkan/registry -DGLSLANG_INSTALL_DIR=${SHADERC_FOLDER}
+cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${VALIDATION_LAYERS_FOLDER}/build/install -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_WSI_XLIB_SUPPORT=OFF -DBUILD_WSI_WAYLAND_SUPPORT=OFF -DBUILD_TESTS=OFF -DVULKAN_HEADERS_INSTALL_DIR=${HEADERS_FOLDER}/build/install -DGLSLANG_INSTALL_DIR=${SHADERC_FOLDER} -DSPIRV_HEADERS_INSTALL_DIR=${SHADERC_FOLDER} -DSPIRV_HEADERS_INSTALL_DIR=${SHADERC_FOLDER}
 make -j 2
 
 # ----- Install

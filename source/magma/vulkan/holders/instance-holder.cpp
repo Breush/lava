@@ -135,7 +135,7 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
     auto extensions = vk::enumerateInstanceExtensionProperties().value;
     logger.info("magma.vulkan.instance-holder").tab(1) << "Available extensions:" << std::endl;
     for (const auto& extension : extensions) {
-        debugUtilsExtensionAvailable = debugUtilsExtensionAvailable || (extension.extensionName == std::string(VK_EXT_DEBUG_UTILS_EXTENSION_NAME));
+        debugUtilsExtensionAvailable = debugUtilsExtensionAvailable || (std::string(extension.extensionName) == VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         logger.log() << extension.extensionName << std::endl;
     }
     logger.log().tab(-1);

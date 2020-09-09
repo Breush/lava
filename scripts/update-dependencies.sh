@@ -100,7 +100,18 @@ function extractFromGithubTags {
 
     local repository="$1"
 
-    LAST=$(wget https://github.com/${repository}/tags -q -O - | grep -m 1 'tag/' | rev | cut -d'/' -f1 | cut -d'v' -f1 | rev | cut -d'"' -f1)
+    # @note We're not sure there's a v before the version number,
+    # so we need rev before cutting
+    LAST=$(wget https://api.github.com/repos/${repository}/tags -q -O - | grep -m 1 '"name"' | cut -d'"' -f4 | rev | cut -d'v' -f1 | rev)
+}
+
+function extractFromGithubReleases {
+    # $1 repository name "entity/repo"
+    # $LAST return value of version number
+
+    local repository="$1"
+
+    LAST=$(wget https://api.github.com/repos/${repository}/releases/latest -q -O - | grep -m 1 '"tag_name"' | cut -d'"' -f4 | rev | cut -d'v' -f1 | rev)
 }
 
 function extractFromGithubLastCommit {
@@ -113,11 +124,11 @@ function extractFromGithubLastCommit {
 }
 
 # Bullet
-extractFromGithubTags "bulletphysics/bullet3"
+extractFromGithubReleases "bulletphysics/bullet3"
 updateDependencyByVersion "external/bullet.lua" "${LAST}"
 
 # GLM
-extractFromGithubTags "g-truc/glm"
+extractFromGithubReleases "g-truc/glm"
 updateDependencyByVersion "external/glm.lua" "${LAST}"
 
 # MikkTSpace
@@ -125,11 +136,11 @@ extractFromGithubLastCommit "tcoppex/ext-mikktspace"
 updateDependencyByDate "external/mikktspace.lua" "${LAST}"
 
 # Nlohmann JSON
-extractFromGithubTags "nlohmann/json"
+extractFromGithubReleases "nlohmann/json"
 updateDependencyByVersion "external/nlohmann-json.lua" "${LAST}"
 
 # OpenVR
-extractFromGithubTags "ValveSoftware/openvr"
+extractFromGithubReleases "ValveSoftware/openvr"
 updateDependencyByVersion "external/openvr.lua" "${LAST}"
 
 # Shaderc
@@ -141,7 +152,8 @@ extractFromGithubLastCommit "nothings/stb"
 updateDependencyByDate "external/stb.lua" "${LAST}"
 
 # Vulkan
-LAST=$(wget https://vulkan.lunarg.com/sdk/home -q -O - | grep linux | cut -d '"' -f2)
+# @note Removing patch version and sdk-
+LAST=$(wget https://api.github.com/repos/KhronosGroup/Vulkan-Headers/git/refs/tags -q -O - | grep '"refs/tags/sdk-' | tail -1 | cut -d'-' -f2 | cut -d'"' -f1 | cut -d'.' -f1,2,3)
 updateDependencyByVersion "external/vulkan.lua" "${LAST}"
 
 # Do update
