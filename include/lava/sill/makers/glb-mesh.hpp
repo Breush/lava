@@ -4,8 +4,9 @@
 
 namespace lava::sill {
     class MeshComponent;
+    struct MeshNode;
 }
 
 namespace lava::sill::makers {
-    std::function<void(MeshComponent&)> glbMeshMaker(const std::string& fileName);
+    std::function<MeshNode&(MeshComponent&)> glbMeshMaker(const std::string& fileName);
 }

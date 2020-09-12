@@ -21,7 +21,6 @@ namespace lava::magma {
         constexpr static const uint32_t LIGHTS_DESCRIPTOR_SET_INDEX = 3u;
         constexpr static const uint32_t SHADOWS_DESCRIPTOR_SET_INDEX = 4u;
         constexpr static const uint32_t CAMERA_PUSH_CONSTANT_OFFSET = 0u;
-        constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = sizeof(CameraUbo);
 
     public:
         ForwardRendererStage(Scene& scene);

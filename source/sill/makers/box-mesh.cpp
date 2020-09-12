@@ -189,7 +189,7 @@ std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         // Apply the geometry
-        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.scene());
+        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
         auto& primitive = meshGroup->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);

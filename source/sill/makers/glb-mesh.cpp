@@ -104,7 +104,7 @@ namespace {
         setTexture(engine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData);
     }
 
-    std::unique_ptr<MeshGroup> loadMesh(MeshComponent& meshComponent, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
+    std::shared_ptr<MeshGroup> loadMesh(MeshComponent& meshComponent, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
                                         CacheData& cacheData, bool flipTriangles)
     {
         PROFILE_FUNCTION();
@@ -116,7 +116,7 @@ namespace {
         const auto& bufferViews = json["bufferViews"];
         const auto& materials = json.find("materials");
 
-        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.scene());
+        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
         meshGroup->name(mesh.name);
 
         // Each primitive will consist in one magma::Mesh
@@ -342,7 +342,7 @@ void loadAnimations(MeshComponent& meshComponent, const glb::Chunk& binChunk, co
     }
 }
 
-std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& fileName)
+std::function<MeshNode&(MeshComponent&)> makers::glbMeshMaker(const std::string& fileName)
 {
     logger.info("sill.makers.glb-mesh").tab(3) << "Loading file " << fileName << std::endl;
     logger.log().tab(-3);
@@ -362,7 +362,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
 
     auto json = nlohmann::json::parse(jsonChunk.data);
 
-    return [=](MeshComponent& meshComponent) {
+    return [=](MeshComponent& meshComponent) -> MeshNode& {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         meshComponent.path(fileName);
@@ -400,6 +400,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
 
         rootNode.transform(rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY));
 
+        auto rootNodeIndex = meshComponent.nodes().size();
         meshComponent.addNodes(std::move(meshNodes));
 
         // Bind all uniforms to textures once that are all done loaded
@@ -416,5 +417,7 @@ std::function<void(MeshComponent&)> makers::glbMeshMaker(const std::string& file
 
         logger.info("sill.makers.glb-mesh").tab(3) << "Generated mesh component for " << fileName << std::endl;
         logger.log().tab(-3);
+
+        return meshComponent.node(rootNodeIndex);
     };
 }

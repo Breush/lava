@@ -15,6 +15,7 @@ MeshAft::MeshAft(Mesh& fore, Scene& scene)
     , m_scene(scene)
     , m_unlitVertexBufferHolder(m_scene.engine().impl(), "mesh.unlit-vertex")
     , m_vertexBufferHolder(m_scene.engine().impl(), "mesh.vertex")
+    , m_instanceBufferHolder(m_scene.engine().impl(), "mesh.instance")
     , m_indexBufferHolder(m_scene.engine().impl(), "mesh.index")
 {
 }
@@ -22,11 +23,15 @@ MeshAft::MeshAft(Mesh& fore, Scene& scene)
 void MeshAft::update()
 {
     if (m_vertexBufferDirty) {
-        createVertexBuffer();
+        createVertexBuffers();
+    }
+
+    if (m_instanceBufferDirty) {
+        createInstanceBuffer();
     }
 }
 
-void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset,
+void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout,
                      uint32_t materialDescriptorSetIndex) const
 {
     if (!m_fore.enabled() || m_fore.indices().empty()) return;
@@ -44,29 +49,25 @@ void MeshAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelin
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0, 1, &m_vertexBufferHolder.buffer(), offsets);
+    commandBuffer.bindVertexBuffers(1, 1, &m_instanceBufferHolder.buffer(), offsets);
     commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
 
-    commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                pushConstantOffset, sizeof(MeshUbo), &m_fore.ubo());
-
     // Draw
-    commandBuffer.drawIndexed(m_fore.indices().size(), 1, 0, 0, 0);
+    commandBuffer.drawIndexed(m_fore.indices().size(), m_fore.instancesCount(), 0, 0, 0);
 }
 
-void MeshAft::renderUnlit(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const
+void MeshAft::renderUnlit(vk::CommandBuffer commandBuffer) const
 {
     if (!m_fore.enabled() || m_fore.indices().empty()) return;
 
     // Add the vertex buffer
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0, 1, &m_unlitVertexBufferHolder.buffer(), offsets);
+    commandBuffer.bindVertexBuffers(1, 1, &m_instanceBufferHolder.buffer(), offsets);
     commandBuffer.bindIndexBuffer(m_indexBufferHolder.buffer(), 0, vk::IndexType::eUint16);
 
-    commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                pushConstantOffset, sizeof(MeshUbo), &m_fore.ubo());
-
     // Draw
-    commandBuffer.drawIndexed(m_fore.indices().size(), 1, 0, 0, 0);
+    commandBuffer.drawIndexed(m_fore.indices().size(), m_fore.instancesCount(), 0, 0, 0);
 }
 
 // ----- Fore
@@ -76,7 +77,7 @@ void MeshAft::foreIndicesChanged()
     createIndexBuffer();
 }
 
-void MeshAft::createVertexBuffer()
+void MeshAft::createVertexBuffers()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
@@ -91,6 +92,17 @@ void MeshAft::createVertexBuffer()
     m_vertexBufferHolder.copy(m_fore.vertices().data(), bufferSize);
 
     m_vertexBufferDirty = false;
+}
+
+void MeshAft::createInstanceBuffer()
+{
+    PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+
+    vk::DeviceSize bufferSize = sizeof(MeshUbo) * m_fore.instancesCount();
+    m_instanceBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
+    m_instanceBufferHolder.copy(m_fore.ubos().data(), bufferSize);
+
+    m_instanceBufferDirty = false;
 }
 
 void MeshAft::createIndexBuffer()

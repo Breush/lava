@@ -176,7 +176,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
             }
 
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+            mesh->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(),
                                MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
@@ -192,7 +192,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
 
     for (auto mesh : maskMeshes) {
         tracker.counter("draw-calls.renderer") += 1u;
-        mesh->aft().render(commandBuffer, m_maskPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+        mesh->aft().render(commandBuffer, m_maskPipelineHolder.pipelineLayout(),
                            MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
@@ -207,7 +207,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
 
     for (auto mesh : depthlessMeshes) {
         tracker.counter("draw-calls.renderer") += 1u;
-        mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+        mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(),
                            MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
@@ -224,7 +224,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     // Draw all wireframed meshes
     for (auto mesh : wireframedMeshes) {
         tracker.counter("draw-calls.renderer") += 1u;
-        mesh->aft().renderUnlit(commandBuffer, m_wireframePipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
+        mesh->aft().renderUnlit(commandBuffer);
     }
 
     deviceHolder.debugEndRegion(commandBuffer);
@@ -243,7 +243,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
 
     for (auto translucentMesh : translucentMeshes) {
         tracker.counter("draw-calls.renderer") += 1u;
-        translucentMesh.mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET,
+        translucentMesh.mesh->aft().render(commandBuffer, m_translucentPipelineHolder.pipelineLayout(),
                                            MATERIAL_DESCRIPTOR_SET_INDEX);
     }
 
@@ -371,7 +371,16 @@ void ForwardRendererStage::initOpaquePass()
                               {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
                               {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
-    m_opaquePipelineHolder.set(vertexInput);
+    m_opaquePipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_opaquePipelineHolder.add(vertexInput);
 }
 
 void ForwardRendererStage::initMaskPass()
@@ -422,7 +431,16 @@ void ForwardRendererStage::initMaskPass()
                               {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
                               {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
-    m_maskPipelineHolder.set(vertexInput);
+    m_maskPipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_maskPipelineHolder.add(vertexInput);
 }
 
 void ForwardRendererStage::initDepthlessPass()
@@ -467,7 +485,16 @@ void ForwardRendererStage::initDepthlessPass()
                               {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
                               {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
-    m_depthlessPipelineHolder.set(vertexInput);
+    m_depthlessPipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_depthlessPipelineHolder.add(vertexInput);
 }
 
 void ForwardRendererStage::initWireframePass()
@@ -511,7 +538,16 @@ void ForwardRendererStage::initWireframePass()
     vulkan::PipelineHolder::VertexInput vertexInput;
     vertexInput.stride = sizeof(UnlitVertex);
     vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(UnlitVertex, pos)}};
-    m_wireframePipelineHolder.set(vertexInput);
+    m_wireframePipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_wireframePipelineHolder.add(vertexInput);
 }
 
 void ForwardRendererStage::initTranslucentPass()
@@ -560,7 +596,16 @@ void ForwardRendererStage::initTranslucentPass()
                               {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
                               {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
-    m_translucentPipelineHolder.set(vertexInput);
+    m_translucentPipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_translucentPipelineHolder.add(vertexInput);
 }
 
 void ForwardRendererStage::updatePassShaders(bool firstTime)
@@ -571,8 +616,8 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["MESH_UNLIT"] = '0';
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(LIGHTS_DESCRIPTOR_SET_INDEX);
@@ -599,6 +644,9 @@ void ForwardRendererStage::updatePassShaders(bool firstTime)
 
     auto depthlessVertexShaderModule =
         m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry-depthless.vert", moduleOptions);
+
+    // Unlit shaders
+    moduleOptions.defines["MESH_UNLIT"] = '1';
 
     auto unlitVertexShaderModule =
         m_scene.engine().impl().shadersManager().module("./data/shaders/stages/geometry-unlit.vert", moduleOptions);

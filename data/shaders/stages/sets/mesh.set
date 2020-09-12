@@ -1,0 +1,36 @@
+#softdefine MESH_UNLIT
+
+//----- Vertex data in
+
+// @todo Get more expressive names one day?
+#if MESH_UNLIT
+layout(location = 0) in vec3 inMPosition;
+#else
+layout(location = 0) in vec3 inMPosition;
+layout(location = 1) in vec2 inUv;
+layout(location = 2) in vec3 inMNormal;
+layout(location = 3) in vec4 inMTangent;
+#endif
+
+//----- Instance data in
+
+#if MESH_UNLIT
+layout(location = 1) in vec4 inMeshInstanceTransform0;
+layout(location = 2) in vec4 inMeshInstanceTransform1;
+layout(location = 3) in vec4 inMeshInstanceTransform2;
+#else
+layout(location = 4) in vec4 inMeshInstanceTransform0;
+layout(location = 5) in vec4 inMeshInstanceTransform1;
+layout(location = 6) in vec4 inMeshInstanceTransform2;
+#endif
+
+struct MeshUbo {
+    mat4 transform;
+} mesh;
+
+void setupMesh() {
+    mesh.transform = transpose(mat4(inMeshInstanceTransform0,
+                                    inMeshInstanceTransform1,
+                                    inMeshInstanceTransform2,
+                                    vec4(0, 0, 0, 1)));
+}

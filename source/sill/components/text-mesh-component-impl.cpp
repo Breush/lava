@@ -45,7 +45,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
         positions.emplace_back(position.x, 0.f, -position.y);
     }
 
-    auto meshGroup = std::make_unique<MeshGroup>(m_entity.get<MeshComponent>().scene());
+    auto meshGroup = std::make_shared<MeshGroup>(m_entity.get<MeshComponent>().scene());
     auto& primitive = meshGroup->addPrimitive();
     primitive.verticesCount(positions.size());
     primitive.verticesPositions(positions);

@@ -27,25 +27,31 @@ void PipelineHolder::update(const vk::Extent2D& extent, vk::PolygonMode polygonM
     //--- Vertex input
 
     vk::PipelineVertexInputStateCreateInfo vertexInputState;
-    vk::VertexInputBindingDescription vertexInputBindingDescription;
+    std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions;
     std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions;
 
-    if (m_vertexInput.attributes.size() > 0u) {
-        vertexInputBindingDescription.binding = 0;
-        vertexInputBindingDescription.stride = m_vertexInput.stride;
-        vertexInputBindingDescription.inputRate = vk::VertexInputRate::eVertex;
+    if (!m_vertexInputs.empty()) {
+        auto attributeLocation = 0u;
+        for (auto binding = 0u; binding < m_vertexInputs.size(); ++binding) {
+            const auto& vertexInput = m_vertexInputs[binding];
 
-        vertexInputAttributeDescriptions.resize(m_vertexInput.attributes.size());
-        for (auto i = 0u; i < m_vertexInput.attributes.size(); ++i) {
-            const auto& attribute = m_vertexInput.attributes[i];
-            vertexInputAttributeDescriptions[i].binding = 0;
-            vertexInputAttributeDescriptions[i].location = i;
-            vertexInputAttributeDescriptions[i].format = attribute.format;
-            vertexInputAttributeDescriptions[i].offset = attribute.offset;
+            auto& vertexInputBindingDescription = vertexInputBindingDescriptions.emplace_back();
+            vertexInputBindingDescription.binding = binding;
+            vertexInputBindingDescription.stride = vertexInput.stride;
+            vertexInputBindingDescription.inputRate = vertexInput.rate;
+
+            for (const auto& attribute : vertexInput.attributes) {
+                auto& vertexInputAttributeDescription = vertexInputAttributeDescriptions.emplace_back();
+                vertexInputAttributeDescription.binding = binding;
+                vertexInputAttributeDescription.location = attributeLocation;
+                vertexInputAttributeDescription.format = attribute.format;
+                vertexInputAttributeDescription.offset = attribute.offset;
+                attributeLocation += 1u;
+            }
         }
 
-        vertexInputState.vertexBindingDescriptionCount = 1;
-        vertexInputState.pVertexBindingDescriptions = &vertexInputBindingDescription;
+        vertexInputState.vertexBindingDescriptionCount = vertexInputBindingDescriptions.size();
+        vertexInputState.pVertexBindingDescriptions = vertexInputBindingDescriptions.data();
         vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributeDescriptions.size();
         vertexInputState.pVertexAttributeDescriptions = vertexInputAttributeDescriptions.data();
     }
@@ -204,6 +210,11 @@ void PipelineHolder::add(const InputAttachment& inputAttachment)
 void PipelineHolder::set(const ResolveAttachment& resolveAttachment)
 {
     m_resolveAttachment = std::make_optional<ResolveAttachment>(resolveAttachment);
+}
+
+void PipelineHolder::add(const VertexInput& vertexInput)
+{
+    m_vertexInputs.emplace_back(vertexInput);
 }
 
 void PipelineHolder::addPushConstantRange(uint32_t size)

@@ -15,7 +15,6 @@ struct Block {
     // These are updated each time the rotationLevel is changed.
     glm::ivec2 coordinates = {0, 0};
     glm::ivec2 nonRotatedCoordinates = {0, 0};
-    uint32_t meshNodeIndex = 0u;
 };
 
 /**
@@ -108,6 +107,8 @@ private:
     uint32_t m_rotationLevel = 0u;
     uint32_t m_baseRotationLevel = 0u;
     uint32_t m_extraRotationLevel = 0u;
+
+    uint32_t m_bricksMeshNodeIndex = -1u;
 };
 
 Brick* findBrick(GameState& gameState, const lava::sill::GameEntity& entity);

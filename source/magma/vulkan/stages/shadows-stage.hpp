@@ -13,8 +13,7 @@ namespace lava::magma {
      * Creating a shadows maps for the lights.
      */
     class ShadowsStage final {
-        constexpr static const uint32_t MESH_PUSH_CONSTANT_OFFSET = 0u;
-        constexpr static const uint32_t SHADOW_MAP_PUSH_CONSTANT_OFFSET = sizeof(MeshUbo);
+        constexpr static const uint32_t SHADOW_MAP_PUSH_CONSTANT_OFFSET = 0u;
 
     public:
         ShadowsStage(Scene& scene);

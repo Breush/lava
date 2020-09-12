@@ -44,6 +44,7 @@ namespace lava::magma::vulkan {
 
             uint32_t stride;
             std::vector<Attribute> attributes;
+            vk::VertexInputRate rate = vk::VertexInputRate::eVertex;
         };
 
     public:
@@ -75,7 +76,7 @@ namespace lava::magma::vulkan {
         void set(const ResolveAttachment& resolveAttachment);
 
         /// Set the vertex input.
-        void set(const VertexInput& vertexInput) { m_vertexInput = vertexInput; }
+        void add(const VertexInput& vertexInput);
 
         /// Set the cull mode.
         void set(vk::CullModeFlags cullMode) { m_cullMode = cullMode; }
@@ -130,7 +131,7 @@ namespace lava::magma::vulkan {
         std::optional<ResolveAttachment> m_resolveAttachment;
         std::vector<InputAttachment> m_inputAttachments;
         vk::PushConstantRange m_pushConstantRange = {vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, 0};
-        VertexInput m_vertexInput;
+        std::vector<VertexInput> m_vertexInputs;
         vk::CullModeFlags m_cullMode;
         vk::SampleCountFlagBits m_sampleCount = vk::SampleCountFlagBits::e1;
         bool m_selfDependent = false;

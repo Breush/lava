@@ -3,13 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #include "./sets/push-constants.set"
-
-//----- Vertex data in
-
-layout(location = 0) in vec3 inMPosition;
-layout(location = 1) in vec2 inUv;
-layout(location = 2) in vec3 inMNormal;
-layout(location = 3) in vec4 inMTangent;
+#include "./sets/mesh.set"
 
 //----- Fragment forwarded out
 

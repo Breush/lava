@@ -28,11 +28,11 @@ magma::Mesh& MeshGroup::addPrimitive()
 
 //----- Transforms
 
-void MeshGroup::transform(const glm::mat4& transform)
+void MeshGroup::transform(const glm::mat4& transform, uint32_t instanceIndex)
 {
     // @note Each magma::Mesh has its own transform,
     // there are no notions of primitive in magma.
     for (auto& primitive : m_primitives) {
-        primitive->transform(transform);
+        primitive->transform(transform, instanceIndex);
     }
 }

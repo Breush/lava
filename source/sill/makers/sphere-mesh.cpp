@@ -89,7 +89,7 @@ std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellatio
         }
 
         // Apply the geometry
-        auto meshGroup = std::make_unique<MeshGroup>(meshComponent.scene());
+        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
         auto& primitive = meshGroup->addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);

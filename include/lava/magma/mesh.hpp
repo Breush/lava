@@ -20,6 +20,8 @@ namespace lava::magma {
 namespace lava::magma {
     /**
      * A mesh, holding geometry and transform.
+     * 
+     * The ubos vector contains info about all instances.
      */
     class Mesh {
     public:
@@ -41,35 +43,51 @@ namespace lava::magma {
         /// @{
         // @todo :Terminology Should this still be called transform? Or is that term reserved for uniform scaling lava::Transform?
         /// The transform is `translation * rotation * scaling`.
-        const glm::mat4& transform() const { return m_transform; }
-        void transform(const glm::mat4& transform);
+        const glm::mat4& transform(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).transform; }
+        void transform(const glm::mat4& transform, uint32_t instanceIndex = 0u);
 
-        const glm::vec3& translation() const { return m_translation; }
-        void translation(const glm::vec3& translation);
-        void translate(const glm::vec3& delta) { translation(m_translation + delta); }
+        const glm::vec3& translation(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).translation; }
+        void translation(const glm::vec3& translation, uint32_t instanceIndex = 0u);
+        void translate(const glm::vec3& delta, uint32_t instanceIndex = 0u) { translation(m_transformsInfos.at(instanceIndex).translation + delta, instanceIndex); }
 
-        const glm::quat& rotation() const { return m_rotation; }
-        void rotation(const glm::quat& rotation);
-        void rotate(const glm::vec3& axis, float angle)
+        const glm::quat& rotation(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).rotation; }
+        void rotation(const glm::quat& rotation, uint32_t instanceIndex = 0u);
+        void rotate(const glm::vec3& axis, float angle, uint32_t instanceIndex = 0u)
         {
-            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_rotation);
+            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_transformsInfos.at(instanceIndex).rotation, instanceIndex);
         }
 
-        const glm::vec3& scaling() const { return m_scaling; }
-        void scaling(const glm::vec3& scaling);
-        void scaling(float commonScaling) { scaling(glm::vec3(commonScaling)); }
-        void scale(const glm::vec3& delta) { scaling(m_scaling * delta); }
-        void scale(float delta) { scaling(m_scaling * delta); }
+        const glm::vec3& scaling(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).scaling; }
+        void scaling(const glm::vec3& scaling, uint32_t instanceIndex = 0u);
+        void scaling(float commonScaling, uint32_t instanceIndex = 0u) { scaling(glm::vec3(commonScaling), instanceIndex); }
+        void scale(const glm::vec3& delta, uint32_t instanceIndex = 0u) { scaling(m_transformsInfos.at(instanceIndex).scaling * delta, instanceIndex); }
+        void scale(float delta, uint32_t instanceIndex = 0u) { scaling(m_transformsInfos.at(instanceIndex).scaling * delta, instanceIndex); }
         /// @}
 
         /**
          * @name Bounding sphere
          */
         /// @{
-        /// Geometry-space bounding sphere, which might be slightly overestimated.
-        const BoundingSphere& boundingSphereGeometry() const { return m_boundingSphereGeometry; }
         /// World-space bounding sphere, which might be slightly overestimated.
-        const BoundingSphere& boundingSphere() const { return m_boundingSphere; }
+        /// This englobes all instances.
+        const BoundingSphere& boundingSphere() { 
+            if (m_boundingSphereDirty) {
+                updateBoundingSphere();
+            }
+            return m_boundingSphere;
+        }
+        /// @}
+
+        /**
+         * @name Instancing
+         */
+        /// @{
+        /// How many instances to be rendered. Always at least 1.
+        uint32_t instancesCount() const { return m_ubos.size(); }
+        /// The mesh will be rendered once more. Set individual matrices thanks to instanceIndex.
+        uint32_t addInstance();
+        /// Warn in advance how many instances the mesh will have.
+        void reserveInstancesCount(uint32_t instancesCount);
         /// @}
 
         /**
@@ -125,7 +143,8 @@ namespace lava::magma {
          * @name Shader data
          */
         /// @{
-        const MeshUbo& ubo() const { return m_ubo; }
+        const MeshUbo& ubo() const { return m_ubos.at(0); }
+        const std::vector<MeshUbo>& ubos() const { return m_ubos; }
         /// @}
 
         /**
@@ -138,9 +157,18 @@ namespace lava::magma {
         /// @}
 
     private:
-        void updateUbo();
-        void updateTransform();
+        void updateUbo(uint32_t instanceIndex);
+        void updateTransform(uint32_t instanceIndex);
         void updateBoundingSphere();
+
+    private:
+        struct TransformInfo {
+            glm::mat4 transform = glm::mat4(1.f);
+            // Decompose values of above transform.
+            glm::vec3 translation = glm::vec3(0.f);
+            glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+            glm::vec3 scaling = glm::vec3(1.f);
+        };
 
     private:
         // ----- References
@@ -148,16 +176,14 @@ namespace lava::magma {
         bool m_enabled = true;
 
         // ----- Transform
-        glm::mat4 m_transform = glm::mat4(1.f);
-        glm::vec3 m_translation = glm::vec3(0.f);
-        glm::quat m_rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
-        glm::vec3 m_scaling = glm::vec3(1.f);
+        std::vector<TransformInfo> m_transformsInfos{1u};
 
         // ----- Bounding sphere
         BoundingSphere m_boundingSphereGeometry;
         BoundingSphere m_boundingSphere;
         // Geometry-space bounding box dimenstion which is centered at m_boundingSphereGeometry.center.
         glm::vec3 m_boundingBoxExtentGeometry;
+        bool m_boundingSphereDirty = true;
 
         // ----- Geometry
         std::vector<Vertex> m_temporaryVertices; // Only used for tangents generation.
@@ -173,7 +199,7 @@ namespace lava::magma {
         bool m_vrRenderable = true;
 
         // ----- Shader data
-        MeshUbo m_ubo;
+        std::vector<MeshUbo> m_ubos{1u};
 
         // ----- Debug
         bool m_debugBoundingSphere = false;

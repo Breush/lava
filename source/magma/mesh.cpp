@@ -25,7 +25,7 @@ Mesh::Mesh(Scene& scene)
 {
     new (&aft()) MeshAft(*this, m_scene);
 
-    updateUbo();
+    updateUbo(0u);
 }
 
 Mesh::~Mesh()
@@ -39,34 +39,54 @@ Mesh::~Mesh()
 
 // ----- Transform
 
-void Mesh::transform(const glm::mat4& transform)
+void Mesh::transform(const glm::mat4& transform, uint32_t instanceIndex)
 {
-    m_transform = transform;
+    auto& transformInfo = m_transformsInfos.at(instanceIndex);
+    transformInfo.transform = transform;
 
     glm::vec3 skew;
     glm::vec4 perspective;
-    glm::decompose(m_transform, m_scaling, m_rotation, m_translation, skew, perspective);
+    glm::decompose(transformInfo.transform, transformInfo.scaling, transformInfo.rotation, transformInfo.translation, skew, perspective);
 
-    updateBoundingSphere();
-    updateUbo();
+    m_boundingSphereDirty = true;
+    updateUbo(instanceIndex);
 }
 
-void Mesh::translation(const glm::vec3& translation)
+void Mesh::translation(const glm::vec3& translation, uint32_t instanceIndex)
 {
-    m_translation = translation;
-    updateTransform();
+    m_transformsInfos.at(instanceIndex).translation = translation;
+    updateTransform(instanceIndex);
 }
 
-void Mesh::rotation(const glm::quat& rotation)
+void Mesh::rotation(const glm::quat& rotation, uint32_t instanceIndex)
 {
-    m_rotation = rotation;
-    updateTransform();
+    m_transformsInfos.at(instanceIndex).rotation = rotation;
+    updateTransform(instanceIndex);
 }
 
-void Mesh::scaling(const glm::vec3& scaling)
+void Mesh::scaling(const glm::vec3& scaling, uint32_t instanceIndex)
 {
-    m_scaling = scaling;
-    updateTransform();
+    m_transformsInfos.at(instanceIndex).scaling = scaling;
+    updateTransform(instanceIndex);
+}
+
+// ----- Instancing
+
+uint32_t Mesh::addInstance()
+{
+    auto instanceIndex = m_ubos.size();
+    m_ubos.emplace_back();
+    m_transformsInfos.emplace_back();
+
+    m_boundingSphereDirty = true;
+    updateUbo(instanceIndex);
+    return instanceIndex;
+}
+
+void Mesh::reserveInstancesCount(uint32_t instancesCount)
+{
+    m_ubos.reserve(instancesCount);
+    m_transformsInfos.reserve(instancesCount);
 }
 
 // ----- Geometry
@@ -283,43 +303,55 @@ void Mesh::debugBoundingSphere(bool debugBoundingSphere)
 
 // ----- Updates
 
-void Mesh::updateUbo()
+void Mesh::updateUbo(uint32_t instanceIndex)
 {
-    auto transposeTransform = glm::transpose(m_transform);
-    m_ubo.transform0 = transposeTransform[0];
-    m_ubo.transform1 = transposeTransform[1];
-    m_ubo.transform2 = transposeTransform[2];
+    auto& ubo = m_ubos.at(instanceIndex);
+    auto transposeTransform = glm::transpose(m_transformsInfos.at(instanceIndex).transform);
+    ubo.transform0 = transposeTransform[0];
+    ubo.transform1 = transposeTransform[1];
+    ubo.transform2 = transposeTransform[2];
+
+    aft().foreUboChanged(instanceIndex);
 }
 
-void Mesh::updateTransform()
+void Mesh::updateTransform(uint32_t instanceIndex)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    m_transform = glm::scale(glm::mat4(1.f), m_scaling);
-    m_transform = glm::mat4(m_rotation) * m_transform;
-    m_transform[3] = glm::vec4(m_translation, 1.f);
+    auto& transformInfo = m_transformsInfos.at(instanceIndex);
+    transformInfo.transform = glm::scale(glm::mat4(1.f), transformInfo.scaling);
+    transformInfo.transform = glm::mat4(transformInfo.rotation) * transformInfo.transform;
+    transformInfo.transform[3] = glm::vec4(transformInfo.translation, 1.f);
 
-    updateBoundingSphere();
-    updateUbo();
+    m_boundingSphereDirty = true;
+    updateUbo(instanceIndex);
 }
 
 void Mesh::updateBoundingSphere()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    // @note The world-space bounding sphere is less
-    // precise than the geometry-space one because it is based on the bounding box
-    // and not the exact vertices.
-    auto boundingBoxExtent = m_scaling * m_boundingBoxExtentGeometry;
-    auto radius = glm::length(boundingBoxExtent / 2.f);
+    // Merging all bounding spheres of all instances.
+    m_boundingSphere.radius = 0.f;
+    for (const auto& transformInfo : m_transformsInfos) {
+        // @note The world-space bounding sphere is less
+        // precise than the geometry-space one because it is based on the bounding box
+        // and not the exact vertices.
+        auto boundingBoxExtent = transformInfo.scaling * m_boundingBoxExtentGeometry;
+        auto radius = glm::length(boundingBoxExtent / 2.f);
 
-    m_boundingSphere.center = glm::vec3(m_transform * glm::vec4(m_boundingSphereGeometry.center, 1));
-    m_boundingSphere.radius = radius;
+        BoundingSphere instanceBoundingSphere;
+        instanceBoundingSphere.center = glm::vec3(transformInfo.transform * glm::vec4(m_boundingSphereGeometry.center, 1));
+        instanceBoundingSphere.radius = radius;
+        m_boundingSphere = mergeBoundingSpheres(m_boundingSphere, instanceBoundingSphere);
+    }
 
     if (m_debugBoundingSphere) {
         m_debugBoundingSphereMesh->translation(m_boundingSphere.center);
         m_debugBoundingSphereMesh->scaling(m_boundingSphere.radius);
     }
+
+    m_boundingSphereDirty = false;
 }
 
 namespace {

@@ -21,6 +21,12 @@ project "crater-events"
 -----------
 -- magma --
 
+project "magma-instancing"
+    kind "WindowedApp"
+    files "magma/instancing.cpp"
+    useCrater()
+    useMagma()
+
 project "magma-scenes-and-windows"
     kind "WindowedApp"
     files "magma/scenes-and-windows.cpp"

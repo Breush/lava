@@ -130,7 +130,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
     const auto& cameraFrustum = m_camera->frustum();
 
     // Draw all meshes
-    std::vector<const Mesh*> depthlessMeshes;
+    std::vector<Mesh*> depthlessMeshes;
     for (auto mesh : m_scene.meshes()) {
         if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
 
@@ -143,7 +143,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
         const auto& boundingSphere = mesh->boundingSphere();
         if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
+            mesh->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(),
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
@@ -163,7 +163,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
         const auto& boundingSphere = mesh->boundingSphere();
         if (!m_camera->frustumCullingEnabled() || cameraFrustum.canSee(boundingSphere)) {
             tracker.counter("draw-calls.renderer") += 1u;
-            mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(), GEOMETRY_MESH_PUSH_CONSTANT_OFFSET,
+            mesh->aft().render(commandBuffer, m_depthlessPipelineHolder.pipelineLayout(),
                                GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
         }
     }
@@ -262,12 +262,11 @@ void DeepDeferredStage::initClearPass()
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["MESH_UNLIT"] = '0';
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
-    moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["G_BUFFER_DATA_SIZE"] = std::to_string(G_BUFFER_DATA_SIZE);
@@ -331,7 +330,16 @@ void DeepDeferredStage::initGeometryPass()
                               {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
                               {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
-    m_geometryPipelineHolder.set(vertexInput);
+    m_geometryPipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_geometryPipelineHolder.add(vertexInput);
 }
 
 void DeepDeferredStage::initDepthlessPass()
@@ -378,7 +386,16 @@ void DeepDeferredStage::initDepthlessPass()
                               {vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
                               {vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
                               {vk::Format::eR32G32B32A32Sfloat, offsetof(Vertex, tangent)}};
-    m_depthlessPipelineHolder.set(vertexInput);
+    m_depthlessPipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_depthlessPipelineHolder.add(vertexInput);
 }
 
 void DeepDeferredStage::initEpiphanyPass()
@@ -424,8 +441,8 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
+    moduleOptions.defines["MESH_UNLIT"] = '0';
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX"] =
         std::to_string(DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX);
@@ -433,7 +450,6 @@ void DeepDeferredStage::updateGeometryPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX"] = std::to_string(GEOMETRY_MATERIAL_GLOBAL_DESCRIPTOR_SET_INDEX);
-    moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);
     moduleOptions.defines["MATERIAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);
     moduleOptions.defines["MATERIAL_GLOBAL_SAMPLERS_SIZE"] = std::to_string(MATERIAL_SAMPLERS_SIZE);
@@ -469,7 +485,6 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH"] = std::to_string(DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH);
     moduleOptions.defines["DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX"] =
@@ -480,7 +495,6 @@ void DeepDeferredStage::updateEpiphanyPassShaders(bool firstTime)
         std::to_string(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT);
     moduleOptions.defines["ENVIRONMENT_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_ENVIRONMENT_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT"] = std::to_string(ENVIRONMENT_RADIANCE_MIP_LEVELS_COUNT);
-    moduleOptions.defines["MESH_PUSH_CONSTANT_OFFSET"] = std::to_string(GEOMETRY_MESH_PUSH_CONSTANT_OFFSET);
     moduleOptions.defines["LIGHTS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_LIGHTS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["SHADOWS_DESCRIPTOR_SET_INDEX"] = std::to_string(EPIPHANY_SHADOWS_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["SHADOWS_CASCADES_COUNT"] = std::to_string(SHADOWS_CASCADES_COUNT);

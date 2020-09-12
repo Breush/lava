@@ -15,12 +15,33 @@ namespace {
         node.plainLocalTransform = parentPlainLocalTransform * node.localTransform;
 
         if (node.meshGroup) {
-            node.meshGroup->transform(entityTransform * node.plainLocalTransform);
+            node.meshGroup->transform(entityTransform * node.plainLocalTransform, node.instanceIndex);
         }
 
         for (auto childIndex : node.children) {
             auto& childNode = *(&node + childIndex);
             updateNodeTransforms(childNode, entityTransform, node.plainLocalTransform);
+        }
+    }
+
+    void updateInstanceIndices(MeshNode& node, std::unordered_map<MeshGroup*, uint32_t>& meshGroupsCountMap)
+    {
+        node.instanceIndex = 0u;
+
+        if (node.meshGroup) {
+            auto meshGroupCountIt = meshGroupsCountMap.find(node.meshGroup.get());
+            if (meshGroupCountIt == meshGroupsCountMap.end()) {
+                meshGroupsCountMap.emplace(node.meshGroup.get(), 1u);
+            }
+            else {
+                node.instanceIndex = meshGroupCountIt->second;
+                meshGroupCountIt->second += 1u;
+            }
+        }
+
+        for (auto childIndex : node.children) {
+            auto& childNode = *(&node + childIndex);
+            updateInstanceIndices(childNode, meshGroupsCountMap);
         }
     }
 
@@ -32,7 +53,7 @@ namespace {
 
         s << "[MeshNode] " << node.name;
         if (node.meshGroup) {
-            s << " (mesh with " << node.meshGroup->primitives().size() << " primitives)";
+            s << " (mesh [instance " << node.instanceIndex << "] - [" << node.meshGroup->primitives().size() << " primitives])";
         }
         s << std::endl;
 
@@ -148,6 +169,10 @@ void MeshComponent::update(float dt)
 
 void MeshComponent::updateFrame()
 {
+    if (m_nodesDirty) {
+        updateNodes();
+    }
+
     // @todo We could be more clever to update only the nodes
     // that need to be updated while being sure it's done only once.
     if (m_nodesTranformsDirty) {
@@ -160,8 +185,42 @@ void MeshComponent::updateFrame()
 MeshNode& MeshComponent::addNode()
 {
     m_nodes.emplace_back();
-    m_nodesTranformsDirty = true;
+    m_nodesDirty = true;
     return m_nodes.back();
+}
+
+MeshNode& MeshComponent::addInstancedNode(uint32_t sourceNodeIndex)
+{
+
+    auto nodeIndex = m_nodes.size();
+
+    auto& node = addNode();
+    const auto& sourceNode = m_nodes[sourceNodeIndex];
+    node.name = sourceNode.name;
+    node.meshGroup = sourceNode.meshGroup;
+    node.transform(sourceNode.transform());
+
+    // Warn that all the primitive are instances.
+    if (node.meshGroup) {
+        for (auto primitive : node.meshGroup->primitives()) {
+            node.instanceIndex = primitive->addInstance();
+        }
+    }
+    // @todo There's currently no way to remove one node at a time,
+    // but if it becomes possible, one would need to warn the primitive
+    // that there is one less instance to render.
+
+    // Recursive add all nodes that are below.
+    // @note As new nodes are added by children, the references to node and sourceNode
+    // might be invalidated, thus the necessary copy.
+    auto sourceNodeChilden = sourceNode.children;
+    for (auto childIndex : sourceNodeChilden) {
+        auto& childNode = addInstancedNode(sourceNodeIndex + childIndex);
+        m_nodes[nodeIndex].children.emplace_back(&childNode - &node); // Relative distance between nodes
+        childNode.parent = nodeIndex;
+    }
+
+    return m_nodes[nodeIndex];
 }
 
 void MeshComponent::addNodes(std::vector<MeshNode>&& nodes)
@@ -177,11 +236,11 @@ void MeshComponent::addNodes(std::vector<MeshNode>&& nodes)
     // otherwise the ColliderComponent::addMeshNodeShape()
     // might not be correct if the MeshNode::plainLocalTransform
     // is not yet updated.
-    updateNodesTransforms();
+    updateNodes();
 
     // Needed for one might have updated the localTransform
     // after we return here.
-    m_nodesTranformsDirty = true;
+    m_nodesDirty = true;
 }
 
 // ----- Helpers
@@ -220,7 +279,7 @@ float MeshComponent::distanceFrom(const Ray& ray, PickPrecision pickPrecision) c
             if (intersectSphere(ray, primitiveBs.center, primitiveBs.radius) == 0.f) continue;
 
             // Check against primitive's triangles
-            const auto& transform = primitive->transform();
+            const auto& transform = primitive->transform(node.instanceIndex);
             const auto& indices = primitive->indices();
             const auto& vertices = primitive->unlitVertices();
             for (auto i = 0u; i < indices.size(); i += 3) {
@@ -343,7 +402,7 @@ void MeshComponent::printHierarchy(std::ostream& s) const
 
 // ----- Internal
 
-void MeshComponent::updateNodesTransforms()
+void MeshComponent::updateNodes()
 {
     // Affect parents to each node.
     for (auto& node : m_nodes) {
@@ -353,10 +412,25 @@ void MeshComponent::updateNodesTransforms()
     for (auto& node : m_nodes) {
         for (auto childIndex : node.children) {
             auto& childNode = *(&node + childIndex);
-            childNode.parent = (&node - &childNode);
+            childNode.parent = -childIndex;
         }
     }
 
+    // Affect instanceIndex to each node.
+    std::unordered_map<MeshGroup*, uint32_t> meshGroupsCountMap;
+    for (auto& node : m_nodes) {
+        if (node.parent != 0) continue;
+        updateInstanceIndices(node, meshGroupsCountMap);
+    }
+
+    // Update node transforms.
+    updateNodesTransforms();
+
+    m_nodesDirty = false;
+}
+
+void MeshComponent::updateNodesTransforms()
+{
     // @note The root nodes have just no parent!
     auto worldMatrix = m_transformComponent.worldTransform().matrix();
     for (auto& node : m_nodes) {

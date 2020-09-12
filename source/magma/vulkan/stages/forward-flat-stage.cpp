@@ -159,7 +159,7 @@ void ForwardFlatStage::initPass()
     vertexInput.stride = sizeof(FlatVertex);
     vertexInput.attributes = {{vk::Format::eR32G32Sfloat, offsetof(FlatVertex, pos)},
                               {vk::Format::eR32G32Sfloat, offsetof(FlatVertex, uv)}};
-    m_pipelineHolder.set(vertexInput);
+    m_pipelineHolder.add(vertexInput);
 }
 
 void ForwardFlatStage::updatePassShaders(bool firstTime)
@@ -167,7 +167,6 @@ void ForwardFlatStage::updatePassShaders(bool firstTime)
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '1';
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["MATERIAL_DESCRIPTOR_SET_INDEX"] = std::to_string(MATERIAL_DESCRIPTOR_SET_INDEX);
     moduleOptions.defines["MATERIAL_DATA_SIZE"] = std::to_string(MATERIAL_DATA_SIZE);

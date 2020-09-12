@@ -1,9 +1,8 @@
 #softdefine USE_CAMERA_PUSH_CONSTANT
 #softdefine USE_FLAT_PUSH_CONSTANT
-#softdefine USE_MESH_PUSH_CONSTANT
 #softdefine USE_SHADOW_MAP_PUSH_CONSTANT
 
-#if USE_CAMERA_PUSH_CONSTANT || USE_FLAT_PUSH_CONSTANT || USE_MESH_PUSH_CONSTANT || USE_SHADOW_MAP_PUSH_CONSTANT
+#if USE_CAMERA_PUSH_CONSTANT || USE_FLAT_PUSH_CONSTANT || USE_SHADOW_MAP_PUSH_CONSTANT
 layout(std430, push_constant) uniform PushConstantUbo {
     // Camera UBO
     #if USE_CAMERA_PUSH_CONSTANT
@@ -18,13 +17,6 @@ layout(std430, push_constant) uniform PushConstantUbo {
     #if USE_FLAT_PUSH_CONSTANT
     vec4 flatTransform;   // 00 01 10 11
     vec4 flatTranslation; // Only XY
-    #endif
-
-    // Mesh UBO
-    #if USE_MESH_PUSH_CONSTANT
-    vec4 meshTransform0;
-    vec4 meshTransform1;
-    vec4 meshTransform2;
     #endif
 
     // Shadow map UBO
@@ -82,20 +74,5 @@ void setupFlat() {
     flatUbo.transform = mat3(pushConstants.flatTransform.xy, 0,
                              pushConstants.flatTransform.zw, 0,
                              pushConstants.flatTranslation.xy, 1);
-}
-#endif
-
-//----- Mesh
-
-#if USE_MESH_PUSH_CONSTANT
-struct MeshUbo {
-    mat4 transform;
-} mesh;
-
-void setupMesh() {
-    mesh.transform = transpose(mat4(pushConstants.meshTransform0,
-                                    pushConstants.meshTransform1,
-                                    pushConstants.meshTransform2,
-                                    vec4(0, 0, 0, 1)));
 }
 #endif

@@ -43,10 +43,12 @@ namespace lava::sill {
 
         // @todo :Terminology These are non-uniform scaling transforms,
         // We might want to rename that matrix then.
+        void dirtifyNodes() { m_nodesDirty = true; }
         void dirtifyNodesTransforms() { m_nodesTranformsDirty = true; }
 
         /// Emplace back nodes.
         MeshNode& addNode();
+        MeshNode& addInstancedNode(uint32_t sourceNodeIndex);
         void addNodes(std::vector<MeshNode>&& nodes);
         /// @}
 
@@ -121,6 +123,7 @@ namespace lava::sill {
         };
 
     protected:
+        void updateNodes();
         void updateNodesTransforms();
         void resetAnimationInfo(AnimationInfo& animationInfo) const;
 
@@ -132,6 +135,7 @@ namespace lava::sill {
         std::vector<MeshNode> m_nodes;
         std::unordered_map<std::string, AnimationInfo> m_animationsInfos;
         bool m_nodesTranformsDirty = true;
+        bool m_nodesDirty = true;
 
         // Attributes
         RenderCategory m_category = RenderCategory::Opaque;

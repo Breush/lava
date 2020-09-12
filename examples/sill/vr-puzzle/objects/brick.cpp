@@ -125,21 +125,28 @@ void Brick::blocks(const std::vector<glm::ivec2>& blocks)
     // Clean
     m_blocks.resize(blocks.size());
     mesh().removeNodes();
-
+    m_bricksMeshNodeIndex = -1u;
+    
     // Create blocks
     static auto blockMaker = sill::makers::glbMeshMaker("./assets/models/vr-puzzle/puzzle-brick.glb");
+    glm::mat4 bricksRootTransform(1.f);
     for (auto i = 0u; i < blocks.size(); ++i) {
         m_blocks[i].nonRotatedCoordinates = blocks[i];
 
-        // Make block
-        blockMaker(mesh());
-        m_blocks[i].meshNodeIndex = mesh().nodes().size() - 1u;
+        // Make block and instance it
+        sill::MeshNode* rootNode = nullptr;
+        if (i == 0u) {
+            rootNode = &blockMaker(mesh());
+            bricksRootTransform = rootNode->transform();
+            m_bricksMeshNodeIndex = mesh().nodes().size() - 1u;
+        } else {
+            rootNode = &mesh().addInstancedNode(0u);
+        }
 
-        auto& rootNode = mesh().node(m_blocks[i].meshNodeIndex - 1u);
         auto transform = glm::mat4(1.f);
         transform = glm::translate(transform, {glm::vec2(blocks[i]) * glm::vec2(blockExtent), 0.f});
         transform = glm::scale(transform, {blockScaling, blockScaling, 1.f});
-        rootNode.transform(transform * rootNode.transform());
+        rootNode->transform(transform * bricksRootTransform);
     }
 
     mesh().path(std::string()); // So that the mesh component is not serialized.
@@ -291,8 +298,8 @@ void Brick::updateBlocksColor()
         color = glm::mix(color, glm::vec3(0.4f, 0.4f, 0.95f), 0.75f);
     }
 
-    for (auto& block : m_blocks) {
-        mesh().material(block.meshNodeIndex, 0u)->set("albedoColor", color);
+    if (m_bricksMeshNodeIndex != -1u) {
+        mesh().material(m_bricksMeshNodeIndex, 0u)->set("albedoColor", color);
     }
 }
 

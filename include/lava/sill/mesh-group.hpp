@@ -31,7 +31,7 @@ namespace lava::sill {
         magma::Mesh& addPrimitive();
 
         /// Changes the transform of all primitives.
-        void transform(const glm::mat4& transform);
+        void transform(const glm::mat4& transform, uint32_t instanceIndex = 0u);
 
     private:
         magma::Scene& m_scene;

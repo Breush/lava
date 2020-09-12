@@ -19,7 +19,7 @@ namespace lava::sill {
         std::string name;
 
         /// The optional mesh geometry (and material).
-        std::unique_ptr<MeshGroup> meshGroup = nullptr;
+        std::shared_ptr<MeshGroup> meshGroup = nullptr;
 
         /// The local transform of the node, updating with animation.
         glm::mat4 localTransform = glm::mat4(1.f);
@@ -33,6 +33,10 @@ namespace lava::sill {
         /// Which means that the corresponding node is (this + children[0]),
         /// because the data locality is ensured within the same mesh component.
         std::vector<int16_t> children;
+
+        /// When communicating with the meshGroup, the instance index of the mesh.
+        /// Automatically recomputed on node modifications by MeshComponent.
+        uint32_t instanceIndex = 0u;
 
         /// The parent will be set automatically by MeshComponent if the children are specified.
         /// A parent set to self (i.e. 0) means that we have no parent.

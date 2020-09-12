@@ -98,7 +98,7 @@ void ShadowsStage::record(vk::CommandBuffer commandBuffer, const Camera* camera)
         for (auto mesh : m_scene.meshes()) {
             if (!mesh->shadowsCastable()) continue;
             tracker.counter("draw-calls.shadows") += 1u;
-            mesh->aft().renderUnlit(commandBuffer, m_pipelineHolder.pipelineLayout(), MESH_PUSH_CONSTANT_OFFSET);
+            mesh->aft().renderUnlit(commandBuffer);
         }
 
         // Draw
@@ -131,8 +131,8 @@ void ShadowsStage::initPass()
     ShadersManager::ModuleOptions moduleOptions;
     moduleOptions.defines["USE_CAMERA_PUSH_CONSTANT"] = '0';
     moduleOptions.defines["USE_FLAT_PUSH_CONSTANT"] = '0';
-    moduleOptions.defines["USE_MESH_PUSH_CONSTANT"] = '1';
     moduleOptions.defines["USE_SHADOW_MAP_PUSH_CONSTANT"] = '1';
+    moduleOptions.defines["MESH_UNLIT"] = '1';
     moduleOptions.defines["SHADOWS_CASCADES_COUNT"] = std::to_string(SHADOWS_CASCADES_COUNT);
 
     vk::PipelineShaderStageCreateFlags shaderStageCreateFlags;
@@ -161,7 +161,16 @@ void ShadowsStage::initPass()
     vulkan::PipelineHolder::VertexInput vertexInput;
     vertexInput.stride = sizeof(UnlitVertex);
     vertexInput.attributes = {{vk::Format::eR32G32B32Sfloat, offsetof(UnlitVertex, pos)}};
-    m_pipelineHolder.set(vertexInput);
+    m_pipelineHolder.add(vertexInput);
+
+    //----- Instance input
+
+    vertexInput.stride = sizeof(MeshUbo);
+    vertexInput.attributes = {{vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform0)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform1)},
+                              {vk::Format::eR32G32B32A32Sfloat, offsetof(MeshUbo, transform2)}};
+    vertexInput.rate = vk::VertexInputRate::eInstance;
+    m_pipelineHolder.add(vertexInput);
 }
 
 void ShadowsStage::createResources()
