@@ -1,12 +1,12 @@
 #include "./sound-emitter-component-impl.hpp"
 
-#include "../game-engine-impl.hpp"
+#include <lava/sill/game-engine.hpp>
 
 using namespace lava::sill;
 
 SoundEmitterComponent::Impl::Impl(GameEntity& entity)
     : ComponentImpl(entity)
-    , m_audioEngine(m_entity.engine().impl().audioEngine())
+    , m_audioEngine(m_entity.engine().audioEngine())
 {
 }
 

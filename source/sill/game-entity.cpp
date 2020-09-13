@@ -3,39 +3,95 @@
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/components/physics-component.hpp>
 
-#include "./game-entity-impl.hpp"
-
 using namespace lava::sill;
+
+namespace {
+    void callParentChanged(const std::vector<GameEntity::ParentChangedCallback>& callbacks)
+    {
+        for (const auto& callback : callbacks) {
+            callback();
+        }
+    }
+}
 
 GameEntity::GameEntity(GameEngine& engine)
     : m_engine(engine)
 {
-    m_impl = new GameEntity::Impl(*this, engine);
 }
 
 GameEntity::GameEntity(GameEngine& engine, const std::string& name)
     : GameEntity(engine)
 {
-    this->name(name);
+    m_name = name;
 }
 
 GameEntity::~GameEntity()
 {
-    delete m_impl;
+    // Remove from parent if any
+    if (m_parent) {
+        m_parent->forgetChild(*this, false);
+        m_parent = nullptr;
+    }
+
+    // Forget all children
+    for (auto child : m_children) {
+        child->parent(nullptr, false);
+    }
 }
 
-// Attributes
-$pimpl_property(GameEntity, std::string, name);
+void GameEntity::update(float dt)
+{
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-// Hierarchy
-$pimpl_method(GameEntity, GameEntity*, parent);
-$pimpl_method_const(GameEntity, const GameEntity*, parent);
-$pimpl_method(GameEntity, void, parent, GameEntity&, parent, bool, updateParent);
-$pimpl_method(GameEntity, void, parent, GameEntity*, parent, bool, updateParent);
-$pimpl_method(GameEntity, void, addChild, GameEntity&, child, bool, updateChild);
-$pimpl_method_const(GameEntity, const std::vector<GameEntity*>&, children);
+    componentsUpdate(dt);
+}
 
-$pimpl_method(GameEntity, void, forgetChild, GameEntity&, child, bool, updateChild);
+void GameEntity::updateFrame()
+{
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    componentsUpdateFrame();
+}
+
+// ----- Hierarchy
+
+void GameEntity::parent(GameEntity* parent, bool updateParent)
+{
+    if (m_parent == parent) return;
+
+    if (updateParent && m_parent) {
+        m_parent->forgetChild(*this, false);
+    }
+
+    m_parent = parent;
+
+    if (updateParent && m_parent) {
+        m_parent->addChild(*this, false);
+    }
+
+    callParentChanged(m_parentChangedCallbacks);
+}
+
+void GameEntity::addChild(GameEntity& child, bool updateChild)
+{
+    m_children.emplace_back(&child);
+
+    if (updateChild) {
+        child.parent(*this, false);
+    }
+}
+
+void GameEntity::forgetChild(GameEntity& child, bool updateChild)
+{
+    auto iChild = std::find(m_children.begin(), m_children.end(), &child);
+    if (iChild != m_children.end()) {
+        m_children.erase(iChild);
+    }
+
+    if (updateChild) {
+        child.parent(nullptr, false);
+    }
+}
 
 uint32_t GameEntity::childIndex(const GameEntity& child) const
 {
@@ -47,18 +103,7 @@ uint32_t GameEntity::childIndex(const GameEntity& child) const
     return -1u;
 }
 
-// Components
-$pimpl_method_const(GameEntity, bool, hasComponent, const std::string&, hrid);
-$pimpl_method(GameEntity, IComponent&, getComponent, const std::string&, hrid);
-$pimpl_method_const(GameEntity, const IComponent&, getComponent, const std::string&, hrid);
-
-void GameEntity::add(const std::string& hrid, std::unique_ptr<IComponent>&& component)
-{
-    m_impl->add(hrid, std::move(component));
-    m_componentsHrids.emplace_back(hrid);
-}
-
-$pimpl_method(GameEntity, void, removeComponent, const std::string&, hrid);
+// ----- Tools
 
 float GameEntity::distanceFrom(const Ray& ray, PickPrecision pickPrecision) const
 {

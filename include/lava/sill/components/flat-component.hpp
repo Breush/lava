@@ -4,6 +4,11 @@
 
 #include <lava/sill/flat-node.hpp>
 
+namespace lava::magma {
+    class Material;
+    using MaterialPtr = std::shared_ptr<Material>;
+}
+
 namespace lava::sill {
     class TransformComponent;
 }

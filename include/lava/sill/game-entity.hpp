@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/sill/component-holder.hpp>
 #include <lava/sill/pick-precision.hpp>
 
 #include <lava/core/ray.hpp>
@@ -7,14 +8,14 @@
 
 namespace lava::sill {
     class GameEngine;
-    class IComponent;
 }
 
 namespace lava::sill {
     /**
      * A simple game object that can have components.
      */
-    class GameEntity final {
+    // @fixme Rename GameEntity -> Entity (namespace is sufficient)
+    class GameEntity final : public ComponentHolder {
     public:
         using ParentChangedCallback = std::function<void()>;
 
@@ -24,8 +25,18 @@ namespace lava::sill {
         GameEntity(const GameEntity& entity) = delete;
         ~GameEntity();
 
+        void update(float dt);
+        void updateFrame();
+
         GameEngine& engine() { return m_engine; }
         const GameEngine& engine() const { return m_engine; }
+
+        /**
+         * @name Attributes
+         */
+        /// @{
+        const std::string& name() const { return m_name; }
+        void name(const std::string& name) { m_name = name; }
 
         /// An inactive entity will never update.
         bool active() const { return m_active && m_alive; }
@@ -33,13 +44,6 @@ namespace lava::sill {
 
         /// Called by GameEngine when an entity will be removed.
         void alive(bool alive) { m_alive = alive; }
-
-        /**
-         * @name Attributes
-         */
-        /// @{
-        const std::string& name() const;
-        void name(const std::string& name);
         /// @}
 
         /**
@@ -51,14 +55,14 @@ namespace lava::sill {
          *
          * @note Setting the parent WON'T add itself as a child on it.
          */
-        GameEntity* parent();
-        const GameEntity* parent() const;
-        void parent(GameEntity& parent, bool updateParent = true);
+        GameEntity* parent() { return m_parent; }
+        const GameEntity* parent() const { return m_parent; }
+        void parent(GameEntity& parent, bool updateParent = true) { this->parent(&parent, updateParent); }
         void parent(GameEntity* parent, bool updateParent = true);
 
         /// Sets an entity to be our child, and link us as their parent if specified.
         void addChild(GameEntity& child, bool updateChild = true);
-        const std::vector<GameEntity*>& children() const;
+        const std::vector<GameEntity*>& children() const { return m_children; }
 
         /// Forget a child of ours.
         void forgetChild(GameEntity& child, bool updateChild = true);
@@ -71,41 +75,17 @@ namespace lava::sill {
          * @name Components
          */
         /// @{
-        /// The list of all components.
-        const std::vector<std::string>& componentsHrids() const { return m_componentsHrids; }
-
-        /// Check if the specified component exists within the entity.
-        template <class ComponentClass>
-        bool has() const;
-        bool hasComponent(const std::string& hrid) const;
-
-        /// Get the specified component. Does not check if it exists.
-        template <class ComponentClass>
-        ComponentClass& get();
-        IComponent& getComponent(const std::string& hrid);
-        template <class ComponentClass>
-        const ComponentClass& get() const;
-        const IComponent& getComponent(const std::string& hrid) const;
-
         /// Create a new component on this entity. The entity handles its lifetime.
         template <class ComponentClass, class... Arguments>
         ComponentClass& make(Arguments&&... arguments);
 
-        /// Add a created component to this entity. The entity handles its lifetime.
-        void add(const std::string& hrid, std::unique_ptr<IComponent>&& component);
-
         /// Ensure this entity has the required component. If it does not, make it.
         template <class ComponentClass>
         ComponentClass& ensure();
-
-        /// Remove a previously added (or made) component.
-        template <class ComponentClass>
-        void remove();
-        void removeComponent(const std::string& hrid);
         /// @}
 
         /**
-         * @name Components
+         * @name Callbacks
          */
         /// @{
         /// Be warned whenever the parent of the entity changes.
@@ -116,19 +96,18 @@ namespace lava::sill {
         /// Returns 0.f if no intersection. Never returns a negative.
         float distanceFrom(const Ray& ray, PickPrecision pickPrecision = PickPrecision::Mesh) const;
 
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
-        const Impl& impl() const { return *m_impl; }
-
     private:
+        // References
         GameEngine& m_engine;
-        Impl* m_impl = nullptr;
 
+        // Attributes
+        std::string m_name = "<unknown>";
         bool m_alive = true;
         bool m_active = true;
 
-        std::vector<std::string> m_componentsHrids;
+        // Hierarchy
+        GameEntity* m_parent = nullptr; // Keep nullptr to be top-level.
+        std::vector<GameEntity*> m_children;
         std::vector<ParentChangedCallback> m_parentChangedCallbacks;
     };
 }
