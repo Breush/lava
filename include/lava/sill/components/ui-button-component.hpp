@@ -15,8 +15,8 @@ namespace lava::sill {
         using ClickedCallback = std::function<void()>;
 
     public:
-        UiButtonComponent(GameEntity& entity);
-        UiButtonComponent(GameEntity& entity, const std::wstring& text);
+        UiButtonComponent(Entity& entity);
+        UiButtonComponent(Entity& entity, const std::wstring& text);
 
         // IComponent
         static std::string hrid() { return "ui.button"; }

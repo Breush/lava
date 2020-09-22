@@ -1,16 +1,16 @@
 #include <lava/sill/makers/sphere-mesh.hpp>
 
-#include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/i-mesh.hpp>
 
 #include "./makers-common.hpp"
 
 using namespace lava::sill;
 using namespace lava::chamber;
 
-std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellation, float diameter, SphereMeshOptions options)
+std::function<uint32_t(IMesh&)> makers::sphereMeshMaker(uint32_t tessellation, float diameter, SphereMeshOptions options)
 {
     auto radius = diameter / 2;
-    return [tessellation, radius, options](MeshComponent& meshComponent) {
+    return [tessellation, radius, options](IMesh& iMesh) -> uint32_t {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         std::vector<glm::vec3> positions;
@@ -89,8 +89,10 @@ std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellatio
         }
 
         // Apply the geometry
-        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
-        auto& primitive = meshGroup->addPrimitive();
+        auto nodeIndex = iMesh.addNode();
+        auto& group = iMesh.nodeMakeGroup(nodeIndex);
+
+        auto& primitive = group.addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);
@@ -98,7 +100,6 @@ std::function<void(MeshComponent&)> makers::sphereMeshMaker(uint32_t tessellatio
         primitive.verticesUvs(uvs);
         primitive.indices(indices);
 
-        auto& node = meshComponent.addNode();
-        node.meshGroup = std::move(meshGroup);
+        return nodeIndex;
     };
 }

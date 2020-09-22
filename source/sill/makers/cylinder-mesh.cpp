@@ -1,6 +1,6 @@
 #include <lava/sill/makers/cylinder-mesh.hpp>
 
-#include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/i-mesh.hpp>
 
 #include "./makers-common.hpp"
 
@@ -9,11 +9,11 @@ using namespace lava;
 using namespace lava::sill;
 using namespace lava::chamber;
 
-std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellation, float diameter, float length,
-                                                              const CylinderMeshOptions& options)
+std::function<uint32_t(IMesh&)> makers::cylinderMeshMaker(uint32_t tessellation, float diameter, float length,
+                                                          const CylinderMeshOptions& options)
 {
     auto radius = diameter / 2.f;
-    return [tessellation, radius, length, options](MeshComponent& meshComponent) {
+    return [tessellation, radius, length, options](IMesh& iMesh) -> uint32_t {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         std::vector<glm::vec3> positions;
@@ -79,8 +79,10 @@ std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellat
         }
 
         // Apply the geometry
-        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
-        auto& primitive = meshGroup->addPrimitive();
+        auto nodeIndex = iMesh.addNode();
+        auto& group = iMesh.nodeMakeGroup(nodeIndex);
+
+        auto& primitive = group.addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);
@@ -88,7 +90,6 @@ std::function<void(MeshComponent&)> makers::cylinderMeshMaker(uint32_t tessellat
         primitive.verticesUvs(uvs);
         primitive.indices(indices);
 
-        auto& node = meshComponent.addNode();
-        node.meshGroup = std::move(meshGroup);
+        return nodeIndex;
     };
 }

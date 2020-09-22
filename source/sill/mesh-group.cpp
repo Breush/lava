@@ -6,7 +6,13 @@ using namespace lava;
 using namespace lava::sill;
 
 MeshGroup::MeshGroup(magma::Scene& scene)
+    : MeshGroup(scene, true)
+{
+}
+
+MeshGroup::MeshGroup(magma::Scene& scene, bool autoInstancingEnabled)
     : m_scene(scene)
+    , m_autoInstancingEnabled(autoInstancingEnabled)
 {
 }
 
@@ -21,7 +27,7 @@ MeshGroup::~MeshGroup()
 
 magma::Mesh& MeshGroup::addPrimitive()
 {
-    auto& mesh = m_scene.make<magma::Mesh>();
+    auto& mesh = m_scene.make<magma::Mesh>(m_autoInstancingEnabled ? 1u : 0u);
     m_primitives.emplace_back(&mesh);
     return mesh;
 }

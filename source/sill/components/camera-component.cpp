@@ -1,12 +1,12 @@
 #include <lava/sill/components/camera-component.hpp>
 
 #include <lava/sill/game-engine.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 using namespace lava;
 using namespace lava::sill;
 
-CameraComponent::CameraComponent(GameEntity& entity)
+CameraComponent::CameraComponent(Entity& entity)
     : IComponent(entity)
 {
     auto& engine = m_entity.engine();

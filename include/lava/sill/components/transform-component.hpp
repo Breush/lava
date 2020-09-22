@@ -8,7 +8,7 @@
 #include <string>
 
 namespace lava::sill {
-    class GameEntity;
+    class Entity;
 }
 
 namespace lava::sill {
@@ -31,7 +31,7 @@ namespace lava::sill {
         using ChangeReasonFlags = uint16_t;
 
     public:
-        TransformComponent(GameEntity& entity);
+        TransformComponent(Entity& entity);
 
         /// IComponent
         static std::string hrid() { return "transform"; }

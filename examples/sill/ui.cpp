@@ -31,7 +31,7 @@ int main(void)
             L"...", L":'(", L"...",
         };
 
-        auto& buttonEntity = engine.make<sill::GameEntity>("demo.button");
+        auto& buttonEntity = engine.make<sill::Entity>("demo.button");
         auto& buttonComponent = buttonEntity.make<sill::UiButtonComponent>(texts[0u]);
         buttonComponent.onClicked([&buttonComponent]() {
             static auto textIndex = 0u;
@@ -45,7 +45,7 @@ int main(void)
 
     // TextEntry
     {
-        auto& textEntryEntity = engine.make<sill::GameEntity>("demo.text-entry");
+        auto& textEntryEntity = engine.make<sill::Entity>("demo.text-entry");
         auto& textEntryComponent = textEntryEntity.make<sill::UiTextEntryComponent>();
         textEntryComponent.onTextChanged([](const std::wstring& text) {
             std::cout << "TextEntry: " << chamber::utf16to8(text) << std::endl;

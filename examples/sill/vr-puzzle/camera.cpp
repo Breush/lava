@@ -29,7 +29,7 @@ void setupCamera(GameState& gameState)
     input.bindAction("toggle-fps-counting", {Key::LeftControl, Key::LeftAlt, Key::F});
 
     // Make the entity
-    auto& entity = engine.make<sill::GameEntity>("camera");
+    auto& entity = engine.make<sill::Entity>("camera");
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     auto& cameraComponent = entity.make<sill::CameraComponent>();
     gameState.camera.component = &cameraComponent;
@@ -93,7 +93,7 @@ void setupCamera(GameState& gameState)
     });
 
     // Reticle in first-person camera mode
-    auto& reticleEntity = engine.make<sill::GameEntity>("reticle");
+    auto& reticleEntity = engine.make<sill::Entity>("reticle");
     auto& reticleTransformComponent = reticleEntity.make<sill::TransformComponent>();
 
     auto reticleMaterial = engine.scene().makeMaterial("reticle");

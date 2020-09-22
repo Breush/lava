@@ -12,8 +12,8 @@ namespace lava::sill {
         using TextChangedCallback = std::function<void(const std::wstring&)>;
 
     public:
-        UiTextEntryComponent(GameEntity& entity);
-        UiTextEntryComponent(GameEntity& entity, const std::wstring& text);
+        UiTextEntryComponent(Entity& entity);
+        UiTextEntryComponent(Entity& entity, const std::wstring& text);
 
         // IComponent
         static std::string hrid() { return "ui.text-entry"; }

@@ -7,7 +7,7 @@
 namespace lava::sill {
     class TextMeshComponent::Impl : public ComponentImpl {
     public:
-        Impl(GameEntity& entity);
+        Impl(Entity& entity);
 
         // IComponent
         void update(float dt);

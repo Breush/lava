@@ -18,19 +18,6 @@ using namespace lava::chamber;
 namespace {
     std::array<glm::vec3, 3u> g_axes = {glm::vec3{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
-    void setCategoryForHierarchy(sill::GameEntity* entity, RenderCategory category)
-    {
-        if (!entity) return;
-
-        if (entity->has<sill::MeshComponent>()) {
-            entity->get<sill::MeshComponent>().category(category);
-        }
-
-        for (auto& child : entity->children()) {
-            setCategoryForHierarchy(child, category);
-        }
-    }
-
     float rotationAxisOffset(GameState& gameState, const glm::vec3& origin) {
         const Ray axisRay = {.origin = origin, .direction = gameState.editor.gizmo.axis};
         float distance = intersectPlane(gameState.pickingRay, axisRay);
@@ -104,7 +91,7 @@ void onSelectionChanged(GameState& gameState)
 
         for (auto& widget : gameState.editor.ui.widgets) {
             auto kind = widget.kind();
-            auto& entity = gameState.engine->make<sill::GameEntity>("ui." + widget.id());
+            auto& entity = gameState.engine->make<sill::Entity>("ui." + widget.id());
             if (kind == UiWidgetKind::TextEntry) {
                 auto& textEntry = widget.textEntry();
                 auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(textEntry.getter()));
@@ -279,12 +266,12 @@ void setupEditor(GameState& gameState)
     input.bindAction("bind-to-pedestal", {Key::LeftAlt, Key::D});
     // @todo Make action to switch to rotation gizmo on R
 
-    auto& editorEntity = engine.make<sill::GameEntity>("editor");
+    auto& editorEntity = engine.make<sill::Entity>("editor");
     auto& editorBehavior = editorEntity.make<sill::BehaviorComponent>();
 
     // Multi rectangle
     {
-        auto& multiEntity = engine.make<sill::GameEntity>("multi");
+        auto& multiEntity = engine.make<sill::Entity>("multi");
         auto& flatComponent = multiEntity.make<sill::FlatComponent>();
         auto& flatNode = sill::makers::quadFlatMaker(1.f)(flatComponent);
         auto material = engine.scene2d().makeMaterial("selection-rectangle");
@@ -311,18 +298,18 @@ void setupEditor(GameState& gameState)
         viewport.depth = -0.5f; // On top of main scene, but below UI.
         engine.renderEngine().addView(gameState.editor.gizmo.camera->renderImage(), engine.windowRenderTarget(), viewport);
 
-        auto& gizmoEntity = engine.make<sill::GameEntity>("gizmo");
+        auto& gizmoEntity = engine.make<sill::Entity>("gizmo");
         gizmoEntity.ensure<sill::TransformComponent>().scaling(0.f);
         gameState.editor.gizmo.entity = &gizmoEntity;
 
         // --- Translation
-        auto& translationToolEntity = engine.make<sill::GameEntity>("gizmo-translation");
+        auto& translationToolEntity = engine.make<sill::Entity>("gizmo-translation");
         translationToolEntity.ensure<sill::TransformComponent>();
         gizmoEntity.addChild(translationToolEntity);
         gameState.editor.gizmo.translationToolEntity = &translationToolEntity;
 
         for (const auto& axis : g_axes) {
-            auto& axisEntity = engine.make<sill::GameEntity>("gizmo-translation-axis");
+            auto& axisEntity = engine.make<sill::Entity>("gizmo-translation-axis");
             auto axisMaterial = engine.scene(sceneIndex).makeMaterial("gizmo");
             axisMaterial->set("color", axis);
 
@@ -339,35 +326,35 @@ void setupEditor(GameState& gameState)
         }
 
         // --- Rotation
-        auto& rotationToolEntity = engine.make<sill::GameEntity>("gizmo-rotation");
+        auto& rotationToolEntity = engine.make<sill::Entity>("gizmo-rotation");
         rotationToolEntity.ensure<sill::TransformComponent>();
         gizmoEntity.addChild(rotationToolEntity);
         gameState.editor.gizmo.rotationToolEntity = &rotationToolEntity;
 
         for (const auto& axis : g_axes) {
-            auto& axisEntity = engine.make<sill::GameEntity>("gizmo-rotation-axis");
+            auto& axisEntity = engine.make<sill::Entity>("gizmo-rotation-axis");
             auto axisMaterial = engine.scene(sceneIndex).makeMaterial("gizmo");
             axisMaterial->set("color", axis);
 
             auto& axisMeshComponent = axisEntity.make<sill::MeshComponent>(sceneIndex);
-            auto transform = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
-            transform = glm::rotate(transform, math::PI_OVER_TWO, axis);
-            sill::makers::toreMeshMaker(32u, 1.f, 4u, 0.02f)(axisMeshComponent);
-            axisMeshComponent.node(0).localTransform = transform; // @todo Have a generic way to bake transform to vertices
-            axisMeshComponent.primitive(0, 0).material(axisMaterial);
-            axisMeshComponent.primitive(0, 0).shadowsCastable(false);
+            auto matrix = glm::rotate(glm::mat4(1.f), math::PI_OVER_TWO, {0, 0, 1});
+            matrix = glm::rotate(matrix, math::PI_OVER_TWO, axis);
+            auto nodeIndex = sill::makers::toreMeshMaker(32u, 1.f, 4u, 0.02f)(axisMeshComponent);
+            axisMeshComponent.nodeMatrix(nodeIndex, matrix); // @todo Have a generic way to bake matrix to vertices
+            axisMeshComponent.primitive(nodeIndex, 0).material(axisMaterial);
+            axisMeshComponent.primitive(nodeIndex, 0).shadowsCastable(false);
 
             rotationToolEntity.addChild(axisEntity);
         }
 
         // --- Scaling
-        auto& scalingToolEntity = engine.make<sill::GameEntity>("gizmo-scaling");
+        auto& scalingToolEntity = engine.make<sill::Entity>("gizmo-scaling");
         scalingToolEntity.ensure<sill::TransformComponent>();
         gizmoEntity.addChild(scalingToolEntity);
         gameState.editor.gizmo.scalingToolEntity = &scalingToolEntity;
 
         for (const auto& axis : g_axes) {
-            auto& axisEntity = engine.make<sill::GameEntity>("gizmo-scaling-axis");
+            auto& axisEntity = engine.make<sill::Entity>("gizmo-scaling-axis");
             auto axisMaterial = engine.scene(sceneIndex).makeMaterial("gizmo");
             axisMaterial->set("color", axis);
 
@@ -416,7 +403,7 @@ void setupEditor(GameState& gameState)
             // ----- Gizmos
 
             float minToolAxisDistance = INFINITY;
-            sill::GameEntity* selectedToolAxis = nullptr;
+            sill::Entity* selectedToolAxis = nullptr;
             for (auto toolAxis : gameState.editor.gizmo.toolEntity->children()) {
                 float toolAxisDistance = toolAxis->distanceFrom(gameState.pickingRay);
                 if (toolAxisDistance <= 0.f) continue;

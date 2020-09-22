@@ -5,7 +5,7 @@
 namespace lava::sill {
     class SoundEmitterComponent final : public IComponent {
     public:
-        SoundEmitterComponent(GameEntity& entity);
+        SoundEmitterComponent(Entity& entity);
         ~SoundEmitterComponent();
 
         // IComponent

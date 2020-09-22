@@ -221,7 +221,7 @@ namespace {
 
 void setupGameLogic(GameState& gameState)
 {
-    auto& entity = gameState.engine->make<sill::GameEntity>("game-logic");
+    auto& entity = gameState.engine->make<sill::Entity>("game-logic");
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     behaviorComponent.onUpdate([&](float /* dt */) {
         if (gameState.engine->vr().enabled()) {

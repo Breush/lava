@@ -4,7 +4,7 @@
 #include <lava/core/extent.hpp>
 
 namespace lava::sill {
-    class MeshComponent;
+    class IMesh;
 }
 
 namespace lava::sill::makers {
@@ -14,7 +14,7 @@ namespace lava::sill::makers {
         bool rootNodeHasGeometry = true; // Whether to store the geometry of the plane directly on the root, or as a child.
     };
 
-    std::function<void(MeshComponent&)> planeMeshMaker(float sidesLength, PlaneMeshOptions options = PlaneMeshOptions());
-    std::function<void(MeshComponent&)> planeMeshMaker(const glm::vec2& dimensions,
-                                                       PlaneMeshOptions options = PlaneMeshOptions());
+    std::function<uint32_t(IMesh&)> planeMeshMaker(float sidesLength, PlaneMeshOptions options = PlaneMeshOptions());
+    std::function<uint32_t(IMesh&)> planeMeshMaker(const glm::vec2& dimensions,
+                                                   PlaneMeshOptions options = PlaneMeshOptions());
 }

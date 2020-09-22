@@ -111,5 +111,5 @@ private:
     uint32_t m_bricksMeshNodeIndex = -1u;
 };
 
-Brick* findBrick(GameState& gameState, const lava::sill::GameEntity& entity);
-uint32_t findBrickIndex(GameState& gameState, const lava::sill::GameEntity& entity);
+Brick* findBrick(GameState& gameState, const lava::sill::Entity& entity);
+uint32_t findBrickIndex(GameState& gameState, const lava::sill::Entity& entity);

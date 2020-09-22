@@ -42,8 +42,8 @@ public:
 
     std::string id() const { return m_id; }
     UiWidgetKind kind() const { return m_kind; }
-    lava::sill::GameEntity* entity() const { return m_entity; }
-    void entity(lava::sill::GameEntity* entity) { m_entity = entity; }
+    lava::sill::Entity* entity() const { return m_entity; }
+    void entity(lava::sill::Entity* entity) { m_entity = entity; }
 
     const TextEntryInfo& textEntry() const { return m_textEntry; }
     const ToggleButtonInfo& toggleButton() const { return m_toggleButton; }
@@ -51,7 +51,7 @@ public:
 private:
     std::string m_id;
     UiWidgetKind m_kind = UiWidgetKind::Unknown;
-    lava::sill::GameEntity* m_entity = nullptr;
+    lava::sill::Entity* m_entity = nullptr;
 
     // @note Can't union those easily, none trivial destructors.
     TextEntryInfo m_textEntry;

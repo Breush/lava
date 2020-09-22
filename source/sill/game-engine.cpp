@@ -2,14 +2,15 @@
 
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/components/transform-component.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
+#include <lava/sill/entity-frame.hpp>
 #include <lava/sill/makers.hpp>
 
 using namespace lava::sill;
 using namespace lava::chamber;
 
 namespace {
-    static GameEntity* g_debugEntityPickingEntity = nullptr;
+    static Entity* g_debugEntityPickingEntity = nullptr;
 }
 
 GameEngine::GameEngine()
@@ -150,7 +151,7 @@ uint8_t GameEngine::addScene()
 
 // ----- Adders
 
-void GameEngine::add(std::unique_ptr<GameEntity>&& entity)
+void GameEngine::add(std::unique_ptr<Entity>&& entity)
 {
     logger.info("sill.game-engine").tab(1) << "Adding entity " << entity.get() << " '" << entity->name() << "'." << std::endl;
 
@@ -160,17 +161,33 @@ void GameEngine::add(std::unique_ptr<GameEntity>&& entity)
     logger.log().tab(-1);
 }
 
-void GameEngine::remove(GameEntity& entity)
+void GameEngine::add(std::unique_ptr<EntityFrame>&& entityFrame)
+{
+    // @note A priori, we don't need a pending added list,
+    // as we do not iterate over entityFrames, just store them.
+    m_entityFrames.emplace_back(std::move(entityFrame));
+}
+
+void GameEngine::remove(Entity& entity)
 {
     logger.info("sill.game-engine").tab(1) << "Removing entity " << &entity << " '" << entity.name() << "'." << std::endl;
 
     auto entityIt = std::find(m_allEntities.begin(), m_allEntities.end(), &entity);
     m_allEntities.erase(entityIt);
-    entity.alive(false);
+    entity.warnRemoved();
 
     m_pendingRemovedEntities.emplace_back(&entity);
 
     logger.log().tab(-1);
+}
+
+void GameEngine::remove(EntityFrame& entityFrame)
+{
+    auto entityFrameIt = std::find_if(m_entityFrames.begin(), m_entityFrames.end(), [&entityFrame](const std::unique_ptr<EntityFrame>& entityFramePtr) {
+        return entityFramePtr.get() == &entityFrame;
+    });
+    m_entityFrames.erase(entityFrameIt);
+    entityFrame.warnRemoved();
 }
 
 // ----- Materials
@@ -205,9 +222,9 @@ void GameEngine::removeOnWindowExtentChanged(uint32_t id) {
 
 // ----- Tools
 
-GameEntity* GameEngine::pickEntity(const Ray& ray, PickPrecision pickPrecision, float* distance) const
+Entity* GameEngine::pickEntity(const Ray& ray, PickPrecision pickPrecision, float* distance) const
 {
-    GameEntity* pickedEntity = nullptr;
+    Entity* pickedEntity = nullptr;
 
     float minDistance = INFINITY;
     for (const auto& entity : m_entities) {
@@ -242,7 +259,7 @@ void GameEngine::debugEntityPicking(bool debugEntityPicking)
     m_debugEntityPicking = debugEntityPicking;
 
     if (m_debugEntityPicking) {
-        g_debugEntityPickingEntity = &make<GameEntity>("debug.entity-picking");
+        g_debugEntityPickingEntity = &make<Entity>("debug.entity-picking");
         makers::sphereMeshMaker(32u, 0.05f)(g_debugEntityPickingEntity->ensure<MeshComponent>());
         g_debugEntityPickingEntity->get<TransformComponent>().scaling(0.f);
     }
@@ -252,7 +269,7 @@ void GameEngine::debugEntityPicking(bool debugEntityPicking)
     }
 }
 
-GameEntity* GameEngine::findEntityByName(const std::string& name) const
+Entity* GameEngine::findEntityByName(const std::string& name) const
 {
     for (auto entity : m_allEntities) {
         if (entity->name() == name) {

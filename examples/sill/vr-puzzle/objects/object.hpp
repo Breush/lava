@@ -55,9 +55,9 @@ public:
     const std::string& name() const { return m_name; }
     void name(const std::string& name) { m_name = name; }
 
-    const lava::sill::GameEntity& entity() const { return *m_entity; }
-    lava::sill::GameEntity& entity() { return *m_entity; }
-    void entity(lava::sill::GameEntity& entity) { m_entity = &entity; }
+    const lava::sill::Entity& entity() const { return *m_entity; }
+    lava::sill::Entity& entity() { return *m_entity; }
+    void entity(lava::sill::Entity& entity) { m_entity = &entity; }
 
     const lava::sill::AnimationComponent& animation() const { return m_entity->get<lava::sill::AnimationComponent>(); };
     lava::sill::AnimationComponent& animation() { return m_entity->get<lava::sill::AnimationComponent>(); };
@@ -68,11 +68,11 @@ public:
 
 protected:
     GameState& m_gameState;
-    lava::sill::GameEntity* m_entity = nullptr;
+    lava::sill::Entity* m_entity = nullptr;
 
     std::string m_kind;
     std::string m_name;
 };
 
-Object* findObject(GameState& gameState, const lava::sill::GameEntity* entity);
-Object* findObject(GameState& gameState, const lava::sill::GameEntity& entity);
+Object* findObject(GameState& gameState, const lava::sill::Entity* entity);
+Object* findObject(GameState& gameState, const lava::sill::Entity& entity);

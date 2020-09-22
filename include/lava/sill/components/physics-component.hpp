@@ -23,7 +23,7 @@ namespace lava::sill {
      */
     class PhysicsComponent final : public IComponent {
     public:
-        PhysicsComponent(GameEntity& entity);
+        PhysicsComponent(Entity& entity);
         ~PhysicsComponent();
 
         dike::RigidBody& rigidBody() { return *m_rigidBody; }

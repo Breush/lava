@@ -25,17 +25,17 @@ Panel::Panel(GameState& gameState)
     auto& meshComponent = m_entity->make<sill::MeshComponent>();
     sill::makers::PlaneMeshOptions options;
     options.rootNodeHasGeometry = false;
-    sill::makers::planeMeshMaker({blockExtent.x, blockExtent.y}, options)(meshComponent);
+    auto rootNodeIndex = sill::makers::planeMeshMaker({blockExtent.x, blockExtent.y}, options)(meshComponent);
     m_material = engine.scene().makeMaterial("panel");
     meshComponent.primitive(1, 0).material(m_material);
 
     // Create border
-    auto& meshNode = meshComponent.addNode();
-    meshNode.name = "border";
-    meshNode.meshGroup = std::make_unique<sill::MeshGroup>(meshComponent.scene());
-    meshComponent.node(0).children.emplace_back(2);
+    auto nodeIndex = meshComponent.addNode();
+    meshComponent.nodeName(nodeIndex, "border");
+    auto& group = meshComponent.nodeMakeGroup(nodeIndex);
+    meshComponent.nodeAddAbsoluteChild(rootNodeIndex, nodeIndex);
     m_borderMaterial = engine.scene().makeMaterial("roughness-metallic");
-    meshNode.meshGroup->addPrimitive().material(m_borderMaterial);
+    group.addPrimitive().material(m_borderMaterial);
 
     m_entity->ensure<sill::AnimationComponent>();
     m_entity->ensure<sill::TransformComponent>().onWorldTransformChanged([this] { updateSnappingPoints(); });
@@ -101,8 +101,7 @@ void Panel::extent(const glm::uvec2& extent)
 {
     m_extent = extent;
     m_material->set("extent", extent);
-    m_entity->get<sill::MeshComponent>().node(1).transform(glm::scale(glm::mat4(1.f), {m_extent.x, m_extent.y, 1}));
-    m_entity->get<sill::MeshComponent>().dirtifyNodesTransforms();
+    m_entity->get<sill::MeshComponent>().nodeMatrix(1, glm::scale(glm::mat4(1.f), {m_extent.x, m_extent.y, 1}));
 
     updateBorderMeshPrimitive();
 
@@ -372,7 +371,7 @@ Panel* findPanelByName(GameState& gameState, const std::string& name)
     return nullptr;
 }
 
-Panel* findPanel(GameState& gameState, const sill::GameEntity& entity)
+Panel* findPanel(GameState& gameState, const sill::Entity& entity)
 {
     for (auto panel : gameState.level.panels) {
         if (&panel->entity() == &entity) {
@@ -383,7 +382,7 @@ Panel* findPanel(GameState& gameState, const sill::GameEntity& entity)
     return nullptr;
 }
 
-uint32_t findPanelIndex(GameState& gameState, const sill::GameEntity& entity)
+uint32_t findPanelIndex(GameState& gameState, const sill::Entity& entity)
 {
     for (auto i = 0u; i < gameState.level.panels.size(); ++i) {
         auto panel = gameState.level.panels[i];

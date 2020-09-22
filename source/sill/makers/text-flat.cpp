@@ -3,7 +3,7 @@
 #include <lava/chamber/string-tools.hpp>
 #include <lava/magma/flat.hpp>
 #include <lava/sill/components/flat-component.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 #include <lava/sill/game-engine.hpp>
 
 #include "./makers-common.hpp"

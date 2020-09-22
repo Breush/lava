@@ -3,7 +3,7 @@
 #include <functional>
 
 namespace lava::sill {
-    class MeshComponent;
+    class IMesh;
 }
 
 namespace lava::sill {
@@ -24,6 +24,6 @@ namespace lava::sill::makers {
         SphereCoordinatesSystem coordinatesSystem = SphereCoordinatesSystem::Unknown;
     };
 
-    std::function<void(MeshComponent&)> sphereMeshMaker(uint32_t tessellation, float diameter,
-                                                        SphereMeshOptions options = SphereMeshOptions());
+    std::function<uint32_t(IMesh&)> sphereMeshMaker(uint32_t tessellation, float diameter,
+                                                    SphereMeshOptions options = SphereMeshOptions());
 }

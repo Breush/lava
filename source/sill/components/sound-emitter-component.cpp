@@ -4,7 +4,7 @@
 
 using namespace lava::sill;
 
-$pimpl_class_base(SoundEmitterComponent, IComponent, GameEntity&, entity);
+$pimpl_class_base(SoundEmitterComponent, IComponent, Entity&, entity);
 
 // SoundEmitterComponent
 void SoundEmitterComponent::add(const std::string& hrid, const std::string& path)

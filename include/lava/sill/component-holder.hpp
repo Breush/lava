@@ -1,15 +1,13 @@
 #pragma once
 
 namespace lava::sill {
-    class IComponent;
-}
-
-namespace lava::sill {
+    template <class IComponentClass>
     class ComponentHolder {
     public:
-        // Forwarded to components.
-        void componentsUpdate(float dt);
-        void componentsUpdateFrame();
+        ComponentHolder(bool pendingAddingEnabled = true)
+            : m_pendingAddingEnabled(pendingAddingEnabled)
+        {
+        }
 
         /**
          * @name Components
@@ -26,13 +24,13 @@ namespace lava::sill {
         /// Get the specified component. Does not check if it exists.
         template <class ComponentClass>
         ComponentClass& get();
-        IComponent& getComponent(const std::string& hrid);
+        IComponentClass& getComponent(const std::string& hrid);
         template <class ComponentClass>
         const ComponentClass& get() const;
-        const IComponent& getComponent(const std::string& hrid) const;
+        const IComponentClass& getComponent(const std::string& hrid) const;
 
         /// Add a created component to this holder. The holder handles its lifetime.
-        void add(const std::string& hrid, std::unique_ptr<IComponent>&& component);
+        void add(const std::string& hrid, std::unique_ptr<IComponentClass>&& component);
 
         /// Remove a previously added (or made) component.
         template <class ComponentClass>
@@ -41,9 +39,15 @@ namespace lava::sill {
         /// @}
 
     protected:
+        void addPendingComponents();
+
+    protected:
         std::vector<std::string> m_componentsHrids;
-        std::unordered_map<std::string, std::unique_ptr<IComponent>> m_components;
-        std::unordered_map<std::string, std::unique_ptr<IComponent>> m_pendingAddedComponents;
+        std::unordered_map<std::string, std::unique_ptr<IComponentClass>> m_components;
+        std::unordered_map<std::string, std::unique_ptr<IComponentClass>> m_pendingAddedComponents;
+
+    private:
+        bool m_pendingAddingEnabled = true;
     };
 }
 

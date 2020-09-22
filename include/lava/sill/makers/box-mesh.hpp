@@ -4,7 +4,7 @@
 #include <lava/core/extent.hpp>
 
 namespace lava::sill {
-    class MeshComponent;
+    class IMesh;
 }
 
 namespace lava::sill {
@@ -33,6 +33,6 @@ namespace lava::sill::makers {
         glm::vec3 offset = {0.f, 0.f, 0.f};
     };
 
-    std::function<void(MeshComponent&)> boxMeshMaker(float sidesLength, const BoxMeshOptions& options = BoxMeshOptions());
-    std::function<void(MeshComponent&)> boxMeshMaker(const glm::vec3& extent, const BoxMeshOptions& options = BoxMeshOptions());
+    std::function<uint32_t(IMesh&)> boxMeshMaker(float sidesLength, const BoxMeshOptions& options = BoxMeshOptions());
+    std::function<uint32_t(IMesh&)> boxMeshMaker(const glm::vec3& extent, const BoxMeshOptions& options = BoxMeshOptions());
 }

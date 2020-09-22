@@ -13,7 +13,7 @@ int main(void)
 
     // Ground
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::planeMeshMaker({10, 10})(meshComponent);
         entity.make<sill::ColliderComponent>();
@@ -23,13 +23,13 @@ int main(void)
 
     // Generator entity
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
         behaviorComponent.onUpdate([&engine](float /* dt */) {
             // Generate a sphere on each frame that right click is maintained
             if (engine.input().down("right-fire")) {
                 auto sphereDiameter = (2 + rand() % 20) / 40.f;
-                auto& entity = engine.make<sill::GameEntity>();
+                auto& entity = engine.make<sill::Entity>();
                 auto& meshComponent = entity.make<sill::MeshComponent>();
                 sill::makers::sphereMeshMaker(32u, sphereDiameter)(meshComponent);
                 auto xOffset = (rand() % 100) / 500.f;

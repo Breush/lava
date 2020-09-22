@@ -7,7 +7,7 @@ using namespace lava;
 Pedestal::Pedestal(GameState& gameState)
     : Object(gameState)
 {
-    m_bricksRoot = &gameState.engine->make<sill::GameEntity>("pedestal.bricks-root");
+    m_bricksRoot = &gameState.engine->make<sill::Entity>("pedestal.bricks-root");
     m_bricksRoot->make<sill::AnimationComponent>();
     m_bricksRoot->ensure<sill::TransformComponent>().scaling(0.f);
     m_bricksRoot->get<sill::TransformComponent>().translation({0.f, 0.f, 0.75f});
@@ -43,7 +43,7 @@ void Pedestal::unserialize(const nlohmann::json& data)
     m_brickInfos.clear();
     for (auto& brick : data["bricks"]) {
         auto& brickInfo = m_brickInfos.emplace_back(BrickInfo{.unconsolidatedBrickId = brick});
-        brickInfo.arm = &m_gameState.engine->make<sill::GameEntity>("pedestal.bricks-root.arm");
+        brickInfo.arm = &m_gameState.engine->make<sill::Entity>("pedestal.bricks-root.arm");
         brickInfo.arm->ensure<sill::TransformComponent>();
         brickInfo.arm->parent(m_bricksRoot);
     }
@@ -133,7 +133,7 @@ void Pedestal::addBrick(Brick& brick)
     if (brickInfoIt == m_brickInfos.end()) {
         BrickInfo brickInfo;
         brickInfo.brick = &brick;
-        brickInfo.arm = &m_gameState.engine->make<sill::GameEntity>("pedestal.bricks-root.arm");
+        brickInfo.arm = &m_gameState.engine->make<sill::Entity>("pedestal.bricks-root.arm");
         brickInfo.arm->ensure<sill::TransformComponent>();
         brickInfo.arm->parent(m_bricksRoot);
         m_brickInfos.emplace_back(brickInfo);

@@ -1,6 +1,6 @@
 #include <lava/sill/makers/tore-mesh.hpp>
 
-#include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/i-mesh.hpp>
 
 #include "./makers-common.hpp"
 
@@ -9,12 +9,12 @@ using namespace lava;
 using namespace lava::sill;
 using namespace lava::chamber;
 
-std::function<void(MeshComponent&)> makers::toreMeshMaker(uint32_t bigTessellation, float bigDiameter,
-                                                          uint32_t smallTessellation, float smallDiameter)
+std::function<uint32_t(IMesh&)> makers::toreMeshMaker(uint32_t bigTessellation, float bigDiameter,
+                                                      uint32_t smallTessellation, float smallDiameter)
 {
     auto bigRadius = bigDiameter / 2.f;
     auto smallRadius = smallDiameter / 2.f;
-    return [bigTessellation, bigRadius, smallTessellation, smallRadius](MeshComponent& meshComponent) {
+    return [bigTessellation, bigRadius, smallTessellation, smallRadius](IMesh& iMesh) -> uint32_t {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         std::vector<glm::vec3> positions;
@@ -65,8 +65,10 @@ std::function<void(MeshComponent&)> makers::toreMeshMaker(uint32_t bigTessellati
         }
 
         // Apply the geometry
-        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
-        auto& primitive = meshGroup->addPrimitive();
+        auto nodeIndex = iMesh.addNode();
+        auto& group = iMesh.nodeMakeGroup(nodeIndex);
+
+        auto& primitive = group.addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);
@@ -74,7 +76,6 @@ std::function<void(MeshComponent&)> makers::toreMeshMaker(uint32_t bigTessellati
         // @todo UVs
         primitive.indices(indices);
 
-        auto& node = meshComponent.addNode();
-        node.meshGroup = std::move(meshGroup);
+        return nodeIndex;
     };
 }

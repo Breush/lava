@@ -20,12 +20,12 @@ namespace lava::magma {
 namespace lava::magma {
     /**
      * A mesh, holding geometry and transform.
-     * 
+     *
      * The ubos vector contains info about all instances.
      */
     class Mesh {
     public:
-        Mesh(Scene& scene);
+        Mesh(Scene& scene, uint32_t instancesCount);
         ~Mesh();
 
         $aft_class(Mesh);
@@ -34,7 +34,7 @@ namespace lava::magma {
         const Scene& scene() const { return m_scene; }
 
         /// Whether the mesh should be rendered.
-        bool enabled() const { return m_enabled; }
+        bool enabled() const { return m_enabled && (m_ubos.size() > 0u); }
         void enabled(bool enabled) { m_enabled = enabled; }
 
         /**
@@ -70,7 +70,7 @@ namespace lava::magma {
         /// @{
         /// World-space bounding sphere, which might be slightly overestimated.
         /// This englobes all instances.
-        const BoundingSphere& boundingSphere() { 
+        const BoundingSphere& boundingSphere() {
             if (m_boundingSphereDirty) {
                 updateBoundingSphere();
             }
@@ -86,6 +86,8 @@ namespace lava::magma {
         uint32_t instancesCount() const { return m_ubos.size(); }
         /// The mesh will be rendered once more. Set individual matrices thanks to instanceIndex.
         uint32_t addInstance();
+        /// Remove the last instance. Reduces the instance count by one.
+        void removeInstance();
         /// Warn in advance how many instances the mesh will have.
         void reserveInstancesCount(uint32_t instancesCount);
         /// @}
@@ -131,8 +133,8 @@ namespace lava::magma {
         void shadowsCastable(bool shadowsCastable) { m_shadowsCastable = shadowsCastable; }
 
         /// Decides how to render the mesh.
-        RenderCategory category() { return m_category; }
-        void category(RenderCategory category) { m_category = category; }
+        RenderCategory renderCategory() const { return m_renderCategory; }
+        void renderCategory(RenderCategory renderCategory) { m_renderCategory = renderCategory; }
 
         /// Whether the mesh should be rendered if the render target is a VR one.
         bool vrRenderable() const { return m_vrRenderable; }
@@ -176,7 +178,7 @@ namespace lava::magma {
         bool m_enabled = true;
 
         // ----- Transform
-        std::vector<TransformInfo> m_transformsInfos{1u};
+        std::vector<TransformInfo> m_transformsInfos;
 
         // ----- Bounding sphere
         BoundingSphere m_boundingSphereGeometry;
@@ -193,13 +195,13 @@ namespace lava::magma {
 
         // ----- Material
         MaterialPtr m_material = nullptr;
-        RenderCategory m_category = RenderCategory::Opaque;
+        RenderCategory m_renderCategory = RenderCategory::Opaque;
         bool m_translucent = false;
         bool m_shadowsCastable = true;
         bool m_vrRenderable = true;
 
         // ----- Shader data
-        std::vector<MeshUbo> m_ubos{1u};
+        std::vector<MeshUbo> m_ubos;
 
         // ----- Debug
         bool m_debugBoundingSphere = false;

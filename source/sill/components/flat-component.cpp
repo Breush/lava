@@ -1,13 +1,13 @@
 #include <lava/sill/components/flat-component.hpp>
 
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 #include <lava/sill/game-engine.hpp>
 #include <lava/sill/components/transform-component.hpp>
 
 using namespace lava;
 using namespace lava::sill;
 
-FlatComponent::FlatComponent(GameEntity& entity)
+FlatComponent::FlatComponent(Entity& entity)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<sill::TransformComponent>())
 {

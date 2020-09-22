@@ -2,7 +2,7 @@
 
 namespace lava::sill {
     template <class ComponentClass, class... Arguments>
-    inline ComponentClass& GameEntity::make(Arguments&&... arguments)
+    inline ComponentClass& Entity::make(Arguments&&... arguments)
     {
         auto pComponent = std::make_unique<ComponentClass>(*this, std::forward<Arguments>(arguments)...);
         auto& component = *pComponent;
@@ -11,7 +11,7 @@ namespace lava::sill {
     }
 
     template <class ComponentClass>
-    inline ComponentClass& GameEntity::ensure()
+    inline ComponentClass& Entity::ensure()
     {
         if (!has<ComponentClass>()) {
             return make<ComponentClass>();

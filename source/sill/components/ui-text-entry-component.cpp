@@ -3,18 +3,18 @@
 #include <lava/sill/components/flat-component.hpp>
 #include <lava/sill/components/transform-component.hpp>
 #include <lava/sill/game-engine.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 #include <lava/sill/makers/quad-flat.hpp>
 #include <lava/sill/makers/text-flat.hpp>
 
 using namespace lava::sill;
 
-UiTextEntryComponent::UiTextEntryComponent(GameEntity& entity)
+UiTextEntryComponent::UiTextEntryComponent(Entity& entity)
     : UiTextEntryComponent(entity, std::wstring())
 {
 }
 
-UiTextEntryComponent::UiTextEntryComponent(GameEntity& entity, const std::wstring& text)
+UiTextEntryComponent::UiTextEntryComponent(Entity& entity, const std::wstring& text)
     : IUiComponent(entity)
     , m_flatComponent(entity.ensure<FlatComponent>())
     , m_text(text)

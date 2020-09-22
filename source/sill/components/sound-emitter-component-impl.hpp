@@ -7,7 +7,7 @@
 namespace lava::sill {
     class SoundEmitterComponent::Impl final : public ComponentImpl {
     public:
-        Impl(GameEntity& entity);
+        Impl(Entity& entity);
 
         // SoundEmitterComponent
         void add(const std::string& hrid, const std::string& path);

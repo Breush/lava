@@ -18,7 +18,7 @@ namespace lava::sill {
      */
     class AnimationComponent final : public IComponent {
     public:
-        AnimationComponent(GameEntity& entity);
+        AnimationComponent(Entity& entity);
 
         // IComponent
         static std::string hrid() { return "animation"; }

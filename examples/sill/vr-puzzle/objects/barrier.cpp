@@ -213,8 +213,8 @@ void Barrier::updateFromControlPoints()
         controlPoint.position.z -= distanceToTerrain(m_gameState, ray, nullptr);
 
         // Cube is placed at the controls points
-        sill::makers::boxMeshMaker(0.125f)(meshComponent);
-        meshComponent.nodes().back().transform(glm::translate(glm::mat4(1.f), controlPoint.position));
+        auto nodeIndex = sill::makers::boxMeshMaker(0.125f)(meshComponent);
+        meshComponent.nodeMatrix(nodeIndex, glm::translate(glm::mat4(1.f), controlPoint.position));
     }
 
     m_panes.clear();
@@ -255,17 +255,15 @@ void Barrier::updateFromControlPoints()
         positions[2u] = pane.p1.position + glm::vec3{0.f, 0.f, paneHeight};
         positions[3u] = pane.p0.position + glm::vec3{0.f, 0.f, paneHeight};
 
-        auto meshGroup = std::make_unique<sill::MeshGroup>(meshComponent.scene());
-        auto& primitive = meshGroup->addPrimitive();
+        auto nodeIndex = meshComponent.addNode();
+        auto& group = meshComponent.nodeMakeGroup(nodeIndex);
+        auto& primitive = group.addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesUvs(uvs);
         primitive.indices(indices);
         primitive.material(m_panesMaterial);
-        primitive.category(RenderCategory::Translucent);
-
-        auto& node = meshComponent.addNode();
-        node.meshGroup = std::move(meshGroup);
+        primitive.renderCategory(RenderCategory::Translucent);
     }
 }
 
@@ -282,7 +280,7 @@ Barrier* findBarrierByName(GameState& gameState, const std::string& name)
     return nullptr;
 }
 
-Barrier* findBarrier(GameState& gameState, const sill::GameEntity& entity)
+Barrier* findBarrier(GameState& gameState, const sill::Entity& entity)
 {
     for (auto barrier : gameState.level.barriers) {
         if (&barrier->entity() == &entity) {
@@ -293,7 +291,7 @@ Barrier* findBarrier(GameState& gameState, const sill::GameEntity& entity)
     return nullptr;
 }
 
-uint32_t findBarrierIndex(GameState& gameState, const sill::GameEntity& entity)
+uint32_t findBarrierIndex(GameState& gameState, const sill::Entity& entity)
 {
     for (uint32_t i = 0u; i < gameState.level.barriers.size(); ++i) {
         auto barrier = gameState.level.barriers[i];

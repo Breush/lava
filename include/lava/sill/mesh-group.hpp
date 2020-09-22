@@ -15,6 +15,7 @@ namespace lava::sill {
     class MeshGroup {
     public:
         MeshGroup(magma::Scene& scene);
+        MeshGroup(magma::Scene& scene, bool autoInstancingEnabled);
         ~MeshGroup();
 
         // User info
@@ -39,5 +40,6 @@ namespace lava::sill {
         // Resources
         std::string m_name;
         std::vector<magma::Mesh*> m_primitives;
+        bool m_autoInstancingEnabled = true;
     };
 }

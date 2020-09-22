@@ -3,10 +3,10 @@
 #include <functional>
 
 namespace lava::sill {
-    class MeshComponent;
+    class IMesh;
     struct MeshNode;
 }
 
 namespace lava::sill::makers {
-    std::function<MeshNode&(MeshComponent&)> glbMeshMaker(const std::string& fileName);
+    std::function<uint32_t(IMesh&)> glbMeshMaker(const std::string& fileName);
 }

@@ -2,74 +2,19 @@
 
 #include <lava/chamber/interpolation-tools.hpp>
 #include <lava/sill/components/transform-component.hpp>
-#include <lava/sill/game-entity.hpp>
 #include <lava/sill/game-engine.hpp>
+#include <lava/sill/entity.hpp>
 
 using namespace lava;
 using namespace lava::chamber;
 using namespace lava::sill;
 
-namespace {
-    void updateNodeTransforms(MeshNode& node, const glm::mat4& entityTransform, const glm::mat4& parentPlainLocalTransform)
-    {
-        node.plainLocalTransform = parentPlainLocalTransform * node.localTransform;
-
-        if (node.meshGroup) {
-            node.meshGroup->transform(entityTransform * node.plainLocalTransform, node.instanceIndex);
-        }
-
-        for (auto childIndex : node.children) {
-            auto& childNode = *(&node + childIndex);
-            updateNodeTransforms(childNode, entityTransform, node.plainLocalTransform);
-        }
-    }
-
-    void updateInstanceIndices(MeshNode& node, std::unordered_map<MeshGroup*, uint32_t>& meshGroupsCountMap)
-    {
-        node.instanceIndex = 0u;
-
-        if (node.meshGroup) {
-            auto meshGroupCountIt = meshGroupsCountMap.find(node.meshGroup.get());
-            if (meshGroupCountIt == meshGroupsCountMap.end()) {
-                meshGroupsCountMap.emplace(node.meshGroup.get(), 1u);
-            }
-            else {
-                node.instanceIndex = meshGroupCountIt->second;
-                meshGroupCountIt->second += 1u;
-            }
-        }
-
-        for (auto childIndex : node.children) {
-            auto& childNode = *(&node + childIndex);
-            updateInstanceIndices(childNode, meshGroupsCountMap);
-        }
-    }
-
-    void printNodeHierarchy(const MeshNode& node, std::ostream& s, uint32_t tabs)
-    {
-        for (auto i = 0u; i < tabs; ++i) {
-            s << "    ";
-        }
-
-        s << "[MeshNode] " << node.name;
-        if (node.meshGroup) {
-            s << " (mesh [instance " << node.instanceIndex << "] - [" << node.meshGroup->primitives().size() << " primitives])";
-        }
-        s << std::endl;
-
-        for (auto childIndex : node.children) {
-            auto& childNode = *(&node + childIndex);
-            printNodeHierarchy(childNode, s, tabs + 1u);
-        }
-    }
-}
-
-MeshComponent::MeshComponent(GameEntity& entity, uint8_t sceneIndex)
+MeshComponent::MeshComponent(Entity& entity, uint8_t sceneIndex)
     : IComponent(entity)
+    , IMesh(m_entity.engine().scene(sceneIndex), true)
     , m_transformComponent(entity.ensure<TransformComponent>())
 {
-    m_scene = &m_entity.engine().scene(sceneIndex);
-    m_transformComponent.onWorldTransformChanged([this]() { m_nodesTranformsDirty = true; });
+    m_transformComponent.onWorldTransformChanged([this]() { m_nodesDirty = true; });
 }
 
 void MeshComponent::update(float dt)
@@ -108,9 +53,9 @@ void MeshComponent::update(float dt)
             auto nodeIndex = channelsInfosPair.first;
             auto& node = m_nodes[nodeIndex];
 
-            auto translation = node.translation();
-            auto rotation = node.rotation();
-            auto scaling = node.scaling();
+            auto translation = node.translation;
+            auto rotation = node.rotation;
+            auto scaling = node.scaling;
 
             for (auto& channelInfo : channelsInfosPair.second) {
                 const auto& channel = channelInfo.channel;
@@ -157,102 +102,35 @@ void MeshComponent::update(float dt)
                 }
             }
 
-            node.localTransform =
+            node.parentSpaceMatrix =
                 glm::translate(glm::mat4(1.f), translation) * glm::mat4(rotation) * glm::scale(glm::mat4(1.f), scaling);
         }
     }
 
     if (nodesAnimated) {
-        m_nodesTranformsDirty = true;
+        updateNodesEntitySpaceMatrices();
+        m_nodesDirty = true;
     }
 }
 
 void MeshComponent::updateFrame()
 {
     if (m_nodesDirty) {
-        updateNodes();
+        updateNodesWorldMatrices();
+        m_nodesDirty = false;
     }
-
-    // @todo We could be more clever to update only the nodes
-    // that need to be updated while being sure it's done only once.
-    if (m_nodesTranformsDirty) {
-        updateNodesTransforms();
-    }
-}
-
-// ----- Nodes
-
-MeshNode& MeshComponent::addNode()
-{
-    m_nodes.emplace_back();
-    m_nodesDirty = true;
-    return m_nodes.back();
-}
-
-MeshNode& MeshComponent::addInstancedNode(uint32_t sourceNodeIndex)
-{
-
-    auto nodeIndex = m_nodes.size();
-
-    auto& node = addNode();
-    const auto& sourceNode = m_nodes[sourceNodeIndex];
-    node.name = sourceNode.name;
-    node.meshGroup = sourceNode.meshGroup;
-    node.transform(sourceNode.transform());
-
-    // Warn that all the primitive are instances.
-    if (node.meshGroup) {
-        for (auto primitive : node.meshGroup->primitives()) {
-            node.instanceIndex = primitive->addInstance();
-        }
-    }
-    // @todo There's currently no way to remove one node at a time,
-    // but if it becomes possible, one would need to warn the primitive
-    // that there is one less instance to render.
-
-    // Recursive add all nodes that are below.
-    // @note As new nodes are added by children, the references to node and sourceNode
-    // might be invalidated, thus the necessary copy.
-    auto sourceNodeChilden = sourceNode.children;
-    for (auto childIndex : sourceNodeChilden) {
-        auto& childNode = addInstancedNode(sourceNodeIndex + childIndex);
-        m_nodes[nodeIndex].children.emplace_back(&childNode - &node); // Relative distance between nodes
-        childNode.parent = nodeIndex;
-    }
-
-    return m_nodes[nodeIndex];
-}
-
-void MeshComponent::addNodes(std::vector<MeshNode>&& nodes)
-{
-    uint32_t previousSize = m_nodes.size();
-    m_nodes.resize(previousSize + nodes.size());
-
-    for (auto i = 0u; i < nodes.size(); ++i) {
-        m_nodes[previousSize + i] = std::move(nodes[i]);
-    }
-
-    // @note This direct call is important because
-    // otherwise the ColliderComponent::addMeshNodeShape()
-    // might not be correct if the MeshNode::plainLocalTransform
-    // is not yet updated.
-    updateNodes();
-
-    // Needed for one might have updated the localTransform
-    // after we return here.
-    m_nodesDirty = true;
 }
 
 // ----- Helpers
 
 magma::Mesh& MeshComponent::primitive(uint32_t nodeIndex, uint32_t primitiveIndex)
 {
-    return m_nodes[nodeIndex].meshGroup->primitive(primitiveIndex);
+    return m_nodes[nodeIndex].group->primitive(primitiveIndex);
 }
 
 magma::MaterialPtr MeshComponent::material(uint32_t nodeIndex, uint32_t primitiveIndex)
 {
-    return m_nodes[nodeIndex].meshGroup->primitive(primitiveIndex).material();
+    return m_nodes[nodeIndex].group->primitive(primitiveIndex).material();
 }
 
 float MeshComponent::distanceFrom(const Ray& ray, PickPrecision pickPrecision) const
@@ -267,10 +145,12 @@ float MeshComponent::distanceFrom(const Ray& ray, PickPrecision pickPrecision) c
     distance = 0.f;
 
     for (const auto& node : nodes()) {
-        if (node.meshGroup == nullptr) continue;
+        if (node.group == nullptr) continue;
 
-        for (const auto& primitive : node.meshGroup->primitives()) {
-            if (primitive->category() != RenderCategory::Opaque && primitive->category() != RenderCategory::Translucent) {
+        for (const auto& primitive : node.group->primitives()) {
+            if (!primitive->enabled() ||
+                (primitive->renderCategory() != RenderCategory::Opaque &&
+                 primitive->renderCategory() != RenderCategory::Translucent)) {
                 continue;
             }
 
@@ -300,23 +180,12 @@ float MeshComponent::distanceFrom(const Ray& ray, PickPrecision pickPrecision) c
 
 // ----- Animations
 
-void MeshComponent::add(const std::string& hrid, const MeshAnimation& animation)
-{
-    auto& animationInfo = m_animationsInfos[hrid];
-
-    for (auto& animationPair : animation) {
-        auto& channelsInfos = animationInfo.channelsInfos[animationPair.first];
-        for (auto& channel : animation.at(animationPair.first)) {
-            AnimationChannelInfo channelInfo;
-            channelInfo.channel = channel;
-            channelsInfos.emplace_back(channelInfo);
-            animationInfo.channelsCount += 1u;
-        }
-    }
-}
-
 void MeshComponent::startAnimation(const std::string& hrid, uint32_t loops, float factor)
 {
+    if (m_animationsInfos.find(hrid) == m_animationsInfos.end()) {
+        createAnimationInfo(hrid);
+    }
+
     auto& animationInfo = m_animationsInfos.at(hrid);
     animationInfo.loops = loops;
     animationInfo.factor = factor;
@@ -325,52 +194,11 @@ void MeshComponent::startAnimation(const std::string& hrid, uint32_t loops, floa
 
 void MeshComponent::onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback)
 {
+    if (m_animationsInfos.find(hrid) == m_animationsInfos.end()) {
+        createAnimationInfo(hrid);
+    }
+
     m_animationsInfos.at(hrid).loopStartCallbacks.emplace_back(std::move(callback));
-}
-
-// ----- Attributes
-
-void MeshComponent::category(RenderCategory category)
-{
-    if (m_category == category) return;
-    m_category = category;
-
-    for (auto& node : m_nodes) {
-        if (node.meshGroup == nullptr) continue;
-
-        for (auto& primitive : node.meshGroup->primitives()) {
-            primitive->category(category);
-        }
-    }
-}
-
-void MeshComponent::enabled(bool enabled)
-{
-    if (m_enabled == enabled) return;
-    m_enabled = enabled;
-
-    for (auto& node : m_nodes) {
-        if (node.meshGroup == nullptr) continue;
-
-        for (auto& primitive : node.meshGroup->primitives()) {
-            primitive->enabled(enabled);
-        }
-    }
-}
-
-BoundingSphere MeshComponent::boundingSphere() const
-{
-    BoundingSphere boundingSphere;
-
-    for (auto& node : m_nodes) {
-        if (node.meshGroup == nullptr) continue;
-
-        for (auto& primitive : node.meshGroup->primitives()) {
-            boundingSphere = mergeBoundingSpheres(boundingSphere, primitive->boundingSphere());
-        }
-    }
-
-    return boundingSphere;
 }
 
 // ----- Debug
@@ -381,64 +209,41 @@ void MeshComponent::boundingSpheresVisible(bool boundingSpheresVisible)
     m_boundingSpheresVisible = boundingSpheresVisible;
 
     for (auto& node : m_nodes) {
-        if (node.meshGroup == nullptr) continue;
+        if (node.group == nullptr) continue;
 
-        for (auto& primitive : node.meshGroup->primitives()) {
+        for (auto& primitive : node.group->primitives()) {
             primitive->debugBoundingSphere(boundingSpheresVisible);
         }
     }
 }
 
-void MeshComponent::printHierarchy(std::ostream& s) const
-{
-    s << "[MeshComponent]" << std::endl;
-
-    // @note The root nodes have just no parent!
-    for (auto& node : m_nodes) {
-        if (node.parent != 0) continue;
-        printNodeHierarchy(node, s, 1u);
-    }
-}
-
 // ----- Internal
 
-void MeshComponent::updateNodes()
-{
-    // Affect parents to each node.
-    for (auto& node : m_nodes) {
-        node.parent = 0;
-    }
-
-    for (auto& node : m_nodes) {
-        for (auto childIndex : node.children) {
-            auto& childNode = *(&node + childIndex);
-            childNode.parent = -childIndex;
-        }
-    }
-
-    // Affect instanceIndex to each node.
-    std::unordered_map<MeshGroup*, uint32_t> meshGroupsCountMap;
-    for (auto& node : m_nodes) {
-        if (node.parent != 0) continue;
-        updateInstanceIndices(node, meshGroupsCountMap);
-    }
-
-    // Update node transforms.
-    updateNodesTransforms();
-
-    m_nodesDirty = false;
-}
-
-void MeshComponent::updateNodesTransforms()
+void MeshComponent::updateNodesWorldMatrices()
 {
     // @note The root nodes have just no parent!
     auto worldMatrix = m_transformComponent.worldTransform().matrix();
     for (auto& node : m_nodes) {
-        if (node.parent != 0) continue;
-        updateNodeTransforms(node, worldMatrix, glm::mat4{1.f});
+        if (node.group) {
+            node.group->transform(worldMatrix * node.entitySpaceMatrix, node.instanceIndex);
+        }
     }
+}
 
-    m_nodesTranformsDirty = false;
+void MeshComponent::createAnimationInfo(const std::string& hrid)
+{
+    auto& animation = m_animations[hrid];
+    auto& animationInfo = m_animationsInfos[hrid];
+
+    for (auto& animationChannelPair : animation) {
+        auto& channelsInfos = animationInfo.channelsInfos[animationChannelPair.first];
+        for (auto& channel : animationChannelPair.second) {
+            AnimationChannelInfo channelInfo;
+            channelInfo.channel = channel;
+            channelsInfos.emplace_back(channelInfo);
+            animationInfo.channelsCount += 1u;
+        }
+    }
 }
 
 void MeshComponent::resetAnimationInfo(AnimationInfo& animationInfo) const

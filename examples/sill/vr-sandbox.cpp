@@ -13,7 +13,7 @@ int main(void)
 
     // Ground
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::planeMeshMaker({10, 10})(meshComponent);
         entity.make<sill::ColliderComponent>();
@@ -22,10 +22,10 @@ int main(void)
     }
 
     // Spawning random cubes
-    std::vector<sill::GameEntity*> cubes;
+    std::vector<sill::Entity*> cubes;
     for (auto i = 0u; i < 10u; ++i) {
         auto cubeSize = (2 + rand() % 20) / 40.f;
-        auto& cubeEntity = engine.make<sill::GameEntity>();
+        auto& cubeEntity = engine.make<sill::Entity>();
         auto& cubeMeshComponent = cubeEntity.make<sill::MeshComponent>();
         sill::makers::boxMeshMaker(cubeSize)(cubeMeshComponent);
         cubeEntity.get<sill::TransformComponent>().translate({(rand() % 5) / 10.f - 0.2f, // X
@@ -42,10 +42,10 @@ int main(void)
 
     // Behavior entity
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
         behaviorComponent.onUpdate([&](float /* dt */) {
-            static sill::GameEntity* grabbedCube = nullptr;
+            static sill::Entity* grabbedCube = nullptr;
             if (!engine.vr().deviceValid(VrDeviceType::RightHand)) return;
 
             const auto& handTransform = engine.vr().deviceTransform(VrDeviceType::RightHand);

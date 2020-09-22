@@ -1,56 +1,33 @@
 #pragma once
 
 #include <lava/sill/components/i-component.hpp>
+#include <lava/sill/i-mesh.hpp>
 
-#include <lava/core/bounding-sphere.hpp>
 #include <lava/core/ray.hpp>
-#include <lava/core/render-category.hpp>
-#include <lava/sill/mesh-animation.hpp>
 #include <lava/sill/mesh-node.hpp>
 #include <lava/sill/pick-precision.hpp>
 
 namespace lava::sill {
     class TransformComponent;
+    class MeshFrameComponent;
 }
 
 namespace lava::sill {
-    class MeshComponent final : public IComponent {
+    class MeshComponent final : public IComponent, public IMesh {
     public:
+        friend class MeshFrameComponent;
         using AnimationLoopStartCallback = std::function<void()>;
 
     public:
-        MeshComponent(GameEntity& entity, uint8_t sceneIndex = 0u);
-
-        magma::Scene& scene() { return *m_scene; }
+        MeshComponent(Entity& entity, uint8_t sceneIndex = 0u);
 
         // IComponent
         static std::string hrid() { return "mesh"; }
         void update(float dt) final;
         void updateFrame() final;
 
-        /**
-         * @name Nodes
-         *
-         * A mesh node holds the geometry hierarchy.
-         */
-        /// @{
-        MeshNode& node(uint32_t index) { return m_nodes[index]; }
-        std::vector<MeshNode>& nodes() { return m_nodes; }
-        const std::vector<MeshNode>& nodes() const { return m_nodes; }
-
-        // Remove all previously added nodes.
-        void removeNodes() { m_nodes.clear(); }
-
-        // @todo :Terminology These are non-uniform scaling transforms,
-        // We might want to rename that matrix then.
-        void dirtifyNodes() { m_nodesDirty = true; }
-        void dirtifyNodesTransforms() { m_nodesTranformsDirty = true; }
-
-        /// Emplace back nodes.
-        MeshNode& addNode();
-        MeshNode& addInstancedNode(uint32_t sourceNodeIndex);
-        void addNodes(std::vector<MeshNode>&& nodes);
-        /// @}
+        /// The frame component it has been constructed from if any.
+        const MeshFrameComponent* frame() const { return m_frame; }
 
         /**
          * @name Helpers
@@ -65,28 +42,12 @@ namespace lava::sill {
          * @name Animations
          */
         /// @{
-        void add(const std::string& hrid, const MeshAnimation& animation);
         /// Start an animation. Use -1u for loops to get infinite looping. Use negative factor to reversed animation.
         void startAnimation(const std::string& hrid, uint32_t loops = 1u, float factor = 1.f);
         /// Be warned whenever the animation loops or starts.
         void onAnimationLoopStart(const std::string& hrid, AnimationLoopStartCallback callback);
         /// @}
 
-        /**
-         * @name Attributes
-         */
-        /// @{
-        /// Changes the category of all primitives.
-        RenderCategory category() const { return m_category; }
-        void category(RenderCategory category);
-
-        /// Changes the enableness of all primitives.
-        bool enabled() const { return m_enabled; }
-        void enabled(bool enabled);
-
-        /// Bounding sphere around all bounding spheres of primitives.
-        BoundingSphere boundingSphere() const;
-        /// @}
 
         /**
          * @name Debug
@@ -95,12 +56,6 @@ namespace lava::sill {
         /// Shows bounding spheres around each primitives.
         bool boundingSpheresVisible() const { return m_boundingSpheresVisible; }
         void boundingSpheresVisible(bool boundingSpheresVisible);
-
-        /// Path of the file if read from any.
-        const std::string& path() const { return m_path; }
-        void path(const std::string& path) { m_path = path; }
-
-        void printHierarchy(std::ostream& s) const;
         /// @}
 
     protected:
@@ -123,26 +78,18 @@ namespace lava::sill {
         };
 
     protected:
-        void updateNodes();
-        void updateNodesTransforms();
+        void updateNodesWorldMatrices();
+        void createAnimationInfo(const std::string& hrid);
         void resetAnimationInfo(AnimationInfo& animationInfo) const;
 
     private:
         TransformComponent& m_transformComponent;
-        magma::Scene* m_scene = nullptr;
+        const MeshFrameComponent* m_frame = nullptr;
 
-        // Resources
-        std::vector<MeshNode> m_nodes;
+        // Animations
         std::unordered_map<std::string, AnimationInfo> m_animationsInfos;
-        bool m_nodesTranformsDirty = true;
-        bool m_nodesDirty = true;
-
-        // Attributes
-        RenderCategory m_category = RenderCategory::Opaque;
-        bool m_enabled = true;
 
         // Debug
         bool m_boundingSpheresVisible = false;
-        std::string m_path = "";
     };
 }

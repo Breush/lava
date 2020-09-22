@@ -4,7 +4,7 @@
 
 using namespace lava::sill;
 
-$pimpl_class_base(BehaviorComponent, IComponent, GameEntity&, entity);
+$pimpl_class_base(BehaviorComponent, IComponent, Entity&, entity);
 
 // IComponent
 $pimpl_method(BehaviorComponent, void, update, float, dt);

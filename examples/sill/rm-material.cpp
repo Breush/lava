@@ -13,7 +13,7 @@ int main(void)
 
     engine.registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
 
-    auto& entity = engine.make<sill::GameEntity>();
+    auto& entity = engine.make<sill::Entity>();
 
     float roughness = 0.f;
     auto material = engine.scene().makeMaterial("roughness-metallic");

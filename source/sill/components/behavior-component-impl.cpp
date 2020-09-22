@@ -2,7 +2,7 @@
 
 using namespace lava::sill;
 
-BehaviorComponent::Impl::Impl(GameEntity& entity)
+BehaviorComponent::Impl::Impl(Entity& entity)
     : ComponentImpl(entity)
 {
 }

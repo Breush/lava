@@ -13,7 +13,7 @@ int main(void)
 
     // TextMeshComponent
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& textMeshComponent = entity.make<sill::TextMeshComponent>();
         textMeshComponent.text(L"Hello pretty developer!\n"
                                L"This is a simple test: ×→ Éŀéþhänt Ðỗdµ ←×→ ✈ሓ𓂀𓅃のᅙᆁ ←×\n"

@@ -116,10 +116,10 @@ MaterialPtr Scene::makeMaterial(const std::string& hrid)
     return resourcePtr;
 }
 
-Mesh& Scene::makeMesh()
+Mesh& Scene::makeMesh(uint32_t instancesCount)
 {
     constexpr const auto size = sizeof(std::aligned_union<0, Mesh>::type) + sizeof(MeshAft);
-    auto resource = m_meshAllocator.allocateSized<Mesh>(size, *this);
+    auto resource = m_meshAllocator.allocateSized<Mesh>(size, *this, instancesCount);
 
     m_meshes.emplace_back(resource);
     aft().foreAdd(*resource);

@@ -1,12 +1,14 @@
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
+#include <lava/sill/game-engine.hpp>
+#include <lava/sill/entity-frame.hpp>
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/components/physics-component.hpp>
 
 using namespace lava::sill;
 
 namespace {
-    void callParentChanged(const std::vector<GameEntity::ParentChangedCallback>& callbacks)
+    void callParentChanged(const std::vector<Entity::ParentChangedCallback>& callbacks)
     {
         for (const auto& callback : callbacks) {
             callback();
@@ -14,19 +16,21 @@ namespace {
     }
 }
 
-GameEntity::GameEntity(GameEngine& engine)
+Entity::Entity(GameEngine& engine)
     : m_engine(engine)
 {
 }
 
-GameEntity::GameEntity(GameEngine& engine, const std::string& name)
-    : GameEntity(engine)
+Entity::Entity(GameEngine& engine, const std::string& name)
+    : Entity(engine)
 {
     m_name = name;
 }
 
-GameEntity::~GameEntity()
+Entity::~Entity()
 {
+    if (m_engine.destroying()) return;
+
     // Remove from parent if any
     if (m_parent) {
         m_parent->forgetChild(*this, false);
@@ -39,23 +43,30 @@ GameEntity::~GameEntity()
     }
 }
 
-void GameEntity::update(float dt)
+void Entity::update(float dt)
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    componentsUpdate(dt);
+    // Add all new components
+    addPendingComponents();
+
+    for (auto& component : m_components) {
+        component.second->update(dt);
+    }
 }
 
-void GameEntity::updateFrame()
+void Entity::updateFrame()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    componentsUpdateFrame();
+    for (auto& component : m_components) {
+        component.second->updateFrame();
+    }
 }
 
 // ----- Hierarchy
 
-void GameEntity::parent(GameEntity* parent, bool updateParent)
+void Entity::parent(Entity* parent, bool updateParent)
 {
     if (m_parent == parent) return;
 
@@ -72,7 +83,7 @@ void GameEntity::parent(GameEntity* parent, bool updateParent)
     callParentChanged(m_parentChangedCallbacks);
 }
 
-void GameEntity::addChild(GameEntity& child, bool updateChild)
+void Entity::addChild(Entity& child, bool updateChild)
 {
     m_children.emplace_back(&child);
 
@@ -81,7 +92,7 @@ void GameEntity::addChild(GameEntity& child, bool updateChild)
     }
 }
 
-void GameEntity::forgetChild(GameEntity& child, bool updateChild)
+void Entity::forgetChild(Entity& child, bool updateChild)
 {
     auto iChild = std::find(m_children.begin(), m_children.end(), &child);
     if (iChild != m_children.end()) {
@@ -93,7 +104,7 @@ void GameEntity::forgetChild(GameEntity& child, bool updateChild)
     }
 }
 
-uint32_t GameEntity::childIndex(const GameEntity& child) const
+uint32_t Entity::childIndex(const Entity& child) const
 {
     const auto& childrenList = children();
     for (auto i = 0u; i < childrenList.size(); ++i) {
@@ -105,7 +116,7 @@ uint32_t GameEntity::childIndex(const GameEntity& child) const
 
 // ----- Tools
 
-float GameEntity::distanceFrom(const Ray& ray, PickPrecision pickPrecision) const
+float Entity::distanceFrom(const Ray& ray, PickPrecision pickPrecision) const
 {
     if (pickPrecision == PickPrecision::Collider) {
         if (!has<PhysicsComponent>()) return 0.f;
@@ -117,4 +128,15 @@ float GameEntity::distanceFrom(const Ray& ray, PickPrecision pickPrecision) cons
 
     const auto& meshComponent = get<MeshComponent>();
     return meshComponent.distanceFrom(ray, pickPrecision);
+}
+
+// ----- Internal
+
+void Entity::warnRemoved()
+{
+    m_alive = false;
+
+    if (m_frame != nullptr) {
+        m_frame->warnEntityRemoved(*this);
+    }
 }

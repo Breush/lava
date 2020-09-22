@@ -1,5 +1,6 @@
 #pragma once
 
+#include "./frame.hpp"
 #include "./objects/barrier.hpp"
 #include "./objects/brick.hpp"
 #include "./objects/panel.hpp"
@@ -44,12 +45,12 @@ struct GameState {
 
     lava::sill::GameEngine* engine = nullptr;
 
-    lava::sill::GameEntity* rayPickingEntity = nullptr;
+    lava::sill::Entity* rayPickingEntity = nullptr;
     lava::Ray pickingRay;
     Brick* pointedBrick = nullptr;
 
     struct {
-        std::vector<lava::sill::GameEntity*> entities;
+        std::vector<lava::sill::Entity*> entities;
     } ui;
 
     struct {
@@ -71,12 +72,12 @@ struct GameState {
     } player;
 
     struct {
-        lava::sill::GameEntity* entity = nullptr;
+        lava::sill::Entity* entity = nullptr;
     } terrain;
 
     struct {
-        lava::sill::GameEntity* beamEntity = nullptr;
-        lava::sill::GameEntity* areaEntity = nullptr;
+        lava::sill::Entity* beamEntity = nullptr;
+        lava::sill::Entity* areaEntity = nullptr;
         glm::vec3 target = glm::vec3(0.f);
         bool valid = true;
     } teleport;
@@ -84,7 +85,7 @@ struct GameState {
     struct {
         CameraMode mode = CameraMode::FirstPerson;
         lava::sill::CameraComponent* component = nullptr;
-        lava::sill::GameEntity* reticleEntity = nullptr;
+        lava::sill::Entity* reticleEntity = nullptr;
         bool reticleUpdateNeeded = true;
     } camera;
 
@@ -98,6 +99,7 @@ struct GameState {
         std::vector<Generic*> generics;
 
         // All allocated objects.
+        std::vector<std::unique_ptr<Frame>> frames;
         std::vector<std::unique_ptr<Object>> objects;
     } level;
 
@@ -108,7 +110,7 @@ struct GameState {
             std::vector<Object*> objects;
             glm::vec2 multiStart;
             glm::vec2 multiEnd;
-            lava::sill::GameEntity* multiEntity = nullptr; // The rectangle
+            lava::sill::Entity* multiEntity = nullptr; // The rectangle
         } selection;
 
         struct {
@@ -117,12 +119,12 @@ struct GameState {
             lava::magma::Camera* camera = nullptr;
 
             GizmoTool tool = GizmoTool::Translation;
-            lava::sill::GameEntity* entity = nullptr; // Holding all tool gizmos (translation/rotation/scaling)
-            lava::sill::GameEntity* toolEntity = nullptr; // One tool from list below
-            lava::sill::GameEntity* translationToolEntity = nullptr;
-            lava::sill::GameEntity* rotationToolEntity = nullptr;
-            lava::sill::GameEntity* scalingToolEntity = nullptr;
-            lava::sill::GameEntity* selectedToolAxis = nullptr;
+            lava::sill::Entity* entity = nullptr; // Holding all tool gizmos (translation/rotation/scaling)
+            lava::sill::Entity* toolEntity = nullptr; // One tool from list below
+            lava::sill::Entity* translationToolEntity = nullptr;
+            lava::sill::Entity* rotationToolEntity = nullptr;
+            lava::sill::Entity* scalingToolEntity = nullptr;
+            lava::sill::Entity* selectedToolAxis = nullptr;
 
             // Used when moving along an axis
             glm::vec3 axis = {0.f, 0.f, 1.f};

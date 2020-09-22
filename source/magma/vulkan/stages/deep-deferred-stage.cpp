@@ -135,7 +135,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
         if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
 
         // @todo Somehow, the deep-deferred renderer does not care about wireframes.
-        if (mesh->category() == RenderCategory::Depthless) {
+        if (mesh->renderCategory() == RenderCategory::Depthless) {
             depthlessMeshes.emplace_back(mesh);
             continue;
         }

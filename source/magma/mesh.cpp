@@ -20,12 +20,16 @@ namespace {
                     uint32_t verticesCount);
 }
 
-Mesh::Mesh(Scene& scene)
+Mesh::Mesh(Scene& scene, uint32_t instancesCount)
     : m_scene(scene)
+    , m_transformsInfos{instancesCount}
+    , m_ubos{instancesCount}
 {
     new (&aft()) MeshAft(*this, m_scene);
 
-    updateUbo(0u);
+    for (auto i = 0u; i < instancesCount; ++i) {
+        updateUbo(i);
+    }
 }
 
 Mesh::~Mesh()
@@ -72,6 +76,12 @@ void Mesh::scaling(const glm::vec3& scaling, uint32_t instanceIndex)
 
 // ----- Instancing
 
+void Mesh::reserveInstancesCount(uint32_t instancesCount)
+{
+    m_ubos.reserve(instancesCount);
+    m_transformsInfos.reserve(instancesCount);
+}
+
 uint32_t Mesh::addInstance()
 {
     auto instanceIndex = m_ubos.size();
@@ -83,10 +93,12 @@ uint32_t Mesh::addInstance()
     return instanceIndex;
 }
 
-void Mesh::reserveInstancesCount(uint32_t instancesCount)
+void Mesh::removeInstance()
 {
-    m_ubos.reserve(instancesCount);
-    m_transformsInfos.reserve(instancesCount);
+    m_ubos.pop_back();
+    m_transformsInfos.pop_back();
+
+    m_boundingSphereDirty = true;
 }
 
 // ----- Geometry
@@ -289,7 +301,7 @@ void Mesh::debugBoundingSphere(bool debugBoundingSphere)
 
     if (m_debugBoundingSphere) {
         m_debugBoundingSphereMesh = &m_scene.make<Mesh>();
-        m_debugBoundingSphereMesh->category(RenderCategory::Wireframe);
+        m_debugBoundingSphereMesh->renderCategory(RenderCategory::Wireframe);
 
         buildSphereMesh(*m_debugBoundingSphereMesh);
 

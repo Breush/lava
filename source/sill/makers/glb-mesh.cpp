@@ -1,9 +1,6 @@
 #include <lava/sill/makers/glb-mesh.hpp>
 
-#include <lava/sill/components/mesh-component.hpp>
-#include <lava/sill/game-engine.hpp>
-#include <lava/sill/game-entity.hpp>
-#include <lava/sill/mesh-node.hpp>
+#include <lava/sill/i-mesh.hpp>
 
 #include "../glb/loader.hpp"
 
@@ -33,7 +30,7 @@ namespace {
 
     using PixelsCallback = std::function<void(uint8_t*, uint32_t, uint32_t)>;
 
-    void setTexture(GameEngine& engine, magma::Material& material, const std::string& uniformName, uint32_t textureIndex,
+    void setTexture(magma::RenderEngine& renderEngine, magma::Material& material, const std::string& uniformName, uint32_t textureIndex,
                     const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData,
                     const PixelsCallback& pixelsCallback = nullptr)
     {
@@ -59,7 +56,7 @@ namespace {
             cacheData.threadPool = std::make_unique<ThreadPool>();
         }
 
-        cacheData.threadPool->job([&engine, &cacheData, textureIndex, imageVectorView, pixelsCallback] {
+        cacheData.threadPool->job([&renderEngine, &cacheData, textureIndex, imageVectorView, pixelsCallback] {
             // @todo We might want to choose the number of channels one day...
             int texWidth, texHeight;
             auto pixels = stbi_load_from_memory(imageVectorView.data(), imageVectorView.size(), &texWidth, &texHeight, nullptr,
@@ -69,12 +66,12 @@ namespace {
             // @note Because this is threaded, a badly-made GLB can ask to load the same texture multiple times
             // if the data is duplicated. We cannot do anything at this level...
             // This findTexture is for already loaded textures from other meshes.
-            auto existingTexture = engine.renderEngine().findTexture(pixels, texWidth, texHeight, 4u);
+            auto existingTexture = renderEngine.findTexture(pixels, texWidth, texHeight, 4u);
             if (existingTexture != nullptr) {
                 cacheData.textures[textureIndex] = std::move(existingTexture);
             }
             else {
-                auto texture = engine.renderEngine().makeTexture();
+                auto texture = renderEngine.makeTexture();
                 texture->loadFromMemory(pixels, texWidth, texHeight, 4u);
                 cacheData.textures[textureIndex] = std::move(texture);
             }
@@ -83,13 +80,13 @@ namespace {
         });
     }
 
-    void setOrmTexture(GameEngine& engine, magma::Material& material, uint32_t occlusionTextureIndex,
+    void setOrmTexture(magma::RenderEngine& renderEngine, magma::Material& material, uint32_t occlusionTextureIndex,
                        uint32_t metallicRoughnessTextureIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
                        CacheData& cacheData)
     {
         // Occlusion missing, forcing it to 255u.
         if (occlusionTextureIndex == -1u && metallicRoughnessTextureIndex != -1u) {
-            setTexture(engine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData,
+            setTexture(renderEngine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData,
                        [](uint8_t* pixels, uint32_t width, uint32_t height) {
                            auto length = 4u * width * height;
                            for (auto i = 0u; i < length; i += 4u) {
@@ -100,24 +97,25 @@ namespace {
         }
 
         // Every other case is valid.
-        setTexture(engine, material, "occlusionMap", occlusionTextureIndex, binChunk, json, cacheData);
-        setTexture(engine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData);
+        setTexture(renderEngine, material, "occlusionMap", occlusionTextureIndex, binChunk, json, cacheData);
+        setTexture(renderEngine, material, "roughnessMetallicMap", metallicRoughnessTextureIndex, binChunk, json, cacheData);
     }
 
-    std::shared_ptr<MeshGroup> loadMesh(MeshComponent& meshComponent, uint32_t meshIndex, const glb::Chunk& binChunk, const nlohmann::json& json,
-                                        CacheData& cacheData, bool flipTriangles)
+    void loadMesh(IMesh& iMesh, uint32_t iMeshNodeIndex, uint32_t meshIndex, const glb::Chunk& binChunk,
+                  const nlohmann::json& json, CacheData& cacheData, bool flipTriangles)
     {
         PROFILE_FUNCTION();
 
         glb::Mesh mesh(json["meshes"][meshIndex]);
 
-        auto& engine = meshComponent.entity().engine();
+        auto& scene = iMesh.scene();
+        auto& renderEngine = scene.engine();
         const auto& accessors = json["accessors"];
         const auto& bufferViews = json["bufferViews"];
         const auto& materials = json.find("materials");
 
-        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
-        meshGroup->name(mesh.name);
+        auto& group = iMesh.nodeMakeGroup(iMeshNodeIndex);
+        group.name(mesh.name);
 
         // Each primitive will consist in one magma::Mesh
         for (auto primitiveIndex = 0u; primitiveIndex < mesh.primitives.size(); ++primitiveIndex) {
@@ -160,12 +158,12 @@ namespace {
             }
             else if (materials != json.end() && primitive.materialIndex != -1u) {
                 // @note We need "roughness-metallic" material.
-                if (engine.renderEngine().materialInfoIfExists("roughness-metallic") == nullptr) {
-                    engine.registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
+                if (renderEngine.materialInfoIfExists("roughness-metallic") == nullptr) {
+                    renderEngine.registerMaterialFromFile("roughness-metallic", "./data/shaders/materials/rm-material.shmag");
                 }
 
                 glb::PbrMetallicRoughnessMaterial material((*materials)[primitive.materialIndex]);
-                rmMaterial = engine.scene().makeMaterial("roughness-metallic");
+                rmMaterial = scene.makeMaterial("roughness-metallic");
                 rmMaterial->name(material.name);
                 renderCategory = material.renderCategory;
 
@@ -173,10 +171,10 @@ namespace {
                 rmMaterial->set("albedoColor", material.baseColorFactor);
                 rmMaterial->set("metallicFactor", material.metallicFactor);
                 rmMaterial->set("roughnessFactor", material.roughnessFactor);
-                setTexture(engine, *rmMaterial, "albedoMap", material.baseColorTextureIndex, binChunk, json, cacheData);
-                setTexture(engine, *rmMaterial, "normalMap", material.normalTextureIndex, binChunk, json, cacheData);
-                setTexture(engine, *rmMaterial, "emissiveMap", material.emissiveTextureIndex, binChunk, json, cacheData);
-                setOrmTexture(engine, *rmMaterial, material.occlusionTextureIndex, material.metallicRoughnessTextureIndex,
+                setTexture(renderEngine, *rmMaterial, "albedoMap", material.baseColorTextureIndex, binChunk, json, cacheData);
+                setTexture(renderEngine, *rmMaterial, "normalMap", material.normalTextureIndex, binChunk, json, cacheData);
+                setTexture(renderEngine, *rmMaterial, "emissiveMap", material.emissiveTextureIndex, binChunk, json, cacheData);
+                setOrmTexture(renderEngine, *rmMaterial, material.occlusionTextureIndex, material.metallicRoughnessTextureIndex,
                               binChunk, json, cacheData);
 
                 cacheData.materials[primitive.materialIndex] = rmMaterial;
@@ -184,7 +182,7 @@ namespace {
             }
 
             // Apply the geometry
-            auto& meshPrimitive = meshGroup->addPrimitive();
+            auto& meshPrimitive = group.addPrimitive();
             meshPrimitive.verticesCount(positions.size());
 
             auto indicesComponentType = accessors[primitive.indicesAccessorIndex]["componentType"];
@@ -223,14 +221,12 @@ namespace {
             }
 
             meshPrimitive.material(rmMaterial);
-            meshPrimitive.category(renderCategory);
+            meshPrimitive.renderCategory(renderCategory);
         }
-
-        return meshGroup;
     }
 
-    int32_t loadNode(MeshComponent& meshComponent, uint32_t nodeIndex, std::vector<MeshNode>& meshNodes, const glb::Chunk& binChunk,
-                       const nlohmann::json& json, CacheData& cacheData)
+    uint32_t loadNode(IMesh& iMesh, uint32_t nodeIndex, const glb::Chunk& binChunk,
+                     const nlohmann::json& json, CacheData& cacheData)
     {
         glb::Node node(json["nodes"][nodeIndex]);
 
@@ -242,13 +238,11 @@ namespace {
 
         // @note We have one MeshNode per glb::Node,
         // and one for each primitive within its mesh (if any).
-        cacheData.nodeIndices[nodeIndex] = meshNodes.size();
-        meshNodes.emplace_back();
-        auto& meshNode = meshNodes.back();
-        auto meshNodeIndex = meshNodes.size() - 1u;
+        auto iMeshNodeIndex = iMesh.addNode();
+        cacheData.nodeIndices[nodeIndex] = iMeshNodeIndex;
 
-        meshNode.name = node.name;
-        meshNode.transform(node.transform);
+        iMesh.nodeName(iMeshNodeIndex, node.name);
+        iMesh.nodeMatrix(iMeshNodeIndex, node.transform);
 
         // @note From https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#transformations
         // > If the determinant of the transform is a negative value,
@@ -258,22 +252,22 @@ namespace {
 
         // Load geometry if any
         if (node.meshIndex != -1u) {
-            meshNode.meshGroup = loadMesh(meshComponent, node.meshIndex, binChunk, json, cacheData, flipTriangles);
+            loadMesh(iMesh, iMeshNodeIndex, node.meshIndex, binChunk, json, cacheData, flipTriangles);
         }
 
         // Recurse over children
         for (auto child : node.children) {
-            auto childNodeIndex = loadNode(meshComponent, child, meshNodes, binChunk, json, cacheData);
-            if (childNodeIndex != 0) {
-                meshNode.children.emplace_back(childNodeIndex - meshNodeIndex);
+            auto iMeshChildNodeIndex = loadNode(iMesh, child, binChunk, json, cacheData);
+            if (iMeshNodeIndex != 0) {
+                iMesh.nodeAddAbsoluteChild(iMeshNodeIndex, iMeshChildNodeIndex);
             }
         }
 
-        return meshNodeIndex;
+        return iMeshNodeIndex;
     }
 }
 
-void loadAnimations(MeshComponent& meshComponent, const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData)
+void loadAnimations(IMesh& iMesh, const glb::Chunk& binChunk, const nlohmann::json& json, CacheData& cacheData)
 {
     if (json.find("animations") == json.end()) return;
 
@@ -334,7 +328,7 @@ void loadAnimations(MeshComponent& meshComponent, const glb::Chunk& binChunk, co
 
         if (animation.find("name") != animation.end()) {
             std::string name = animation["name"];
-            meshComponent.add(name, meshAnimation);
+            iMesh.addAnimation(name, meshAnimation);
         }
         else {
             logger.warning("sill.makers.glb-mesh") << "Found animation with no name." << std::endl;
@@ -342,7 +336,7 @@ void loadAnimations(MeshComponent& meshComponent, const glb::Chunk& binChunk, co
     }
 }
 
-std::function<MeshNode&(MeshComponent&)> makers::glbMeshMaker(const std::string& fileName)
+std::function<uint32_t(IMesh&)> makers::glbMeshMaker(const std::string& fileName)
 {
     logger.info("sill.makers.glb-mesh").tab(3) << "Loading file " << fileName << std::endl;
     logger.log().tab(-3);
@@ -362,10 +356,10 @@ std::function<MeshNode&(MeshComponent&)> makers::glbMeshMaker(const std::string&
 
     auto json = nlohmann::json::parse(jsonChunk.data);
 
-    return [=](MeshComponent& meshComponent) -> MeshNode& {
+    return [=](IMesh& iMesh) -> uint32_t {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
-        meshComponent.path(fileName);
+        iMesh.path(fileName);
 
         // ----- Resources pre-allocation
 
@@ -373,35 +367,30 @@ std::function<MeshNode&(MeshComponent&)> makers::glbMeshMaker(const std::string&
         CacheData cacheData;
 
         // The mesh nodes array
-        std::vector<MeshNode> meshNodes;
-        meshNodes.reserve(json["nodes"].size() + 1u);
+        iMesh.reserveNodes(json["nodes"].size() + 1u);
 
         // ----- Scene loading
 
         uint32_t rootScene = json["scene"];
         auto nodes = json["scenes"][rootScene]["nodes"];
 
-        meshNodes.emplace_back();
-        auto& rootNode = meshNodes.back();
-        rootNode.name = fileName;
+        auto iMeshRootNodeIndex = iMesh.addNode();
+        iMesh.nodeName(iMeshRootNodeIndex, fileName);
 
         for (uint32_t nodeIndex : nodes) {
-            auto meshNodeIndex = loadNode(meshComponent, nodeIndex, meshNodes, binChunk, json, cacheData);
-            if (meshNodeIndex != 0) {
-                rootNode.children.emplace_back(meshNodeIndex);
+            auto iMeshNodeIndex = loadNode(iMesh, nodeIndex, binChunk, json, cacheData);
+            if (iMeshNodeIndex != 0) {
+                iMesh.nodeAddAbsoluteChild(iMeshRootNodeIndex, iMeshNodeIndex);
             }
         }
 
         // ----- Animations
 
-        loadAnimations(meshComponent, binChunk, json, cacheData);
+        loadAnimations(iMesh, binChunk, json, cacheData);
 
         // ----- Fixing convention of glTF (right-handed, front is +X, left is +Z)
 
-        rootNode.transform(rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY));
-
-        auto rootNodeIndex = meshComponent.nodes().size();
-        meshComponent.addNodes(std::move(meshNodes));
+        iMesh.nodeMatrix(iMeshRootNodeIndex, rotationMatrixFromAxes(Axis::PositiveZ, Axis::PositiveX, Axis::PositiveY));
 
         // Bind all uniforms to textures once that are all done loaded
         if (cacheData.threadPool) {
@@ -418,6 +407,6 @@ std::function<MeshNode&(MeshComponent&)> makers::glbMeshMaker(const std::string&
         logger.info("sill.makers.glb-mesh").tab(3) << "Generated mesh component for " << fileName << std::endl;
         logger.log().tab(-3);
 
-        return meshComponent.node(rootNodeIndex);
+        return iMeshRootNodeIndex;
     };
 }

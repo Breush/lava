@@ -23,7 +23,7 @@ namespace lava::sill {
         struct BoxShape {
             glm::vec3 offset;
             glm::vec3 extent;
-            GameEntity* debugEntity = nullptr;
+            Entity* debugEntity = nullptr;
         };
 
         struct SphereShape {
@@ -37,7 +37,7 @@ namespace lava::sill {
         };
 
     public:
-        ColliderComponent(GameEntity& entity);
+        ColliderComponent(Entity& entity);
         ~ColliderComponent();
 
         // IComponent

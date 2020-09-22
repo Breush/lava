@@ -24,7 +24,7 @@ namespace {
             auto& entity = generic->entity();
             if (!entity.has<sill::MeshComponent>()) continue;
             for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
-                if (node.meshGroup == nullptr) continue;
+                if (node.group == nullptr) continue;
                 if (node.name != ":collider") continue;
 
                 entity.ensure<sill::PhysicsComponent>().dynamic(false);
@@ -39,9 +39,9 @@ namespace {
             auto& entity = generic->entity();
             if (!entity.has<sill::MeshComponent>()) continue;
             for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
-                if (node.meshGroup == nullptr) continue;
+                if (node.group == nullptr) continue;
                 if (node.name != ":collider") continue;
-                for (auto primitive : node.meshGroup->primitives()) {
+                for (auto primitive : node.group->primitives()) {
                     primitive->enabled(enabled);
                 }
             }
@@ -60,8 +60,8 @@ namespace {
             }
 
             for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
-                if (node.meshGroup == nullptr) continue;
-                for (auto primitive : node.meshGroup->primitives()) {
+                if (node.group == nullptr) continue;
+                for (auto primitive : node.group->primitives()) {
                     auto material = primitive->material().get();
                     if (material == nullptr) continue;
                     if (material->name() != materialName) continue;
@@ -82,12 +82,12 @@ void setupEnvironment(GameState& gameState)
     {
         engine.environmentTexture("./assets/skies/cloudy/");
 
-        auto& skyboxEntity = engine.make<sill::GameEntity>("skybox");
+        auto& skyboxEntity = engine.make<sill::Entity>("skybox");
         auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
         sill::makers::BoxMeshOptions options;
         options.siding = sill::BoxSiding::In;
         sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
-        skyMeshComponent.category(RenderCategory::Depthless);
+        skyMeshComponent.renderCategory(RenderCategory::Depthless);
 
         auto skyboxMaterial = engine.scene().makeMaterial("skybox");
         skyboxMaterial->set("useEnvironmentMap", true);
@@ -97,10 +97,10 @@ void setupEnvironment(GameState& gameState)
 
     // Water
     {
-        auto& entity = engine.make<sill::GameEntity>("water");
+        auto& entity = engine.make<sill::Entity>("water");
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::planeMeshMaker(512.f)(meshComponent);
-        meshComponent.category(RenderCategory::Translucent);
+        meshComponent.renderCategory(RenderCategory::Translucent);
         entity.get<sill::TransformComponent>().translate({0.f, 0.f, -0.3f});
 
         auto waveTexture = engine.renderEngine().makeTexture();

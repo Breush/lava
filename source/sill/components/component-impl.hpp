@@ -1,20 +1,21 @@
 #pragma once
 
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 namespace lava::sill {
+    // @fixme Sound useless, right?
     // Base class for component implementations
     class ComponentImpl {
     public:
-        ComponentImpl(GameEntity& entity);
+        ComponentImpl(Entity& entity);
         virtual ~ComponentImpl() = default;
 
         // Getters
-        GameEntity& entity() { return m_entity; }
-        const GameEntity& entity() const { return m_entity; }
+        Entity& entity() { return m_entity; }
+        const Entity& entity() const { return m_entity; }
 
     protected:
         // References
-        GameEntity& m_entity;
+        Entity& m_entity;
     };
 }

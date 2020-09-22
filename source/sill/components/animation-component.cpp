@@ -1,12 +1,12 @@
 #include <lava/sill/components/animation-component.hpp>
 
 #include <lava/sill/components/transform-component.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 using namespace lava::chamber;
 using namespace lava::sill;
 
-AnimationComponent::AnimationComponent(GameEntity& entity)
+AnimationComponent::AnimationComponent(Entity& entity)
     : IComponent(entity)
 {
 }

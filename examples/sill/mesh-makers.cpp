@@ -13,7 +13,7 @@ int main(void)
 
     // GLB mesh maker
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::glbMeshMaker("./assets/models/boom-box.glb")(meshComponent);
         entity.get<sill::TransformComponent>().translate({1.2f, 0.f, 0});
@@ -23,7 +23,7 @@ int main(void)
 
     // Plane mesh maker
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::PlaneMeshOptions options = {.doubleSided = true};
         sill::makers::planeMeshMaker({1, 1}, options)(meshComponent);
@@ -32,7 +32,7 @@ int main(void)
 
     // Box mesh maker
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::boxMeshMaker(1.f)(meshComponent);
         entity.get<sill::TransformComponent>().translate({0.f, 1.2f, 0.f});
@@ -40,7 +40,7 @@ int main(void)
 
     // Sphere mesh maker
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::sphereMeshMaker(32u, 1.f)(meshComponent);
         entity.get<sill::TransformComponent>().translate({-1.2f, 0.f, 0.f});
@@ -48,7 +48,7 @@ int main(void)
 
     // Cylinder mesh maker
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::CylinderMeshOptions options = {.doubleSided = true};
         sill::makers::cylinderMeshMaker(32u, 1.f, 1.f, options)(meshComponent);
@@ -57,7 +57,7 @@ int main(void)
 
     // Tore mesh maker
     {
-        auto& entity = engine.make<sill::GameEntity>();
+        auto& entity = engine.make<sill::Entity>();
         auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::toreMeshMaker(32u, 0.75f, 16u, 0.25f)(meshComponent);
         entity.get<sill::TransformComponent>().translate({0.f, 0.f, 1.2f});

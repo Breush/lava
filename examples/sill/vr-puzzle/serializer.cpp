@@ -79,6 +79,49 @@ nlohmann::json serialize(const Transform& transform)
     return json;
 }
 
+// ----- Frames
+
+void unserializeFrame(GameState& /* gameState */, Frame& frame, const nlohmann::json& json)
+{
+    frame.name(json["name"].get<std::string>());
+
+    auto& entityFrame = frame.entityFrame();
+
+    for (auto& componentJson : json["components"].items()) {
+        if (componentJson.key() == "mesh") {
+            auto& meshFrameComponent = entityFrame.ensure<sill::MeshFrameComponent>();
+            auto path = componentJson.value()["path"].get<std::string>();
+            sill::makers::glbMeshMaker(path)(meshFrameComponent);
+        }
+    }
+}
+
+nlohmann::json serialize(GameState& /* gameState */, const Frame& frame)
+{
+    nlohmann::json json = {
+        {"name", frame.name()},
+        {"components", nlohmann::json()},
+    };
+
+    const auto& entityFrame = frame.entityFrame();
+
+    auto& componentsJson = json["components"];
+    for (const auto& componentHrid : entityFrame.componentsHrids()) {
+        if (componentHrid == "mesh") {
+            const auto& meshComponent = entityFrame.get<sill::MeshFrameComponent>();
+            const auto& path = meshComponent.path();
+            if (!path.empty()) {
+                componentsJson[componentHrid] = {{"path", path}};
+            }
+        }
+        else {
+            logger.warning("vr-puzzle") << "Unhandled frame component '" << componentHrid << "'." << std::endl;
+        }
+    }
+
+    return json;
+}
+
 // ----- Objects
 
 void unserializeObject(GameState& gameState, Object& object, const nlohmann::json& json)
@@ -87,6 +130,11 @@ void unserializeObject(GameState& gameState, Object& object, const nlohmann::jso
 
     auto& entity = object.entity();
     entity.ensure<sill::TransformComponent>().worldTransform(unserializeTransform(json["transform"]));
+
+    if (json.find("frame") != json.end()) {
+        auto& entityFrame = gameState.level.frames[json["frame"]]->entityFrame();
+        entityFrame.makeEntity(entity);
+    }
 
     for (auto& componentJson : json["components"].items()) {
         if (componentJson.key() == "mesh") {
@@ -138,11 +186,17 @@ nlohmann::json serialize(GameState& gameState, const Object& object)
         json["kind"] = object.kind();
     }
 
+    bool hasFrame = (entity.frame() != nullptr);
+    if (hasFrame) {
+        json["frame"] = findFrameIndex(gameState, *entity.frame());
+    }
+
     auto& componentsJson = json["components"];
     for (const auto& componentHrid : entity.componentsHrids()) {
         if (componentHrid == "mesh") {
-            const auto& path = entity.get<sill::MeshComponent>().path();
-            if (!path.empty()) {
+            const auto& meshComponent = entity.get<sill::MeshComponent>();
+            const auto& path = meshComponent.path();
+            if ((meshComponent.frame() == nullptr) && !path.empty()) {
                 componentsJson[componentHrid] = {{"path", path}};
             }
         }
@@ -215,12 +269,21 @@ void unserializeLevel(GameState& gameState, const std::string& path)
     for (const auto& object : gameState.level.objects) {
         object->clear(false);
     }
+    for (const auto& frame : gameState.level.frames) {
+        frame->clear(false);
+    }
 
     gameState.level.barriers.clear();
     gameState.level.bricks.clear();
     gameState.level.panels.clear();
     gameState.level.generics.clear();
     gameState.level.objects.clear();
+    gameState.level.frames.clear();
+
+    for (auto& frameJson : levelJson["frames"]) {
+        auto& frame = Frame::make(gameState);
+        unserializeFrame(gameState, frame, frameJson);
+    }
 
     for (auto& objectJson : levelJson["objects"]) {
         auto kind = objectJson["kind"].get<std::string>();
@@ -248,6 +311,12 @@ void serializeLevel(GameState& gameState, const std::string& path)
         {"position", serialize(gameState.player.position)},
         {"direction", serialize(gameState.player.direction)},
     };
+
+    levelJson["frames"] = nlohmann::json::array();
+    for (auto i = 0u; i < gameState.level.frames.size(); ++i) {
+        const auto& frame = *gameState.level.frames[i];
+        levelJson["frames"][i] = serialize(gameState, frame);
+    }
 
     levelJson["objects"] = nlohmann::json::array();
     for (auto i = 0u; i < gameState.level.objects.size(); ++i) {

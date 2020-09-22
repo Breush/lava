@@ -93,5 +93,5 @@ private:
 };
 
 Panel* findPanelByName(GameState& gameState, const std::string& name);
-Panel* findPanel(GameState& gameState, const lava::sill::GameEntity& entity);
-uint32_t findPanelIndex(GameState& gameState, const lava::sill::GameEntity& entity);
+Panel* findPanel(GameState& gameState, const lava::sill::Entity& entity);
+uint32_t findPanelIndex(GameState& gameState, const lava::sill::Entity& entity);

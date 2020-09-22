@@ -10,7 +10,7 @@
 namespace lava::sill {
     class TextMeshComponent final : public IComponent {
     public:
-        TextMeshComponent(GameEntity& entity);
+        TextMeshComponent(Entity& entity);
         ~TextMeshComponent();
 
         // IComponent

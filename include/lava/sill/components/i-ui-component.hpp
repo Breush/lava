@@ -13,7 +13,7 @@ namespace lava::sill {
         using ExtentChangedCallback = std::function<void(const glm::vec2&)>;
 
     public:
-        IUiComponent(GameEntity& entity);
+        IUiComponent(Entity& entity);
         ~IUiComponent();
 
         // External API

@@ -10,7 +10,7 @@ namespace lava::sill {
         using UpdateCallback = std::function<void(float)>;
 
     public:
-        BehaviorComponent(GameEntity& entity);
+        BehaviorComponent(Entity& entity);
         ~BehaviorComponent();
 
         // IComponent

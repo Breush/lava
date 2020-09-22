@@ -13,7 +13,7 @@ int main(void)
     ashe::Application app;
     auto& engine = app.engine();
 
-    auto& entity = engine.make<sill::GameEntity>();
+    auto& entity = engine.make<sill::Entity>();
     auto& meshComponent = entity.make<sill::MeshComponent>();
     sill::makers::glbMeshMaker("./assets/models/sponza.glb")(meshComponent);
 

@@ -4,7 +4,7 @@
 
 using namespace lava::sill;
 
-$pimpl_class_base(TextMeshComponent, IComponent, GameEntity&, entity);
+$pimpl_class_base(TextMeshComponent, IComponent, Entity&, entity);
 
 // IComponent
 $pimpl_method(TextMeshComponent, void, update, float, dt);

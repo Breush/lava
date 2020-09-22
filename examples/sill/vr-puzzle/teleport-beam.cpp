@@ -168,7 +168,7 @@ void setupTeleportBeam(GameState& gameState)
     if (!gameState.engine->vr().enabled()) return;
 
     // Beam
-    auto& teleportBeamEntity = engine.make<sill::GameEntity>("teleport-beam");
+    auto& teleportBeamEntity = engine.make<sill::Entity>("teleport-beam");
     auto& meshComponent = teleportBeamEntity.make<sill::MeshComponent>();
     gameState.teleport.beamEntity = &teleportBeamEntity;
 
@@ -181,11 +181,11 @@ void setupTeleportBeam(GameState& gameState)
     auto teleportBeamMaterial = engine.scene().makeMaterial("teleport-beam");
     teleportBeamMaterial->set("length", 32.f);
     meshComponent.primitive(0, 0).material(teleportBeamMaterial);
-    meshComponent.primitive(0, 0).category(RenderCategory::Mask);
+    meshComponent.primitive(0, 0).renderCategory(RenderCategory::Mask);
     meshComponent.primitive(0, 0).shadowsCastable(false);
 
     // Area
-    auto& teleportAreaEntity = engine.make<sill::GameEntity>("teleport-area");
+    auto& teleportAreaEntity = engine.make<sill::Entity>("teleport-area");
     auto& teleportAreaMeshComponent = teleportAreaEntity.make<sill::MeshComponent>();
     gameState.teleport.areaEntity = &teleportAreaEntity;
 
@@ -193,7 +193,7 @@ void setupTeleportBeam(GameState& gameState)
     auto teleportAreaMaterial = engine.scene().makeMaterial("teleport-area");
     sill::makers::cylinderMeshMaker(32u, 0.75f, 0.25f, {.doubleSided = true})(teleportAreaMeshComponent);
     teleportAreaMeshComponent.primitive(0, 0).material(teleportAreaMaterial);
-    teleportAreaMeshComponent.primitive(0, 0).category(RenderCategory::Translucent);
+    teleportAreaMeshComponent.primitive(0, 0).renderCategory(RenderCategory::Translucent);
     teleportAreaMeshComponent.primitive(0, 0).shadowsCastable(false);
 
     // Update

@@ -34,8 +34,8 @@ namespace lava::magma {
 }
 
 namespace lava::sill {
-    class GameEntity;
-    class Prefab;
+    class Entity;
+    class EntityFrame;
 }
 
 namespace lava::sill {
@@ -52,6 +52,8 @@ namespace lava::sill {
     public:
         GameEngine();
         ~GameEngine();
+
+        bool destroying() const { return m_destroying; }
 
         /// Main loop.
         void run();
@@ -106,9 +108,11 @@ namespace lava::sill {
          * Its ownership goes to the engine.
          */
         /// @{
-        void add(std::unique_ptr<GameEntity>&& entity);
+        void add(std::unique_ptr<Entity>&& entity);
+        void add(std::unique_ptr<EntityFrame>&& entityFrame);
 
-        void remove(GameEntity& entity);
+        void remove(Entity& entity);
+        void remove(EntityFrame& entityFrame);
         /// @}
 
         /**
@@ -131,11 +135,8 @@ namespace lava::sill {
          * @name Tools
          */
         /// @{
-        std::vector<std::unique_ptr<GameEntity>>& entities() { return m_entities; }
-        const std::vector<std::unique_ptr<GameEntity>>& entities() const { return m_entities; }
-
         /// Find the closest entity that crosses the ray.
-        GameEntity* pickEntity(const Ray& ray, PickPrecision pickPrecision = PickPrecision::Mesh, float* distance = nullptr) const;
+        Entity* pickEntity(const Ray& ray, PickPrecision pickPrecision = PickPrecision::Mesh, float* distance = nullptr) const;
 
         /// Log FPS at each second.
         bool fpsCounting() const { return m_fpsCounting; }
@@ -146,7 +147,7 @@ namespace lava::sill {
         void debugEntityPicking(bool debugEntityPicking);
 
         /// Find an entity by its name (will stop after the first one).
-        GameEntity* findEntityByName(const std::string& name) const;
+        Entity* findEntityByName(const std::string& name) const;
         /// @}
 
     protected:
@@ -175,10 +176,13 @@ namespace lava::sill {
         std::unique_ptr<flow::AudioEngine> m_audioEngine;
 
         // Entities
-        std::vector<GameEntity*> m_allEntities;
-        std::vector<std::unique_ptr<GameEntity>> m_entities;
-        std::vector<std::unique_ptr<GameEntity>> m_pendingAddedEntities;
-        std::vector<const GameEntity*> m_pendingRemovedEntities;
+        std::vector<Entity*> m_allEntities;
+        std::vector<std::unique_ptr<Entity>> m_entities;
+        std::vector<std::unique_ptr<Entity>> m_pendingAddedEntities;
+        std::vector<const Entity*> m_pendingRemovedEntities;
+
+        // EntityFrames
+        std::vector<std::unique_ptr<EntityFrame>> m_entityFrames;
 
         // Callbacks
         std::unordered_map<uint32_t, WindowExtentChangedCallback> m_windowExtentChangedCallbacks; // Key is id

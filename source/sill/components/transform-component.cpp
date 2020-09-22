@@ -1,6 +1,6 @@
 #include <lava/sill/components/transform-component.hpp>
 
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 using namespace lava::sill;
 
@@ -16,7 +16,7 @@ namespace {
     }
 }
 
-TransformComponent::TransformComponent(GameEntity& entity)
+TransformComponent::TransformComponent(Entity& entity)
     : IComponent(entity)
 {
     entity.onParentChanged([this] {

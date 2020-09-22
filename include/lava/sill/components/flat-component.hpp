@@ -16,7 +16,7 @@ namespace lava::sill {
 namespace lava::sill {
     class FlatComponent : public IComponent {
     public:
-        FlatComponent(GameEntity& entity);
+        FlatComponent(Entity& entity);
 
         // IComponent
         static std::string hrid() { return "flat"; }
@@ -28,7 +28,7 @@ namespace lava::sill {
         std::vector<FlatNode>& nodes() { return m_nodes; }
         const std::vector<FlatNode>& nodes() const { return m_nodes; }
 
-        FlatNode& addNode(); // Emplace back a node.
+        FlatNode& addNode(); // Emplace back a node. @todo Unify API with Mesh one -> should return an index.
         void removeNode(const std::string& name);
 
         // Helpers

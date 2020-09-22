@@ -35,7 +35,7 @@ protected:
         uint32_t unconsolidatedBrickId = -1u;
         Brick* brick = nullptr;
 
-        lava::sill::GameEntity* arm = nullptr;
+        lava::sill::Entity* arm = nullptr;
         float rotation1 = 0.f;
         float rotation2 = 0.f;
     };
@@ -44,6 +44,6 @@ private:
     std::string m_material = "wood";
     bool m_powered = false;
 
-    lava::sill::GameEntity* m_bricksRoot = nullptr;
+    lava::sill::Entity* m_bricksRoot = nullptr;
     std::vector<BrickInfo> m_brickInfos;
 };

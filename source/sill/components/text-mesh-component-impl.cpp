@@ -2,14 +2,14 @@
 
 #include <lava/sill/components/mesh-component.hpp>
 #include <lava/sill/game-engine.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 #include "../makers/makers-common.hpp"
 
 using namespace lava::chamber;
 using namespace lava::sill;
 
-TextMeshComponent::Impl::Impl(GameEntity& entity)
+TextMeshComponent::Impl::Impl(Entity& entity)
     : ComponentImpl(entity)
 {
     // @todo We should be able to provide a scene,
@@ -45,25 +45,24 @@ void TextMeshComponent::Impl::update(float /* dt */)
         positions.emplace_back(position.x, 0.f, -position.y);
     }
 
-    auto meshGroup = std::make_shared<MeshGroup>(m_entity.get<MeshComponent>().scene());
-    auto& primitive = meshGroup->addPrimitive();
+    auto& meshComponent = m_entity.get<MeshComponent>();
+    meshComponent.removeNodes();
+
+    auto nodeIndex = meshComponent.addNode();
+    auto& group = meshComponent.nodeMakeGroup(nodeIndex);
+    meshComponent.nodeMatrix(nodeIndex, glm::scale(glm::mat4(1.f), glm::vec3{0.01f}));
+
+    auto& primitive = group.addPrimitive();
     primitive.verticesCount(positions.size());
     primitive.verticesPositions(positions);
     primitive.verticesNormals(normals);
     primitive.verticesUvs(geometry.uvs);
     primitive.indices(geometry.indices);
-    primitive.category(RenderCategory::Translucent);
+    primitive.renderCategory(RenderCategory::Translucent);
 
     auto material = m_entity.engine().scene().makeMaterial("font");
     material->set("fontTexture", geometry.texture);
     primitive.material(material);
-
-    auto& meshComponent = m_entity.get<MeshComponent>();
-    meshComponent.removeNodes();
-
-    auto& node = meshComponent.addNode();
-    node.meshGroup = std::move(meshGroup);
-    node.transform(glm::scale(glm::mat4(1.f), glm::vec3{0.01f}));
 }
 
 //----- Main interface

@@ -2,7 +2,7 @@
 
 using namespace lava::sill;
 
-ComponentImpl::ComponentImpl(GameEntity& entity)
+ComponentImpl::ComponentImpl(Entity& entity)
     : m_entity(entity)
 {
 }

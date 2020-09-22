@@ -2,11 +2,11 @@
 
 #include <lava/sill/components/transform-component.hpp>
 #include <lava/sill/game-engine.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 using namespace lava::sill;
 
-IUiComponent::IUiComponent(GameEntity& entity)
+IUiComponent::IUiComponent(Entity& entity)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
 {

@@ -1,17 +1,17 @@
 #include <lava/sill/makers/plane-mesh.hpp>
 
-#include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/i-mesh.hpp>
 
 using namespace lava::sill;
 
-std::function<void(MeshComponent&)> makers::planeMeshMaker(float sidesLength, PlaneMeshOptions options)
+std::function<uint32_t(IMesh&)> makers::planeMeshMaker(float sidesLength, PlaneMeshOptions options)
 {
     return makers::planeMeshMaker({sidesLength, sidesLength}, options);
 }
 
-std::function<void(MeshComponent&)> makers::planeMeshMaker(const glm::vec2& dimensions, PlaneMeshOptions options)
+std::function<uint32_t(IMesh&)> makers::planeMeshMaker(const glm::vec2& dimensions, PlaneMeshOptions options)
 {
-    return [=](MeshComponent& meshComponent) {
+    return [=](IMesh& iMesh) -> uint32_t {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
         uint32_t verticesCount = options.tessellation.x * options.tessellation.y;
@@ -62,26 +62,27 @@ std::function<void(MeshComponent&)> makers::planeMeshMaker(const glm::vec2& dime
         }
 
         // Apply the geometry
-        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
-        auto& primitive = meshGroup->addPrimitive();
-        primitive.verticesCount(positions.size());
-        primitive.verticesPositions(positions);
-        primitive.verticesNormals(normals);
-        primitive.verticesTangents(tangents);
-        primitive.verticesUvs(uvs);
-        primitive.indices(indices);
-
-        std::vector<MeshNode> nodes(1u);
-
+        magma::Mesh* primitive;
+        auto rootNodeIndex = iMesh.addNode();
         if (options.rootNodeHasGeometry) {
-            nodes[0u].meshGroup = std::move(meshGroup);
+            auto& group = iMesh.nodeMakeGroup(rootNodeIndex);
+            primitive = &group.addPrimitive();
         }
         else {
-            nodes.emplace_back();
-            nodes[1u].meshGroup = std::move(meshGroup);
-            nodes[0u].children.emplace_back(1);
+            auto nodeIndex = iMesh.addNode();
+            auto& group = iMesh.nodeMakeGroup(nodeIndex);
+            primitive = &group.addPrimitive();
+
+            iMesh.nodeAddAbsoluteChild(rootNodeIndex, nodeIndex);
         }
 
-        meshComponent.addNodes(std::move(nodes));
+        primitive->verticesCount(positions.size());
+        primitive->verticesPositions(positions);
+        primitive->verticesNormals(normals);
+        primitive->verticesTangents(tangents);
+        primitive->verticesUvs(uvs);
+        primitive->indices(indices);
+
+        return rootNodeIndex;
     };
 }

@@ -84,5 +84,5 @@ private:
 };
 
 Barrier* findBarrierByName(GameState& gameState, const std::string& name);
-Barrier* findBarrier(GameState& gameState, const lava::sill::GameEntity& entity);
-uint32_t findBarrierIndex(GameState& gameState, const lava::sill::GameEntity& entity);
+Barrier* findBarrier(GameState& gameState, const lava::sill::Entity& entity);
+uint32_t findBarrierIndex(GameState& gameState, const lava::sill::Entity& entity);

@@ -9,7 +9,7 @@ using namespace lava;
 Object::Object(GameState& gameState)
     : m_gameState(gameState)
 {
-    m_entity = &gameState.engine->make<sill::GameEntity>("object");
+    m_entity = &gameState.engine->make<sill::Entity>("object");
 }
 
 void Object::clear(bool removeFromLevel)
@@ -55,13 +55,13 @@ Object& Object::make(GameState& gameState, const std::string& kind)
 
 // -----
 
-Object* findObject(GameState& gameState, const lava::sill::GameEntity* entity)
+Object* findObject(GameState& gameState, const lava::sill::Entity* entity)
 {
     if (entity == nullptr) return nullptr;
     return findObject(gameState, *entity);
 }
 
-Object* findObject(GameState& gameState, const lava::sill::GameEntity& entity)
+Object* findObject(GameState& gameState, const lava::sill::Entity& entity)
 {
     auto pEntity = &entity;
 

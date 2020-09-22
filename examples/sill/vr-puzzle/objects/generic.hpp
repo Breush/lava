@@ -19,4 +19,4 @@ private:
 };
 
 Generic* findGenericByName(GameState& gameState, const std::string& name);
-uint32_t findGenericIndex(GameState& gameState, const lava::sill::GameEntity& entity);
+uint32_t findGenericIndex(GameState& gameState, const lava::sill::Entity& entity);

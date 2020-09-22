@@ -4,7 +4,7 @@
 
 using namespace lava::sill;
 
-SoundEmitterComponent::Impl::Impl(GameEntity& entity)
+SoundEmitterComponent::Impl::Impl(Entity& entity)
     : ComponentImpl(entity)
     , m_audioEngine(m_entity.engine().audioEngine())
 {

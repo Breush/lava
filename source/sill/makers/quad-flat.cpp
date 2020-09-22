@@ -1,7 +1,7 @@
 #include <lava/sill/makers/quad-flat.hpp>
 
 #include <lava/sill/components/flat-component.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 using namespace lava;
 using namespace lava::sill;

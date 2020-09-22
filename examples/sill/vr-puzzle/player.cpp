@@ -162,7 +162,7 @@ void setupPlayer(GameState& gameState)
         engine.input().bindAction("player.teleport", VrButton::Touchpad, VrDeviceType::RightHand);
     }
 
-    auto& entity = engine.make<sill::GameEntity>("player");
+    auto& entity = engine.make<sill::Entity>("player");
     auto& behaviorComponent = entity.make<sill::BehaviorComponent>();
     behaviorComponent.onUpdate([&](float dt) {
         if (engine.vr().enabled()) {

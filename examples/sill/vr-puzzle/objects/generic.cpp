@@ -48,7 +48,7 @@ Generic* findGenericByName(GameState& gameState, const std::string& name)
     return nullptr;
 }
 
-uint32_t findGenericIndex(GameState& gameState, const sill::GameEntity& entity)
+uint32_t findGenericIndex(GameState& gameState, const sill::Entity& entity)
 {
     for (auto i = 0u; i < gameState.level.generics.size(); ++i) {
         auto& generic = *gameState.level.generics[i];

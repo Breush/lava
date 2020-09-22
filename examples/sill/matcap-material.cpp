@@ -25,7 +25,7 @@ int main(void)
         auto material = engine.scene().makeMaterial("matcap");
         material->set("matcapTexture", texture);
 
-        auto& sphereEntity = engine.make<sill::GameEntity>();
+        auto& sphereEntity = engine.make<sill::Entity>();
         auto& sphereMeshComponent = sphereEntity.make<sill::MeshComponent>();
         sill::makers::sphereMeshMaker(32u, 1.f)(sphereMeshComponent);
         sphereMeshComponent.primitive(0, 0).material(material);

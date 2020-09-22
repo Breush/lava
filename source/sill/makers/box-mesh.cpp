@@ -1,15 +1,15 @@
 #include <lava/sill/makers/box-mesh.hpp>
 
-#include <lava/sill/components/mesh-component.hpp>
+#include <lava/sill/i-mesh.hpp>
 
 using namespace lava::sill;
 
-std::function<void(MeshComponent&)> makers::boxMeshMaker(float sidesLength, const BoxMeshOptions& options)
+std::function<uint32_t(IMesh&)> makers::boxMeshMaker(float sidesLength, const BoxMeshOptions& options)
 {
     return makers::boxMeshMaker({sidesLength, sidesLength, sidesLength}, options);
 }
 
-std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent, const BoxMeshOptions& options)
+std::function<uint32_t(IMesh&)> makers::boxMeshMaker(const glm::vec3& extent, const BoxMeshOptions& options)
 {
     const auto halfExtent = extent / 2.f;
 
@@ -185,19 +185,19 @@ std::function<void(MeshComponent&)> makers::boxMeshMaker(const glm::vec3& extent
         }
     }
 
-    return [=](MeshComponent& meshComponent) {
-        PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
-
+    // @fixme @cleanup Makers returning a function is now useless
+    // with node/entity instancing, right?
+    return [=](IMesh& iMesh) -> uint32_t {
         // Apply the geometry
-        auto meshGroup = std::make_shared<MeshGroup>(meshComponent.scene());
-        auto& primitive = meshGroup->addPrimitive();
+        auto nodeIndex = iMesh.addNode();
+        auto& group = iMesh.nodeMakeGroup(nodeIndex);
+        auto& primitive = group.addPrimitive();
         primitive.verticesCount(positions.size());
         primitive.verticesPositions(positions);
         primitive.verticesNormals(normals);
         primitive.verticesUvs(uvs);
         primitive.indices(indices);
 
-        auto& node = meshComponent.addNode();
-        node.meshGroup = std::move(meshGroup);
+        return nodeIndex;
     };
 }

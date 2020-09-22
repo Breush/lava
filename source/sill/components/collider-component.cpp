@@ -4,13 +4,13 @@
 #include <lava/sill/components/transform-component.hpp>
 #include <lava/sill/components/physics-component.hpp>
 #include <lava/sill/game-engine.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 #include <lava/sill/makers/box-mesh.hpp>
 
 using namespace lava;
 using namespace lava::sill;
 
-ColliderComponent::ColliderComponent(GameEntity& entity)
+ColliderComponent::ColliderComponent(Entity& entity)
     : IComponent(entity)
     , m_transformComponent(entity.ensure<TransformComponent>())
     , m_physicsComponent(entity.ensure<PhysicsComponent>())
@@ -83,10 +83,10 @@ void ColliderComponent::addInfinitePlaneShape(const glm::vec3& offset, const glm
 void ColliderComponent::addMeshNodeShape(const MeshNode& node)
 {
     auto& rigidBody = m_physicsComponent.rigidBody();
-    const auto& transform = node.plainLocalTransform;
+    const auto& transform = node.entitySpaceMatrix;
 
-    if (node.meshGroup) {
-        for (auto& primitive : node.meshGroup->primitives()) {
+    if (node.group) {
+        for (auto& primitive : node.group->primitives()) {
             auto& unlitVertices = primitive->unlitVertices();
             VectorView<glm::vec3> vertices(reinterpret_cast<uint8_t*>(unlitVertices.data()) + offsetof(magma::UnlitVertex, pos), unlitVertices.size(), sizeof(magma::UnlitVertex));
             rigidBody.addMeshShape(transform, vertices, primitive->indices());
@@ -119,13 +119,13 @@ void ColliderComponent::debugEnabled(bool debugEnabled)
 
     if (debugEnabled) {
         for (auto& boxShape : m_boxShapes) {
-            boxShape.debugEntity = &m_entity.engine().make<GameEntity>();
+            boxShape.debugEntity = &m_entity.engine().make<Entity>();
             auto& debugMeshComponent = boxShape.debugEntity->make<MeshComponent>();
 
             makers::BoxMeshOptions options;
             options.offset = boxShape.offset;
             makers::boxMeshMaker(boxShape.extent, options)(debugMeshComponent);
-            debugMeshComponent.category(RenderCategory::Wireframe);
+            debugMeshComponent.renderCategory(RenderCategory::Wireframe);
         }
 
         // @todo Debug for spheres and infinite planes

@@ -16,7 +16,7 @@ namespace lava::magma {
 namespace lava::sill {
     class CameraComponent final : public IComponent {
     public:
-        CameraComponent(GameEntity& entity);
+        CameraComponent(Entity& entity);
         ~CameraComponent();
 
         // IComponent

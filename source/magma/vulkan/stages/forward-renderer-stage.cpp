@@ -153,7 +153,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     for (auto mesh : m_scene.meshes()) {
         if (m_camera->vrAimed() && !mesh->vrRenderable()) continue;
 
-        auto category = mesh->category();
+        auto category = mesh->renderCategory();
         if (category == RenderCategory::Depthless) {
             depthlessMeshes.emplace_back(mesh);
             continue;

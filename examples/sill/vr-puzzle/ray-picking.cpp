@@ -91,7 +91,7 @@ void setupRayPicking(GameState& gameState)
 {
     auto& engine = *gameState.engine;
 
-    auto& rayPickingEntity = engine.make<sill::GameEntity>("ray-picking");
+    auto& rayPickingEntity = engine.make<sill::Entity>("ray-picking");
     rayPickingEntity.ensure<sill::TransformComponent>();
 
     if (gameState.engine->vr().enabled()) {

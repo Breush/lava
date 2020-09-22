@@ -1,7 +1,7 @@
 #include <lava/sill/managers/ui-manager.hpp>
 
 #include <lava/sill/game-engine.hpp>
-#include <lava/sill/game-entity.hpp>
+#include <lava/sill/entity.hpp>
 
 #include <lava/sill/components/i-ui-component.hpp>
 
