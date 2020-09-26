@@ -131,6 +131,9 @@ void EnvironmentPrefilteringStage::render(vk::CommandBuffer commandBuffer, uint8
     commandBuffer.endRenderPass();
 
     deviceHolder.debugEndRegion(commandBuffer);
+
+    // Due to RenderPass configuration .finalLayout goes to ShaderReadOnlyOptimal.
+    m_imageHolder.informLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
 }
 
 //----- Internal

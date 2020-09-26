@@ -69,6 +69,9 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
         m_channelBytesLength = 4u;
         break;
     }
+    // @fixme Should I use Srgb images instead? I have been using Unorm
+    // with really no reason.
+    case vk::Format::eR8G8B8A8Srgb:
     case vk::Format::eR8G8B8A8Unorm: {
         m_channels = 4u;
         m_channelBytesLength = 1u;
@@ -99,7 +102,6 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
     vk::AccessFlags srcAccessMask;
     vk::AccessFlags dstAccessMask;
-    vk::ImageLayout oldLayout = vk::ImageLayout::eUndefined;
 
     // Depth
     if (imageAspect == vk::ImageAspectFlagBits::eDepth) {
@@ -124,7 +126,6 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
         dstStageMask |= vk::PipelineStageFlagBits::eTransfer;
         srcAccessMask = vk::AccessFlagBits::eHostWrite;
         dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-        oldLayout = vk::ImageLayout::ePreinitialized;
         m_layout = vk::ImageLayout::eShaderReadOnlyOptimal; // Cannot use eColorAttachmentOptimal, somehow
     }
     else {
@@ -143,7 +144,7 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
     imageInfo.arrayLayers = layersCount;
     imageInfo.format = format;
     imageInfo.tiling = vk::ImageTiling::eOptimal;
-    imageInfo.initialLayout = vk::ImageLayout::ePreinitialized;
+    imageInfo.initialLayout = vk::ImageLayout::eUndefined;
     imageInfo.usage = usageFlags;
     imageInfo.samples = m_sampleCount;
     imageInfo.sharingMode = vk::SharingMode::eExclusive;
@@ -191,19 +192,11 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
 
     //----- Transition
 
-    vk::ImageMemoryBarrier barrier;
-    barrier.oldLayout = oldLayout;
-    barrier.newLayout = m_layout;
-    barrier.image = m_image;
-    barrier.subresourceRange.levelCount = 1;
-    barrier.subresourceRange.layerCount = 1;
-    barrier.subresourceRange.aspectMask = imageAspect;
-    barrier.srcAccessMask = srcAccessMask;
-    barrier.dstAccessMask = dstAccessMask;
-
-    auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
-    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
-    endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
+    if (m_layout != vk::ImageLayout::eUndefined) {
+        auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
+        changeLayoutQuietly(m_layout, commandBuffer);
+        endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
+    }
 
     if (!m_name.empty()) {
         m_engine.deviceHolder().debugObjectName(m_image, m_name);
@@ -244,6 +237,7 @@ void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffse
     bufferImageCopy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
     bufferImageCopy.imageSubresource.baseArrayLayer = layerOffset;
     bufferImageCopy.imageSubresource.layerCount = layersCount;
+    bufferImageCopy.imageSubresource.mipLevel = 0;
     bufferImageCopy.imageExtent = vk::Extent3D{m_extent.width, m_extent.height, 1};
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
@@ -326,26 +320,16 @@ void ImageHolder::setup(const uint8_t* pixels, uint32_t width, uint32_t height, 
     copy(pixels);
 }
 
-void ImageHolder::changeLayoutQuietly(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) const
-{
-    // @note Not sure what this is for...
-    vk::PipelineStageFlags stageMask = vk::PipelineStageFlagBits::eTopOfPipe;
-
-    vk::ImageMemoryBarrier barrier;
-    barrier.oldLayout = vk::ImageLayout::eUndefined; // @todo Well, that works, but it is definitly ugly
-    barrier.newLayout = imageLayout;
-    barrier.image = m_image;
-    barrier.subresourceRange.levelCount = m_mipLevelsCount;
-    barrier.subresourceRange.layerCount = m_layersCount;
-    barrier.subresourceRange.aspectMask = m_aspect;
-
-    commandBuffer.pipelineBarrier(stageMask, stageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
-}
-
 void ImageHolder::changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
 {
     changeLayoutQuietly(imageLayout, commandBuffer);
     m_layout = imageLayout;
+}
+
+void ImageHolder::informLayout(vk::ImageLayout imageLayout)
+{
+    m_layout = imageLayout;
+    m_lastKnownLayout = imageLayout;
 }
 
 RenderImage ImageHolder::renderImage(uint32_t uuid) const
@@ -359,7 +343,7 @@ RenderImage ImageHolder::renderImage(uint32_t uuid) const
     return renderImage;
 }
 
-void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mipLevel) const
+void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mipLevel)
 {
     auto width = m_extent.width;
     auto height = m_extent.height;
@@ -418,13 +402,42 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
 // ----- Internal
 
+void ImageHolder::changeLayoutQuietly(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)
+{
+    if (m_lastKnownLayout == imageLayout) return;
+
+    // @noteDo not let the image layout going back to undefined!
+    // As using ImageLayout::eUndefined as old layout loses the texels!
+    if (imageLayout == vk::ImageLayout::eUndefined) return;
+
+    // @note Not sure what this is for...
+    vk::PipelineStageFlags stageMask = vk::PipelineStageFlagBits::eTopOfPipe;
+
+    vk::ImageMemoryBarrier barrier;
+    barrier.oldLayout = m_lastKnownLayout;
+    barrier.newLayout = imageLayout;
+    barrier.image = m_image;
+    barrier.subresourceRange.levelCount = m_mipLevelsCount;
+    barrier.subresourceRange.layerCount = m_layersCount;
+    barrier.subresourceRange.aspectMask = m_aspect;
+
+    commandBuffer.pipelineBarrier(stageMask, stageMask, vk::DependencyFlags(), 0, nullptr, 0, nullptr, 1, &barrier);
+
+    m_lastKnownLayout = imageLayout;
+
+    if (m_layout == vk::ImageLayout::eUndefined) {
+        m_layout = imageLayout;
+    }
+}
+
 // Normalized as RGBA
 uint32_t ImageHolder::extractPixelValue(const void* data, uint64_t width, uint64_t i, uint64_t j) const
 {
     uint32_t value = 0u;
     uint64_t offset = (j * width + i) * m_channels * m_channelBytesLength; // In bytes
 
-    if (m_format == vk::Format::eR8G8B8A8Unorm) {
+    if (m_format == vk::Format::eR8G8B8A8Unorm ||
+        m_format == vk::Format::eR8G8B8A8Srgb) {
         auto rgba = reinterpret_cast<const uint8_t*>(data) + offset;
         value = rgba[3];
         value = (value << 8u) + rgba[2];

@@ -50,19 +50,22 @@ namespace lava::magma::vulkan {
          */
         void setup(const uint8_t* pixels, uint32_t width, uint32_t height, uint8_t channels, uint8_t layersCount = 1u);
 
-        /// Adds to commands to the commandBuffer to change the layout. This won't change the return value of layout().
-        void changeLayoutQuietly(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer) const;
-
         /// Adds to commands to the commandBuffer to change the layout. This WILL change the return value of layout().
         void changeLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
+
+        /// Inform that the layout changed via another way.
+        void informLayout(vk::ImageLayout imageLayout);
 
         /// Generate a RenderImage from available information.
         RenderImage renderImage(uint32_t uuid) const;
 
         /// Save the image as a PNG file.
-        void savePng(const fs::Path& path, uint8_t layerOffset = 0u, uint8_t mipLevel = 0u) const;
+        void savePng(const fs::Path& path, uint8_t layerOffset = 0u, uint8_t mipLevel = 0u);
 
     protected:
+        // Adds to commands to the commandBuffer to change the layout. This won't change the return value of layout().
+        void changeLayoutQuietly(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer);
+
         uint32_t extractPixelValue(const void* data, uint64_t width, uint64_t i, uint64_t j) const;
 
     private:
@@ -84,6 +87,7 @@ namespace lava::magma::vulkan {
         $attribute(vulkan::ImageView, view);
         $attribute(vk::ImageLayout, layout, = vk::ImageLayout::eUndefined);
         $attribute(vk::ImageAspectFlagBits, aspect, = vk::ImageAspectFlagBits::eMetadata);
+        vk::ImageLayout m_lastKnownLayout = vk::ImageLayout::eUndefined;
         vk::SampleCountFlagBits m_sampleCount = vk::SampleCountFlagBits::e1;
     };
 }
