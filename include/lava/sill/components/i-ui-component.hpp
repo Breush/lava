@@ -23,6 +23,8 @@ namespace lava::sill {
         }
 
         // UI manager interaction
+        // Transforms screen-space coordinates to object-space coordinates from top-left corner.
+        glm::vec2 topLeftRelativePosition(const glm::ivec2& mousePosition) const;
         bool checkHovered(const glm::ivec2& mousePosition);
 
         virtual void hovered(bool /* hovered */) {}
@@ -40,6 +42,10 @@ namespace lava::sill {
 
     protected:
         TransformComponent& m_transformComponent;
+
+        // Internal configuration
+        glm::vec2 m_hoveringExtent = glm::vec2{1.f};
+        glm::vec2 m_hoveringOffset = glm::vec2{0.f};
 
         // Configuration
         glm::vec2 m_extent = glm::vec2{1.f};

@@ -82,6 +82,7 @@ void UiButtonComponent::updateText()
     // @todo :UiPaddingMerge Merge this padding configurations with all UI components?
     constexpr float horizontalPadding = 5.f;
     m_extent = {2.f * horizontalPadding + extent.width, extent.height};
+    m_hoveringExtent = m_extent;
     m_flatComponent.node("background").transform(glm::scale(glm::mat3(1.f), m_extent));
 
     m_textDirty = false;

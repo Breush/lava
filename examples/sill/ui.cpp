@@ -55,6 +55,23 @@ int main(void)
                                                                        screenExtent.height / 2.f + 32u});
     }
 
+    // Select
+    {
+        std::vector<std::wstring> options;
+        options.emplace_back(L"Hello!");
+        options.emplace_back(L"That's a lot...");
+        options.emplace_back(L"... of options to choose from!");
+
+        auto& selectEntity = engine.make<sill::Entity>("demo.select");
+        auto& selectComponent = selectEntity.make<sill::UiSelectComponent>(options, 0);
+        selectComponent.onIndexChanged([](uint8_t index, const std::wstring& text) {
+            std::cout << "Select: " << (uint32_t)index << " -> " << chamber::utf16to8(text) << std::endl;
+        });
+
+        selectEntity.get<sill::TransformComponent>().translation2d({screenExtent.width / 2.f,
+                                                                    screenExtent.height / 2.f + 64u});
+    }
+
     engine.run();
 
     return EXIT_SUCCESS;

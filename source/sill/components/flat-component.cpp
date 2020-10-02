@@ -63,6 +63,21 @@ void FlatComponent::removeNode(const std::string& name)
     }
 }
 
+void FlatComponent::removeNodes(const std::string& name)
+{
+    auto nodeIt = std::remove_if(m_nodes.begin(), m_nodes.end(), [&name](const FlatNode& node) {
+        return node.name == name;
+    });
+
+    if (nodeIt == m_nodes.end()) return;
+
+    m_nodes.erase(nodeIt, m_nodes.end());
+
+    for (auto& node : m_nodes) {
+        node.localTransformChanged = true;
+    }
+}
+
 // ----- Helpers
 
 magma::Flat& FlatComponent::primitive(uint32_t nodeIndex, uint32_t primitiveIndex)

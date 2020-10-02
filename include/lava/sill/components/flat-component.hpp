@@ -30,6 +30,7 @@ namespace lava::sill {
 
         FlatNode& addNode(); // Emplace back a node. @todo Unify API with Mesh one -> should return an index.
         void removeNode(const std::string& name);
+        void removeNodes(const std::string& name);
 
         // Helpers
         magma::Flat& primitive(uint32_t nodeIndex, uint32_t primitiveIndex);

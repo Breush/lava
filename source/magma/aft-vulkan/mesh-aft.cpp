@@ -4,6 +4,7 @@
 #include <lava/magma/mesh.hpp>
 #include <lava/magma/scene.hpp>
 
+#include "../vulkan/render-engine-impl.hpp"
 #include "./material-aft.hpp"
 #include "./scene-aft.hpp"
 
@@ -97,6 +98,7 @@ void MeshAft::createVertexBuffers()
 void MeshAft::createInstanceBuffer()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
+    m_scene.engine().impl().device().waitIdle();
 
     vk::DeviceSize bufferSize = sizeof(MeshUbo) * m_fore.instancesCount();
     m_instanceBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);

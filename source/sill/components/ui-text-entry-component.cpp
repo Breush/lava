@@ -22,6 +22,7 @@ UiTextEntryComponent::UiTextEntryComponent(Entity& entity, const std::wstring& t
     auto& scene2d = entity.engine().scene2d();
 
     m_extent = {300.f, m_fontSize};
+    m_hoveringExtent = m_extent;
 
     // Background setup
     {

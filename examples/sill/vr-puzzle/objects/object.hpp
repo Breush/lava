@@ -7,6 +7,7 @@
 #include "../ui-widget.hpp"
 
 struct GameState;
+class Frame;
 
 class Object {
 public:
@@ -16,6 +17,10 @@ public:
     virtual ~Object() = default;
 
     const std::string& kind() const { return m_kind; }
+
+    Frame* frame() const { return m_frame; }
+    void frame(Frame* frame) { m_frame = frame; }
+    void frame(Frame& frame) { m_frame = &frame; }
 
     /// Create an object of a certain kind.
     static Object& make(GameState& gameState, const std::string& kind);
@@ -33,12 +38,7 @@ public:
     virtual void mutateBeforeDuplication(nlohmann::json& /* data */) {}
 
     // Editor controls
-    virtual void uiWidgets(std::vector<UiWidget>& widgets) {
-        widgets.emplace_back("name",
-            [this]() -> const std::string& { return name(); },
-            [this](const std::string& name) { this->name(name); }
-        );
-    }
+    virtual void uiWidgets(std::vector<UiWidget>& widgets);
     virtual void editorOnClicked(const glm::vec3& /* hitPoint */) {}
     virtual const glm::vec3& editorOrigin() const {
         return transform().worldTransform().translation;
@@ -69,6 +69,7 @@ public:
 protected:
     GameState& m_gameState;
     lava::sill::Entity* m_entity = nullptr;
+    Frame* m_frame = nullptr;
 
     std::string m_kind;
     std::string m_name;

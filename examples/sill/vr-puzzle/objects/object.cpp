@@ -53,6 +53,40 @@ Object& Object::make(GameState& gameState, const std::string& kind)
     return *gameState.level.objects.emplace_back(std::move(object));
 }
 
+// ----- Editor controls
+
+void Object::uiWidgets(std::vector<UiWidget>& widgets)
+{
+    // ----- Name
+
+    widgets.emplace_back("name",
+        [this]() -> const std::string& { return name(); },
+        [this](const std::string& name) { this->name(name); }
+    );
+
+    // ----- Frame
+
+    std::vector<std::string_view> options;
+    options.emplace_back("<none>");
+    for (auto& frame : m_gameState.level.frames) {
+        options.emplace_back(frame->name());
+    }
+
+    uint8_t index = 0u;
+    if (m_frame) {
+        index = 1u + findFrameIndex(m_gameState, *m_frame);
+    }
+
+    widgets.emplace_back("frame",
+        options,
+        [index]() -> uint8_t { return index; },
+        [this](uint8_t) {
+            /* @fixme */
+            chamber::logger.warning("vr-puzzle.object") << "Cannot set a new frame yet." << std::endl;
+        }
+    );
+}
+
 // -----
 
 Object* findObject(GameState& gameState, const lava::sill::Entity* entity)

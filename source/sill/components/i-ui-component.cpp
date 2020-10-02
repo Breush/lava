@@ -15,18 +15,27 @@ IUiComponent::IUiComponent(Entity& entity)
 
 IUiComponent::~IUiComponent()
 {
-    m_entity.engine().ui().unregisterUiComponent(*this);
+    if (!m_entity.engine().destroying()) {
+        m_entity.engine().ui().unregisterUiComponent(*this);
+    }
 }
 
 // ----- UI manager interaction
 
+glm::vec2 IUiComponent::topLeftRelativePosition(const glm::ivec2& mousePosition) const
+{
+    auto position = m_transformComponent.translation2d();
+    return glm::vec2(mousePosition) - position + m_extent / 2.f;
+}
+
 bool IUiComponent::checkHovered(const glm::ivec2& mousePosition)
 {
-    const auto& position = m_transformComponent.translation2d();
-    bool hovered = (mousePosition.x >= position.x - m_extent.x / 2.f &&
-                    mousePosition.x <= position.x + m_extent.x / 2.f &&
-                    mousePosition.y >= position.y - m_extent.y / 2.f &&
-                    mousePosition.y <= position.y + m_extent.y / 2.f);
+    auto position = m_transformComponent.translation2d();
+    position += m_hoveringOffset;
+    bool hovered = (mousePosition.x >= position.x - m_hoveringExtent.x / 2.f &&
+                    mousePosition.x <= position.x + m_hoveringExtent.x / 2.f &&
+                    mousePosition.y >= position.y - m_hoveringExtent.y / 2.f &&
+                    mousePosition.y <= position.y + m_hoveringExtent.y / 2.f);
     this->hovered(hovered);
     return hovered;
 }

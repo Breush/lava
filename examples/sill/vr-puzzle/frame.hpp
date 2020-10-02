@@ -37,3 +37,6 @@ protected:
 };
 
 uint32_t findFrameIndex(GameState& gameState, const lava::sill::EntityFrame& entityFrame);
+inline uint32_t findFrameIndex(GameState& gameState, const Frame& frame) {
+    return findFrameIndex(gameState, frame.entityFrame());
+}

@@ -41,9 +41,9 @@ namespace lava::sill {
         // Configuration
         std::wstring m_text;
         bool m_textDirty = false;
-        const uint32_t m_fontSize = 30u;
 
         // @todo :UiPaddingMerge
+        const uint32_t m_fontSize = 30u;
         const uint32_t m_horizontalPadding = 5u;
 
         uint32_t m_cursorPosition = 0u; // Within text

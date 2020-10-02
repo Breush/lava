@@ -4,6 +4,7 @@ enum class UiWidgetKind {
     Unknown,
     TextEntry,
     ToggleButton,
+    Select,
 };
 
 class UiWidget
@@ -13,6 +14,8 @@ public:
     using TextEntrySetter = std::function<void(const std::string&)>;
     using ToggleButtonGetter = std::function<bool()>;
     using ToggleButtonSetter = std::function<void(bool)>;
+    using SelectGetter = std::function<uint8_t()>;
+    using SelectSetter = std::function<void(uint8_t)>;
 
     struct TextEntryInfo {
         TextEntryGetter getter = nullptr;
@@ -23,6 +26,12 @@ public:
         std::string text;
         ToggleButtonGetter getter = nullptr;
         ToggleButtonSetter setter = nullptr;
+    };
+
+    struct SelectInfo {
+        std::vector<std::string_view> options;
+        SelectGetter getter = nullptr;
+        SelectSetter setter = nullptr;
     };
 
 public:
@@ -39,6 +48,13 @@ public:
         m_toggleButton.getter = getter;
         m_toggleButton.setter = setter;
     }
+    UiWidget(std::string id, std::vector<std::string_view> options, SelectGetter getter, SelectSetter setter) {
+        m_id = std::move(id);
+        m_kind = UiWidgetKind::Select;
+        m_select.options = std::move(options);
+        m_select.getter = getter;
+        m_select.setter = setter;
+    }
 
     std::string id() const { return m_id; }
     UiWidgetKind kind() const { return m_kind; }
@@ -47,6 +63,7 @@ public:
 
     const TextEntryInfo& textEntry() const { return m_textEntry; }
     const ToggleButtonInfo& toggleButton() const { return m_toggleButton; }
+    const SelectInfo& select() const { return m_select; }
 
 private:
     std::string m_id;
@@ -56,4 +73,5 @@ private:
     // @note Can't union those easily, none trivial destructors.
     TextEntryInfo m_textEntry;
     ToggleButtonInfo m_toggleButton;
+    SelectInfo m_select;
 };

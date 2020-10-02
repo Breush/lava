@@ -71,6 +71,12 @@ void reflowUi(GameState& gameState)
             entity.get<sill::TransformComponent>().translation2d({xMargin + extent.x / 2.f, y + extent.y / 2.f});
             y += yMargin + extent.y;
         }
+        else if (kind == UiWidgetKind::Select) {
+            auto& uiComponent = entity.get<sill::UiSelectComponent>();
+            auto& extent = uiComponent.extent();
+            entity.get<sill::TransformComponent>().translation2d({xMargin + extent.x / 2.f, y + extent.y / 2.f});
+            y += yMargin + extent.y;
+        }
     }
 }
 
@@ -108,6 +114,18 @@ void onSelectionChanged(GameState& gameState)
                 });
                 uiComponent.onExtentChanged([&gameState](const glm::vec2& /* extent */) {
                     reflowUi(gameState);
+                });
+            }
+            else if (kind == UiWidgetKind::Select) {
+                auto& select = widget.select();
+                std::vector<std::wstring> options;
+                options.reserve(select.options.size());
+                for (auto option : select.options) {
+                    options.emplace_back(utf8to16(std::string(option)));
+                }
+                auto& uiComponent = entity.make<sill::UiSelectComponent>(options, select.getter());
+                uiComponent.onIndexChanged([select](uint8_t index, const std::wstring&) {
+                    select.setter(index);
                 });
             }
             gameState.ui.entities.emplace_back(&entity);

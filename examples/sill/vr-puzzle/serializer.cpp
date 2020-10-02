@@ -132,8 +132,9 @@ void unserializeObject(GameState& gameState, Object& object, const nlohmann::jso
     entity.ensure<sill::TransformComponent>().worldTransform(unserializeTransform(json["transform"]));
 
     if (json.find("frame") != json.end()) {
-        auto& entityFrame = gameState.level.frames[json["frame"]]->entityFrame();
-        entityFrame.makeEntity(entity);
+        auto& frame = *gameState.level.frames[json["frame"]];
+        object.frame(frame);
+        frame.entityFrame().makeEntity(entity);
     }
 
     for (auto& componentJson : json["components"].items()) {
@@ -186,9 +187,9 @@ nlohmann::json serialize(GameState& gameState, const Object& object)
         json["kind"] = object.kind();
     }
 
-    bool hasFrame = (entity.frame() != nullptr);
-    if (hasFrame) {
-        json["frame"] = findFrameIndex(gameState, *entity.frame());
+    auto frame = object.frame();
+    if (frame) {
+        json["frame"] = findFrameIndex(gameState, *frame);
     }
 
     auto& componentsJson = json["components"];
