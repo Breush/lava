@@ -281,6 +281,7 @@ void setupEditor(GameState& gameState)
     input.bindAction("add-barrier", {Key::LeftShift, Key::A, Key::R});
     input.bindAction("add-pedestal", {Key::LeftShift, Key::A, Key::D});
     input.bindAction("add-mesh", {Key::LeftShift, Key::A, Key::M});
+    input.bindAction("add-object", {Key::LeftShift, Key::A, Key::O});
     input.bindAction("bind-to-pedestal", {Key::LeftAlt, Key::D});
     // @todo Make action to switch to rotation gizmo on R
 
@@ -457,7 +458,7 @@ void setupEditor(GameState& gameState)
                 std::cin >> fileName;
                 auto filePath = "./assets/models/vr-puzzle/" + fileName + ".glb";
 
-                auto& generic = Generic::make(gameState, "generic");
+                auto& generic = Object::make(gameState, "generic");
                 auto& entity = generic.entity();
                 entity.name(fileName);
                 auto& meshComponent = entity.make<sill::MeshComponent>();
@@ -468,6 +469,18 @@ void setupEditor(GameState& gameState)
                 generic.consolidateReferences();
                 generic.transform().worldTransform(transform);
                 return;
+            }
+
+            if (input.justDown("add-object")) {
+                auto& generic = Object::make(gameState, "generic");
+                auto& entity = generic.entity();
+                entity.ensure<sill::TransformComponent>();
+
+                lava::Transform transform;
+                transform.translation = gameState.camera.component->origin();
+                generic.transform().worldTransform(transform);
+
+                selectObject(gameState, &generic, false);
             }
 
             std::string kindToAdd;

@@ -11,6 +11,14 @@
                 }
             },
             "name": "rock-small-2"
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/env/tree.glb"
+                }
+            },
+            "name": "tree"
         }
     ],
     "name": "intro",
@@ -2387,6 +2395,75 @@
                     46.67913055419922,
                     7.840408802032471,
                     5.298129081726074
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "walkable": false
+            },
+            "frame": 1,
+            "kind": "generic",
+            "name": "tree",
+            "transform": {
+                "rotation": [
+                    0.7668904066085815,
+                    0.0,
+                    0.0,
+                    -0.6417780518531799
+                ],
+                "scaling": 1.0676146745681763,
+                "translation": [
+                    -0.9872801303863525,
+                    14.520711898803711,
+                    3.0249125957489014
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "walkable": false
+            },
+            "frame": 1,
+            "kind": "generic",
+            "name": "tree",
+            "transform": {
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -3.778623104095459,
+                    13.323375701904297,
+                    2.4483625888824463
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "walkable": false
+            },
+            "frame": 1,
+            "kind": "generic",
+            "name": "tree",
+            "transform": {
+                "rotation": [
+                    0.9539821147918701,
+                    0.0,
+                    0.0,
+                    0.2998635172843933
+                ],
+                "scaling": 0.8860830664634705,
+                "translation": [
+                    -3.1234006881713867,
+                    14.844576835632324,
+                    2.6752774715423584
                 ]
             }
         }

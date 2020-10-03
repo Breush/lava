@@ -80,9 +80,19 @@ void Object::uiWidgets(std::vector<UiWidget>& widgets)
     widgets.emplace_back("frame",
         options,
         [index]() -> uint8_t { return index; },
-        [this](uint8_t) {
-            /* @fixme */
-            chamber::logger.warning("vr-puzzle.object") << "Cannot set a new frame yet." << std::endl;
+        [this](uint8_t index) {
+            if (index == 0 || index > m_gameState.level.frames.size()) return;
+            if (m_frame != nullptr) {
+                chamber::logger.warning("vr-puzzle.object") << "Cannot change frame." << std::endl;
+                return;
+            }
+            if (m_entity->has<sill::MeshComponent>()) {
+                chamber::logger.warning("vr-puzzle.object") << "Cannot set frame if entity already has a MeshComponent." << std::endl;
+                return;
+            }
+
+            m_frame = m_gameState.level.frames[index - 1u].get();
+            m_frame->entityFrame().makeEntity(*m_entity);
         }
     );
 }
