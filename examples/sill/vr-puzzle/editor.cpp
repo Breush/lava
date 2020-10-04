@@ -703,9 +703,16 @@ void setupEditor(GameState& gameState)
                 }
                 auto offset = maxX - minX;
 
+                std::vector<Object*> newObjects;
                 for (auto object : gameState.editor.selection.objects) {
                     auto& newObject = duplicateBySerialization(gameState, *object);
                     newObject.transform().worldTranslate(glm::vec3{offset, 0.f, 0.f});
+                    newObjects.emplace_back(&newObject);
+                }
+
+                selectObject(gameState, nullptr, false);
+                for (auto newObject : newObjects) {
+                    selectObject(gameState, newObject, true);
                 }
             }
 
