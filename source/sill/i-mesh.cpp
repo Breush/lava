@@ -168,7 +168,7 @@ BoundingSphere IMesh::boundingSphere() const
         if (node.group == nullptr) continue;
 
         for (auto& primitive : node.group->primitives()) {
-            boundingSphere = mergeBoundingSpheres(boundingSphere, primitive->boundingSphere());
+            boundingSphere = mergeBoundingSpheres(boundingSphere, primitive->boundingSphere(node.instanceIndex));
         }
     }
 

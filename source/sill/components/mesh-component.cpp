@@ -155,7 +155,7 @@ float MeshComponent::distanceFrom(const Ray& ray, PickPrecision pickPrecision) c
             }
 
             // Check against primitive's bounding sphere
-            const auto& primitiveBs = primitive->boundingSphere();
+            const auto& primitiveBs = primitive->boundingSphere(node.instanceIndex);
             if (intersectSphere(ray, primitiveBs.center, primitiveBs.radius) == 0.f) continue;
 
             // Check against primitive's triangles

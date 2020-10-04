@@ -43,25 +43,25 @@ namespace lava::magma {
         /// @{
         // @todo :Terminology Should this still be called transform? Or is that term reserved for uniform scaling lava::Transform?
         /// The transform is `translation * rotation * scaling`.
-        const glm::mat4& transform(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).transform; }
+        const glm::mat4& transform(uint32_t instanceIndex = 0u) const { return m_instancesInfos.at(instanceIndex).transform; }
         void transform(const glm::mat4& transform, uint32_t instanceIndex = 0u);
 
-        const glm::vec3& translation(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).translation; }
+        const glm::vec3& translation(uint32_t instanceIndex = 0u) const { return m_instancesInfos.at(instanceIndex).translation; }
         void translation(const glm::vec3& translation, uint32_t instanceIndex = 0u);
-        void translate(const glm::vec3& delta, uint32_t instanceIndex = 0u) { translation(m_transformsInfos.at(instanceIndex).translation + delta, instanceIndex); }
+        void translate(const glm::vec3& delta, uint32_t instanceIndex = 0u) { translation(m_instancesInfos.at(instanceIndex).translation + delta, instanceIndex); }
 
-        const glm::quat& rotation(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).rotation; }
+        const glm::quat& rotation(uint32_t instanceIndex = 0u) const { return m_instancesInfos.at(instanceIndex).rotation; }
         void rotation(const glm::quat& rotation, uint32_t instanceIndex = 0u);
         void rotate(const glm::vec3& axis, float angle, uint32_t instanceIndex = 0u)
         {
-            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_transformsInfos.at(instanceIndex).rotation, instanceIndex);
+            rotation(glm::rotate(glm::quat(1.f, 0.f, 0.f, 0.f), angle, axis) * m_instancesInfos.at(instanceIndex).rotation, instanceIndex);
         }
 
-        const glm::vec3& scaling(uint32_t instanceIndex = 0u) const { return m_transformsInfos.at(instanceIndex).scaling; }
+        const glm::vec3& scaling(uint32_t instanceIndex = 0u) const { return m_instancesInfos.at(instanceIndex).scaling; }
         void scaling(const glm::vec3& scaling, uint32_t instanceIndex = 0u);
         void scaling(float commonScaling, uint32_t instanceIndex = 0u) { scaling(glm::vec3(commonScaling), instanceIndex); }
-        void scale(const glm::vec3& delta, uint32_t instanceIndex = 0u) { scaling(m_transformsInfos.at(instanceIndex).scaling * delta, instanceIndex); }
-        void scale(float delta, uint32_t instanceIndex = 0u) { scaling(m_transformsInfos.at(instanceIndex).scaling * delta, instanceIndex); }
+        void scale(const glm::vec3& delta, uint32_t instanceIndex = 0u) { scaling(m_instancesInfos.at(instanceIndex).scaling * delta, instanceIndex); }
+        void scale(float delta, uint32_t instanceIndex = 0u) { scaling(m_instancesInfos.at(instanceIndex).scaling * delta, instanceIndex); }
         /// @}
 
         /**
@@ -72,9 +72,17 @@ namespace lava::magma {
         /// This englobes all instances.
         const BoundingSphere& boundingSphere() {
             if (m_boundingSphereDirty) {
-                updateBoundingSphere();
+                updateBoundingSpheres();
             }
             return m_boundingSphere;
+        }
+
+        /// World-space bounding sphere, which might be slightly overestimated.
+        const BoundingSphere& boundingSphere(uint32_t instanceIndex) {
+            if (m_boundingSphereDirty) {
+                updateBoundingSpheres();
+            }
+            return m_instancesInfos[instanceIndex].boundingSphere;
         }
         /// @}
 
@@ -161,15 +169,17 @@ namespace lava::magma {
     private:
         void updateUbo(uint32_t instanceIndex);
         void updateTransform(uint32_t instanceIndex);
-        void updateBoundingSphere();
+        void updateBoundingSpheres();
 
     private:
-        struct TransformInfo {
+        struct InstanceInfo {
             glm::mat4 transform = glm::mat4(1.f);
             // Decompose values of above transform.
             glm::vec3 translation = glm::vec3(0.f);
             glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
             glm::vec3 scaling = glm::vec3(1.f);
+            // Bounding sphere
+            BoundingSphere boundingSphere;
         };
 
     private:
@@ -178,7 +188,7 @@ namespace lava::magma {
         bool m_enabled = true;
 
         // ----- Transform
-        std::vector<TransformInfo> m_transformsInfos;
+        std::vector<InstanceInfo> m_instancesInfos;
 
         // ----- Bounding sphere
         BoundingSphere m_boundingSphereGeometry;
