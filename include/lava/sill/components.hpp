@@ -11,6 +11,8 @@
 #include <lava/sill/components/text-mesh-component.hpp>
 #include <lava/sill/components/transform-component.hpp>
 
+#include <lava/sill/components/ui-area-component.hpp>
 #include <lava/sill/components/ui-button-component.hpp>
+#include <lava/sill/components/ui-label-component.hpp>
 #include <lava/sill/components/ui-select-component.hpp>
 #include <lava/sill/components/ui-text-entry-component.hpp>

@@ -140,18 +140,36 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, co
     case Alignment::Center: break;
     case Alignment::End: xAnchor += globalTextExtent.width / 2.f; break;
     }
-    switch (options.horizontalAnchor) {
-    case Anchor::Start: xAnchor += globalTextExtent.width / 2.f; break;
-    case Anchor::Center: break;
-    case Anchor::End: xAnchor -= globalTextExtent.width / 2.f; break;
+    switch (options.anchor) {
+    case Anchor::TopLeft:
+    case Anchor::Left:
+    case Anchor::BottomLeft:
+        xAnchor += globalTextExtent.width / 2.f;
+        break;
+    case Anchor::TopRight:
+    case Anchor::Right:
+    case Anchor::BottomRight:
+        xAnchor -= globalTextExtent.width / 2.f;
+        break;
+    default:
+        break;
     }
 
     // Anchor vertically
     float yAnchor = 0.f;
-    switch (options.verticalAnchor) {
-    case Anchor::Start: break;
-    case Anchor::Center: yAnchor -= globalTextExtent.height / 2.f; break;
-    case Anchor::End: yAnchor += globalTextExtent.height; break;
+    switch (options.anchor) {
+    case Anchor::Left:
+    case Anchor::Center:
+    case Anchor::Right:
+        yAnchor -= globalTextExtent.height / 2.f;
+        break;
+    case Anchor::BottomLeft:
+    case Anchor::Bottom:
+    case Anchor::BottomRight:
+        yAnchor += globalTextExtent.height;
+        break;
+    default:
+        break;
     }
 
     for (auto& position : positions) {

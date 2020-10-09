@@ -31,8 +31,7 @@ void TextMeshComponent::Impl::update(float /* dt */)
     TextOptions textOptions;
     textOptions.fontHrid = m_fontHrid;
     textOptions.fontSize = 32u; // @todo Be parametrable
-    textOptions.horizontalAnchor = m_horizontalAnchor;
-    textOptions.verticalAnchor = m_verticalAnchor;
+    textOptions.anchor = m_anchor;
     textOptions.alignment = m_alignment;
 
     std::vector<glm::vec3> positions;
@@ -79,15 +78,9 @@ void TextMeshComponent::Impl::text(const std::wstring& u16Text)
     m_dirty = true;
 }
 
-void TextMeshComponent::Impl::horizontalAnchor(Anchor horizontalAnchor)
+void TextMeshComponent::Impl::anchor(Anchor anchor)
 {
-    m_horizontalAnchor = horizontalAnchor;
-    m_dirty = true;
-}
-
-void TextMeshComponent::Impl::verticalAnchor(Anchor verticalAnchor)
-{
-    m_verticalAnchor = verticalAnchor;
+    m_anchor = anchor;
     m_dirty = true;
 }
 

@@ -100,7 +100,7 @@ void UiSelectComponent::updateText()
     if (!text.empty()) {
         makers::TextFlatOptions options;
         options.fontSize = m_fontSize;
-        options.horizontalAnchor = Anchor::Start;
+        options.anchor = Anchor::Left;
         auto& node = makers::textFlatMaker(text, options)(m_flatComponent);
         node.transform(glm::translate(glm::mat3(1.f), {-m_extent.x / 2.f + m_horizontalPadding, 0.f}));
         node.name = "text";
@@ -132,7 +132,7 @@ void UiSelectComponent::updateHovered()
         const auto& text = m_options[i];
         makers::TextFlatOptions options;
         options.fontSize = m_fontSize;
-        options.horizontalAnchor = Anchor::Start;
+        options.anchor = Anchor::Left;
         auto& node = makers::textFlatMaker(text, options)(m_flatComponent);
         node.transform(glm::translate(glm::mat3(1.f), {-m_extent.x / 2.f + m_horizontalPadding, (i + 1) * m_fontSize}));
         node.name = "options-text";

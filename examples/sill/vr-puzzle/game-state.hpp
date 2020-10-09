@@ -50,7 +50,14 @@ struct GameState {
     Brick* pointedBrick = nullptr;
 
     struct {
-        std::vector<lava::sill::Entity*> entities;
+        struct {
+            std::vector<lava::sill::Entity*> entities;
+            std::vector<UiWidget> widgets;
+        } inspectionPanel;
+        struct {
+            std::vector<lava::sill::Entity*> entities;
+            lava::sill::UiAreaComponent* areaComponent = nullptr;
+        } entitiesPanel;
     } ui;
 
     struct {
@@ -136,9 +143,5 @@ struct GameState {
         struct {
             lava::magma::MaterialPtr colliderMaterial = nullptr;
         } resources;
-
-        struct {
-            std::vector<UiWidget> widgets;
-        } ui;
     } editor;
 };

@@ -9,8 +9,10 @@
 #include "./game-state.hpp"
 #include "./camera.hpp"
 #include "./environment.hpp"
-#include "./objects/pedestal.hpp"
 #include "./serializer.hpp"
+#include "./objects/pedestal.hpp"
+#include "./ui/entities-panel.hpp"
+#include "./ui/inspection-panel.hpp"
 
 using namespace lava;
 using namespace lava::chamber;
@@ -50,93 +52,12 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
     }
 }
 
-void reflowUi(GameState& gameState)
-{
-    constexpr float xMargin = 4.f;
-    constexpr float yMargin = 4.f;
-    float y = yMargin;
-
-    for (const auto& widget : gameState.editor.ui.widgets) {
-        auto kind = widget.kind();
-        auto& entity = *widget.entity();
-        if (kind == UiWidgetKind::TextEntry) {
-            auto& uiComponent = entity.get<sill::UiTextEntryComponent>();
-            auto& extent = uiComponent.extent();
-            entity.get<sill::TransformComponent>().translation2d({xMargin + extent.x / 2.f, y + extent.y / 2.f});
-            y += yMargin + extent.y;
-        }
-        else if (kind == UiWidgetKind::ToggleButton) {
-            auto& uiComponent = entity.get<sill::UiButtonComponent>();
-            auto& extent = uiComponent.extent();
-            entity.get<sill::TransformComponent>().translation2d({xMargin + extent.x / 2.f, y + extent.y / 2.f});
-            y += yMargin + extent.y;
-        }
-        else if (kind == UiWidgetKind::Select) {
-            auto& uiComponent = entity.get<sill::UiSelectComponent>();
-            auto& extent = uiComponent.extent();
-            entity.get<sill::TransformComponent>().translation2d({xMargin + extent.x / 2.f, y + extent.y / 2.f});
-            y += yMargin + extent.y;
-        }
-    }
-}
-
 void onSelectionChanged(GameState& gameState)
 {
-    // Erase UI
-    for (auto entity : gameState.ui.entities) {
-        gameState.engine->remove(*entity);
-    }
-    gameState.ui.entities.clear();
-
-    // Create UI
-    if (gameState.editor.selection.objects.size() == 1u) {
-        auto& object = *gameState.editor.selection.objects[0u];
-
-        gameState.editor.ui.widgets.clear();
-        object.uiWidgets(gameState.editor.ui.widgets);
-
-        for (auto& widget : gameState.editor.ui.widgets) {
-            auto kind = widget.kind();
-            auto& entity = gameState.engine->make<sill::Entity>("ui." + widget.id());
-            if (kind == UiWidgetKind::TextEntry) {
-                auto& textEntry = widget.textEntry();
-                auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(textEntry.getter()));
-                uiComponent.onTextChanged([textEntry](const std::wstring& text) {
-                    textEntry.setter(utf16to8(text));
-                });
-            }
-            else if (kind == UiWidgetKind::ToggleButton) {
-                auto& toggleButton = widget.toggleButton();
-                auto& uiComponent = entity.make<sill::UiButtonComponent>(utf8to16(toggleButton.text + ": " + std::to_string(toggleButton.getter())));
-                uiComponent.onClicked([toggleButton, &uiComponent]() {
-                    toggleButton.setter(!toggleButton.getter());
-                    uiComponent.text(utf8to16(toggleButton.text + ": " + std::to_string(toggleButton.getter())));
-                });
-                uiComponent.onExtentChanged([&gameState](const glm::vec2& /* extent */) {
-                    reflowUi(gameState);
-                });
-            }
-            else if (kind == UiWidgetKind::Select) {
-                auto& select = widget.select();
-                std::vector<std::wstring> options;
-                options.reserve(select.options.size());
-                for (auto option : select.options) {
-                    options.emplace_back(utf8to16(std::string(option)));
-                }
-                auto& uiComponent = entity.make<sill::UiSelectComponent>(options, select.getter());
-                uiComponent.onIndexChanged([select](uint8_t index, const std::wstring&) {
-                    select.setter(index);
-                });
-            }
-            gameState.ui.entities.emplace_back(&entity);
-            widget.entity(&entity);
-        }
-
-        reflowUi(gameState);
-    }
+    ui::inspectObjects(gameState, gameState.editor.selection.objects);
 }
 
-void unselectAllObjects(GameState& gameState, bool signalSelectionChanged = true) {
+void unselectAllObjects(GameState& gameState, bool signalSelectionChanged) {
     gameState.editor.selection.objects.clear();
     gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(0.f);
     gameState.editor.selection.multiEntity->get<sill::TransformComponent>().scaling2d(0.f);
@@ -146,7 +67,7 @@ void unselectAllObjects(GameState& gameState, bool signalSelectionChanged = true
     }
 }
 
-void selectObject(GameState& gameState, Object* object, bool addToSelection, bool signalSelectionChanged = true) {
+void selectObject(GameState& gameState, Object* object, bool addToSelection, bool signalSelectionChanged) {
     if (!object) {
         if (!addToSelection) {
             unselectAllObjects(gameState, signalSelectionChanged);
@@ -264,6 +185,7 @@ void setupEditor(GameState& gameState)
     input.bindAction("editor.multiple-selection-modifier", {Key::RightShift});
     input.bindAction("editor.duplicate-selection", {Key::LeftControl, Key::D});
     input.bindAction("editor.delete-selection", {Key::Delete});
+    input.bindAction("editor.focus-selection", {Key::F});
 
     input.bindAxis("editor.axis-x", InputAxis::MouseX);
     input.bindAxis("editor.axis-y", InputAxis::MouseY);
@@ -410,6 +332,12 @@ void setupEditor(GameState& gameState)
             unselectAllObjects(gameState);
 
             setCameraMode(gameState, (gameState.state == State::Editor) ? CameraMode::Orbit : CameraMode::FirstPerson);
+
+            if (gameState.state == State::Editor) {
+                ui::updateEntitiesPanel(gameState,  gameState.level.objects);
+            } else {
+                ui::hideEntitiesPanel(gameState);
+            }
         }
 
         if (gameState.state != State::Editor) return;
@@ -468,23 +396,16 @@ void setupEditor(GameState& gameState)
                 transform.translation = gameState.camera.component->origin();
                 generic.consolidateReferences();
                 generic.transform().worldTransform(transform);
+
+                ui::updateEntitiesPanel(gameState,  gameState.level.objects, ui::ChangeKind::Adding);
                 return;
             }
 
-            if (input.justDown("add-object")) {
-                auto& generic = Object::make(gameState, "generic");
-                auto& entity = generic.entity();
-                entity.ensure<sill::TransformComponent>();
-
-                lava::Transform transform;
-                transform.translation = gameState.camera.component->origin();
-                generic.transform().worldTransform(transform);
-
-                selectObject(gameState, &generic, false);
-            }
-
             std::string kindToAdd;
-            if (input.justDown("add-barrier")) {
+            if (input.justDown("add-object")) {
+                kindToAdd = "generic";
+            }
+            else if (input.justDown("add-barrier")) {
                 kindToAdd = "barrier";
             }
             else if (input.justDown("add-brick")) {
@@ -499,10 +420,14 @@ void setupEditor(GameState& gameState)
 
             if (!kindToAdd.empty()) {
                 auto& generic = Generic::make(gameState, kindToAdd);
+
                 lava::Transform transform;
                 transform.translation = gameState.camera.component->origin();
                 generic.consolidateReferences();
                 generic.transform().worldTransform(transform);
+
+                ui::updateEntitiesPanel(gameState,  gameState.level.objects, ui::ChangeKind::Adding);
+                selectObject(gameState, &generic, false);
                 return;
             }
 
@@ -511,6 +436,7 @@ void setupEditor(GameState& gameState)
             if (input.justDown("reload-level")) {
                 unselectAllObjects(gameState);
                 loadLevel(gameState, gameState.level.path);
+                ui::updateEntitiesPanel(gameState,  gameState.level.objects);
                 return;
             }
 
@@ -688,6 +614,20 @@ void setupEditor(GameState& gameState)
                     object->clear();
                 }
                 unselectAllObjects(gameState);
+                ui::updateEntitiesPanel(gameState,  gameState.level.objects, ui::ChangeKind::Removing);
+                return;
+            }
+            // Show selection
+            else if (input.justDown("editor.focus-selection")) {
+                BoundingSphere boundingSphere;
+                for (auto object : gameState.editor.selection.objects) {
+                    const auto& objectBs = object->mesh().boundingSphere();
+                    boundingSphere = mergeBoundingSpheres(boundingSphere, objectBs);
+                }
+
+                // @todo Animate that somehow?
+                gameState.camera.component->target(barycenter);
+                gameState.camera.component->radius(2.f * boundingSphere.radius);
                 return;
             }
             // Duplicate all selected objects.
@@ -710,6 +650,7 @@ void setupEditor(GameState& gameState)
                     newObjects.emplace_back(&newObject);
                 }
 
+                ui::updateEntitiesPanel(gameState, gameState.level.objects, ui::ChangeKind::Adding);
                 selectObject(gameState, nullptr, false);
                 for (auto newObject : newObjects) {
                     selectObject(gameState, newObject, true);

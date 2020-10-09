@@ -17,8 +17,7 @@ std::function<FlatNode&(FlatComponent&)> makers::textFlatMaker(const std::wstrin
     TextOptions textOptions;
     textOptions.fontHrid = options.fontHrid;
     textOptions.fontSize = options.fontSize;
-    textOptions.horizontalAnchor = options.horizontalAnchor;
-    textOptions.verticalAnchor = options.verticalAnchor;
+    textOptions.anchor = options.anchor;
     textOptions.alignment = options.alignment;
     textOptions.extentPtr = options.extentPtr;
 

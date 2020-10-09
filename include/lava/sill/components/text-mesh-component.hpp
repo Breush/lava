@@ -20,8 +20,7 @@ namespace lava::sill {
         void text(const std::wstring& u16Text);
         void font(const std::string& hrid);
 
-        void horizontalAnchor(Anchor horizontalAnchor);
-        void verticalAnchor(Anchor verticalAnchor);
+        void anchor(Anchor anchor);
         void alignment(Alignment alignment);
 
     public:

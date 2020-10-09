@@ -24,13 +24,13 @@ IUiComponent::~IUiComponent()
 
 glm::vec2 IUiComponent::topLeftRelativePosition(const glm::ivec2& mousePosition) const
 {
-    auto position = m_transformComponent.translation2d();
+    auto position = m_transformComponent.worldTransform2d().translation;
     return glm::vec2(mousePosition) - position + m_extent / 2.f;
 }
 
 bool IUiComponent::checkHovered(const glm::ivec2& mousePosition)
 {
-    auto position = m_transformComponent.translation2d();
+    auto position = m_transformComponent.worldTransform2d().translation;
     position += m_hoveringOffset;
     bool hovered = (mousePosition.x >= position.x - m_hoveringExtent.x / 2.f &&
                     mousePosition.x <= position.x + m_hoveringExtent.x / 2.f &&

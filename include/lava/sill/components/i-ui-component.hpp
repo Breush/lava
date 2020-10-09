@@ -17,6 +17,10 @@ namespace lava::sill {
         ~IUiComponent();
 
         // External API
+        void* userData() const { return m_userData; }
+        template<class T> T userDataAs() const { return static_cast<T>(m_userData); }
+        void userData(void* userData) { m_userData = userData; }
+
         const glm::vec2& extent() const { return m_extent; }
         void onExtentChanged(ExtentChangedCallback extentChangedCallback) {
             m_extentChangedCallbacks.emplace_back(extentChangedCallback);
@@ -31,6 +35,7 @@ namespace lava::sill {
         virtual void dragStart(const glm::ivec2& /* mousePosition */, bool& /* propagate */) {}
         virtual void dragEnd(const glm::ivec2& /* mousePosition */) {}
         virtual void textEntered(Key /* key */, wchar_t /* code */, bool& /* propagate */) {}
+        virtual void verticallyScrolled(float /* delta */, bool& /* propagate */) {}
 
     protected:
         // Internal API
@@ -48,6 +53,7 @@ namespace lava::sill {
         glm::vec2 m_hoveringOffset = glm::vec2{0.f};
 
         // Configuration
+        void* m_userData = nullptr;
         glm::vec2 m_extent = glm::vec2{1.f};
 
         // User interaction

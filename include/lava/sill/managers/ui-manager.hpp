@@ -33,7 +33,7 @@ namespace lava::sill {
 
         // State
         glm::ivec2 m_mousePosition;
-        IUiComponent* m_hoveredUiComponent = nullptr;
-        bool m_dragging = false;
+        std::vector<IUiComponent*> m_hoveredUiComponents; // Sort by depth, from closest to furthest
+        IUiComponent* m_draggedUiComponent = nullptr;
     };
 }

@@ -108,7 +108,7 @@ void UiTextEntryComponent::updateText()
     if (!m_text.empty()) {
         makers::TextFlatOptions options;
         options.fontSize = m_fontSize;
-        options.horizontalAnchor = Anchor::Start;
+        options.anchor = Anchor::Left;
         auto& node = makers::textFlatMaker(m_text, options)(m_flatComponent);
         node.transform(glm::translate(glm::mat3(1.f), {-m_extent.x / 2.f + m_horizontalPadding, 0.f}));
         node.name = "text";

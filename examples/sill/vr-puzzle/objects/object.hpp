@@ -55,16 +55,12 @@ public:
     const std::string& name() const { return m_name; }
     void name(const std::string& name) { m_name = name; }
 
-    const lava::sill::Entity& entity() const { return *m_entity; }
-    lava::sill::Entity& entity() { return *m_entity; }
+    lava::sill::Entity& entity() const { return *m_entity; }
     void entity(lava::sill::Entity& entity) { m_entity = &entity; }
 
-    const lava::sill::AnimationComponent& animation() const { return m_entity->get<lava::sill::AnimationComponent>(); };
-    lava::sill::AnimationComponent& animation() { return m_entity->get<lava::sill::AnimationComponent>(); };
-    const lava::sill::TransformComponent& transform() const { return m_entity->get<lava::sill::TransformComponent>(); };
-    lava::sill::TransformComponent& transform() { return m_entity->get<lava::sill::TransformComponent>(); };
-    const lava::sill::MeshComponent& mesh() const { return m_entity->get<lava::sill::MeshComponent>(); };
-    lava::sill::MeshComponent& mesh() { return m_entity->get<lava::sill::MeshComponent>(); };
+    lava::sill::AnimationComponent& animation() const { return m_entity->ensure<lava::sill::AnimationComponent>(); };
+    lava::sill::TransformComponent& transform() const { return m_entity->ensure<lava::sill::TransformComponent>(); };
+    lava::sill::MeshComponent& mesh() const { return m_entity->ensure<lava::sill::MeshComponent>(); };
 
 protected:
     GameState& m_gameState;

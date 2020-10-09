@@ -12,6 +12,5 @@ $pimpl_method(TextMeshComponent, void, update, float, dt);
 $pimpl_method(TextMeshComponent, void, text, const std::wstring&, u16Text);
 $pimpl_method(TextMeshComponent, void, font, const std::string&, hrid);
 
-$pimpl_method(TextMeshComponent, void, horizontalAnchor, Anchor, horizontalAnchor);
-$pimpl_method(TextMeshComponent, void, verticalAnchor, Anchor, verticalAnchor);
+$pimpl_method(TextMeshComponent, void, anchor, Anchor, anchor);
 $pimpl_method(TextMeshComponent, void, alignment, Alignment, alignment);

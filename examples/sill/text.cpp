@@ -18,7 +18,7 @@ int main(void)
         textMeshComponent.text(L"Hello pretty developer!\n"
                                L"This is a simple test: ×→ Éŀéþhänt Ðỗdµ ←×→ ✈ሓ𓂀𓅃のᅙᆁ ←×\n"
                                L"At least, I thought it would be.");
-        textMeshComponent.verticalAnchor(Anchor::Start);
+        textMeshComponent.anchor(Anchor::Top);
         textMeshComponent.alignment(Alignment::Center);
     }
 

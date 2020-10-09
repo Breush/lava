@@ -2,8 +2,14 @@
 
 namespace lava {
     enum class Anchor {
-        Start,
+        TopLeft,
+        Top,
+        TopRight,
+        Left,
         Center,
-        End,
+        Right,
+        BottomLeft,
+        Bottom,
+        BottomRight,
     };
 }

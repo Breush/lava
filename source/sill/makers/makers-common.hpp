@@ -25,8 +25,7 @@ namespace lava::sill {
     struct TextOptions {
         std::string fontHrid = "default";
         uint32_t fontSize = 32u;
-        Anchor horizontalAnchor = Anchor::Center;
-        Anchor verticalAnchor = Anchor::Center;
+        Anchor anchor = Anchor::Center;
         Alignment alignment = Alignment::Center;
         FloatExtent2d* extentPtr = nullptr;
     };
