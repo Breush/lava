@@ -26,24 +26,43 @@ void UiAreaComponent::verticallyScrolled(float delta, bool& propagate)
 
     glm::vec2 offset{0.f, -m_scrollSensibility * delta};
 
-    if (m_accumulatedOffset.y + offset.y > m_maxOffset.y) {
-        offset.y = m_maxOffset.y - m_accumulatedOffset.y;
+    if (m_scrollOffset.y + offset.y > m_scrollMaxOffset.y) {
+        offset.y = m_scrollMaxOffset.y - m_scrollOffset.y;
     }
-    if (m_accumulatedOffset.y + offset.y < m_minOffset.y) {
-        offset.y = m_minOffset.y - m_accumulatedOffset.y;
+    if (m_scrollOffset.y + offset.y < m_scrollMinOffset.y) {
+        offset.y = m_scrollMinOffset.y - m_scrollOffset.y;
     }
 
     m_transformComponent.translate2d(-offset);
     m_hoveringOffset += offset;
 
-    m_accumulatedOffset += offset;
+    m_scrollOffset += offset;
+}
+
+// ----- Configuration
+
+void UiAreaComponent::scrollOffset(const glm::vec2& scrollOffset)
+{
+    m_transformComponent.translate2d(m_scrollOffset);
+    m_hoveringOffset -= m_scrollOffset;
+
+    m_scrollOffset = scrollOffset;
+    if (m_scrollOffset.y > m_scrollMaxOffset.y) {
+        m_scrollOffset.y = m_scrollMaxOffset.y;
+    }
+    if (m_scrollOffset.y < m_scrollMinOffset.y) {
+        m_scrollOffset.y = m_scrollMinOffset.y;
+    }
+
+    m_hoveringOffset += m_scrollOffset;
+    m_transformComponent.translate2d(-m_scrollOffset);
 }
 
 // ----- Internal
 
 void UiAreaComponent::updateFromAnchor()
 {
-    m_transformComponent.translate2d(m_accumulatedOffset);
+    m_transformComponent.translate2d(m_scrollOffset);
 
     m_hoveringOffset.x = 0.f;
     m_hoveringOffset.y = 0.f;
@@ -78,6 +97,6 @@ void UiAreaComponent::updateFromAnchor()
             break;
     }
 
-    m_transformComponent.translate2d(-m_accumulatedOffset);
-    m_hoveringOffset += m_accumulatedOffset;
+    m_transformComponent.translate2d(-m_scrollOffset);
+    m_hoveringOffset += m_scrollOffset;
 }

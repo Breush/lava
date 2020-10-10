@@ -90,7 +90,7 @@ void UiLabelComponent::updateHovered()
         backgroundMaterial.set("topColor", glm::vec4{0.5, 0.6, 0.8, 1});
         backgroundMaterial.set("bottomColor", glm::vec4{0.5, 0.6, 0.9, 1});
     } else {
-        backgroundMaterial.set("topColor", glm::vec4{1});
-        backgroundMaterial.set("bottomColor", glm::vec4{1});
+        backgroundMaterial.set("topColor", m_backgroundColor);
+        backgroundMaterial.set("bottomColor", m_backgroundColor);
     }
 }

@@ -8,6 +8,23 @@ using namespace lava;
 using namespace lava::chamber;
 
 namespace {
+    std::vector<ui::EntitiesPanelClickCallback> g_clickCallbacks;
+
+    void placeLabelEntity(sill::Entity& labelEntity, float x, float& y, const std::unordered_map<sill::Entity*, std::vector<sill::Entity*>>& parentToLabelChildrenMap) {
+        auto& uiComponent = labelEntity.get<sill::UiLabelComponent>();
+        const auto& labelExtent = uiComponent.extent();
+        labelEntity.get<sill::TransformComponent>().translation2d({x, y + labelExtent.y / 2.f});
+        y += labelExtent.y;
+
+        auto labelObject = uiComponent.userDataAs<Object*>();
+        auto labelChildrenIt = parentToLabelChildrenMap.find(&labelObject->entity());
+        if (labelChildrenIt != parentToLabelChildrenMap.end()) {
+            for (auto labelEntity : labelChildrenIt->second) {
+                placeLabelEntity(*labelEntity, x + 10.f, y, parentToLabelChildrenMap);
+            }
+        }
+    };
+
     void doUpdateEntitiesPanel(GameState& gameState, const std::vector<Object*>& objects, ui::ChangeKind changeKind)
     {
         constexpr float panelWidth = 200.f; // @fixme Hard-coded...
@@ -55,29 +72,36 @@ namespace {
                 auto& entity = gameState.engine->make<sill::Entity>("ui.entities.label");
                 auto& labelComponent = entity.make<sill::UiLabelComponent>(utf8to16("[" + object->kind() + "] " + object->name()));
                 labelComponent.userData(object);
-                labelComponent.onClicked([&gameState, object]() {
-                    selectObject(gameState, object, false);
+                labelComponent.onClicked([object]() {
+                    for (auto callback : g_clickCallbacks) {
+                        callback(*object);
+                    }
                 });
                 entities.emplace_back(&entity);
                 areaComponent->entity().addChild(entity);
             }
         }
 
-        // Placing all entities
-        // @fixme Have a hierarchical view based on entity parenting
-        float y = 0.f;
-        glm::vec2 labelExtent;
-
+        // Placing all entities based on entity parenting
+        std::unordered_map<sill::Entity*, std::vector<sill::Entity*>> parentToLabelChildrenMap;
         for (auto entity : entities) {
             if (!entity->has<sill::UiLabelComponent>()) continue;
             auto& uiComponent = entity->get<sill::UiLabelComponent>();
-            labelExtent = uiComponent.extent();
-            entity->get<sill::TransformComponent>().translation2d({0.f, y + labelExtent.y / 2.f});
-            y += labelExtent.y;
+            auto labelObject = uiComponent.userDataAs<Object*>();
+            auto labelObjectParent = labelObject->entity().parent();
+            if (labelObjectParent != nullptr) {
+                labelObjectParent = &findObject(gameState, *labelObjectParent)->entity();
+            }
+            parentToLabelChildrenMap[labelObjectParent].emplace_back(entity);
         }
 
-        areaComponent->maxOffset({INFINITY, y - cameraExtent.height});
-        areaComponent->scrollSensibility(labelExtent.y);
+        float y = 0.f;
+        for (auto labelEntity : parentToLabelChildrenMap[nullptr]) {
+            placeLabelEntity(*labelEntity, 0.f, y, parentToLabelChildrenMap);
+        }
+
+        areaComponent->scrollMaxOffset({INFINITY, y - cameraExtent.height});
+        areaComponent->scrollSensibility(23.f);
     }
 }
 
@@ -102,4 +126,35 @@ void ui::updateEntitiesPanel(GameState& gameState, const std::vector<std::unique
 void ui::updateEntitiesPanel(GameState& gameState, const std::vector<Object*>& objects, ChangeKind changeKind)
 {
     doUpdateEntitiesPanel(gameState, objects, changeKind);
+}
+
+void ui::highlightEntitiesPanel(GameState& gameState, const std::vector<Object*>& objects, bool centerView)
+{
+    sill::Entity* firstLabel = nullptr;
+
+    for (auto entity : gameState.ui.entitiesPanel.entities) {
+        if (!entity->has<sill::UiLabelComponent>()) continue;
+        auto& uiComponent = entity->get<sill::UiLabelComponent>();
+        auto labelObject = uiComponent.userDataAs<Object*>();
+        if (std::find(objects.begin(), objects.end(), labelObject) != objects.end()) {
+            uiComponent.backgroundColor({0.5, 0.8, 0.6, 1});
+            if (!firstLabel) {
+                firstLabel = entity;
+            }
+        } else {
+            uiComponent.backgroundColor({1, 1, 1, 1});
+        }
+    }
+
+    // Scroll trying to center the first label within the area view if it's not visible
+    if (centerView && firstLabel) {
+        auto& areaComponent = *gameState.ui.entitiesPanel.areaComponent;
+        auto labelOffset = firstLabel->get<sill::TransformComponent>().translation2d().y;
+        areaComponent.scrollOffset({0.f, labelOffset - areaComponent.extent().y / 2.f});
+    }
+}
+
+void ui::onEntitiesPanelClicked(EntitiesPanelClickCallback callback)
+{
+    g_clickCallbacks.emplace_back(std::move(callback));
 }

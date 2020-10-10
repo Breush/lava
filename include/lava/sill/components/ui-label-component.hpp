@@ -26,6 +26,7 @@ namespace lava::sill {
 
         // Configuration
         const std::wstring& text() { return m_text; }
+        void backgroundColor(const glm::vec4& backgroundColor) { m_backgroundColor = backgroundColor; updateHovered(); }
 
         // Callbacks
         void onClicked(ClickedCallback callback) { m_clickedCallback = callback; }
@@ -46,6 +47,7 @@ namespace lava::sill {
         // @todo :UiPaddingMerge
         const uint32_t m_fontSize = 23u;
         const uint32_t m_horizontalPadding = 5u;
+        glm::vec4 m_backgroundColor = glm::vec4{1};
 
         // Callbacks
         ClickedCallback m_clickedCallback;

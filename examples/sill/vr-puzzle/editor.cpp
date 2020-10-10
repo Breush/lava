@@ -29,6 +29,8 @@ namespace {
     }
 }
 
+// ----- Tools
+
 void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
     gameState.editor.gizmo.tool = gizmoTool;
 
@@ -52,22 +54,25 @@ void setGizmoTool(GameState& gameState, GizmoTool gizmoTool) {
     }
 }
 
-void onSelectionChanged(GameState& gameState)
+// ----- Selection
+
+void onSelectionChanged(GameState& gameState, bool centerEntitiesPanelView)
 {
     ui::inspectObjects(gameState, gameState.editor.selection.objects);
+    ui::highlightEntitiesPanel(gameState, gameState.editor.selection.objects, centerEntitiesPanelView);
 }
 
-void unselectAllObjects(GameState& gameState, bool signalSelectionChanged) {
+void unselectAllObjects(GameState& gameState, bool signalSelectionChanged = true) {
     gameState.editor.selection.objects.clear();
     gameState.editor.gizmo.entity->get<sill::TransformComponent>().scaling(0.f);
     gameState.editor.selection.multiEntity->get<sill::TransformComponent>().scaling2d(0.f);
 
     if (signalSelectionChanged) {
-        onSelectionChanged(gameState);
+        onSelectionChanged(gameState, false);
     }
 }
 
-void selectObject(GameState& gameState, Object* object, bool addToSelection, bool signalSelectionChanged) {
+void selectObject(GameState& gameState, Object* object, bool addToSelection, bool signalSelectionChanged = true, bool centerEntitiesPanelView = true) {
     if (!object) {
         if (!addToSelection) {
             unselectAllObjects(gameState, signalSelectionChanged);
@@ -88,7 +93,7 @@ void selectObject(GameState& gameState, Object* object, bool addToSelection, boo
     gameState.editor.selection.objects.emplace_back(object);
 
     if (signalSelectionChanged) {
-        onSelectionChanged(gameState);
+        onSelectionChanged(gameState, centerEntitiesPanelView);
     }
 }
 
@@ -117,13 +122,13 @@ void selectMultiObjects(GameState& gameState, bool signalSelectionChanged = true
     for (const auto& object : gameState.level.objects) {
         const auto& position = object->editorOrigin();
         if (frustum.canSee(position)) {
-            selectObject(gameState, object.get(), true, false);
+            selectObject(gameState, object.get(), true, false, true);
         }
     }
 
     // @todo Well, not sure selection changed...
     if (signalSelectionChanged) {
-        onSelectionChanged(gameState);
+        onSelectionChanged(gameState, true);
     }
 }
 
@@ -181,8 +186,8 @@ void setupEditor(GameState& gameState)
     input.bindAction("editor.exit", Key::Escape);
     input.bindAction("editor.main-click", MouseButton::Left);
     input.bindAction("editor.switch-gizmo", MouseButton::Middle);
-    input.bindAction("editor.multiple-selection-modifier", {Key::LeftShift});
-    input.bindAction("editor.multiple-selection-modifier", {Key::RightShift});
+    input.bindAction("editor.multiple-selection-modifier", {Key::LeftControl});
+    input.bindAction("editor.multiple-selection-modifier", {Key::RightControl});
     input.bindAction("editor.duplicate-selection", {Key::LeftControl, Key::D});
     input.bindAction("editor.delete-selection", {Key::Delete});
     input.bindAction("editor.focus-selection", {Key::F});
@@ -209,6 +214,11 @@ void setupEditor(GameState& gameState)
 
     auto& editorEntity = engine.make<sill::Entity>("editor");
     auto& editorBehavior = editorEntity.make<sill::BehaviorComponent>();
+
+    ui::onEntitiesPanelClicked([&gameState](Object& object) {
+        auto& input = gameState.engine->input();
+        selectObject(gameState, &object, input.down("editor.multiple-selection-modifier"), true, false);
+    });
 
     // Multi rectangle
     {

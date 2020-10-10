@@ -23,8 +23,8 @@ namespace lava::sill {
         Anchor anchor() const { return m_anchor; }
         void anchor(Anchor anchor) { m_anchor = anchor; updateFromAnchor(); }
 
-        void maxOffset(const glm::vec2& maxOffset) { m_maxOffset = maxOffset; }
-
+        void scrollOffset(const glm::vec2& scrollOffset);
+        void scrollMaxOffset(const glm::vec2& scrollMaxOffset) { m_scrollMaxOffset = scrollMaxOffset; }
         void scrollSensibility(float scrollSensibility) { m_scrollSensibility = scrollSensibility; }
 
     protected:
@@ -32,9 +32,9 @@ namespace lava::sill {
 
     private:
         Anchor m_anchor = Anchor::Center; // @fixme Centralize in IUiComponent?
-        glm::vec2 m_accumulatedOffset{0.f, 0.f};
-        glm::vec2 m_minOffset{0.f, 0.f};
-        glm::vec2 m_maxOffset{INFINITY, INFINITY};
+        glm::vec2 m_scrollOffset{0.f, 0.f};
+        glm::vec2 m_scrollMinOffset{0.f, 0.f};
+        glm::vec2 m_scrollMaxOffset{INFINITY, INFINITY};
         float m_scrollSensibility = 15.f;
     };
 }
