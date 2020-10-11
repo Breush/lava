@@ -5,7 +5,6 @@
 #include "./ashe.hpp"
 
 #include <iostream>
-#include <lava/chamber/string-tools.hpp>
 
 using namespace lava;
 
@@ -20,15 +19,15 @@ int main(void)
 
     // Button
     {
-        static std::vector<std::wstring> texts = {
-            L"I am a button!",
-            L"Don't do that...",
-            L"Please stop!",
-            L"I am going to cry...",
-            L"I AM going to cry...",
-            L"I AM GOING TO cry...",
-            L"I AM GOING TO CRY!",
-            L"...", L":'(", L"...",
+        static std::vector<u8string> texts = {
+            u8"I am a button!",
+            u8"Don't do that...",
+            u8"Please stop!",
+            u8"I am going to cry...",
+            u8"I AM going to cry...",
+            u8"I AM GOING TO cry...",
+            u8"I AM GOING TO CRY!",
+            u8"...", ":'(", "...",
         };
 
         auto& buttonEntity = engine.make<sill::Entity>("demo.button");
@@ -47,8 +46,8 @@ int main(void)
     {
         auto& textEntryEntity = engine.make<sill::Entity>("demo.text-entry");
         auto& textEntryComponent = textEntryEntity.make<sill::UiTextEntryComponent>();
-        textEntryComponent.onTextChanged([](const std::wstring& text) {
-            std::cout << "TextEntry: " << chamber::utf16to8(text) << std::endl;
+        textEntryComponent.onTextChanged([](const u8string& text) {
+            std::cout << "TextEntry: " << text << std::endl;
         });
 
         textEntryEntity.get<sill::TransformComponent>().translation2d({screenExtent.width / 2.f,
@@ -57,15 +56,15 @@ int main(void)
 
     // Select
     {
-        std::vector<std::wstring> options;
-        options.emplace_back(L"Hello!");
-        options.emplace_back(L"That's a lot...");
-        options.emplace_back(L"... of options to choose from!");
+        std::vector<u8string> options;
+        options.emplace_back(u8"Hello!");
+        options.emplace_back(u8"That's a lot...");
+        options.emplace_back(u8"... of options to choose from!");
 
         auto& selectEntity = engine.make<sill::Entity>("demo.select");
         auto& selectComponent = selectEntity.make<sill::UiSelectComponent>(options, 0);
-        selectComponent.onIndexChanged([](uint8_t index, const std::wstring& text) {
-            std::cout << "Select: " << (uint32_t)index << " -> " << chamber::utf16to8(text) << std::endl;
+        selectComponent.onIndexChanged([](uint8_t index, const u8string& text) {
+            std::cout << "Select: " << (uint32_t)index << " -> " << text << std::endl;
         });
 
         selectEntity.get<sill::TransformComponent>().translation2d({screenExtent.width / 2.f,

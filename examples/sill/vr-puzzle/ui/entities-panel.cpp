@@ -70,7 +70,7 @@ namespace {
                 }
 
                 auto& entity = gameState.engine->make<sill::Entity>("ui.entities.label");
-                auto& labelComponent = entity.make<sill::UiLabelComponent>(utf8to16("[" + object->kind() + "] " + object->name()));
+                auto& labelComponent = entity.make<sill::UiLabelComponent>(u8"👁 [" + object->kind() + "] " + object->name());
                 labelComponent.userData(object);
                 labelComponent.onClicked([object]() {
                     for (auto callback : g_clickCallbacks) {

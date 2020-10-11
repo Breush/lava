@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/core/u8string.hpp>
 #include <lava/sill/components/i-ui-component.hpp>
 
 namespace lava::sill {
@@ -9,11 +10,11 @@ namespace lava::sill {
 namespace lava::sill {
     class UiSelectComponent : public IUiComponent {
     public:
-        using IndexChangedCallback = std::function<void(uint8_t, const std::wstring&)>;
+        using IndexChangedCallback = std::function<void(uint8_t, const u8string&)>;
 
     public:
         UiSelectComponent(Entity& entity);
-        UiSelectComponent(Entity& entity, std::vector<std::wstring> options, uint8_t index);
+        UiSelectComponent(Entity& entity, std::vector<u8string> options, uint8_t index);
 
         // IComponent
         static std::string hrid() { return "ui.select"; }
@@ -38,7 +39,7 @@ namespace lava::sill {
         FlatComponent& m_flatComponent;
 
         // Configuration
-        std::vector<std::wstring> m_options;
+        std::vector<u8string> m_options;
         uint8_t m_index = 0xFF;
         bool m_textDirty = false;
 

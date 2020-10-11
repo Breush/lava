@@ -10,11 +10,11 @@
 using namespace lava::sill;
 
 UiButtonComponent::UiButtonComponent(Entity& entity)
-    : UiButtonComponent(entity, L"Ok")
+    : UiButtonComponent(entity, "Ok")
 {
 }
 
-UiButtonComponent::UiButtonComponent(Entity& entity, const std::wstring& text)
+UiButtonComponent::UiButtonComponent(Entity& entity, const u8string& text)
     : IUiComponent(entity)
     , m_flatComponent(entity.ensure<FlatComponent>())
 {
@@ -39,7 +39,7 @@ void UiButtonComponent::update(float /* dt */)
 
 // ----- Configuration
 
-void UiButtonComponent::text(const std::wstring& text)
+void UiButtonComponent::text(const u8string& text)
 {
     if (m_text == text) return;
     m_text = text;

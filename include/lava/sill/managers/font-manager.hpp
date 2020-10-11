@@ -22,6 +22,6 @@ namespace lava::sill {
         GameEngine& m_engine;
 
         std::unordered_map<std::string, std::unique_ptr<Font>> m_fonts; // Key is <hrid>:<size>
-        std::unordered_map<std::string, std::string> m_paths; // Key is <hrid>
+        std::unordered_map<std::string, std::vector<std::string>> m_paths; // Key is <hrid>
     };
 }

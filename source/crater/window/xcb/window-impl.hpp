@@ -6,6 +6,7 @@
 #include <glm/vec2.hpp>
 #include <xcb/xcb.h>
 #include <xkbcommon/xkbcommon.h>
+#include <xkbcommon/xkbcommon-compose.h>
 
 namespace lava::crater {
     /**
@@ -51,6 +52,8 @@ namespace lava::crater {
         xkb_context* m_xkbContext = nullptr;
         xkb_keymap* m_xkbKeymap = nullptr;
         xkb_state* m_xkbState = nullptr;
+        xkb_compose_table* m_xkbComposeTable = nullptr;
+        xkb_compose_state* m_xkbComposeState = nullptr;
 
         Extent2d m_extent;
         Extent2d m_extentBeforeFullscreen;

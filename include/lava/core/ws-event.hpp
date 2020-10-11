@@ -43,7 +43,10 @@ namespace lava {
 
         struct KeyData {
             Key which;
-            wchar_t code;
+        };
+
+        struct TextData {
+            uint32_t codepoint; // Unicode codepoint
         };
 
         // -----
@@ -55,6 +58,7 @@ namespace lava {
             MouseMoveData mouseMove;
             MouseWheelData mouseWheel;
             KeyData key;
+            TextData text;
         };
     };
 }

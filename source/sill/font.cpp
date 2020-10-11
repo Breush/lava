@@ -6,50 +6,59 @@ using namespace lava;
 using namespace lava::sill;
 using namespace lava::chamber;
 
-Font::Font(GameEngine& engine, const std::string& path, uint32_t size)
+Font::Font(GameEngine& engine, const std::vector<std::string>& paths, uint32_t size)
     : m_engine(engine)
 {
-    //----- Read file
+    for (const auto& path : paths) {
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open()) {
+            logger.warning("sill.font") << "Unable to find file " << path << "." << std::endl;
+            continue;
+        }
 
-    std::ifstream file(path, std::ios::binary);
+        auto& fontInfo = *m_fontInfos.emplace_back(std::make_unique<FontInfo>());
+        fontInfo.path = path;
+        fontInfo.buffer.insert(fontInfo.buffer.begin(), std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+        stbtt_InitFont(&fontInfo.stbFont, fontInfo.buffer.data(), 0);
 
-    if (!file.is_open()) {
-        logger.warning("sill.font") << "Unable to find file " << path << "." << std::endl;
-        return;
+        fontInfo.glyphsScale = stbtt_ScaleForPixelHeight(&fontInfo.stbFont, size);
+        stbtt_GetFontVMetrics(&fontInfo.stbFont, &fontInfo.glyphsAscent, 0, 0);
+        fontInfo.glyphsAscent = fontInfo.glyphsAscent * fontInfo.glyphsScale;
+
+        int x0, y0, x1, y1;
+        stbtt_GetFontBoundingBox(&fontInfo.stbFont, &x0, &y0, &x1, &y1);
+        fontInfo.glyphMaxWidth = std::ceil((x1 - x0) * fontInfo.glyphsScale);
+        fontInfo.glyphMaxHeight = std::ceil((y1 - y0) * fontInfo.glyphsScale);
+
+        // @note Texture size can't be updated dynamically,
+        // because meshes could reference wrong UVs.
+        m_textureWidth = std::max(m_textureWidth, fontInfo.glyphMaxWidth * m_maxRenderedGlyphsCount);
+        m_textureHeight = std::max(m_textureHeight, fontInfo.glyphMaxHeight);
     }
 
-    m_buffer.insert(m_buffer.begin(), std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
-    stbtt_InitFont(&m_stbFont, m_buffer.data(), 0);
-
-    //----- Texture size
-
-    m_glyphsScale = stbtt_ScaleForPixelHeight(&m_stbFont, size);
-    stbtt_GetFontVMetrics(&m_stbFont, &m_glyphsAscent, 0, 0);
-    m_glyphsAscent = m_glyphsAscent * m_glyphsScale;
-
-    int x0, y0, x1, y1;
-    stbtt_GetFontBoundingBox(&m_stbFont, &x0, &y0, &x1, &y1);
-    m_glyphMaxWidth = std::ceil((x1 - x0) * m_glyphsScale);
-    m_glyphMaxHeight = std::ceil((y1 - y0) * m_glyphsScale);
-
-    // @note Texture size can't be updated dynamically,
-    // because meshes could reference wrong UVs.
-    m_textureWidth = m_glyphMaxWidth * m_maxRenderedGlyphsCount;
-    m_textureHeight = m_glyphMaxHeight;
+    if (m_textureWidth == 0u || m_textureHeight == 0u) return;
     m_texture = m_engine.renderEngine().makeTexture();
-    m_pixels.resize(m_textureWidth * m_glyphMaxHeight);
+    m_pixels.resize(m_textureWidth * m_textureHeight);
 }
 
-std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text, bool skipWhite)
+std::vector<Font::GlyphInfo> Font::glyphsInfos(u8string_view u8Text, bool skipBlank)
 {
     std::vector<GlyphInfo> glyphsInfos;
 
     bool textureChanged = false;
     float advance = 0.f;
-    uint32_t i = 0u;
-    auto c = u16Text[i];
-    while (i < u16Text.size()) {
-        auto nextC = u16Text[++i];
+
+    uint8_t bytesLength;
+    auto u = reinterpret_cast<const uint8_t*>(u8Text.data());
+    auto c = utf8Codepoint(u, bytesLength);
+    u += bytesLength;
+
+    uint32_t i = bytesLength;
+    uint32_t totalBytes = u8Text.size();
+    while (i <= totalBytes) {
+        auto nextC = utf8Codepoint(u, bytesLength);
+        u += bytesLength;
+        i += bytesLength;
 
         // Add the glyph to the texture if it does not exist yet
         auto pGlyphInfo = m_glyphsInfos.find(c);
@@ -57,18 +66,19 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text, bool s
             m_glyphsInfos[c] = packGlyph(c);
             pGlyphInfo = m_glyphsInfos.find(c);
 
-            textureChanged = textureChanged || (pGlyphInfo->second.width > 0.f && pGlyphInfo->second.height > 0.f);
+            textureChanged = textureChanged || !pGlyphInfo->second.blank;
         }
 
-        // Push non-empty glyphInfos to the list
-        if (!skipWhite || (pGlyphInfo->second.width > 0.f && pGlyphInfo->second.height > 0.f)) {
+        // Push non-blank glyphInfos to the list
+        if (!skipBlank || !pGlyphInfo->second.blank) {
             auto glyphInfo = pGlyphInfo->second;
             glyphInfo.xOffset += advance;
             glyphsInfos.emplace_back(glyphInfo);
             advance = 0.f;
         }
 
-        auto kernAdvance = stbtt_GetCodepointKernAdvance(&m_stbFont, c, nextC) * m_glyphsScale / float(m_glyphMaxHeight);
+        const auto& fontInfo = *pGlyphInfo->second.fontInfo;
+        auto kernAdvance = stbtt_GetCodepointKernAdvance(&fontInfo.stbFont, c, nextC) * fontInfo.glyphsScale / float(fontInfo.glyphMaxHeight);
         advance += pGlyphInfo->second.advance + kernAdvance;
         c = nextC;
     }
@@ -79,42 +89,105 @@ std::vector<Font::GlyphInfo> Font::glyphsInfos(std::wstring_view u16Text, bool s
 
     return glyphsInfos;
 }
+
+Font::GlyphInfo Font::glyphInfoAtByte(u8string_view u8Text, uint32_t byteIndex)
+{
+    GlyphInfo glyphInfo;
+    bool textureChanged = false;
+
+    uint8_t bytesLength;
+    auto u = reinterpret_cast<const uint8_t*>(u8Text.data());
+    auto c = utf8Codepoint(u, bytesLength);
+    u += bytesLength;
+
+    uint32_t i = bytesLength;
+    uint32_t totalBytes = u8Text.size();
+    while (i <= totalBytes) {
+        bool interestingByte = (i > byteIndex);
+        auto nextC = utf8Codepoint(u, bytesLength);
+        u += bytesLength;
+        i += bytesLength;
+
+        // Add the glyph to the texture if it does not exist yet
+        auto pGlyphInfo = m_glyphsInfos.find(c);
+        if (pGlyphInfo == m_glyphsInfos.end()) {
+            m_glyphsInfos[c] = packGlyph(c);
+            pGlyphInfo = m_glyphsInfos.find(c);
+            textureChanged = textureChanged || !pGlyphInfo->second.blank;
+        }
+
+        glyphInfo.xOffset += pGlyphInfo->second.xOffset;
+
+        // We are now at the interesting byte
+        if (interestingByte) {
+            auto xOffset = glyphInfo.xOffset;
+            glyphInfo = pGlyphInfo->second;
+            glyphInfo.xOffset = xOffset;
+            break;
+        }
+
+        const auto& fontInfo = *pGlyphInfo->second.fontInfo;
+        auto kernAdvance = stbtt_GetCodepointKernAdvance(&fontInfo.stbFont, c, nextC) * fontInfo.glyphsScale / float(fontInfo.glyphMaxHeight);
+        glyphInfo.xOffset += pGlyphInfo->second.advance + kernAdvance;
+        c = nextC;
+    }
+
+    if (textureChanged) {
+        m_texture->loadFromMemory(m_pixels.data(), m_textureWidth, m_textureHeight, 1u);
+    }
+
+    return glyphInfo;
+}
+
 //----- Internal
 
-Font::GlyphInfo Font::packGlyph(wchar_t c)
+Font::GlyphInfo Font::packGlyph(uint32_t c)
 {
     GlyphInfo glyphInfo;
 
-    // Basic glyph advance
-    int advance, lsb;
-    int x0, y0, x1, y1;
-    stbtt_GetCodepointHMetrics(&m_stbFont, c, &advance, &lsb);
-    stbtt_GetCodepointBitmapBox(&m_stbFont, c, m_glyphsScale, m_glyphsScale, &x0, &y0, &x1, &y1);
+    for (auto& fontInfo : m_fontInfos) {
+        glyphInfo.index = stbtt_FindGlyphIndex(&fontInfo->stbFont, c);
+        glyphInfo.fontInfo = fontInfo.get();
 
-    glyphInfo.advance = (advance * m_glyphsScale - x0) / float(m_glyphMaxHeight);
+        // Glyph does not exist in this font
+        if (glyphInfo.index == 0) {
+            continue;
+        }
 
-    // Glyph is empty
-    int width = x1 - x0;
-    int height = y1 - y0;
-    if (width == 0 || height == 0) {
-        return glyphInfo;
+        // Basic glyph advance
+        int advance, lsb;
+        int x0, y0, x1, y1;
+        stbtt_GetGlyphHMetrics(&fontInfo->stbFont, glyphInfo.index, &advance, &lsb);
+        stbtt_GetGlyphBitmapBox(&fontInfo->stbFont, glyphInfo.index, fontInfo->glyphsScale, fontInfo->glyphsScale, &x0, &y0, &x1, &y1);
+
+        glyphInfo.advance = (advance * fontInfo->glyphsScale - x0) / float(fontInfo->glyphMaxHeight);
+
+        // Glyph is blank
+        int width = x1 - x0;
+        int height = y1 - y0;
+        if (width == 0 || height == 0) {
+            break;
+        }
+
+        glyphInfo.blank = false;
+        glyphInfo.width = width / float(fontInfo->glyphMaxHeight);
+        glyphInfo.height = height / float(fontInfo->glyphMaxHeight);
+        glyphInfo.xOffset = x0 / float(fontInfo->glyphMaxHeight);
+        glyphInfo.yOffset = (fontInfo->glyphsAscent + y0) / float(fontInfo->glyphMaxHeight);
+
+        // Draw the bitmap to the texture
+        auto glyphStartPosition = m_nextGlyphStartPosition;
+        stbtt_MakeGlyphBitmap(&fontInfo->stbFont, m_pixels.data() + glyphStartPosition,
+                                width, height, m_textureWidth, fontInfo->glyphsScale, fontInfo->glyphsScale, glyphInfo.index);
+        m_nextGlyphStartPosition += width + 1;
+
+        // Stores the uv informations.
+        glyphInfo.minUv.x = static_cast<float>(glyphStartPosition) / static_cast<float>(m_textureWidth);
+        glyphInfo.minUv.y = 0.f;
+        glyphInfo.maxUv.x = static_cast<float>(glyphStartPosition + width) / static_cast<float>(m_textureWidth);
+        glyphInfo.maxUv.y = static_cast<float>(height) / static_cast<float>(m_textureHeight);
+        break;
     }
 
-    glyphInfo.width = width / float(m_glyphMaxHeight);
-    glyphInfo.height = height / float(m_glyphMaxHeight);
-    glyphInfo.xOffset = x0 / float(m_glyphMaxHeight);
-    glyphInfo.yOffset = (m_glyphsAscent + y0) / float(m_glyphMaxHeight);
-
-    // Draw the bitmap to the texture
-    auto glyphStartPosition = m_nextGlyphStartPosition;
-    stbtt_MakeCodepointBitmap(&m_stbFont, m_pixels.data() + glyphStartPosition,
-                              width, height, m_textureWidth, m_glyphsScale, m_glyphsScale, c);
-    m_nextGlyphStartPosition += width + 1;
-
-    // Stores the uv informations.
-    glyphInfo.minUv.x = static_cast<float>(glyphStartPosition) / static_cast<float>(m_textureWidth);
-    glyphInfo.minUv.y = 0.f;
-    glyphInfo.maxUv.x = static_cast<float>(glyphStartPosition + width) / static_cast<float>(m_textureWidth);
-    glyphInfo.maxUv.y = static_cast<float>(height) / static_cast<float>(m_textureHeight);
     return glyphInfo;
 }

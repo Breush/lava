@@ -10,11 +10,11 @@
 using namespace lava::sill;
 
 UiTextEntryComponent::UiTextEntryComponent(Entity& entity)
-    : UiTextEntryComponent(entity, std::wstring())
+    : UiTextEntryComponent(entity, u8string())
 {
 }
 
-UiTextEntryComponent::UiTextEntryComponent(Entity& entity, const std::wstring& text)
+UiTextEntryComponent::UiTextEntryComponent(Entity& entity, const u8string& text)
     : IUiComponent(entity)
     , m_flatComponent(entity.ensure<FlatComponent>())
     , m_text(text)
@@ -60,7 +60,7 @@ void UiTextEntryComponent::hovered(bool hovered)
     updateHovered();
 }
 
-void UiTextEntryComponent::textEntered(Key key, wchar_t code, bool& propagate)
+void UiTextEntryComponent::keyPressed(Key key, bool& propagate)
 {
     if (key == Key::Escape) return;
     propagate = false;
@@ -68,35 +68,44 @@ void UiTextEntryComponent::textEntered(Key key, wchar_t code, bool& propagate)
     if (key == Key::Backspace) {
         // Remove previous character
         if (m_cursorPosition != 0u) {
-            m_text.erase(m_text.begin() + m_cursorPosition - 1u);
-            m_cursorPosition -= 1u;
+            uint8_t bytesLength = chamber::utf8CodepointBytesLengthBackwards(m_text.c_str() + m_cursorPosition);
+            m_text.erase(m_cursorPosition - bytesLength, bytesLength);
+            m_cursorPosition -= bytesLength;
             m_textDirty = true;
         }
     }
     else if (key == Key::Delete) {
         // Remove next character
         if (m_cursorPosition < m_text.size()) {
-            m_text.erase(m_text.begin() + m_cursorPosition);
+            uint8_t bytesLength = chamber::utf8CodepointBytesLength(m_text.c_str() + m_cursorPosition);
+            m_text.erase(m_cursorPosition, bytesLength);
             m_textDirty = true;
         }
     }
     else if (key == Key::Left) {
         if (m_cursorPosition != 0u) {
-            m_cursorPosition -= 1u;
+            uint8_t bytesLength = chamber::utf8CodepointBytesLengthBackwards(m_text.c_str() + m_cursorPosition);
+            m_cursorPosition -= bytesLength;
             updateCursor();
         }
     }
     else if (key == Key::Right) {
         if (m_cursorPosition < m_text.size()) {
-            m_cursorPosition += 1u;
+            uint8_t bytesLength = chamber::utf8CodepointBytesLength(m_text.c_str() + m_cursorPosition);
+            m_cursorPosition += bytesLength;
             updateCursor();
         }
     }
-    else if (code != 0u) {
-        m_text.insert(m_text.begin() + m_cursorPosition, code);
-        m_cursorPosition += 1u;
-        m_textDirty = true;
-    }
+}
+
+void UiTextEntryComponent::textEntered(uint32_t codepoint, bool& propagate)
+{
+    propagate = false;
+
+    auto u8Character = chamber::codepointToU8String(codepoint);
+    m_text.insert(m_cursorPosition, u8Character);
+    m_cursorPosition += u8Character.size();
+    m_textDirty = true;
 }
 
 // ----- Internal
@@ -139,14 +148,10 @@ void UiTextEntryComponent::updateCursor()
 
     // Find the position to place the cursor
     if (m_cursorPosition > 0u) {
-        auto glyphInfos = m_entity.engine().font().get("default", m_fontSize).glyphsInfos(m_text, false);
+        uint8_t bytesLength = chamber::utf8CodepointBytesLengthBackwards(m_text.c_str() + m_cursorPosition);
+        auto glyphInfo = m_entity.engine().font().get("default", m_fontSize).glyphInfoAtByte(m_text, m_cursorPosition - bytesLength);
 
-        for (auto i = 0u; i < m_cursorPosition; ++i) {
-            const auto& glyphInfo = glyphInfos[i];
-            translation.x += glyphInfo.xOffset * m_fontSize;
-        }
-
-        translation.x += glyphInfos[m_cursorPosition - 1u].advance * m_fontSize;
+        translation.x += (glyphInfo.xOffset + glyphInfo.advance) * m_fontSize;
     }
 
     auto& node = m_flatComponent.node("cursor");

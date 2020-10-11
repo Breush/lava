@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/core/u8string.hpp>
 #include <lava/sill/components/i-ui-component.hpp>
 
 namespace lava::sill {
@@ -13,7 +14,7 @@ namespace lava::sill {
 
     public:
         UiLabelComponent(Entity& entity);
-        UiLabelComponent(Entity& entity, const std::wstring& text);
+        UiLabelComponent(Entity& entity, const u8string& text);
 
         // IComponent
         static std::string hrid() { return "ui.label"; }
@@ -25,7 +26,7 @@ namespace lava::sill {
         void dragEnd(const glm::ivec2& mousePosition) final;
 
         // Configuration
-        const std::wstring& text() { return m_text; }
+        const u8string& text() { return m_text; }
         void backgroundColor(const glm::vec4& backgroundColor) { m_backgroundColor = backgroundColor; updateHovered(); }
 
         // Callbacks
@@ -41,7 +42,7 @@ namespace lava::sill {
         bool m_beingClicked = false;
 
         // Configuration
-        std::wstring m_text;
+        u8string m_text;
         bool m_textDirty = false;
 
         // @todo :UiPaddingMerge

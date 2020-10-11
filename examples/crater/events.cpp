@@ -2,6 +2,7 @@
  * Shows how to create a window and handle events.
  */
 
+#include <lava/chamber.hpp>
 #include <lava/crater.hpp>
 
 #include <iostream>
@@ -58,6 +59,10 @@ int main(void)
             }
             case WsEventType::KeyReleased: {
                 std::cout << "    which: " << event->key.which << std::endl;
+                break;
+            }
+            case WsEventType::TextEntered: {
+                std::cout << "    codepoint: " << event->text.codepoint << " (" << chamber::codepointToU8String(event->text.codepoint) << ")" << std::endl;
                 break;
             }
             }

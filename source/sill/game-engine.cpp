@@ -69,7 +69,8 @@ GameEngine::GameEngine()
 
     //----- Fonts
 
-    m_fontManager.registerFont("default", "./assets/fonts/roboto-condensed_light.ttf");
+    m_fontManager.registerFont("default", "./assets/fonts/noto_sans-condensed_light.ttf");
+    m_fontManager.registerFont("default", "./assets/fonts/symbola.ttf");
 }
 
 GameEngine::~GameEngine()

@@ -13,7 +13,7 @@ void FontManager::registerFont(const std::string& hrid, const std::string& path)
     PROFILE_FUNCTION(PROFILER_COLOR_REGISTER);
 
     logger.info("sill.font-manager") << "Adding font " << hrid << "." << std::endl;
-    m_paths[hrid] = path;
+    m_paths[hrid].emplace_back(path);
 }
 
 Font& FontManager::get(const std::string& hrid, uint32_t size)

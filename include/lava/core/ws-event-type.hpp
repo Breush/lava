@@ -11,4 +11,5 @@ $enum_class(lava, WsEventType,
             MouseMoved,          // Mouse moved
             KeyPressed,          // Keyboard key has been pressed
             KeyReleased,         // Keyboard key has been released
+            TextEntered,         // Keyboard has generated a unicode codepoint
 );

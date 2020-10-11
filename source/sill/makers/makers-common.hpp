@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/core/u8string.hpp>
 #include <lava/sill/font.hpp>
 
 namespace lava::sill {
@@ -30,5 +31,5 @@ namespace lava::sill {
         FloatExtent2d* extentPtr = nullptr;
     };
 
-    TextGeometry textGeometry(GameEngine& engine, const std::wstring& text, const TextOptions& options);
+    TextGeometry textGeometry(GameEngine& engine, const u8string& u8Text, const TextOptions& options);
 }

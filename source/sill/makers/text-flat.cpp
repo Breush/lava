@@ -12,7 +12,7 @@ using namespace lava;
 using namespace lava::sill;
 using namespace lava::chamber;
 
-std::function<FlatNode&(FlatComponent&)> makers::textFlatMaker(const std::wstring& text, const TextFlatOptions& options)
+std::function<FlatNode&(FlatComponent&)> makers::textFlatMaker(const u8string& text, const TextFlatOptions& options)
 {
     TextOptions textOptions;
     textOptions.fontHrid = options.fontHrid;

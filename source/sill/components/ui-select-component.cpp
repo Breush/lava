@@ -14,7 +14,7 @@ UiSelectComponent::UiSelectComponent(Entity& entity)
 {
 }
 
-UiSelectComponent::UiSelectComponent(Entity& entity, std::vector<std::wstring> options, uint8_t index)
+UiSelectComponent::UiSelectComponent(Entity& entity, std::vector<u8string> options, uint8_t index)
     : IUiComponent(entity)
     , m_flatComponent(entity.ensure<FlatComponent>())
     , m_options(std::move(options))

@@ -10,11 +10,11 @@
 using namespace lava::sill;
 
 UiLabelComponent::UiLabelComponent(Entity& entity)
-    : UiLabelComponent(entity, std::wstring())
+    : UiLabelComponent(entity, u8string{})
 {
 }
 
-UiLabelComponent::UiLabelComponent(Entity& entity, const std::wstring& text)
+UiLabelComponent::UiLabelComponent(Entity& entity, const u8string& text)
     : IUiComponent(entity)
     , m_flatComponent(entity.ensure<FlatComponent>())
     , m_text(text)

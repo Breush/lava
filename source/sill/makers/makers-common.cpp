@@ -75,7 +75,7 @@ FloatExtent2d sill::glyphsExtent(const std::vector<Font::GlyphInfo>& glyphsInfos
     return extent;
 }
 
-TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, const TextOptions& options)
+TextGeometry sill::textGeometry(GameEngine& engine, const u8string& u8Text, const TextOptions& options)
 {
     TextGeometry geometry;
     auto& positions = geometry.positions;
@@ -88,7 +88,7 @@ TextGeometry sill::textGeometry(GameEngine& engine, const std::wstring& text, co
     float yOffset = 0.f;
     auto glyphsCount = 0u;
     FloatExtent2d globalTextExtent;
-    for (auto& textLine : splitAsViews(text, '\n')) {
+    for (auto& textLine : splitAsViews(u8Text, '\n')) {
         const auto glyphsInfos = font.glyphsInfos(textLine);
         const auto textLineExtent = glyphsExtent(glyphsInfos);
 

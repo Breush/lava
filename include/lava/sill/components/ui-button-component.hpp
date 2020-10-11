@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/core/u8string.hpp>
 #include <lava/sill/components/i-ui-component.hpp>
 
 #include <functional>
@@ -16,7 +17,7 @@ namespace lava::sill {
 
     public:
         UiButtonComponent(Entity& entity);
-        UiButtonComponent(Entity& entity, const std::wstring& text);
+        UiButtonComponent(Entity& entity, const u8string& text);
 
         // IComponent
         static std::string hrid() { return "ui.button"; }
@@ -28,7 +29,7 @@ namespace lava::sill {
         void dragEnd(const glm::ivec2& mousePosition) final;
 
         // Configuration
-        void text(const std::wstring& text);
+        void text(const u8string& text);
 
         // Callbacks
         void onClicked(ClickedCallback callback) { m_clickedCallback = callback; }
@@ -44,7 +45,7 @@ namespace lava::sill {
         FlatComponent& m_flatComponent;
 
         // Configuration
-        std::wstring m_text;
+        u8string m_text;
         bool m_textDirty = false;
 
         // User interaction

@@ -57,17 +57,17 @@ void ui::inspectObjects(GameState& gameState, const std::vector<Object*>& object
         auto& entity = gameState.engine->make<sill::Entity>("ui.inspection." + widget.id());
         if (kind == UiWidgetKind::TextEntry) {
             auto& textEntry = widget.textEntry();
-            auto& uiComponent = entity.make<sill::UiTextEntryComponent>(utf8to16(textEntry.getter()));
-            uiComponent.onTextChanged([textEntry](const std::wstring& text) {
-                textEntry.setter(utf16to8(text));
+            auto& uiComponent = entity.make<sill::UiTextEntryComponent>(textEntry.getter());
+            uiComponent.onTextChanged([textEntry](const u8string& text) {
+                textEntry.setter(text);
             });
         }
         else if (kind == UiWidgetKind::ToggleButton) {
             auto& toggleButton = widget.toggleButton();
-            auto& uiComponent = entity.make<sill::UiButtonComponent>(utf8to16(toggleButton.text + ": " + std::to_string(toggleButton.getter())));
+            auto& uiComponent = entity.make<sill::UiButtonComponent>(toggleButton.text + ": " + std::to_string(toggleButton.getter()));
             uiComponent.onClicked([toggleButton, &uiComponent]() {
                 toggleButton.setter(!toggleButton.getter());
-                uiComponent.text(utf8to16(toggleButton.text + ": " + std::to_string(toggleButton.getter())));
+                uiComponent.text(toggleButton.text + ": " + std::to_string(toggleButton.getter()));
             });
             uiComponent.onExtentChanged([&gameState](const glm::vec2& /* extent */) {
                 reflowWidgets(gameState);
@@ -75,13 +75,13 @@ void ui::inspectObjects(GameState& gameState, const std::vector<Object*>& object
         }
         else if (kind == UiWidgetKind::Select) {
             auto& select = widget.select();
-            std::vector<std::wstring> options;
+            std::vector<u8string> options;
             options.reserve(select.options.size());
             for (auto option : select.options) {
-                options.emplace_back(utf8to16(std::string(option)));
+                options.emplace_back(std::string(option));
             }
             auto& uiComponent = entity.make<sill::UiSelectComponent>(options, select.getter());
-            uiComponent.onIndexChanged([select](uint8_t index, const std::wstring&) {
+            uiComponent.onIndexChanged([select](uint8_t index, const u8string&) {
                 select.setter(index);
             });
         }

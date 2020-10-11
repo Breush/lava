@@ -6,7 +6,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <lava/chamber/string-tools.hpp>
 #include <xkbcommon/xkbcommon-x11.h>
+#include <xkbcommon/xkbcommon-compose.h>
 
 // @note Most on this code has been written thanks to
 // https://www.x.org/releases/X11R7.6/doc/libxcb/tutorial/index.html
@@ -271,6 +273,17 @@ void Window::Impl::setupXkb()
     if (m_xkbState == nullptr) {
         logger.error("crater.xcb.window") << "Could not setup XKB state." << std::endl;
     }
+
+    // Compose
+    m_xkbComposeTable = xkb_compose_table_new_from_locale(m_xkbContext, getenv("LANG"), XKB_COMPOSE_COMPILE_NO_FLAGS);
+    if (m_xkbComposeTable == nullptr) {
+        logger.error("crater.xcb.window") << "Could not setup XKB compose table (wrong LANG environment variable?)." << std::endl;
+    }
+
+    m_xkbComposeState = xkb_compose_state_new(m_xkbComposeTable, XKB_COMPOSE_STATE_NO_FLAGS);
+    if (m_xkbComposeState == nullptr) {
+        logger.error("crater.xcb.window") << "Could not setup XKB compose state (wrong LANG environment variable?)." << std::endl;
+    }
 }
 
 void Window::Impl::mouseMoveIgnored(bool ignored) const
@@ -438,15 +451,45 @@ void Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         auto keyEvent = reinterpret_cast<xcb_key_press_event_t&>(windowEvent);
         xkb_keycode_t keycode = keyEvent.detail;
         xkb_state_update_key(m_xkbState, keycode, XKB_KEY_DOWN);
-
         auto keysym = xkb_state_key_get_one_sym(m_xkbState, keycode);
-        wchar_t code = xkb_state_key_get_utf32(m_xkbState, keycode);
 
         WsEvent event;
         event.type = WsEventType::KeyPressed;
         event.key.which = keysymToKey(keysym);
-        event.key.code = code;
         pushEvent(event);
+
+        // We have two state machines running: one for dead-key composing
+        // and one classical. We use the unicode codepoint of the dead-key composing
+        // one if it has any result.
+        uint32_t codepoint;
+        auto composeFeedResult = xkb_compose_state_feed(m_xkbComposeState, keysym);
+        auto composeStateStatus = xkb_compose_state_get_status(m_xkbComposeState);
+        if (composeFeedResult == XKB_COMPOSE_FEED_ACCEPTED && composeStateStatus == XKB_COMPOSE_COMPOSED) {
+            char c[5] = {0};
+            uint8_t bytesLength;
+            bytesLength = xkb_compose_state_get_utf8(m_xkbComposeState, c, 4u);
+            codepoint = chamber::utf8Codepoint(c, bytesLength);
+        }
+        else if (composeStateStatus != XKB_COMPOSE_NOTHING) {
+            // 1) XKB_COMPOSE_CANCELLED
+            // Example: typing <dead_acute> <b> cancels the composition,
+            // in that case, we don't want to emit <b> codepoint.
+            // 2) XKB_COMPOSE_COMPOSING
+            // No need to produce a codepoint in that case.
+            codepoint = 0u;
+        }
+        else {
+            codepoint = xkb_state_key_get_utf32(m_xkbState, keycode);
+        }
+
+        // @note ASCII below 32 (SPACE) is non-text
+        // and 127 (DELETE) should be ignored too.
+        if (codepoint > 31u && codepoint != 127u) {
+            WsEvent event;
+            event.type = WsEventType::TextEntered;
+            event.text.codepoint = codepoint;
+            pushEvent(event);
+        }
     } break;
 
     case XCB_KEY_RELEASE: {
@@ -455,12 +498,10 @@ void Window::Impl::processEvent(xcb_generic_event_t& windowEvent)
         xkb_state_update_key(m_xkbState, keycode, XKB_KEY_UP);
 
         auto keysym = xkb_state_key_get_one_sym(m_xkbState, keycode);
-        wchar_t code = xkb_state_key_get_utf32(m_xkbState, keycode);
 
         WsEvent event;
         event.type = WsEventType::KeyReleased;
         event.key.which = keysymToKey(keysym);
-        event.key.code = code;
         pushEvent(event);
     } break;
 

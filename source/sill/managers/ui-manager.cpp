@@ -85,9 +85,15 @@ void UiManager::handleEvent(WsEvent& event, bool& propagate)
         }
     }
     else if (event.type == WsEventType::KeyPressed) {
+        for (auto uiComponent : m_hoveredUiComponents) {
+            uiComponent->keyPressed(event.key.which, propagate);
+            if (!propagate) break;
+        }
+    }
+    else if (event.type == WsEventType::TextEntered) {
         // @todo :UiFocus Have focused component instead
         for (auto uiComponent : m_hoveredUiComponents) {
-            uiComponent->textEntered(event.key.which, event.key.code, propagate);
+            uiComponent->textEntered(event.text.codepoint, propagate);
             if (!propagate) break;
         }
     }

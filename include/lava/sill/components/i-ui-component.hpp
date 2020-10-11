@@ -34,7 +34,8 @@ namespace lava::sill {
         virtual void hovered(bool /* hovered */) {}
         virtual void dragStart(const glm::ivec2& /* mousePosition */, bool& /* propagate */) {}
         virtual void dragEnd(const glm::ivec2& /* mousePosition */) {}
-        virtual void textEntered(Key /* key */, wchar_t /* code */, bool& /* propagate */) {}
+        virtual void keyPressed(Key /* key */, bool& /* propagate */) {}
+        virtual void textEntered(uint32_t /* codepoint */, bool& /* propagate */) {}
         virtual void verticallyScrolled(float /* delta */, bool& /* propagate */) {}
 
     protected:
