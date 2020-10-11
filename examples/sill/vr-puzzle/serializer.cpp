@@ -211,10 +211,10 @@ nlohmann::json serialize(GameState& gameState, const Object& object)
         else if (componentHrid == "sound-emitter") {
             auto& soundEmitterComponent = entity.get<sill::SoundEmitterComponent>();
             auto sounds = nlohmann::json::array();
-            for (const auto& sound : soundEmitterComponent.sounds()) {
+            for (const auto& soundInfo : soundEmitterComponent.soundsInfos()) {
                 sounds.emplace_back(nlohmann::json({
-                    {"hrid", sound.first},
-                    {"path", sound.second},
+                    {"hrid", soundInfo.first},
+                    {"path", soundInfo.second.path},
                 }));
             }
             componentsJson[componentHrid] = {{"sounds", sounds}};

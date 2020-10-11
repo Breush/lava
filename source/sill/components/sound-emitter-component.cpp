@@ -1,16 +1,25 @@
 #include <lava/sill/components/sound-emitter-component.hpp>
 
-#include "./sound-emitter-component-impl.hpp"
+#include <lava/sill/entity.hpp>
+#include <lava/sill/game-engine.hpp>
 
 using namespace lava::sill;
 
-$pimpl_class_base(SoundEmitterComponent, IComponent, Entity&, entity);
-
-// SoundEmitterComponent
-void SoundEmitterComponent::add(const std::string& hrid, const std::string& path)
+SoundEmitterComponent::SoundEmitterComponent(Entity& entity)
+    : IComponent(entity)
+    , m_audioEngine(m_entity.engine().audioEngine())
 {
-    m_sounds[hrid] = path;
-    m_impl->add(hrid, path);
 }
 
-$pimpl_method(SoundEmitterComponent, void, start, const std::string&, hrid);
+void SoundEmitterComponent::add(const std::string& hrid, const std::string& path)
+{
+    auto& soundInfo = m_soundsInfos[hrid];
+    soundInfo.path = path;
+    soundInfo.soundData = m_audioEngine.share<flow::SoundData>(path);
+}
+
+void SoundEmitterComponent::start(const std::string& hrid) const
+{
+    auto& sound = m_audioEngine.make<flow::Sound>(m_soundsInfos.at(hrid).soundData);
+    sound.playOnce();
+}

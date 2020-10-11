@@ -1,16 +1,26 @@
 #include <lava/sill/components/behavior-component.hpp>
 
-#include "./behavior-component-impl.hpp"
-
 using namespace lava::sill;
 
-$pimpl_class_base(BehaviorComponent, IComponent, Entity&, entity);
+BehaviorComponent::BehaviorComponent(Entity& entity)
+    : IComponent(entity)
+{
+}
 
-// IComponent
-$pimpl_method(BehaviorComponent, void, update, float, dt);
+// ----- IComponent
 
-// Callbacks
+void BehaviorComponent::update(float dt)
+{
+    PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
+
+    if (m_updateCallback) {
+        m_updateCallback(dt);
+    }
+}
+
+// ----- Callbacks
+
 void BehaviorComponent::onUpdate(UpdateCallback&& updateCallback)
 {
-    m_impl->onUpdate(std::move(updateCallback));
+    m_updateCallback = std::move(updateCallback);
 }

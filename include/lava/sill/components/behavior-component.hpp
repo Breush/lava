@@ -11,7 +11,6 @@ namespace lava::sill {
 
     public:
         BehaviorComponent(Entity& entity);
-        ~BehaviorComponent();
 
         // IComponent
         static std::string hrid() { return "behavior"; }
@@ -20,11 +19,7 @@ namespace lava::sill {
         // Interface
         void onUpdate(UpdateCallback&& updateCallback);
 
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
-
     private:
-        Impl* m_impl = nullptr;
+        UpdateCallback m_updateCallback;
     };
 }

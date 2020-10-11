@@ -2,27 +2,34 @@
 
 #include <lava/sill/components/i-component.hpp>
 
+namespace lava::flow {
+    class SoundData;
+}
+
 namespace lava::sill {
     class SoundEmitterComponent final : public IComponent {
     public:
+        struct SoundInfo {
+            std::string path;
+            std::shared_ptr<flow::SoundData> soundData;
+        };
+
+    public:
         SoundEmitterComponent(Entity& entity);
-        ~SoundEmitterComponent();
 
         // IComponent
         static std::string hrid() { return "sound-emitter"; }
 
         /// Sounds
-        const std::unordered_map<std::string, std::string>& sounds() const { return m_sounds; }
+        const std::unordered_map<std::string, SoundInfo>& soundsInfos() const { return m_soundsInfos; }
         void add(const std::string& hrid, const std::string& path);
-        void start(const std::string& hrid);
-
-    public:
-        class Impl;
-        Impl& impl() { return *m_impl; }
+        void start(const std::string& hrid) const;
 
     private:
-        Impl* m_impl = nullptr;
+        // References
+        flow::AudioEngine& m_audioEngine;
 
-        std::unordered_map<std::string, std::string> m_sounds;
+        // Resources
+        std::unordered_map<std::string, SoundInfo> m_soundsInfos;
     };
 }
