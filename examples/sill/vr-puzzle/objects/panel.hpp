@@ -49,6 +49,17 @@ public:
     /// Find the closest snapping point.
     SnappingInfo rayHitSnappingPoint(const Brick& brick, const lava::Ray& ray);
 
+    /// An un-powered panel is black and has no interaction.
+    bool powered() const { return m_powered; }
+    void powered(bool powered);
+
+    const std::string& substanceRevealNeeded() const { return m_substanceRevealNeeded; }
+    void substanceRevealNeeded(const std::string& substanceRevealNeeded) { m_substanceRevealNeeded = substanceRevealNeeded; }
+    const std::string& substanceFreedOnSolve() const { return m_substanceFreedOnSolve; }
+    void substanceFreedOnSolve(const std::string& substanceFreedOnSolve) { m_substanceFreedOnSolve = substanceFreedOnSolve; }
+    const std::string& substanceRevealedOnSolve() const { return m_substanceRevealedOnSolve; }
+    void substanceRevealedOnSolve(const std::string& substanceRevealedOnSolve) { m_substanceRevealedOnSolve = substanceRevealedOnSolve; }
+
     /// Be warn whenever this panel solved status changed.
     void onSolvedChanged(SolvedChangedCallback callback);
 
@@ -76,11 +87,15 @@ protected:
 private:
     bool m_consolidated = false;
 
+    bool m_powered = false;
     bool m_solved = false;
     bool m_pretendSolved = false;
 
     // Configuration
     glm::uvec2 m_extent = {3u, 3u};
+    std::string m_substanceRevealNeeded;
+    std::string m_substanceFreedOnSolve;
+    std::string m_substanceRevealedOnSolve;
 
     // Data
     std::vector<std::vector<SnappingPoint>> m_snappingPoints;

@@ -22,7 +22,7 @@ int main(void)
     GameState gameState;
     gameState.engine = &engine;
 
-    engine.registerMaterialFromFile("skybox", "./data/shaders/materials/skybox-material.shmag");
+    engine.registerMaterialFromFile("skybox", "./examples/sill/vr-puzzle/materials/skybox.shmag");
     engine.registerMaterialFromFile("barrier", "./examples/sill/vr-puzzle/materials/barrier.shmag");
     engine.registerMaterialFromFile("panel", "./examples/sill/vr-puzzle/materials/panel.shmag");
     engine.registerMaterialFromFile("collider", "./examples/sill/vr-puzzle/materials/collider.shmag");

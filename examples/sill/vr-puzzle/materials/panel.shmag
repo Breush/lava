@@ -8,6 +8,7 @@ struct {
 
 uniform {
     vec2 extent = vec2(3, 3);
+    float ghostFactor = 1;
 };
 
 geometry {
@@ -33,7 +34,7 @@ geometry {
         // Overall grid
         vec3 gridColor = vec3(filteredGrid(panelUv.xy * extent, dFdx(panelUv.xy), dFdy(panelUv.xy)));
 
-        gBuffer.color = gridColor;
+        gBuffer.color = (1 - ghostFactor) * gridColor;
         return true;
     }
 }

@@ -165,7 +165,7 @@ void unserializeObject(GameState& gameState, Object& object, const nlohmann::jso
         if (properties.find("terrain") != properties.end()) {
             gameState.terrain.entity = &object.entity();
             gameState.terrain.entity->ensure<sill::PhysicsComponent>().dynamic(false);
-            gameState.terrain.entity->ensure<sill::ColliderComponent>().addMeshShape();
+            gameState.terrain.entity->ensure<sill::ColliderComponent>().addMeshShape(); // @fixme We have the terrain property just for that... USELESS!
         }
     }
 

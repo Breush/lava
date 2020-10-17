@@ -48,29 +48,29 @@ namespace {
         }
     }
 
-    void levelMaterialGhostFactor(GameState& gameState, const std::string& materialName, float ghostFactor)
+    bool entitySubstanceGhostFactor(sill::Entity& entity, const std::string& substanceName, float ghostFactor)
     {
-        for (auto& object : gameState.level.objects) {
-            auto& entity = object->entity();
-            if (!entity.has<sill::MeshComponent>()) continue;
+        bool completed = (ghostFactor == 0.f);
+        bool concerned = false;
 
-            // @todo We probably don't want to let that logic here...
-            if (object->kind() == "pedestal" && object->as<Pedestal>().material() == materialName) {
-                object->as<Pedestal>().powered(ghostFactor == 0.f);
-            }
+        for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
+            if (node.group == nullptr) continue;
+            for (auto primitive : node.group->primitives()) {
+                auto material = primitive->material().get();
+                if (material == nullptr) continue;
 
-            for (auto& node : entity.get<sill::MeshComponent>().nodes()) {
-                if (node.group == nullptr) continue;
-                for (auto primitive : node.group->primitives()) {
-                    auto material = primitive->material().get();
-                    if (material == nullptr) continue;
-                    if (material->name() != materialName) continue;
+                if (substanceName.empty() || material->name() == substanceName) {
                     auto& animationComponent = entity.ensure<sill::AnimationComponent>();
                     animationComponent.start(sill::AnimationFlag::MaterialUniform, *material, "ghostFactor", 0.5f);
                     animationComponent.target(sill::AnimationFlag::MaterialUniform, *material, "ghostFactor", ghostFactor);
+                    concerned = true;
+                } else {
+                    completed = completed && (material->get_float("ghostFactor") != 0.f);
                 }
             }
         }
+
+        return concerned && completed;
     }
 }
 
@@ -82,17 +82,19 @@ void setupEnvironment(GameState& gameState)
     {
         engine.environmentTexture("./assets/skies/cloudy/");
 
-        auto& skyboxEntity = engine.make<sill::Entity>("skybox");
-        auto& skyMeshComponent = skyboxEntity.make<sill::MeshComponent>();
+        auto& entity = engine.make<sill::Entity>("skybox");
+        auto& meshComponent = entity.make<sill::MeshComponent>();
         sill::makers::BoxMeshOptions options;
         options.siding = sill::BoxSiding::In;
-        sill::makers::boxMeshMaker(1.f, options)(skyMeshComponent);
-        skyMeshComponent.renderCategory(RenderCategory::Depthless);
+        sill::makers::boxMeshMaker(1.f, options)(meshComponent);
+        meshComponent.renderCategory(RenderCategory::Depthless);
 
-        auto skyboxMaterial = engine.scene().makeMaterial("skybox");
-        skyboxMaterial->set("useEnvironmentMap", true);
-        skyboxMaterial->set("lod", 1u);
-        skyMeshComponent.primitive(0, 0).material(skyboxMaterial);
+        auto material = engine.scene().makeMaterial("skybox");
+        material->set("useEnvironmentMap", true);
+        material->set("lod", 1u);
+        meshComponent.primitive(0, 0).material(material);
+
+        gameState.level.environment.sky = &entity;
     }
 
     // Water
@@ -116,6 +118,8 @@ void setupEnvironment(GameState& gameState)
             time += dt;
             material->set("time", time);
         });
+
+        gameState.level.environment.sea = &entity;
     }
 }
 
@@ -134,28 +138,11 @@ void loadLevel(GameState& gameState, const std::string& levelPath)
         genericCollidersBuildPhysicsFromMesh(gameState);
         genericCollidersVisible(gameState, false);
 
-        // Automatically decide what is ghosted here...
-        levelMaterialGhostFactor(gameState, "rock", 0.f);
-        levelMaterialGhostFactor(gameState, "wood", 1.f);
+        // Starting point of the island
+        // @fixme Have their "powered" state to on directly!
+        revealSubstance(gameState, "sky");
 
-        // @fixme Have these stored in JSON somehow?
-        findPanelByName(gameState, "intro.bridge-controller")->onSolvedChanged([&gameState](bool solved) {
-            levelMaterialGhostFactor(gameState, "wood", (solved) ? 0.f : 1.f);
-            findGenericByName(gameState, "bridge")->walkable(solved);
-        });
-        findPanelByName(gameState, "intro.easy-solo")->onSolvedChanged([&gameState](bool solved) {
-            findBarrierByName(gameState, "intro.easy-duo")->powered(solved);
-        });
-        findPanelByName(gameState, "intro.easy-duo-1")->onSolvedChanged([&gameState](bool solved) {
-            if (findPanelByName(gameState, "intro.easy-duo-2")->solved()) {
-                findBarrierByName(gameState, "intro.hard-duo")->powered(solved);
-            }
-        });
-        findPanelByName(gameState, "intro.easy-duo-2")->onSolvedChanged([&gameState](bool solved) {
-            if (findPanelByName(gameState, "intro.easy-duo-1")->solved()) {
-                findBarrierByName(gameState, "intro.hard-duo")->powered(solved);
-            }
-        });
+        // @todo Have this stored in JSON somehow? To do that, we would need a scripting language...
         findPanelByName(gameState, "intro.big-key")->onSolvedChanged([&gameState](bool solved) {
             if (!solved) return;
 
@@ -198,4 +185,55 @@ float distanceToTerrain(GameState& gameState, const Ray& ray, Generic** pGeneric
     }
 
     return distance;
+}
+
+// ----- Substance
+
+void freeSubstance(GameState& gameState, const std::string& substanceName, float ghostFactor)
+{
+    if (substanceName == "sky") {
+        entitySubstanceGhostFactor(*gameState.level.environment.sky, "", ghostFactor);
+        return;
+    }
+    if (substanceName == "sea") {
+        entitySubstanceGhostFactor(*gameState.level.environment.sea, "", ghostFactor);
+        return;
+    }
+
+    for (auto& object : gameState.level.objects) {
+        auto& entity = object->entity();
+        if (!entity.has<sill::MeshComponent>()) continue;
+        if (object->kind() != "generic") continue;
+
+        bool concernedAndCompleted = entitySubstanceGhostFactor(entity, substanceName, ghostFactor);
+        if (concernedAndCompleted && entity.has<sill::ColliderComponent>()) {
+            object->as<Generic>().walkable(ghostFactor == 0.f);
+        }
+    }
+}
+
+void revealSubstance(GameState& gameState, const std::string& substanceName, float ghostFactor)
+{
+    for (auto& object : gameState.level.objects) {
+        auto& entity = object->entity();
+        if (!entity.has<sill::MeshComponent>()) continue;
+
+        if (object->kind() == "pedestal") {
+            auto& pedestal = object->as<Pedestal>();
+            if (pedestal.substanceRevealNeeded() != substanceName) continue;
+
+            object->as<Pedestal>().powered(ghostFactor == 0.f);
+            for (auto& brickInfo : pedestal.brickInfos()) {
+                entitySubstanceGhostFactor(brickInfo.brick->entity(), "", ghostFactor);
+            }
+            entitySubstanceGhostFactor(entity, "", ghostFactor); // @fixme The powered state should do that by itself!
+        }
+        else if (object->kind() == "panel") {
+            auto& panel = object->as<Panel>();
+            if (panel.substanceRevealNeeded() != substanceName) continue;
+
+            object->as<Panel>().powered(ghostFactor == 0.f);
+            entitySubstanceGhostFactor(entity, "", ghostFactor);
+        }
+    }
 }

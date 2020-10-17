@@ -1,10 +1,12 @@
 struct {
     nvec3(16) normal;
     vec3 waveColor;
+    float ghostFactor;
 } gBuffer;
 
 uniform {
     float time = 0;
+    float ghostFactor = 1;
     texture2d waveMap = "white";
 };
 
@@ -18,8 +20,8 @@ geometry {
         vec2 waveUv = waveJitteriness * sin(waveJitterinessSpeed * time) + reuv;
 
         gBuffer.normal = normalize(tbn[2]); // :NonUniformScaling @fixme This normalize should be useless
-
         gBuffer.waveColor = texture(waveMap, waveJitteriness * sin(waveJitterinessSpeed * time) + reuv).rgb;
+        gBuffer.ghostFactor = ghostFactor;
 
         return true;
     }
@@ -33,6 +35,7 @@ epiphany {
         vec3 v = normalize(camera.position.xyz - position);
 
         float opacity = max(1 - dot(n, v), 0.5);
+        opacity = mix(opacity, 1, gBuffer.ghostFactor);
 
         vec3 waterColor = vec3(0.3, 0.6, 0.9);
         waterColor = mix(waterColor, vec3(1), dot(n, v));
@@ -40,6 +43,7 @@ epiphany {
         // @todo Add environment contribution
 
         vec3 color = gBuffer.waveColor * waterColor;
+        color = mix(color, vec3(0), gBuffer.ghostFactor);
         return vec4(color, opacity);
     }
 }

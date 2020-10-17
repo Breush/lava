@@ -18,7 +18,7 @@ struct {
 // Everything that the user can control,
 // with their default values.
 uniform {
-    float ghostFactor = 0;
+    float ghostFactor = 1; // Default to fully ghost
     vec4 albedoColor = vec4(1, 1, 1, 1);
     float roughnessFactor = 1;
     float metallicFactor = 1;
@@ -44,10 +44,7 @@ geometry {
         vec3 v = normalize(camera.position.xyz - position);
 
         // @note VR-puzzle specific
-        float ghostPower = dot(normalize(tbn * normal), v);
-        float ghostColor = max(0.5, abs(cos(ghostPower * 1000)));
-        albedo.rgb += ghostFactor * 0.9;
-        // albedo.rgb = vec3(ghostPower);
+        occlusion = mix(occlusion, 0, ghostFactor);
 
         gBuffer.opacity = albedo.a;
         gBuffer.albedo = albedo.rgb;
@@ -202,6 +199,10 @@ epiphany {
     }
 
     vec4 main() {
+        if (gBuffer.occlusion == 0) {
+            return vec4(0, 0, 0, 1);
+        }
+
         // ----- Common variables
 
         vec3 position = positionFromDepth(fragmentDepth, fragmentPosition);

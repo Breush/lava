@@ -110,6 +110,12 @@ void Material::setGlobal(const std::string& uniformName, const TexturePtr& textu
 
 // ----- Uniform getters
 
+float Material::get_float(const std::string& uniformName) const
+{
+    auto& attribute = findAttribute(uniformName);
+    return attribute.value.floatValue;
+}
+
 const glm::vec4& Material::get_vec4(const std::string& uniformName) const
 {
     auto& attribute = findAttribute(uniformName);

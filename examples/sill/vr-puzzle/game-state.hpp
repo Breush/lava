@@ -108,6 +108,11 @@ struct GameState {
         // All allocated objects.
         std::vector<std::unique_ptr<Frame>> frames;
         std::vector<std::unique_ptr<Object>> objects;
+
+        struct {
+            lava::sill::Entity* sky = nullptr;
+            lava::sill::Entity* sea = nullptr;
+        } environment;
     } level;
 
     struct {

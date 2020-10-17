@@ -38,7 +38,7 @@ void Pedestal::clear(bool removeFromLevel)
 
 void Pedestal::unserialize(const nlohmann::json& data)
 {
-    m_material = data["material"].get<std::string>();
+    m_substanceRevealNeeded = data["substanceRevealNeeded"].get<std::string>();
 
     m_brickInfos.clear();
     for (auto& brick : data["bricks"]) {
@@ -52,7 +52,7 @@ void Pedestal::unserialize(const nlohmann::json& data)
 nlohmann::json Pedestal::serialize() const
 {
     nlohmann::json data = {
-        {"material", m_material},
+        {"substanceRevealNeeded", m_substanceRevealNeeded},
         {"bricks", nlohmann::json::array()},
     };
 
@@ -68,7 +68,7 @@ void Pedestal::consolidateReferences()
     // Create mesh if not yet referenced
     if (!m_entity->has<sill::MeshComponent>()) {
         auto& meshComponent = m_entity->make<sill::MeshComponent>();
-        sill::makers::glbMeshMaker("./assets/models/vr-puzzle/" + m_material + "-pedestal.glb")(meshComponent);
+        sill::makers::glbMeshMaker("./assets/models/vr-puzzle/" + m_substanceRevealNeeded + "-pedestal.glb")(meshComponent);
     }
 
     for (auto& brickInfo : m_brickInfos) {
@@ -104,6 +104,18 @@ void Pedestal::mutateBeforeDuplication(nlohmann::json& data)
     // @note The bricks we had attached to us cannot be attached
     // to two pedestal. Therefore, this information cannot be duplicated.
     data["bricks"] = nlohmann::json::array();
+}
+
+// ----- Editor controls
+
+void Pedestal::uiWidgets(std::vector<UiWidget>& widgets)
+{
+    Object::uiWidgets(widgets);
+
+    widgets.emplace_back(UiWidget("substanceRevealNeeded",
+        [this]() -> const std::string& { return substanceRevealNeeded(); },
+        [this](const std::string& substanceRevealNeeded) { this->substanceRevealNeeded(substanceRevealNeeded); })
+    );
 }
 
 // -----

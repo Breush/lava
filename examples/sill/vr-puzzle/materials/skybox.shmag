@@ -1,0 +1,51 @@
+/**
+ * Sky material.
+ */
+
+struct {
+    vec4 colorOrEnvironmentMapUvwLod;
+    float useEnvironmentMap; // Used as boolean.
+    float ghostFactor;
+} gBuffer;
+
+uniform {
+    bool useEnvironmentMap = false; // If set to false, the cube map below will be used.
+    textureCube cubeMap = "invisible";
+    float ghostFactor = 1;
+    uint lod = 0;
+};
+
+geometry {
+    bool main() {
+        if (useEnvironmentMap) {
+            gBuffer.useEnvironmentMap = 1.;
+            gBuffer.colorOrEnvironmentMapUvwLod.xyz = fixCubeUvw(cubeUvw);
+            gBuffer.colorOrEnvironmentMapUvwLod.w = float(lod);
+        } else {
+            gBuffer.useEnvironmentMap = 0.;
+            gBuffer.colorOrEnvironmentMapUvwLod = textureLod(cubeMap, fixCubeUvw(cubeUvw), lod);
+            if (gBuffer.colorOrEnvironmentMapUvwLod.a == 0) discard;
+        }
+
+        gBuffer.ghostFactor = ghostFactor;
+
+        return false;
+    }
+}
+
+epiphany {
+    vec4 main() {
+        vec4 color;
+
+        if (gBuffer.useEnvironmentMap == 1.) {
+            uint lod = uint(gBuffer.colorOrEnvironmentMapUvwLod.w);
+            vec3 cubeUvw = gBuffer.colorOrEnvironmentMapUvwLod.xyz;
+            color = textureLod(environmentRadianceMap, cubeUvw, lod);
+        }
+        else {
+            color = gBuffer.colorOrEnvironmentMapUvwLod;
+        }
+
+        return mix(color, vec4(0, 0, 0, 1), gBuffer.ghostFactor);
+    }
+}

@@ -19,6 +19,14 @@
                 }
             },
             "name": "tree"
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/env/fern-1.glb"
+                }
+            },
+            "name": "fern-1"
         }
     ],
     "name": "intro",
@@ -52,22 +60,22 @@
                     0
                 ],
                 "snapPanel": 0,
-                "stored": false
+                "stored": true
             },
             "kind": "brick",
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.8259725570678711,
-                    0.3421291410923004,
-                    -0.1714480221271515,
-                    -0.41391128301620483
+                    -0.5289389491081238,
+                    0.48182860016822815,
+                    -0.2545453906059265,
+                    -0.6505929231643677
                 ],
-                "scaling": 0.999999463558197,
+                "scaling": 0.0,
                 "translation": [
-                    9.808818817138672,
-                    -14.587013244628906,
-                    1.8177378177642822
+                    9.570351600646973,
+                    -12.796855926513672,
+                    0.7557255029678345
                 ]
             }
         },
@@ -114,16 +122,16 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.19216150045394897,
-                    -0.9531295895576477,
-                    -0.02208566665649414,
-                    -0.2326587438583374
+                    -0.9108437895774841,
+                    0.3512968122959137,
+                    0.18439368903636932,
+                    -0.11381089687347412
                 ],
-                "scaling": 1.000000238418579,
+                "scaling": 0.0,
                 "translation": [
                     9.570351600646973,
                     -12.796855926513672,
-                    1.255725622177124
+                    0.7557255029678345
                 ]
             }
         },
@@ -326,10 +334,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.2848745882511139,
-                    -0.5448000431060791,
-                    -0.40099310874938965,
-                    0.6791467666625977
+                    -0.277662992477417,
+                    -0.8256914019584656,
+                    -0.40601691603660583,
+                    -0.27617520093917847
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -370,10 +378,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.1567729115486145,
-                    -0.18762286007404327,
-                    0.08769072592258453,
-                    0.9656744003295898
+                    0.02803329937160015,
+                    -0.9709435105323792,
+                    0.1774294525384903,
+                    0.15807516872882843
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -414,10 +422,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.7455031871795654,
-                    0.20695631206035614,
-                    0.19075080752372742,
-                    0.6041563153266907
+                    -0.07896433770656586,
+                    -0.49523624777793884,
+                    0.7654536366462708,
+                    0.40320277214050293
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -454,10 +462,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.49177178740501404,
-                    0.2559835910797119,
-                    0.010516272857785225,
-                    0.8321799039840698
+                    -0.13516129553318024,
+                    0.739791989326477,
+                    0.47295069694519043,
+                    -0.4590872824192047
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -494,10 +502,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.16059905290603638,
-                    0.6936489939689636,
-                    -0.08047040551900864,
-                    0.6975562572479248
+                    0.11864634603261948,
+                    0.49835073947906494,
+                    -0.13487283885478973,
+                    -0.8481649160385132
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -534,10 +542,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.5764983892440796,
-                    0.616114616394043,
-                    -0.5097188949584961,
-                    0.1680491715669632
+                    0.6395060420036316,
+                    0.005937162786722183,
+                    -0.4280162453651428,
+                    -0.6385952234268188
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -578,10 +586,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.373487263917923,
-                    0.09461863338947296,
-                    -0.8825687766075134,
-                    -0.2694959044456482
+                    0.9485146403312683,
+                    -0.28469496965408325,
+                    -0.13690651953220367,
+                    -0.023015659302473068
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -674,10 +682,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.5819646716117859,
-                    0.592483401298523,
-                    -0.5457147359848022,
-                    0.11168405413627625
+                    -0.2715347111225128,
+                    0.5573005080223083,
+                    0.7772737741470337,
+                    -0.1073765680193901
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -758,10 +766,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.05961088091135025,
-                    0.25609084963798523,
-                    0.49522483348846436,
-                    0.8280178904533386
+                    0.7905017137527466,
+                    -0.3088630437850952,
+                    0.5210979580879211,
+                    0.09037045389413834
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -802,10 +810,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.4546993374824524,
-                    0.742426335811615,
-                    0.14446605741977692,
-                    0.4702965021133423
+                    0.3169846534729004,
+                    0.19137519598007202,
+                    0.8849862813949585,
+                    0.2823027968406677
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -846,10 +854,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.24003151059150696,
-                    -0.41931653022766113,
-                    0.18410249054431915,
-                    0.8559569716453552
+                    0.7135826349258423,
+                    -0.483402818441391,
+                    0.020240742713212967,
+                    -0.5066666603088379
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -890,10 +898,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.798675537109375,
-                    0.22768089175224304,
-                    -0.5296571254730225,
-                    -0.17245879769325256
+                    -0.3410549759864807,
+                    0.5176839828491211,
+                    0.7846299409866333,
+                    -0.006366908550262451
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -934,10 +942,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.254456490278244,
-                    -0.20884756743907928,
-                    -0.8583880066871643,
-                    -0.39345216751098633
+                    -0.4885186553001404,
+                    0.3927687108516693,
+                    0.38731467723846436,
+                    -0.6760691404342651
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -978,10 +986,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.1783314049243927,
-                    0.193220317363739,
-                    0.021573767066001892,
-                    0.9645716547966003
+                    0.8236997723579407,
+                    -0.20447130501270294,
+                    0.5051174759864807,
+                    0.15673674643039703
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -1022,10 +1030,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    -0.7620877623558044,
-                    0.4209185242652893,
-                    -0.10670123249292374,
-                    0.4802756905555725
+                    0.289694607257843,
+                    0.230609729886055,
+                    0.8412533402442932,
+                    0.3939403295516968
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -1070,10 +1078,10 @@
             "name": "brick",
             "transform": {
                 "rotation": [
-                    0.4158320724964142,
-                    -0.24601981043815613,
-                    -0.2627422511577606,
-                    0.8351792693138123
+                    0.7699026465415955,
+                    -0.3874646723270416,
+                    0.08533238619565964,
+                    -0.49983933568000793
                 ],
                 "scaling": 0.0,
                 "translation": [
@@ -1533,10 +1541,13 @@
                 "extent": [
                     3,
                     3
-                ]
+                ],
+                "substanceFreedOnSolve": "wood",
+                "substanceRevealNeeded": "wood",
+                "substanceRevealedOnSolve": "rock"
             },
             "kind": "panel",
-            "name": "intro.bridge-controller",
+            "name": "intro.wood",
             "transform": {
                 "rotation": [
                     0.8259725570678711,
@@ -1558,7 +1569,10 @@
                 "extent": [
                     3,
                     3
-                ]
+                ],
+                "substanceFreedOnSolve": "rock",
+                "substanceRevealNeeded": "rock",
+                "substanceRevealedOnSolve": "grass"
             },
             "kind": "panel",
             "name": "intro.easy-solo",
@@ -1583,7 +1597,10 @@
                 "extent": [
                     3,
                     3
-                ]
+                ],
+                "substanceFreedOnSolve": "grass",
+                "substanceRevealNeeded": "grass",
+                "substanceRevealedOnSolve": "iron"
             },
             "kind": "panel",
             "name": "intro.easy-duo-1",
@@ -1608,7 +1625,10 @@
                 "extent": [
                     3,
                     3
-                ]
+                ],
+                "substanceFreedOnSolve": "grass",
+                "substanceRevealNeeded": "grass",
+                "substanceRevealedOnSolve": "iron"
             },
             "kind": "panel",
             "name": "intro.easy-duo-2",
@@ -1633,7 +1653,10 @@
                 "extent": [
                     4,
                     4
-                ]
+                ],
+                "substanceFreedOnSolve": "iron",
+                "substanceRevealNeeded": "iron",
+                "substanceRevealedOnSolve": "leaves"
             },
             "kind": "panel",
             "name": "intro.hard-duo-1",
@@ -1658,7 +1681,10 @@
                 "extent": [
                     4,
                     4
-                ]
+                ],
+                "substanceFreedOnSolve": "leaves",
+                "substanceRevealNeeded": "leaves",
+                "substanceRevealedOnSolve": "boat"
             },
             "kind": "panel",
             "name": "intro.hard-duo-2",
@@ -1683,7 +1709,10 @@
                 "extent": [
                     7,
                     7
-                ]
+                ],
+                "substanceFreedOnSolve": "boat",
+                "substanceRevealNeeded": "boat",
+                "substanceRevealedOnSolve": "nothing"
             },
             "kind": "panel",
             "name": "intro.big-key",
@@ -1699,44 +1728,6 @@
                     39.536651611328125,
                     8.737655639648438,
                     1.6765919923782349
-                ]
-            }
-        },
-        {
-            "components": null,
-            "data": {
-                "controlPoints": [
-                    [
-                        0.0,
-                        15.39671802520752
-                    ],
-                    [
-                        1.7542033195495605,
-                        17.231548309326172
-                    ],
-                    [
-                        2.261443853378296,
-                        18.867158889770508
-                    ]
-                ],
-                "pickingBlocked": true,
-                "powered": true,
-                "teleportationBlocked": true
-            },
-            "kind": "barrier",
-            "name": "intro.easy-solo",
-            "transform": {
-                "rotation": [
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "scaling": 1.0,
-                "translation": [
-                    0.0,
-                    0.0,
-                    0.0
                 ]
             }
         },
@@ -2070,28 +2061,25 @@
             }
         },
         {
-            "components": {
-                "mesh": {
-                    "path": "./assets/models/vr-puzzle/env/fern-1.glb"
-                }
-            },
+            "components": null,
             "data": {
                 "walkable": false
             },
+            "frame": 2,
             "kind": "generic",
             "name": "env/fern-1",
             "transform": {
                 "rotation": [
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0
+                    0.10830745100975037,
+                    0.009323588572442532,
+                    0.08525903522968292,
+                    -0.9904109239578247
                 ],
                 "scaling": 1.0,
                 "translation": [
-                    2.955441474914551,
-                    4.02799129486084,
-                    0.9631410241127014
+                    -1.7207378149032593,
+                    12.539759635925293,
+                    2.6894829273223877
                 ]
             }
         },
@@ -2106,7 +2094,7 @@
                 }
             },
             "data": {
-                "walkable": false
+                "walkable": true
             },
             "kind": "generic",
             "name": "island-1",
@@ -2139,7 +2127,7 @@
                 }
             },
             "data": {
-                "walkable": false
+                "walkable": true
             },
             "kind": "generic",
             "name": "bridge",
@@ -2155,6 +2143,62 @@
                     13.138571739196777,
                     -11.994841575622559,
                     -0.5920034646987915
+                ]
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/env/flat-bridge.glb"
+                },
+                "physics": {
+                    "dynamic": false,
+                    "enabled": true
+                }
+            },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
+            "name": "flat-bridge",
+            "transform": {
+                "rotation": [
+                    0.32601502537727356,
+                    0.003091192338615656,
+                    0.05347774550318718,
+                    -0.9438457489013672
+                ],
+                "scaling": 0.9999990463256836,
+                "translation": [
+                    42.80923080444336,
+                    4.446751594543457,
+                    -0.043640971183776855
+                ]
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/env/wood-post.glb"
+                }
+            },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
+            "name": "env/wood-post",
+            "transform": {
+                "rotation": [
+                    0.3281497061252594,
+                    0.013778066262602806,
+                    0.005586340092122555,
+                    -0.9445087909698486
+                ],
+                "scaling": 0.9999990463256836,
+                "translation": [
+                    43.999610900878906,
+                    6.316486835479736,
+                    -1.3599677085876465
                 ]
             }
         },
@@ -2192,12 +2236,13 @@
             },
             "data": {
                 "bricks": [
-                    1
+                    1,
+                    0
                 ],
-                "material": "rock"
+                "substanceRevealNeeded": "wood"
             },
             "kind": "pedestal",
-            "name": "intro.pedestal.bridge-controller",
+            "name": "intro.wood",
             "transform": {
                 "rotation": [
                     -0.342961847782135,
@@ -2225,7 +2270,7 @@
                     3,
                     4
                 ],
-                "material": "wood"
+                "substanceRevealNeeded": "rock"
             },
             "kind": "pedestal",
             "name": "intro.pedestal.easy-duo",
@@ -2257,7 +2302,7 @@
                     11,
                     12
                 ],
-                "material": "wood"
+                "substanceRevealNeeded": "grass"
             },
             "kind": "pedestal",
             "name": "pedestal.intro.easy-duo-2",
@@ -2288,7 +2333,7 @@
                     7,
                     8
                 ],
-                "material": "wood"
+                "substanceRevealNeeded": "grass"
             },
             "kind": "pedestal",
             "name": "pedestal.intro.easy-duo-1",
@@ -2321,7 +2366,7 @@
                     19,
                     20
                 ],
-                "material": "wood"
+                "substanceRevealNeeded": "iron"
             },
             "kind": "pedestal",
             "name": "pedestal",
@@ -2353,7 +2398,7 @@
                     17,
                     14
                 ],
-                "material": "wood"
+                "substanceRevealNeeded": "leaves"
             },
             "kind": "pedestal",
             "name": "pedestal",
@@ -2392,8 +2437,8 @@
                 ],
                 "scaling": 1.0,
                 "translation": [
-                    46.67913055419922,
-                    7.840408802032471,
+                    46.45165252685547,
+                    7.186426639556885,
                     5.298129081726074
                 ]
             }
@@ -2949,18 +2994,320 @@
                     3.290682077407837
                 ]
             }
+        },
+        {
+            "components": null,
+            "data": {
+                "walkable": false
+            },
+            "frame": 2,
+            "kind": "generic",
+            "name": "env/fern-1",
+            "transform": {
+                "rotation": [
+                    -0.7204520106315613,
+                    0.07335767894983292,
+                    0.044437382370233536,
+                    -0.6881809830665588
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -1.9778242111206055,
+                    11.492859840393066,
+                    2.4530155658721924
+                ]
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/env/wood-post.glb"
+                }
+            },
+            "data": {
+                "walkable": false
+            },
+            "kind": "generic",
+            "name": "env/wood-post",
+            "transform": {
+                "rotation": [
+                    0.8592140078544617,
+                    0.0069453539326786995,
+                    0.013145511038601398,
+                    -0.5114002823829651
+                ],
+                "scaling": 0.9999990463256836,
+                "translation": [
+                    45.006492614746094,
+                    5.165388584136963,
+                    -1.656235933303833
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "extent": [
+                    2,
+                    2
+                ],
+                "substanceFreedOnSolve": "sand",
+                "substanceRevealNeeded": "sand",
+                "substanceRevealedOnSolve": "wood"
+            },
+            "kind": "panel",
+            "name": "intro.sand",
+            "transform": {
+                "rotation": [
+                    -0.6973283290863037,
+                    -0.3021194338798523,
+                    0.4759034216403961,
+                    -0.44268733263015747
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -18.109134674072266,
+                    -29.237634658813477,
+                    10.064931869506836
+                ]
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/sand-pedestal.glb"
+                }
+            },
+            "data": {
+                "bricks": [
+                    33
+                ],
+                "substanceRevealNeeded": "sand"
+            },
+            "kind": "pedestal",
+            "name": "intro.sand",
+            "transform": {
+                "rotation": [
+                    0.9790626764297485,
+                    -0.014964412897825241,
+                    0.02787754125893116,
+                    0.2010831981897354
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -16.833538055419922,
+                    -29.8620662689209,
+                    8.478821754455566
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ],
+                    [
+                        1,
+                        1
+                    ]
+                ],
+                "color": [
+                    0.5649999976158142,
+                    0.4350000023841858,
+                    0.2980000078678131
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "intro.sand.2x2",
+            "transform": {
+                "rotation": [
+                    0.26981639862060547,
+                    -0.37602585554122925,
+                    -0.10800164937973022,
+                    -0.8798489570617676
+                ],
+                "scaling": 0.0,
+                "translation": [
+                    -16.79711151123047,
+                    -29.831680297851563,
+                    9.227319717407227
+                ]
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/sand-pedestal.glb"
+                }
+            },
+            "data": {
+                "bricks": [
+                    34
+                ],
+                "substanceRevealNeeded": "sky"
+            },
+            "kind": "pedestal",
+            "name": "intro.sky",
+            "transform": {
+                "rotation": [
+                    0.9790626764297485,
+                    -0.014964412897825241,
+                    0.02787754125893116,
+                    0.2010831981897354
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -19.55889129638672,
+                    -34.68492126464844,
+                    8.616836547851563
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "extent": [
+                    2,
+                    2
+                ],
+                "substanceFreedOnSolve": "sky",
+                "substanceRevealNeeded": "sky",
+                "substanceRevealedOnSolve": "sea"
+            },
+            "kind": "panel",
+            "name": "intro.sky",
+            "transform": {
+                "rotation": [
+                    -0.5780923366546631,
+                    0.4026259779930115,
+                    0.3945290148258209,
+                    0.5899564027786255
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -18.797794342041016,
+                    -34.95088195800781,
+                    10.064931869506836
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "blocks": [
+                    [
+                        0,
+                        0
+                    ]
+                ],
+                "color": [
+                    0.9919999837875366,
+                    0.9919999837875366,
+                    0.5879999995231628
+                ],
+                "fixed": false,
+                "rotationLevel": 0,
+                "snapPanel": null,
+                "stored": true
+            },
+            "kind": "brick",
+            "name": "intro.sky.1x1",
+            "transform": {
+                "rotation": [
+                    -0.4784223139286041,
+                    -0.3967400789260864,
+                    -0.2334326058626175,
+                    -0.7478086948394775
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -19.498178482055664,
+                    -34.634281158447266,
+                    9.864334106445313
+                ]
+            }
+        },
+        {
+            "components": null,
+            "data": {
+                "extent": [
+                    2,
+                    2
+                ],
+                "substanceFreedOnSolve": "sea",
+                "substanceRevealNeeded": "sea",
+                "substanceRevealedOnSolve": "sand"
+            },
+            "kind": "panel",
+            "name": "intro.sea",
+            "transform": {
+                "rotation": [
+                    -0.730855405330658,
+                    0.26263004541397095,
+                    0.4987848401069641,
+                    0.3848240375518799
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -17.225919723510742,
+                    -34.18391799926758,
+                    10.064931869506836
+                ]
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "./assets/models/vr-puzzle/sand-pedestal.glb"
+                }
+            },
+            "data": {
+                "bricks": [],
+                "substanceRevealNeeded": "sea"
+            },
+            "kind": "pedestal",
+            "name": "intro.sea",
+            "transform": {
+                "rotation": [
+                    0.8706095218658447,
+                    -0.022775214165449142,
+                    0.02196316048502922,
+                    0.4909552335739136
+                ],
+                "scaling": 1.0,
+                "translation": [
+                    -17.86970329284668,
+                    -34.31808090209961,
+                    8.616836547851563
+                ]
+            }
         }
     ],
     "player": {
         "direction": [
-            0.29720890522003174,
-            0.9252580404281616,
-            -0.23572131991386414
+            0.22401323914527893,
+            0.9701417684555054,
+            -0.09296897053718567
         ],
         "position": [
-            -12.615795135498047,
-            -24.78579330444336,
-            4.741382598876953
+            -15.359406471252441,
+            -29.269575119018555,
+            8.188177108764648
         ]
     }
 }

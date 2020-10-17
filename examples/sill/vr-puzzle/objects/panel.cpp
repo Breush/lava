@@ -4,6 +4,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "./brick.hpp"
+#include "../environment.hpp"
 #include "../game-state.hpp"
 #include "../serializer.hpp"
 
@@ -61,12 +62,18 @@ void Panel::clear(bool removeFromLevel)
 void Panel::unserialize(const nlohmann::json& data)
 {
     m_extent = unserializeUvec2(data["extent"]);
+    m_substanceRevealNeeded = data["substanceRevealNeeded"];
+    m_substanceFreedOnSolve = data["substanceFreedOnSolve"];
+    m_substanceRevealedOnSolve = data["substanceRevealedOnSolve"];
 }
 
 nlohmann::json Panel::serialize() const
 {
     nlohmann::json data = {
         {"extent", ::serialize(m_extent)},
+        {"substanceRevealNeeded", m_substanceRevealNeeded},
+        {"substanceFreedOnSolve", m_substanceFreedOnSolve},
+        {"substanceRevealedOnSolve", m_substanceRevealedOnSolve},
     };
 
     return data;
@@ -87,14 +94,28 @@ void Panel::uiWidgets(std::vector<UiWidget>& widgets)
         [this]() -> bool { return pretendSolved(); },
         [this](bool pretendSolved) { this->pretendSolved(pretendSolved); }
     );
+
+    widgets.emplace_back(UiWidget("substanceRevealNeeded",
+        [this]() -> const std::string& { return substanceRevealNeeded(); },
+        [this](const std::string& substanceRevealNeeded) { this->substanceRevealNeeded(substanceRevealNeeded); })
+    );
+
+    widgets.emplace_back(UiWidget("substanceFreedOnSolve",
+        [this]() -> const std::string& { return substanceFreedOnSolve(); },
+        [this](const std::string& substanceFreedOnSolve) { this->substanceFreedOnSolve(substanceFreedOnSolve); })
+    );
+
+    widgets.emplace_back(UiWidget("substanceRevealedOnSolve",
+        [this]() -> const std::string& { return substanceRevealedOnSolve(); },
+        [this](const std::string& substanceRevealedOnSolve) { this->substanceRevealedOnSolve(substanceRevealedOnSolve); })
+    );
 }
 
 // -----
 
 bool Panel::userInteractionAllowed() const
 {
-    // @todo We can have an unpowered version of panels if we want.
-    return true;
+    return m_powered;
 }
 
 void Panel::extent(const glm::uvec2& extent)
@@ -155,6 +176,15 @@ Panel::SnappingInfo Panel::rayHitSnappingPoint(const Brick& brick, const lava::R
     }
 
     return snappingInfo;
+}
+
+void Panel::powered(bool powered)
+{
+    if (m_powered == powered) return;
+    m_powered = powered;
+
+    m_material->set("ghostFactor", (m_powered) ? 0.f : 1.f);
+    m_borderMaterial->set("ghostFactor", (m_powered) ? 0.f : 1.f);
 }
 
 void Panel::onSolvedChanged(SolvedChangedCallback callback)
@@ -330,6 +360,13 @@ void Panel::updateSolved()
         // Visual feedback: unsolved panels are white, and solved panels green.
         animation().start(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", 0.1f);
         animation().target(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", glm::vec4{0.46, 0.95, 0.46, 1.f});
+
+        if (!m_substanceFreedOnSolve.empty()) {
+            freeSubstance(m_gameState, m_substanceFreedOnSolve);
+        }
+        if (!m_substanceRevealedOnSolve.empty()) {
+            revealSubstance(m_gameState, m_substanceRevealedOnSolve);
+        }
     }
     else {
         animation().start(sill::AnimationFlag::MaterialUniform, borderMaterial(), "albedoColor", 0.5f);

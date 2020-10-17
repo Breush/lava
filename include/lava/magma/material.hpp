@@ -70,6 +70,7 @@ namespace lava::magma {
         const Attributes& globalAttributes() const { return s_globalAttributes.at(m_hrid); }
         const Attributes& attributes() const { return m_attributes; }
 
+        float get_float(const std::string& uniformName) const;
         const glm::vec4& get_vec4(const std::string& uniformName) const;
         /// @}
 
