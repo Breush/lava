@@ -1,5 +1,5 @@
 local NAME = "Bullet"
-local VERSION = "2.89"
+local VERSION = "3.07"
 
 -- Set up
 
