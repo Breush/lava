@@ -48,7 +48,7 @@ void UboHolder::init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, co
 
         m_bufferHolders.emplace_back(m_engine, m_name + ".ubo#" + std::to_string(bufferIndex));
         auto& bufferHolder = m_bufferHolders[bufferIndex];
-        bufferHolder.create(vk::BufferUsageFlagBits::eUniformBuffer, uboSize.count * alignedSize);
+        bufferHolder.create(vulkan::BufferKind::ShaderUniform, uboSize.count * alignedSize);
 
         for (auto arrayIndex = 0u; arrayIndex < uboSize.count; ++arrayIndex) {
             descriptorBufferInfos.emplace_back();

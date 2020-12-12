@@ -21,34 +21,39 @@ BufferHolder::BufferHolder(const RenderEngine::Impl& engine, const std::string& 
     m_name = name;
 }
 
-void BufferHolder::create(vk::BufferUsageFlagBits usage, vk::DeviceSize size)
+void BufferHolder::create(BufferKind kind, vk::DeviceSize size)
 {
-    if (usage != vk::BufferUsageFlagBits::eUniformBuffer && usage != vk::BufferUsageFlagBits::eStorageBuffer
-        && usage != vk::BufferUsageFlagBits::eVertexBuffer && usage != vk::BufferUsageFlagBits::eIndexBuffer) {
-        logger.error("magma.vulkan.buffer-holder")
-            << "Unknown usage flag for buffer holder: " << vk::to_string(usage) << ". "
-            << "Valid ones are currently UniformBuffer, StorageBuffer, VertexBuffer and IndexBuffer." << std::endl;
-    }
+    static const std::unordered_map<BufferKind, vk::BufferUsageFlags> kindToUsageFlagsMap({
+        {BufferKind::ShaderUniform, vk::BufferUsageFlagBits::eUniformBuffer},
+        {BufferKind::ShaderStorage, vk::BufferUsageFlagBits::eStorageBuffer},
+        {BufferKind::ShaderVertex, vk::BufferUsageFlagBits::eVertexBuffer},
+        {BufferKind::ShaderIndex, vk::BufferUsageFlagBits::eIndexBuffer}
+    });
 
-    if (m_usage == usage && m_size == size) return;
-    m_usage = usage;
+    if (m_kind == kind && m_size == size) return;
+    m_kind = kind;
     m_size = size;
 
     //----- Staging memory
 
+    bool needStagingMemory = true;
+
+    if (needStagingMemory) {
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
     vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
     vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_stagingBuffer,
                          m_stagingMemory);
+    }
 
     //----- Final buffer
 
-    usageFlags = vk::BufferUsageFlagBits::eTransferDst;
-    propertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+    vk::BufferUsageFlags usageFlags = kindToUsageFlagsMap.at(kind);
+    vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
 
-    // Usage
-    usageFlags |= usage;
+    if (needStagingMemory) {
+        usageFlags |= vk::BufferUsageFlagBits::eTransferDst;
+    }
 
     vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_buffer, m_memory);
     m_engine.deviceHolder().debugObjectName(m_memory, m_name + ".buffer");

@@ -192,7 +192,7 @@ void ForwardFlatStage::createResources()
 {
     // Final
     auto finalFormat = vk::Format::eR8G8B8A8Unorm;
-    m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+    m_finalImageHolder.create(vulkan::ImageKind::RenderTexture, finalFormat, m_extent);
 }
 
 void ForwardFlatStage::createFramebuffers()

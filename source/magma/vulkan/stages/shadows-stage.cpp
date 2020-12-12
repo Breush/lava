@@ -190,7 +190,7 @@ void ShadowsStage::ensureResourcesForCamera(const Camera& camera)
     // Image
     for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
         auto depthFormat = vk::Format::eD16Unorm;
-        cascades[i].imageHolder->create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
+        cascades[i].imageHolder->create(vulkan::ImageKind::Depth, depthFormat, m_extent);
     }
 
     // Framebuffer

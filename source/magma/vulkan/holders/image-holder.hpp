@@ -6,6 +6,15 @@
 #include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
+    enum class ImageKind {
+        Unknown,
+        TemporaryRenderTexture,     // Color | Sampled | TransferSrc    (Undefined layout)
+        RenderTexture,              // Color | Sampled                  (ShaderReadOnlyOptimal layout)
+        Texture,                    // Color | Sampled | TransferDst    (ShaderReadOnlyOptimal layout)
+        Input,                      // Color | Input                    (ShaderReadOnlyOptimal layout)
+        Depth,                      // DepthStencil | Sampled           (DepthStencilReadOnlyOptimal layout)
+    };
+
     /**
      * Simple wrapper around a vulkan ImageView,
      * holding its device memory and such.
@@ -20,7 +29,7 @@ namespace lava::magma::vulkan {
         void sampleCount(vk::SampleCountFlagBits m_sampleCount);
 
         /// Allocate all image memory for the specified format.
-        void create(vk::Format format, const vk::Extent2D& extent, vk::ImageAspectFlagBits imageAspect, uint8_t layersCount = 1u,
+        void create(ImageKind kind, vk::Format format, const vk::Extent2D& extent, uint8_t layersCount = 1u,
                     uint8_t mipLevelsCount = 1u);
 
         /**
@@ -74,6 +83,7 @@ namespace lava::magma::vulkan {
         std::string m_name;
 
         // Resources
+        ImageKind m_kind = ImageKind::Unknown;
         vk::Format m_format = vk::Format::eUndefined;
         vk::Extent2D m_extent;
         uint8_t m_layersCount = 1u;

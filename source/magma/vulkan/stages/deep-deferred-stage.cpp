@@ -526,20 +526,20 @@ void DeepDeferredStage::createResources()
     auto gBufferHeaderFormat = vk::Format::eR32G32B32A32Uint;
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
         m_gBufferInputNodeImageHolders.emplace_back(std::make_unique<vulkan::ImageHolder>(m_scene.engine().impl()));
-        m_gBufferInputNodeImageHolders[i]->create(gBufferHeaderFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+        m_gBufferInputNodeImageHolders[i]->create(vulkan::ImageKind::Input, gBufferHeaderFormat, m_extent);
         m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet, m_gBufferInputNodeImageHolders[i]->view(),
                                                  vk::ImageLayout::eShaderReadOnlyOptimal, i);
     }
 
     // GBuffer SSBO
     vk::DeviceSize headerSize = 1u * sizeof(uint32_t) + m_extent.width * m_extent.height * sizeof(uint32_t);
-    m_gBufferSsboHeaderBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, headerSize);
+    m_gBufferSsboHeaderBufferHolder.create(vulkan::BufferKind::ShaderStorage, headerSize);
     m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboHeaderBufferHolder.buffer(), headerSize, 0);
     m_gBufferSsboHeaderBufferHolder.copy(m_extent.width);
 
     vk::DeviceSize listSize =
         1u * sizeof(uint32_t) + DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferNode);
-    m_gBufferSsboListBufferHolder.create(vk::BufferUsageFlagBits::eStorageBuffer, listSize);
+    m_gBufferSsboListBufferHolder.create(vulkan::BufferKind::ShaderStorage, listSize);
     m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
 
     logger.info("magma.vulkan.stages.deep-deferred")
@@ -547,11 +547,11 @@ void DeepDeferredStage::createResources()
 
     // Final
     auto finalFormat = vk::Format::eR8G8B8A8Unorm;
-    m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+    m_finalImageHolder.create(vulkan::ImageKind::RenderTexture, finalFormat, m_extent);
 
     // Depth
     auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
-    m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
+    m_depthImageHolder.create(vulkan::ImageKind::Depth, depthFormat, m_extent);
 }
 
 void DeepDeferredStage::createFramebuffers()

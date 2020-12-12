@@ -186,7 +186,7 @@ void EnvironmentPrefilteringStage::initPass()
 void EnvironmentPrefilteringStage::createResources()
 {
     auto format = vk::Format::eR8G8B8A8Unorm;
-    m_imageHolder.create(format, m_extent, vk::ImageAspectFlagBits::eColor, 6u);
+    m_imageHolder.create(vulkan::ImageKind::TemporaryRenderTexture, format, m_extent, 6u);
 }
 
 void EnvironmentPrefilteringStage::createFramebuffers()

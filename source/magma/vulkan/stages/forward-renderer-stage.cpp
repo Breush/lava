@@ -689,17 +689,17 @@ void ForwardRendererStage::createResources()
     // Final
     auto finalFormat = vk::Format::eR8G8B8A8Unorm;
     m_finalImageHolder.sampleCount(m_sampleCount);
-    m_finalImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+    m_finalImageHolder.create(vulkan::ImageKind::RenderTexture, finalFormat, m_extent);
 
     // Final resolve
     if (m_msaaEnabled) {
-        m_finalResolveImageHolder.create(finalFormat, m_extent, vk::ImageAspectFlagBits::eColor);
+        m_finalResolveImageHolder.create(vulkan::ImageKind::RenderTexture, finalFormat, m_extent);
     }
 
     // Depth
     auto depthFormat = vulkan::depthBufferFormat(m_scene.engine().impl().physicalDevice());
     m_depthImageHolder.sampleCount(m_sampleCount);
-    m_depthImageHolder.create(depthFormat, m_extent, vk::ImageAspectFlagBits::eDepth);
+    m_depthImageHolder.create(vulkan::ImageKind::Depth, depthFormat, m_extent);
 }
 
 void ForwardRendererStage::createFramebuffers()

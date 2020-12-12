@@ -31,13 +31,13 @@ void ImageHolder::sampleCount(vk::SampleCountFlagBits sampleCount)
     m_sampleCountChanged = true;
 }
 
-void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::ImageAspectFlagBits imageAspect, uint8_t layersCount,
+void ImageHolder::create(ImageKind kind, vk::Format format, const vk::Extent2D& extent, uint8_t layersCount,
                          uint8_t mipLevelsCount)
 {
     if (!m_sampleCountChanged &&
+        m_kind == kind &&
         m_format == format &&
         m_extent == extent &&
-        m_aspect == imageAspect &&
         m_layersCount == layersCount &&
         m_mipLevelsCount == mipLevelsCount) {
         // Nothing to do that image was already created correctly
@@ -46,9 +46,9 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
 
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
+    m_kind = kind;
     m_format = format;
     m_extent = extent;
-    m_aspect = imageAspect;
     m_layersCount = layersCount;
     m_mipLevelsCount = mipLevelsCount;
     m_sampleCountChanged = false;
@@ -95,7 +95,6 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
 
     m_imageBytesLength = m_extent.width * m_extent.height * m_channels * m_channelBytesLength;
 
-    vk::ImageAspectFlags aspectFlags;
     vk::ImageUsageFlags usageFlags;
     vk::MemoryPropertyFlags memoryPropertyFlags;
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eTopOfPipe;
@@ -104,33 +103,39 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
     vk::AccessFlags dstAccessMask;
 
     // Depth
-    if (imageAspect == vk::ImageAspectFlagBits::eDepth) {
-        aspectFlags = vk::ImageAspectFlagBits::eDepth;
+    if (kind == ImageKind::Depth) {
+        m_aspect = vk::ImageAspectFlagBits::eDepth;
         usageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
         dstStageMask |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
         dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         m_layout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
     }
-    // Color
-    else if (imageAspect == vk::ImageAspectFlagBits::eColor) {
-        aspectFlags = vk::ImageAspectFlagBits::eColor;
-        // @fixme eColorAttachment is not always necessary... we should be able to control that
-        // And same goes for eSampled.
-        usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
-                     | vk::ImageUsageFlagBits::eTransferDst
-                     | vk::ImageUsageFlagBits::eTransferSrc // @fixme We would love an option to not enable everything every time
-                     | vk::ImageUsageFlagBits::eInputAttachment;
+    else {
+        m_aspect = vk::ImageAspectFlagBits::eColor;
         memoryPropertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
         srcStageMask |= vk::PipelineStageFlagBits::eHost;
         dstStageMask |= vk::PipelineStageFlagBits::eTransfer;
         srcAccessMask = vk::AccessFlagBits::eHostWrite;
         dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-        m_layout = vk::ImageLayout::eShaderReadOnlyOptimal; // Cannot use eColorAttachmentOptimal, somehow
-    }
-    else {
-        logger.error("magma.vulkan.image-holder") << "Unknown image aspect for image holder. "
-                                                  << "Valid ones are currently eDepth or eColor." << std::endl;
+
+        if (kind == ImageKind::Texture) {
+            // @note Some data will be copied to the texture, so TransferDst should be written.
+            usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
+            m_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+        }
+        else if (kind == ImageKind::TemporaryRenderTexture) {
+            usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc;
+            m_layout = vk::ImageLayout::eUndefined;
+        }
+        else if (kind == ImageKind::RenderTexture) {
+            usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled;
+            m_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+        }
+        else if (kind == ImageKind::Input) {
+            usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eInputAttachment;
+            m_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+        }
     }
 
     //----- Image
@@ -180,7 +185,7 @@ void ImageHolder::create(vk::Format format, const vk::Extent2D& extent, vk::Imag
     viewInfo.image = m_image;
     viewInfo.viewType = (layersCount == 1) ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
     viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask = aspectFlags;
+    viewInfo.subresourceRange.aspectMask = m_aspect;
     viewInfo.subresourceRange.baseMipLevel = 0;
     viewInfo.subresourceRange.levelCount = mipLevelsCount;
     viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -313,7 +318,7 @@ void ImageHolder::setup(const uint8_t* pixels, uint32_t width, uint32_t height, 
     //----- Create
 
     vk::Extent2D extent = {width, height};
-    create(format, extent, vk::ImageAspectFlagBits::eColor, layersCount);
+    create(vulkan::ImageKind::Texture, format, extent, layersCount);
 
     //----- Copy
 

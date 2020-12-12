@@ -10,7 +10,7 @@ std::vector<uint32_t> vulkan::spvFromGlsl(const std::string& hrid, const std::st
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;
 
-    options.SetOptimizationLevel(shaderc_optimization_level_size);
+    options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
     auto module = compiler.CompileGlslToSpv(source, shaderc_glsl_infer_from_source, hrid.c_str(), options);
 

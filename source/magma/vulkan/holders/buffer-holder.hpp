@@ -9,6 +9,14 @@ namespace lava::magma::vulkan {
 }
 
 namespace lava::magma::vulkan {
+    enum class BufferKind {
+        Unknown,
+        ShaderUniform, // UniformBuffer, staged memory
+        ShaderStorage, // StorageBuffer, staged memory
+        ShaderVertex,  // VertexBuffer, staged memory
+        ShaderIndex,   // IndexBuffer, staged memory
+    };
+
     /**
      * Simple wrapper around a vulkan Buffer,
      * holding its device memory and such.
@@ -20,7 +28,7 @@ namespace lava::magma::vulkan {
         BufferHolder(const RenderEngine::Impl& engine, const std::string& name);
 
         /// Allocate all buffer memory.
-        void create(vk::BufferUsageFlagBits usage, vk::DeviceSize size);
+        void create(BufferKind kind, vk::DeviceSize size);
 
         /// Copy data to the buffer.
         void copy(const void* data, vk::DeviceSize size, vk::DeviceSize offset = 0u);
@@ -28,6 +36,9 @@ namespace lava::magma::vulkan {
         /// Helper function to copy data to the buffer.
         template <class T>
         void copy(const T& data);
+
+
+        vk::DeviceSize size() const { return m_size; }
 
     private:
         // References
@@ -40,7 +51,7 @@ namespace lava::magma::vulkan {
         $attribute(vulkan::Buffer, buffer);
         $attribute(vulkan::DeviceMemory, memory);
 
-        vk::BufferUsageFlagBits m_usage = vk::BufferUsageFlagBits::eUniformBuffer;
+        BufferKind m_kind = BufferKind::Unknown;
         vk::DeviceSize m_size = 0u;
     };
 }

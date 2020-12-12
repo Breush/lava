@@ -84,12 +84,12 @@ void MeshAft::createVertexBuffers()
 
     // Unlit (just holding vertices' positions)
     vk::DeviceSize bufferSize = sizeof(UnlitVertex) * m_fore.unlitVertices().size();
-    m_unlitVertexBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
+    m_unlitVertexBufferHolder.create(vulkan::BufferKind::ShaderVertex, bufferSize);
     m_unlitVertexBufferHolder.copy(m_fore.unlitVertices().data(), bufferSize);
 
     // Lit
     bufferSize = sizeof(Vertex) * m_fore.vertices().size();
-    m_vertexBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
+    m_vertexBufferHolder.create(vulkan::BufferKind::ShaderVertex, bufferSize);
     m_vertexBufferHolder.copy(m_fore.vertices().data(), bufferSize);
 
     m_vertexBufferDirty = false;
@@ -101,7 +101,7 @@ void MeshAft::createInstanceBuffer()
     m_scene.engine().impl().device().waitIdle();
 
     vk::DeviceSize bufferSize = sizeof(MeshUbo) * m_fore.instancesCount();
-    m_instanceBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
+    m_instanceBufferHolder.create(vulkan::BufferKind::ShaderVertex, bufferSize);
     m_instanceBufferHolder.copy(m_fore.ubos().data(), bufferSize);
 
     m_instanceBufferDirty = false;
@@ -118,6 +118,6 @@ void MeshAft::createIndexBuffer()
 
     vk::DeviceSize bufferSize = sizeof(uint16_t) * m_fore.indices().size();
 
-    m_indexBufferHolder.create(vk::BufferUsageFlagBits::eIndexBuffer, bufferSize);
+    m_indexBufferHolder.create(vulkan::BufferKind::ShaderIndex, bufferSize);
     m_indexBufferHolder.copy(m_fore.indices().data(), bufferSize);
 }

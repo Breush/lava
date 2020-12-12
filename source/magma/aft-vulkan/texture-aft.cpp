@@ -24,7 +24,7 @@ void TextureAft::foreLoadCubeFromMemory(const std::array<const uint8_t*, 6u>& im
     extent.width = width;
     extent.height = height;
 
-    m_imageHolder.create(vk::Format::eR8G8B8A8Unorm, extent, vk::ImageAspectFlagBits::eColor, 6u);
+    m_imageHolder.create(vulkan::ImageKind::Texture, vk::Format::eR8G8B8A8Unorm, extent, 6u);
 
     for (auto layer = 0u; layer < 6u; ++layer) {
         auto pixels = imagesPixels[layer];

@@ -62,7 +62,7 @@ void FlatAft::createVertexBuffer()
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
     vk::DeviceSize bufferSize = sizeof(FlatVertex) * m_fore.vertices().size();
-    m_vertexBufferHolder.create(vk::BufferUsageFlagBits::eVertexBuffer, bufferSize);
+    m_vertexBufferHolder.create(vulkan::BufferKind::ShaderVertex, bufferSize);
     m_vertexBufferHolder.copy(m_fore.vertices().data(), bufferSize);
 
     m_vertexBufferDirty = false;
@@ -79,6 +79,6 @@ void FlatAft::createIndexBuffer()
 
     vk::DeviceSize bufferSize = sizeof(uint16_t) * m_fore.indices().size();
 
-    m_indexBufferHolder.create(vk::BufferUsageFlagBits::eIndexBuffer, bufferSize);
+    m_indexBufferHolder.create(vulkan::BufferKind::ShaderIndex, bufferSize);
     m_indexBufferHolder.copy(m_fore.indices().data(), bufferSize);
 }
