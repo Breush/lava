@@ -53,7 +53,10 @@
                 "LAVA_CHAMBER_CALLSTACK_GCC",
                 "LAVA_CRATER_WINDOW_DWM",
                 "LAVA_FLOW_AUDIO_WAS",
-                "VK_USE_PLATFORM_WIN32_KHR"
+                "VK_USE_PLATFORM_WIN32_KHR",
+                "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC",
+                "VULKAN_HPP_NO_NODISCARD_WARNINGS",
+                "VULKAN_HPP_NO_EXCEPTIONS"
             ],
             "intelliSenseMode": "clang-x64",
             "browse": {

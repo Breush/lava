@@ -238,6 +238,8 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface, VrEngine& vr)
                                                       vk::to_string(result) << "." << std::endl;
     };
 
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(m_device);
+
     m_graphicsQueue = m_device.vk().getQueue(m_queueFamilyIndices.graphics, 0);
     m_transferQueue = m_device.vk().getQueue(m_queueFamilyIndices.transfer, 0);
     m_presentQueue = m_device.vk().getQueue(m_queueFamilyIndices.present, 0);

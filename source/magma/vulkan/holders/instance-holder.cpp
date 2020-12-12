@@ -2,6 +2,8 @@
 
 #include <lava/magma/vr-engine.hpp>
 
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+
 // @note Instanciation of declared-only in vulkan.h.
 
 VkResult vkCreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
@@ -82,6 +84,9 @@ void InstanceHolder::init(bool debugEnabled, VrEngine& vr)
 {
     m_debugEnabled = debugEnabled;
 
+    auto vkGetInstanceProcAddr = m_dynamicLoader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+
     createInstance(vr);
     setupDebug(vr);
 }
@@ -98,6 +103,8 @@ void InstanceHolder::createInstance(VrEngine& vr)
     if ((result = vk::createInstance(&instanceCreateInfo, nullptr, m_instance.replace())) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.instance-holder") << "Could not create instance. " << vk::to_string(result) << std::endl;
     }
+
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(m_instance);
 }
 
 void InstanceHolder::setupDebug(VrEngine& vr)
@@ -123,7 +130,7 @@ void InstanceHolder::initApplication(vk::InstanceCreateInfo& instanceCreateInfo)
 {
     m_applicationInfo.pApplicationName = "lava-magma";
     m_applicationInfo.pEngineName = "lava-magma";
-    m_applicationInfo.apiVersion = VK_API_VERSION_1_0;
+    m_applicationInfo.apiVersion = VK_API_VERSION_1_2;
 
     instanceCreateInfo.pApplicationInfo = &m_applicationInfo;
 }

@@ -30,6 +30,7 @@ namespace lava::magma::vulkan {
     private:
         // Resources
         vulkan::Instance m_instance;
+        vk::DynamicLoader m_dynamicLoader;
         vulkan::DebugUtilsMessengerEXT m_debugUtilsMessenger{m_instance};
 
         // Application

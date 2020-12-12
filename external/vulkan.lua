@@ -31,7 +31,9 @@ function buildWithVulkan()
         links { "vulkan" }
     end
 
-    defines { "VULKAN_HPP_NO_EXCEPTIONS" }
+    defines { "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC",
+              "VULKAN_HPP_NO_NODISCARD_WARNINGS",
+              "VULKAN_HPP_NO_EXCEPTIONS" }
 
     useVulkan()
 end
