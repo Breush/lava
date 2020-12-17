@@ -21,8 +21,9 @@ void Pedestal::clear(bool removeFromLevel)
 {
     if (removeFromLevel) {
         for (auto& brickInfo : m_brickInfos) {
-            brickInfo.brick->pedestal(nullptr);
+            // Order is important, so that the brickStoredChanged callback is called
             brickInfo.brick->stored(false);
+            brickInfo.brick->pedestal(nullptr);
         }
     }
 
