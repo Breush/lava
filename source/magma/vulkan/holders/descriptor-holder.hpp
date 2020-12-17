@@ -28,10 +28,7 @@ namespace lava::magma::vulkan {
         }
 
         /// Allocate a single set from the associated pool.
-        vk::DescriptorSet allocateSet(const std::string& debugName, bool dummyBinding = false) const;
-
-        /// Free a previously allocated set.
-        void freeSet(vk::DescriptorSet set) const;
+        vk::UniqueDescriptorSet allocateSet(const std::string& debugName, bool dummyBinding = false) const;
 
         /// Update the specified storage buffer component.
         void updateSet(vk::DescriptorSet set, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t storageBufferIndex);
@@ -45,10 +42,10 @@ namespace lava::magma::vulkan {
                        uint32_t inputAttachmentIndex);
 
         /// Get the set layout.
-        vk::DescriptorSetLayout setLayout() const { return m_setLayout; }
+        vk::DescriptorSetLayout setLayout() const { return m_setLayout.get(); }
 
         /// Get the pool.
-        vk::DescriptorPool pool() const { return m_pool; }
+        vk::DescriptorPool pool() const { return m_pool.get(); }
 
         /// Binding offsets.
         uint32_t storageBufferBindingOffset() const { return 0u; }
@@ -70,7 +67,7 @@ namespace lava::magma::vulkan {
         std::vector<uint32_t> m_inputAttachmentSizes;
 
         // Resources
-        vulkan::DescriptorSetLayout m_setLayout;
-        vulkan::DescriptorPool m_pool;
+        vk::UniqueDescriptorSetLayout m_setLayout;
+        vk::UniqueDescriptorPool m_pool;
     };
 }

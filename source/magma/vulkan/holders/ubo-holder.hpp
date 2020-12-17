@@ -28,10 +28,12 @@ namespace lava::magma::vulkan {
         };
 
     public:
-        UboHolder() = delete;
-        UboHolder(const RenderEngine::Impl& engine);
-        UboHolder(const RenderEngine::Impl& engine, const std::string& name);
+        UboHolder() = default;
+        UboHolder(const std::string& name) : m_name(name) {}
+        UboHolder(const RenderEngine::Impl& engine) : m_engine(&engine) {}
+        UboHolder(const RenderEngine::Impl& engine, const std::string& name) : m_engine(&engine), m_name(name) {}
 
+        void engine(const RenderEngine::Impl& engine) { m_engine = &engine; }
         void name(const std::string& name) { m_name = name; }
 
         /// Initialize the set to be used with all the sizes of the ubos.
@@ -46,7 +48,7 @@ namespace lava::magma::vulkan {
 
     private:
         // References
-        const RenderEngine::Impl& m_engine;
+        const RenderEngine::Impl* m_engine = nullptr;
         std::string m_name;
 
         vk::DescriptorSet m_descriptorSet = nullptr;

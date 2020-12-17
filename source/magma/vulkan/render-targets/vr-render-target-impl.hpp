@@ -54,6 +54,6 @@ namespace lava::magma {
 
         // Resources
         Extent2d m_extent;
-        vulkan::Fence m_fence;
+        vk::UniqueFence m_fence;
     };
 }

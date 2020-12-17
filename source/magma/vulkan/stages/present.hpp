@@ -63,8 +63,8 @@ namespace lava::magma {
         vulkan::PipelineHolder m_pipelineHolder;
         vulkan::DescriptorHolder m_descriptorHolder;
         vulkan::UboHolder m_uboHolder;
-        vk::DescriptorSet m_descriptorSet;
-        std::vector<vulkan::Framebuffer> m_framebuffers;
+        vk::UniqueDescriptorSet m_descriptorSet;
+        std::vector<vk::UniqueFramebuffer> m_framebuffers;
 
         uint32_t m_nextViewId = 0u;
     };

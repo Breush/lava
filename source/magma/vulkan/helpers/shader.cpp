@@ -2,6 +2,8 @@
 
 #include <shaderc/shaderc.hpp>
 
+#include "../wrappers.hpp"
+
 using namespace lava::magma;
 using namespace lava::chamber;
 
@@ -31,16 +33,12 @@ std::vector<uint32_t> vulkan::spvFromGlsl(const std::string& hrid, const std::st
     return {module.cbegin(), module.cend()};
 }
 
-vk::ShaderModule vulkan::createShaderModule(vk::Device device, const std::vector<uint32_t>& code)
+vk::UniqueShaderModule vulkan::createShaderModule(vk::Device device, const std::vector<uint32_t>& code)
 {
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.codeSize = code.size() * sizeof(uint32_t);
     createInfo.pCode = code.data();
 
-    vk::ShaderModule module;
-    if (device.createShaderModule(&createInfo, nullptr, &module) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.helpers.shader") << "Failed to create shader module." << std::endl;
-    }
-
-    return module;
+    auto result = device.createShaderModuleUnique(createInfo);
+    return vulkan::checkMove(result, "helpers.shader", "Unable to create shader module.");
 }

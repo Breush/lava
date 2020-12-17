@@ -7,8 +7,6 @@ using namespace lava::chamber;
 
 PipelineHolder::PipelineHolder(RenderEngine::Impl& engine)
     : m_engine(engine)
-    , m_pipelineLayout{engine.device()}
-    , m_pipeline{engine.device()}
 {
 }
 
@@ -144,42 +142,38 @@ void PipelineHolder::update(const vk::Extent2D& extent, vk::PolygonMode polygonM
 
     //--- Compose pipeline info
 
-    vk::GraphicsPipelineCreateInfo pipelineInfo;
-    pipelineInfo.stageCount = m_shaderStages.size();
-    pipelineInfo.pStages = m_shaderStages.data();
-    pipelineInfo.pVertexInputState = &vertexInputState;
-    pipelineInfo.pInputAssemblyState = &inputAssemblyState;
-    pipelineInfo.pViewportState = &viewportState;
-    pipelineInfo.pRasterizationState = &rasterizationState;
-    pipelineInfo.pMultisampleState = &multisampleState;
-    pipelineInfo.pDepthStencilState = &depthStencilState;
-    pipelineInfo.pColorBlendState = &colorBlendState;
-    pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.layout = m_pipelineLayout;
-    pipelineInfo.renderPass = *m_renderPass;
-    pipelineInfo.subpass = m_subpassIndex;
+    vk::GraphicsPipelineCreateInfo createInfo;
+    createInfo.stageCount = m_shaderStages.size();
+    createInfo.pStages = m_shaderStages.data();
+    createInfo.pVertexInputState = &vertexInputState;
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+    createInfo.pViewportState = &viewportState;
+    createInfo.pRasterizationState = &rasterizationState;
+    createInfo.pMultisampleState = &multisampleState;
+    createInfo.pDepthStencilState = &depthStencilState;
+    createInfo.pColorBlendState = &colorBlendState;
+    createInfo.pDynamicState = &dynamicState;
+    createInfo.layout = m_pipelineLayout.get();
+    createInfo.renderPass = *m_renderPass;
+    createInfo.subpass = m_subpassIndex;
 
-    if (m_engine.device().createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, m_pipeline.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.render-stage") << "Failed to create graphics pipeline." << std::endl;
-    }
+    auto result = m_engine.device().createGraphicsPipelineUnique(nullptr, createInfo);
+    m_pipeline = vulkan::checkMove(result, "pipeline-holder", "Unable to create graphics pipeline.");
 }
 
 void PipelineHolder::initPipelineLayout()
 {
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-    pipelineLayoutInfo.setLayoutCount = m_descriptorSetLayouts.size();
-    pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data();
+    vk::PipelineLayoutCreateInfo createInfo;
+    createInfo.setLayoutCount = m_descriptorSetLayouts.size();
+    createInfo.pSetLayouts = m_descriptorSetLayouts.data();
 
     if (m_pushConstantRange.size > 0) {
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
-        pipelineLayoutInfo.pPushConstantRanges = &m_pushConstantRange;
+        createInfo.pushConstantRangeCount = 1;
+        createInfo.pPushConstantRanges = &m_pushConstantRange;
     }
 
-    if (m_engine.device().createPipelineLayout(&pipelineLayoutInfo, nullptr, m_pipelineLayout.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.render-stage") << "Failed to create pipeline layout." << std::endl;
-    }
+    auto result = m_engine.device().createPipelineLayoutUnique(createInfo);
+    m_pipelineLayout = vulkan::checkMove(result, "pipeline-holder", "Unable to create pipeline layout.");
 }
 
 void PipelineHolder::add(const vk::DescriptorSetLayout& descriptorSetLayout)

@@ -16,7 +16,6 @@ namespace lava::magma {
     class Environment {
     public:
         Environment(Scene& scene, RenderEngine& engine);
-        ~Environment();
 
         void init();
         void render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const;
@@ -48,7 +47,7 @@ namespace lava::magma {
         vulkan::ImageHolder m_irradianceImageHolder; // The diffuse part.
 
         // Descriptor
-        vk::DescriptorSet m_basicDescriptorSet; // No mip levels, plain texture.
-        vk::DescriptorSet m_descriptorSet;
+        vk::UniqueDescriptorSet m_basicDescriptorSet; // No mip levels, plain texture.
+        vk::UniqueDescriptorSet m_descriptorSet;
     };
 }

@@ -91,7 +91,7 @@ Window::Impl::Impl(VideoMode mode, const std::string& /* title */)
     SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
     if (m_hwnd == nullptr) {
-        logger.error("magma.vulkan.window") << "Unable to create window handle: " << GetLastError() << "." << std::endl;
+        logger.error("crater.window") << "Unable to create window handle: " << GetLastError() << "." << std::endl;
     }
 
     ShowWindow(m_hwnd, SW_SHOWDEFAULT);

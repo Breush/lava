@@ -2,13 +2,15 @@
 
 using namespace lava::magma;
 
+// @note Really no need to have a UniqueCommandBuffer here
 vk::CommandBuffer vulkan::beginSingleTimeCommands(vk::Device device, vk::CommandPool commandPool)
 {
-    vk::CommandBufferAllocateInfo bufferAllocateInfo{commandPool};
-    bufferAllocateInfo.commandBufferCount = 1;
+    vk::CommandBufferAllocateInfo allocInfo;
+    allocInfo.commandPool = commandPool;
+    allocInfo.commandBufferCount = 1;
 
     vk::CommandBuffer commandBuffer;
-    device.allocateCommandBuffers(&bufferAllocateInfo, &commandBuffer);
+    device.allocateCommandBuffers(&allocInfo, &commandBuffer);
 
     vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
     commandBuffer.begin(&beginInfo);

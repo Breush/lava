@@ -8,10 +8,6 @@ using namespace lava::chamber;
 
 BufferHolder::BufferHolder(const RenderEngine::Impl& engine)
     : m_engine(engine)
-    , m_stagingBuffer{engine.device()}
-    , m_stagingMemory{engine.device()}
-    , m_buffer{engine.device()}
-    , m_memory{engine.device()}
 {
 }
 
@@ -56,7 +52,7 @@ void BufferHolder::create(BufferKind kind, vk::DeviceSize size)
     }
 
     vulkan::createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, m_buffer, m_memory);
-    m_engine.deviceHolder().debugObjectName(m_memory, m_name + ".buffer");
+    m_engine.deviceHolder().debugObjectName(m_memory.get(), m_name + ".buffer");
 }
 
 void BufferHolder::copy(const void* data, vk::DeviceSize size, vk::DeviceSize offset)
@@ -64,11 +60,11 @@ void BufferHolder::copy(const void* data, vk::DeviceSize size, vk::DeviceSize of
     // Copy to staging
     void* targetData;
     vk::MemoryMapFlags memoryMapFlags;
-    m_engine.device().mapMemory(m_stagingMemory, offset, size, memoryMapFlags, &targetData);
+    m_engine.device().mapMemory(m_stagingMemory.get(), offset, size, memoryMapFlags, &targetData);
     memcpy(targetData, data, size);
-    m_engine.device().unmapMemory(m_stagingMemory);
+    m_engine.device().unmapMemory(m_stagingMemory.get());
 
     // And to final buffer
-    vulkan::copyBuffer(m_engine.device(), m_engine.transferQueue(), m_engine.transferCommandPool(), m_stagingBuffer, m_buffer,
+    vulkan::copyBuffer(m_engine.device(), m_engine.transferQueue(), m_engine.transferCommandPool(), m_stagingBuffer.get(), m_buffer.get(),
                        size, offset);
 }

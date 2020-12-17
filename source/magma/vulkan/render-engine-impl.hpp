@@ -67,6 +67,9 @@ namespace lava::magma {
         uint32_t graphicsQueueFamilyIndex() const { return m_deviceHolder.graphicsQueueFamilyIndex(); }
         uint32_t presentQueueFamilyIndex() const { return m_deviceHolder.presentQueueFamilyIndex(); }
 
+        vk::CommandPool commandPool() const { return m_commandPool.get(); }
+        vk::CommandPool transferCommandPool() const { return m_transferCommandPool.get(); }
+
         ShadersManager& shadersManager() { return m_shadersManager; }
         /// @}
 
@@ -78,6 +81,9 @@ namespace lava::magma {
         vk::ImageView dummyNormalImageView() const { return m_dummyNormalImageHolder.view(); }
         vk::ImageView dummyInvisibleImageView() const { return m_dummyInvisibleImageHolder.view(); }
         vk::ImageView dummyCubeImageView() const { return m_dummyCubeImageHolder.view(); }
+
+        vk::Sampler dummySampler() const { return m_dummySampler.get(); }
+        vk::Sampler shadowsSampler() const { return m_shadowsSampler.get(); }
         /// @}
 
         /**
@@ -110,7 +116,7 @@ namespace lava::magma {
             std::unique_ptr<IRenderTarget> renderTarget;
             // @fixme Add a compositor stage for every render targets
             // std::unique_ptr<Present> presentStage;
-            std::vector<vk::CommandBuffer> commandBuffers;
+            std::vector<vk::UniqueCommandBuffer> commandBuffers;
             bool prepareOk = false; //!< Whether we can draw this frame.
         };
 
@@ -129,8 +135,8 @@ namespace lava::magma {
         vulkan::DeviceHolder m_deviceHolder;
 
         // Commands
-        $attribute(vulkan::CommandPool, commandPool, {device()});
-        $attribute(vulkan::CommandPool, transferCommandPool, {device()});
+        vk::UniqueCommandPool m_commandPool;
+        vk::UniqueCommandPool m_transferCommandPool;
 
         /// Shaders
         ShadersManager m_shadersManager{device()};
@@ -154,10 +160,10 @@ namespace lava::magma {
         vulkan::ImageHolder m_dummyCubeImageHolder;
 
         /// Dummy texture sampler.
-        $attribute(vulkan::Sampler, dummySampler, {device()});
+        vk::UniqueSampler m_dummySampler;
 
         /// Shadow-map sampler.
-        $attribute(vulkan::Sampler, shadowsSampler, {device()});
+        vk::UniqueSampler m_shadowsSampler;
         /// @}
 
         // Data

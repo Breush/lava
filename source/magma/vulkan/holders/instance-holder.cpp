@@ -99,12 +99,10 @@ void InstanceHolder::createInstance(VrEngine& vr)
     initRequiredExtensions(instanceCreateInfo, vr);
 
     // Really create the instance
-    vk::Result result;
-    if ((result = vk::createInstance(&instanceCreateInfo, nullptr, m_instance.replace())) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.instance-holder") << "Could not create instance. " << vk::to_string(result) << std::endl;
-    }
+    auto result = vk::createInstanceUnique(instanceCreateInfo);
+    m_instance = vulkan::checkMove(result, "instance-holder", "Unable to create instance.");
 
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(m_instance);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(m_instance.get());
 }
 
 void InstanceHolder::setupDebug(VrEngine& vr)
@@ -123,7 +121,8 @@ void InstanceHolder::setupDebug(VrEngine& vr)
         vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
     createInfo.pfnUserCallback = reinterpret_cast<PFN_vkDebugUtilsMessengerCallbackEXT>(debugCallback);
 
-    m_instance.vk().createDebugUtilsMessengerEXT(&createInfo, nullptr, m_debugUtilsMessenger.replace());
+    auto result = m_instance->createDebugUtilsMessengerEXTUnique(createInfo);
+    m_debugUtilsMessenger = vulkan::checkMove(result, "instance-holder", "Unable to set debug up.");
 }
 
 void InstanceHolder::initApplication(vk::InstanceCreateInfo& instanceCreateInfo)

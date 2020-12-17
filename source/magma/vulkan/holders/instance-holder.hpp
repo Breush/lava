@@ -16,7 +16,7 @@ namespace lava::magma::vulkan {
 
         // ----- Getters
 
-        const vk::Instance& instance() const { return m_instance; }
+        const vk::Instance& instance() const { return m_instance.get(); }
         bool debugEnabled() const { return m_debugEnabled; }
 
     protected:
@@ -29,9 +29,9 @@ namespace lava::magma::vulkan {
 
     private:
         // Resources
-        vulkan::Instance m_instance;
+        vk::UniqueInstance m_instance;
         vk::DynamicLoader m_dynamicLoader;
-        vulkan::DebugUtilsMessengerEXT m_debugUtilsMessenger{m_instance};
+        vk::UniqueDebugUtilsMessengerEXT m_debugUtilsMessenger;
 
         // Application
         vk::ApplicationInfo m_applicationInfo;

@@ -4,7 +4,6 @@
 #include <lava/magma/light.hpp>
 #include <lava/magma/scene.hpp>
 
-#include "../aft-vulkan/config.hpp"
 #include "../aft-vulkan/scene-aft.hpp"
 #include "./render-engine-impl.hpp"
 #include "./render-image-impl.hpp"
@@ -13,17 +12,10 @@ using namespace lava::magma;
 
 Shadows::Shadows(Scene& scene)
     : m_scene(scene)
-    , m_uboHolders(FRAME_IDS_COUNT, scene.engine().impl())
-    , m_descriptorSets(FRAME_IDS_COUNT, nullptr)
+    , m_uboHolders(FRAME_IDS_COUNT)
 {
-}
-
-Shadows::~Shadows()
-{
-    if (m_initialized) {
-        for (auto& descriptorSet : m_descriptorSets) {
-            m_scene.aft().shadowsDescriptorHolder().freeSet(descriptorSet);
-        }
+    for (auto& uboHolder : m_uboHolders) {
+        uboHolder.engine(m_scene.engine().impl());
     }
 }
 
@@ -38,7 +30,7 @@ void Shadows::init(const Light& light, const Camera& camera)
     auto& descriptorHolder = m_scene.aft().shadowsDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = descriptorHolder.allocateSet("shadows." + std::to_string(i));
-        m_uboHolders[i].init(m_descriptorSets[i], descriptorHolder.uniformBufferBindingOffset(), {sizeof(ShadowsUbo)});
+        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.uniformBufferBindingOffset(), {sizeof(ShadowsUbo)});
     }
 
     updateImagesBindings();
@@ -138,7 +130,7 @@ void Shadows::render(vk::CommandBuffer commandBuffer, uint32_t frameId, vk::Pipe
                      uint32_t descriptorSetIndex) const
 {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1,
-                                     &m_descriptorSets[frameId], 0, nullptr);
+                                     &m_descriptorSets[frameId].get(), 0, nullptr);
 }
 
 void Shadows::updateImagesBindings()
@@ -157,7 +149,7 @@ void Shadows::updateImagesBindings()
 
         if (imageView) {
             for (auto& descriptorSet : m_descriptorSets) {
-                vulkan::updateDescriptorSet(engine.device(), descriptorSet, imageView, sampler, imageLayout, binding,
+                vulkan::updateDescriptorSet(engine.device(), descriptorSet.get(), imageView, sampler, imageLayout, binding,
                                             cascadeIndex);
             }
         }

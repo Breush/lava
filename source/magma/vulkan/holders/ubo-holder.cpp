@@ -5,23 +5,12 @@
 using namespace lava::magma::vulkan;
 using namespace lava::chamber;
 
-UboHolder::UboHolder(const RenderEngine::Impl& engine)
-    : m_engine(engine)
-{
-}
-
-UboHolder::UboHolder(const RenderEngine::Impl& engine, const std::string& name)
-    : m_engine(engine)
-{
-    m_name = name;
-}
-
 void UboHolder::init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, const std::vector<UboSize>& uboSizes)
 {
     m_descriptorSet = descriptorSet;
     m_bindingOffset = bindingOffset;
 
-    const auto physicalDeviceProperties = m_engine.physicalDevice().getProperties();
+    const auto physicalDeviceProperties = m_engine->physicalDevice().getProperties();
     m_offsetAlignment = physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
 
     std::vector<vk::DescriptorBufferInfo> descriptorBufferInfos;
@@ -46,7 +35,7 @@ void UboHolder::init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, co
             alignedSize = (alignedSize / m_offsetAlignment + 1) * m_offsetAlignment;
         }
 
-        m_bufferHolders.emplace_back(m_engine, m_name + ".ubo#" + std::to_string(bufferIndex));
+        m_bufferHolders.emplace_back(*m_engine, m_name + ".ubo#" + std::to_string(bufferIndex));
         auto& bufferHolder = m_bufferHolders[bufferIndex];
         bufferHolder.create(vulkan::BufferKind::ShaderUniform, uboSize.count * alignedSize);
 
@@ -68,7 +57,7 @@ void UboHolder::init(vk::DescriptorSet descriptorSet, uint32_t bindingOffset, co
         }
     }
 
-    m_engine.device().updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+    m_engine->device().updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
 
 void UboHolder::copy(uint32_t bufferIndex, const void* data, vk::DeviceSize size, uint32_t arrayIndex)

@@ -30,7 +30,6 @@ DeepDeferredStage::DeepDeferredStage(Scene& scene)
     , m_gBufferSsboListBufferHolder(m_scene.engine().impl(), "stages.deep-deferred.ssbo-list")
     , m_finalImageHolder(m_scene.engine().impl(), "stages.deep-deferred.final")
     , m_depthImageHolder(m_scene.engine().impl(), "stages.deep-deferred.depth")
-    , m_framebuffer(m_scene.engine().impl().device())
 {
 }
 
@@ -99,7 +98,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPassHolder.renderPass();
-    renderPassInfo.framebuffer = m_framebuffer;
+    renderPassInfo.framebuffer = m_framebuffer.get();
     renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
     renderPassInfo.renderArea.extent = m_extent;
     renderPassInfo.clearValueCount = clearValues.size();
@@ -113,7 +112,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
 
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_clearPipelineHolder.pipelineLayout(),
-                                     DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, 1, &m_gBufferSsboDescriptorSet, 0, nullptr);
+                                     DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, 1, &m_gBufferSsboDescriptorSet.get(), 0, nullptr);
     commandBuffer.draw(3, 1, 0, 0);
 
     deviceHolder.debugEndRegion(commandBuffer);
@@ -177,7 +176,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
     commandBuffer.nextSubpass(vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipeline());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_epiphanyPipelineHolder.pipelineLayout(),
-                                     DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet, 0,
+                                     DEEP_DEFERRED_GBUFFER_INPUT_DESCRIPTOR_SET_INDEX, 1, &m_gBufferInputDescriptorSet.get(), 0,
                                      nullptr);
 
     m_scene.aft().environment().render(commandBuffer, m_epiphanyPipelineHolder.pipelineLayout(),
@@ -527,20 +526,20 @@ void DeepDeferredStage::createResources()
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
         m_gBufferInputNodeImageHolders.emplace_back(std::make_unique<vulkan::ImageHolder>(m_scene.engine().impl()));
         m_gBufferInputNodeImageHolders[i]->create(vulkan::ImageKind::Input, gBufferHeaderFormat, m_extent);
-        m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet, m_gBufferInputNodeImageHolders[i]->view(),
+        m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet.get(), m_gBufferInputNodeImageHolders[i]->view(),
                                                  vk::ImageLayout::eShaderReadOnlyOptimal, i);
     }
 
     // GBuffer SSBO
     vk::DeviceSize headerSize = 1u * sizeof(uint32_t) + m_extent.width * m_extent.height * sizeof(uint32_t);
     m_gBufferSsboHeaderBufferHolder.create(vulkan::BufferKind::ShaderStorage, headerSize);
-    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboHeaderBufferHolder.buffer(), headerSize, 0);
+    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet.get(), m_gBufferSsboHeaderBufferHolder.buffer(), headerSize, 0);
     m_gBufferSsboHeaderBufferHolder.copy(m_extent.width);
 
     vk::DeviceSize listSize =
         1u * sizeof(uint32_t) + DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferNode);
     m_gBufferSsboListBufferHolder.create(vulkan::BufferKind::ShaderStorage, listSize);
-    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet, m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
+    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet.get(), m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
 
     logger.info("magma.vulkan.stages.deep-deferred")
         << "GBuffer sizes | header: " << headerSize / 1000000.f << "Mo | list: " << listSize / 1000000.f << "Mo." << std::endl;
@@ -579,16 +578,14 @@ void DeepDeferredStage::createFramebuffers()
     }
 
     // Framebuffer
-    vk::FramebufferCreateInfo framebufferInfo;
-    framebufferInfo.renderPass = m_renderPassHolder.renderPass();
-    framebufferInfo.attachmentCount = attachments.size();
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = m_extent.width;
-    framebufferInfo.height = m_extent.height;
-    framebufferInfo.layers = 1;
+    vk::FramebufferCreateInfo createInfo;
+    createInfo.renderPass = m_renderPassHolder.renderPass();
+    createInfo.attachmentCount = attachments.size();
+    createInfo.pAttachments = attachments.data();
+    createInfo.width = m_extent.width;
+    createInfo.height = m_extent.height;
+    createInfo.layers = 1;
 
-    if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.deep-deferred") << "Failed to create framebuffers." << std::endl;
-    }
+    auto result = m_scene.engine().impl().device().createFramebufferUnique(createInfo);
+    m_framebuffer = vulkan::checkMove(result, "stages.deep-deferred", "Unable to create framebuffers.");
 }

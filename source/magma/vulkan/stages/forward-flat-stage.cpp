@@ -19,7 +19,6 @@ ForwardFlatStage::ForwardFlatStage(Scene& scene)
     , m_renderPassHolder(m_scene.engine().impl())
     , m_pipelineHolder(m_scene.engine().impl())
     , m_finalImageHolder(m_scene.engine().impl(), "stages.forward-flat.final")
-    , m_framebuffer(m_scene.engine().impl().device())
 {
 }
 
@@ -75,7 +74,7 @@ void ForwardFlatStage::record(vk::CommandBuffer commandBuffer, uint32_t /* frame
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPassHolder.renderPass();
-    renderPassInfo.framebuffer = m_framebuffer;
+    renderPassInfo.framebuffer = m_framebuffer.get();
     renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
     renderPassInfo.renderArea.extent = m_extent;
     renderPassInfo.clearValueCount = clearValues.size();
@@ -202,16 +201,14 @@ void ForwardFlatStage::createFramebuffers()
     attachments.emplace_back(m_finalImageHolder.view());
 
     // Framebuffer
-    vk::FramebufferCreateInfo framebufferInfo;
-    framebufferInfo.renderPass = m_renderPassHolder.renderPass();
-    framebufferInfo.attachmentCount = attachments.size();
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = m_extent.width;
-    framebufferInfo.height = m_extent.height;
-    framebufferInfo.layers = 1;
+    vk::FramebufferCreateInfo createInfo;
+    createInfo.renderPass = m_renderPassHolder.renderPass();
+    createInfo.attachmentCount = attachments.size();
+    createInfo.pAttachments = attachments.data();
+    createInfo.width = m_extent.width;
+    createInfo.height = m_extent.height;
+    createInfo.layers = 1;
 
-    if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.forward-flat") << "Failed to create framebuffers." << std::endl;
-    }
+    auto result = m_scene.engine().impl().device().createFramebufferUnique(createInfo);
+    m_framebuffer = vulkan::checkMove(result, "stages.forward-flat", "Unable to create framebuffers.");
 }

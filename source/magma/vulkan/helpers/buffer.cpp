@@ -3,37 +3,34 @@
 
 #include "../helpers/device.hpp"
 
-using namespace lava::chamber;
 using namespace lava::magma;
 
 void vulkan::createBuffer(vk::Device device, vk::PhysicalDevice physicalDevice, vk::DeviceSize size, vk::BufferUsageFlags usage,
-                          vk::MemoryPropertyFlags properties, Buffer& buffer, DeviceMemory& bufferMemory)
+                          vk::MemoryPropertyFlags properties, vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory)
 {
-    vk::BufferCreateInfo bufferInfo;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+    vk::BufferCreateInfo createInfo;
+    createInfo.size = size;
+    createInfo.usage = usage;
+    createInfo.sharingMode = vk::SharingMode::eExclusive;
 
-    if (device.createBuffer(&bufferInfo, nullptr, buffer.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.helpers.buffer") << "Failed to create buffer." << std::endl;
-    }
+    auto bufferResult = device.createBufferUnique(createInfo);
+    buffer = checkMove(bufferResult, "helpers.buffer", "Unable to create buffer.");
 
     vk::MemoryRequirements memRequirements;
-    device.getBufferMemoryRequirements(buffer, &memRequirements);
+    device.getBufferMemoryRequirements(buffer.get(), &memRequirements);
 
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
 
-    if (device.allocateMemory(&allocInfo, nullptr, bufferMemory.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.helpers.buffer") << "Failed to allocate buffer memory." << std::endl;
-    }
+    auto bufferMemoryResult = device.allocateMemoryUnique(allocInfo);
+    bufferMemory = checkMove(bufferMemoryResult, "helpers.buffer", "Unable to allocate buffer memory.");
 
-    device.bindBufferMemory(buffer, bufferMemory, 0);
+    device.bindBufferMemory(buffer.get(), bufferMemory.get(), 0);
 }
 
-void vulkan::copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool commandPool, const Buffer& srcBuffer,
-                        const Buffer& dstBuffer, vk::DeviceSize size, vk::DeviceSize offset)
+void vulkan::copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool commandPool, vk::Buffer srcBuffer,
+                        vk::Buffer dstBuffer, vk::DeviceSize size, vk::DeviceSize offset)
 {
     // Temporary command buffer
     vk::CommandBufferAllocateInfo allocInfo;
@@ -41,38 +38,34 @@ void vulkan::copyBuffer(vk::Device device, vk::Queue queue, vk::CommandPool comm
     allocInfo.commandPool = commandPool;
     allocInfo.commandBufferCount = 1;
 
-    vk::CommandBuffer commandBuffer;
-    device.allocateCommandBuffers(&allocInfo, &commandBuffer);
+    auto commandBufferResult = device.allocateCommandBuffersUnique(allocInfo);
+    auto commandBuffer = std::move(vulkan::checkMove(commandBufferResult, "helpers.buffer", "Unable to create command buffer.")[0]);
 
     // Record
     vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
 
-    commandBuffer.begin(&beginInfo);
+    commandBuffer->begin(&beginInfo);
 
     vk::BufferCopy copyRegion;
     copyRegion.size = size;
     copyRegion.srcOffset = offset;
     copyRegion.dstOffset = offset;
-    commandBuffer.copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
+    commandBuffer->copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
 
-    commandBuffer.end();
+    commandBuffer->end();
 
     // Make a fence
-    vulkan::Fence fence(device);
-    vk::FenceCreateInfo fenceInfo;
-    auto result = device.createFence(&fenceInfo, nullptr, fence.replace());
-    if (result != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.helpers.buffer") << "Unable to create fence." << std::endl;
-    }
+    vk::UniqueFence fence;
+    vk::FenceCreateInfo createInfo;
+    auto fenceResult = device.createFenceUnique(createInfo);
+    fence = vulkan::checkMove(fenceResult, "helpers.buffer", "Unable to create fence.");
 
     // Execute it
     vk::SubmitInfo submitInfo;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-    queue.submit(1, &submitInfo, fence.vk());
+    submitInfo.pCommandBuffers = &commandBuffer.get();
+    queue.submit(1, &submitInfo, fence.get());
 
     static const auto MAX = std::numeric_limits<uint64_t>::max();
-    device.waitForFences(1u, &fence, true, MAX);
-
-    device.freeCommandBuffers(commandPool, 1, &commandBuffer);
+    device.waitForFences(1u, &fence.get(), true, MAX);
 }

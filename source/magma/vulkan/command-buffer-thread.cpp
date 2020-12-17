@@ -7,7 +7,6 @@ using namespace lava::chamber;
 
 CommandBufferThread::CommandBufferThread(RenderEngine::Impl& engine, const char* threadName)
     : m_engine(engine)
-    , m_commandPool(m_engine.device())
 {
     job([&] { chamber::profilerThreadName(threadName); });
 
@@ -22,13 +21,12 @@ void CommandBufferThread::createCommandPool()
 
         auto queueFamilyIndices = vulkan::findQueueFamilies(m_engine.physicalDevice(), nullptr);
 
-        vk::CommandPoolCreateInfo poolInfo;
-        poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
-        poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+        vk::CommandPoolCreateInfo createInfo;
+        createInfo.queueFamilyIndex = queueFamilyIndices.graphics;
+        createInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
-        if (m_engine.device().createCommandPool(&poolInfo, nullptr, m_commandPool.replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.command-buffer-thread") << "Failed to create command pool." << std::endl;
-        }
+        auto result = m_engine.device().createCommandPoolUnique(createInfo);
+        m_commandPool = vulkan::checkMove(result, "command-buffer-thread", "Unable to create command pool.");
     });
     wait();
 }
@@ -38,13 +36,15 @@ void CommandBufferThread::createCommandBuffers()
     job([&] {
         PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
-        vk::CommandBufferAllocateInfo allocateInfo;
-        allocateInfo.commandPool = m_commandPool;
-        allocateInfo.level = vk::CommandBufferLevel::ePrimary;
-        allocateInfo.commandBufferCount = m_commandBuffers.size();
+        vk::CommandBufferAllocateInfo allocInfo;
+        allocInfo.commandPool = m_commandPool.get();
+        allocInfo.level = vk::CommandBufferLevel::ePrimary;
+        allocInfo.commandBufferCount = m_commandBuffers.size();
 
-        if (m_engine.device().allocateCommandBuffers(&allocateInfo, m_commandBuffers.data()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.command-buffer-thread") << "Failed to create command buffers." << std::endl;
+        auto result = m_engine.device().allocateCommandBuffersUnique(allocInfo);
+        auto commandBuffers = vulkan::checkMove(result, "command-buffer-thread", "Unable to create command buffers.");
+        for (auto i = 0u; i < commandBuffers.size(); ++i) {
+            m_commandBuffers[i] = std::move(commandBuffers[i]);
         }
     });
     wait();

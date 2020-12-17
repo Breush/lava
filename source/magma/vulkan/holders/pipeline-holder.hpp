@@ -6,7 +6,7 @@
 
 namespace lava::magma::vulkan {
     /**
-     * Holds a vulkan::Pipeline.
+     * Holds a Pipeline.
      */
     class PipelineHolder final {
     public:
@@ -53,8 +53,8 @@ namespace lava::magma::vulkan {
         void init(uint32_t subpassIndex);
         void update(const vk::Extent2D& extent, vk::PolygonMode polygonMode = vk::PolygonMode::eFill);
 
-        const vulkan::Pipeline& pipeline() const { return m_pipeline; }
-        const vulkan::PipelineLayout& pipelineLayout() const { return m_pipelineLayout; }
+        vk::Pipeline pipeline() const { return m_pipeline.get(); }
+        vk::PipelineLayout pipelineLayout() const { return m_pipelineLayout.get(); }
 
         /// Register a descriptor set layout. Order is important.
         void add(const vk::DescriptorSetLayout& descriptorSetLayout);
@@ -120,8 +120,8 @@ namespace lava::magma::vulkan {
         uint32_t m_subpassIndex = 0u;
 
         // Render pipeline
-        vulkan::PipelineLayout m_pipelineLayout;
-        vulkan::Pipeline m_pipeline;
+        vk::UniquePipelineLayout m_pipelineLayout;
+        vk::UniquePipeline m_pipeline;
 
         // Internals
         std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;

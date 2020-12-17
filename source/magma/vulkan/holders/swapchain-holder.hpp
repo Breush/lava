@@ -23,25 +23,22 @@ namespace lava::magma::vulkan {
 
         //----- Getters
 
+        const vk::SwapchainKHR& swapchain() const { return m_swapchain.get(); }
+
         /// Current index within the framebuffers.
         uint32_t currentIndex() const { return m_currentIndex; }
 
         /// The semaphore used to signal the next image is available.
-        vk::Semaphore imageAvailableSemaphore() const { return m_imageAvailableSemaphore; }
+        vk::Semaphore imageAvailableSemaphore() const { return m_imageAvailableSemaphore.get(); }
 
         /// The format chosen during initialization.
         vk::Format imageFormat() const { return m_imageFormat; }
 
         /// All the image views.
-        const std::vector<vulkan::ImageView>& imageViews() const { return m_imageViews; }
+        const std::vector<vk::UniqueImageView>& imageViews() const { return m_imageViews; }
 
         /// Count of all the images. Same as `imageViews().size()`.
         uint32_t imagesCount() const { return m_images.size(); }
-
-        //----- Casts
-
-        operator vk::SwapchainKHR&() { return m_swapchain; }
-        operator const vk::SwapchainKHR&() const { return m_swapchain; }
 
     protected:
         void createSwapchain(vk::SurfaceKHR surface, const vk::Extent2D& windowExtent);
@@ -56,10 +53,10 @@ namespace lava::magma::vulkan {
         $attribute(vk::Extent2D, extent);
 
         // Resources
-        $attribute(vulkan::SwapchainKHR, swapchain);
+        vk::UniqueSwapchainKHR m_swapchain;
         std::vector<vk::Image> m_images;
-        std::vector<vulkan::ImageView> m_imageViews;
-        vulkan::Semaphore m_imageAvailableSemaphore;
+        std::vector<vk::UniqueImageView> m_imageViews;
+        vk::UniqueSemaphore m_imageAvailableSemaphore;
 
         // Data
         uint32_t m_currentIndex = 0u;

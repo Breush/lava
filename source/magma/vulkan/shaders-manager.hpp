@@ -51,7 +51,7 @@ namespace lava::magma {
         };
 
         struct ModuleInfo {
-            std::unique_ptr<vulkan::ShaderModule> module;
+            vk::UniqueShaderModule module;
             std::set<std::string> implsDependencies;
         };
 

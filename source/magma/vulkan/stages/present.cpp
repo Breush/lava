@@ -62,12 +62,12 @@ void Present::init()
     const auto& dummySampler = m_engine.dummySampler();
     const auto& dummyImageView = m_engine.dummyImageView();
     for (auto i = 0u; i < MAX_VIEW_COUNT; ++i) {
-        vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, dummyImageView, dummySampler, imageLayout, 2u, i);
+        vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet.get(), dummyImageView, dummySampler, imageLayout, 2u, i);
     }
 
     //----- Uniform buffers
 
-    m_uboHolder.init(m_descriptorSet, m_descriptorHolder.uniformBufferBindingOffset(),
+    m_uboHolder.init(m_descriptorSet.get(), m_descriptorHolder.uniformBufferBindingOffset(),
                      {sizeof(ViewUbo), {sizeof(ViewportUbo), MAX_VIEW_COUNT}});
 
     //----- Attachments
@@ -107,7 +107,7 @@ void Present::render(vk::CommandBuffer commandBuffer)
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPassHolder.renderPass();
-    renderPassInfo.framebuffer = m_framebuffers[frameIndex];
+    renderPassInfo.framebuffer = m_framebuffers[frameIndex].get();
     renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
     renderPassInfo.renderArea.extent = m_extent;
     renderPassInfo.clearValueCount = clearValues.size();
@@ -121,7 +121,7 @@ void Present::render(vk::CommandBuffer commandBuffer)
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
 
     // Draw
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipelineLayout(), 0, 1, &m_descriptorSet,
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipelineLayout(), 0, 1, &m_descriptorSet.get(),
                                      0, nullptr);
     commandBuffer.draw(3, 1, 0, 0);
 
@@ -190,22 +190,21 @@ void Present::createFramebuffers()
 {
     auto& imageViews = m_swapchainHolder->imageViews();
 
-    m_framebuffers.resize(imageViews.size(), vulkan::Framebuffer{m_engine.device()});
+    m_framebuffers.resize(imageViews.size());
 
     for (size_t i = 0; i < imageViews.size(); i++) {
-        std::array<vk::ImageView, 1> attachments = {imageViews[i]};
+        std::array<vk::ImageView, 1> attachments = {imageViews[i].get()};
 
-        vk::FramebufferCreateInfo framebufferInfo;
-        framebufferInfo.renderPass = m_renderPassHolder.renderPass();
-        framebufferInfo.attachmentCount = attachments.size();
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = m_extent.width;
-        framebufferInfo.height = m_extent.height;
-        framebufferInfo.layers = 1;
+        vk::FramebufferCreateInfo createInfo;
+        createInfo.renderPass = m_renderPassHolder.renderPass();
+        createInfo.attachmentCount = attachments.size();
+        createInfo.pAttachments = attachments.data();
+        createInfo.width = m_extent.width;
+        createInfo.height = m_extent.height;
+        createInfo.layers = 1;
 
-        if (m_engine.device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffers[i].replace()) != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.stages.present") << "Failed to create framebuffers." << std::endl;
-        }
+        auto result = m_engine.device().createFramebufferUnique(createInfo);
+        m_framebuffers[i] = vulkan::checkMove(result, "stages.present", "Unable to create framebuffers.");
     }
 }
 
@@ -239,6 +238,6 @@ void Present::updateUbos()
         viewportUbo.channelCount = viewInfo.channelCount;
 
         m_uboHolder.copy(1, viewportUbo, i);
-        vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet, viewInfo.imageView, viewInfo.sampler, viewInfo.imageLayout, 2u, i);
+        vulkan::updateDescriptorSet(m_engine.device(), m_descriptorSet.get(), viewInfo.imageView, viewInfo.sampler, viewInfo.imageLayout, 2u, i);
     }
 }

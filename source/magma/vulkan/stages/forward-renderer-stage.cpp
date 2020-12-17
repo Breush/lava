@@ -30,7 +30,6 @@ ForwardRendererStage::ForwardRendererStage(Scene& scene)
     , m_finalImageHolder(m_scene.engine().impl(), "stages.forward-renderer.final")
     , m_finalResolveImageHolder(m_scene.engine().impl(), "stages.forward-renderer.final-resolve")
     , m_depthImageHolder(m_scene.engine().impl(), "stages.forward-renderer.depth")
-    , m_framebuffer(m_scene.engine().impl().device())
 {
 }
 
@@ -38,7 +37,7 @@ void ForwardRendererStage::init(const Camera& camera)
 {
     m_camera = &camera;
 
-    logger.info("magma.vulkan.stages.forward-renderer-stage") << "Initializing." << std::endl;
+    logger.info("magma.vulkan.stages.forward-renderer") << "Initializing." << std::endl;
     logger.log().tab(1);
 
     updatePassShaders(true);
@@ -106,7 +105,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPassHolder.renderPass();
-    renderPassInfo.framebuffer = m_framebuffer;
+    renderPassInfo.framebuffer = m_framebuffer.get();
     renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
     renderPassInfo.renderArea.extent = m_extent;
     renderPassInfo.clearValueCount = clearValues.size();
@@ -717,16 +716,14 @@ void ForwardRendererStage::createFramebuffers()
     }
 
     // Framebuffer
-    vk::FramebufferCreateInfo framebufferInfo;
-    framebufferInfo.renderPass = m_renderPassHolder.renderPass();
-    framebufferInfo.attachmentCount = attachments.size();
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = m_extent.width;
-    framebufferInfo.height = m_extent.height;
-    framebufferInfo.layers = 1;
+    vk::FramebufferCreateInfo createInfo;
+    createInfo.renderPass = m_renderPassHolder.renderPass();
+    createInfo.attachmentCount = attachments.size();
+    createInfo.pAttachments = attachments.data();
+    createInfo.width = m_extent.width;
+    createInfo.height = m_extent.height;
+    createInfo.layers = 1;
 
-    if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.forward-renderer-stage") << "Failed to create framebuffers." << std::endl;
-    }
+    auto result = m_scene.engine().impl().device().createFramebufferUnique(createInfo);
+    m_framebuffer = vulkan::checkMove(result, "stages.forward-renderer", "Unable to create framebuffers.");
 }

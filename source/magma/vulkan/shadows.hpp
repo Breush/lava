@@ -3,6 +3,7 @@
 #include <lava/magma/ubos.hpp> // SHADOWS_CASCADES_COUNT
 
 #include "./holders/ubo-holder.hpp"
+#include "../aft-vulkan/config.hpp"
 
 namespace lava::magma {
     class Scene;
@@ -20,7 +21,6 @@ namespace lava::magma {
     class Shadows final {
     public:
         Shadows(Scene& scene);
-        ~Shadows();
 
         void init(const Light& light, const Camera& camera);
         void update(uint32_t frameId);
@@ -48,7 +48,7 @@ namespace lava::magma {
 
         // Resources
         std::vector<vulkan::UboHolder> m_uboHolders;
-        std::vector<vk::DescriptorSet> m_descriptorSets;
+        std::array<vk::UniqueDescriptorSet, FRAME_IDS_COUNT> m_descriptorSets;
         std::array<Cascade, SHADOWS_CASCADES_COUNT> m_cascades;
     };
 }

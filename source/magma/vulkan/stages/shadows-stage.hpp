@@ -36,10 +36,10 @@ namespace lava::magma {
         struct Cascade {
             // @fixme Why not unique_ptr, exactly?
             std::shared_ptr<vulkan::ImageHolder> imageHolder;
-            std::shared_ptr<vulkan::Framebuffer> framebuffer;
+            vk::UniqueFramebuffer framebuffer;
             ShadowMapUbo ubo;
 
-            Cascade(RenderEngine& engine);
+            void init(RenderEngine& engine);
         };
 
     private:
@@ -54,6 +54,6 @@ namespace lava::magma {
 
         // Cascade shadow maps
         // @todo For clarity, we might want a using CameraId = uint32_t somewhere.
-        std::unordered_map<const Camera*, std::vector<Cascade>> m_cascades; // Stored per cameraId
+        std::unordered_map<const Camera*, std::array<Cascade, SHADOWS_CASCADES_COUNT>> m_cascades; // Stored per cameraId
     };
 }

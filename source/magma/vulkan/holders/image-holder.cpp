@@ -12,9 +12,6 @@ using namespace lava::chamber;
 
 ImageHolder::ImageHolder(const RenderEngine::Impl& engine)
     : m_engine(engine)
-    , m_image{engine.device()}
-    , m_memory{engine.device()}
-    , m_view{engine.device()}
 {
 }
 
@@ -140,60 +137,57 @@ void ImageHolder::create(ImageKind kind, vk::Format format, const vk::Extent2D& 
 
     //----- Image
 
-    vk::ImageCreateInfo imageInfo;
-    imageInfo.imageType = vk::ImageType::e2D;
-    imageInfo.extent.width = m_extent.width;
-    imageInfo.extent.height = m_extent.height;
-    imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = mipLevelsCount;
-    imageInfo.arrayLayers = layersCount;
-    imageInfo.format = format;
-    imageInfo.tiling = vk::ImageTiling::eOptimal;
-    imageInfo.initialLayout = vk::ImageLayout::eUndefined;
-    imageInfo.usage = usageFlags;
-    imageInfo.samples = m_sampleCount;
-    imageInfo.sharingMode = vk::SharingMode::eExclusive;
+    vk::ImageCreateInfo imageCreateInfo;
+    imageCreateInfo.imageType = vk::ImageType::e2D;
+    imageCreateInfo.extent.width = m_extent.width;
+    imageCreateInfo.extent.height = m_extent.height;
+    imageCreateInfo.extent.depth = 1;
+    imageCreateInfo.mipLevels = mipLevelsCount;
+    imageCreateInfo.arrayLayers = layersCount;
+    imageCreateInfo.format = format;
+    imageCreateInfo.tiling = vk::ImageTiling::eOptimal;
+    imageCreateInfo.initialLayout = vk::ImageLayout::eUndefined;
+    imageCreateInfo.usage = usageFlags;
+    imageCreateInfo.samples = m_sampleCount;
+    imageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
 
     if (layersCount == 6u) {
-        imageInfo.flags = vk::ImageCreateFlagBits::eCubeCompatible;
+        imageCreateInfo.flags = vk::ImageCreateFlagBits::eCubeCompatible;
     }
 
-    if (m_engine.device().createImage(&imageInfo, nullptr, m_image.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.image-holder") << "Failed to create image." << std::endl;
-    }
+    auto imageResult = m_engine.device().createImageUnique(imageCreateInfo);
+    m_image = vulkan::checkMove(imageResult, "image-holder", "Unable to create image.");
 
     //---- Memory
 
-    auto memRequirements = m_engine.device().getImageMemoryRequirements(m_image);
+    auto memRequirements = m_engine.device().getImageMemoryRequirements(m_image.get());
 
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex =
         findMemoryType(m_engine.physicalDevice(), memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    if (m_engine.device().allocateMemory(&allocInfo, nullptr, m_memory.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.image-holder") << "Failed to allocate image memory." << std::endl;
-    }
+    auto memoryResult = m_engine.device().allocateMemoryUnique(allocInfo);
+    m_memory = vulkan::checkMove(memoryResult, "image-holder", "Unable to allocate image memory.");
 
     // @fixme Do we /really/ want to bind all image memories?
-    m_engine.deviceHolder().debugObjectName(m_memory, "image-holder.memory." + m_name);
-    m_engine.device().bindImageMemory(m_image, m_memory, 0);
+    m_engine.deviceHolder().debugObjectName(m_memory.get(), "image-holder.memory." + m_name);
+    m_engine.device().bindImageMemory(m_image.get(), m_memory.get(), 0);
 
     //----- Image view
 
-    vk::ImageViewCreateInfo viewInfo;
-    viewInfo.image = m_image;
-    viewInfo.viewType = (layersCount == 1) ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
-    viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask = m_aspect;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = mipLevelsCount;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = layersCount;
+    vk::ImageViewCreateInfo viewCreateInfo;
+    viewCreateInfo.image = m_image.get();
+    viewCreateInfo.viewType = (layersCount == 1) ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
+    viewCreateInfo.format = format;
+    viewCreateInfo.subresourceRange.aspectMask = m_aspect;
+    viewCreateInfo.subresourceRange.baseMipLevel = 0;
+    viewCreateInfo.subresourceRange.levelCount = mipLevelsCount;
+    viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+    viewCreateInfo.subresourceRange.layerCount = layersCount;
 
-    if (m_engine.device().createImageView(&viewInfo, nullptr, m_view.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.image") << "Failed to create image view." << std::endl;
-    }
+    auto viewResult = m_engine.device().createImageViewUnique(viewCreateInfo);
+    m_view = vulkan::checkMove(viewResult, "image-holder", "Unable to create image view.");
 
     //----- Transition
 
@@ -204,8 +198,8 @@ void ImageHolder::create(ImageKind kind, vk::Format format, const vk::Extent2D& 
     }
 
     if (!m_name.empty()) {
-        m_engine.deviceHolder().debugObjectName(m_image, m_name);
-        m_engine.deviceHolder().debugObjectName(m_view, m_name);
+        m_engine.deviceHolder().debugObjectName(m_image.get(), m_name);
+        m_engine.deviceHolder().debugObjectName(m_view.get(), m_name);
     }
 }
 
@@ -220,23 +214,23 @@ void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffse
 
     //----- Staging buffer
 
-    Buffer stagingBuffer(m_engine.device());
-    DeviceMemory stagingBufferMemory(m_engine.device());
+    vk::UniqueBuffer stagingBuffer; // @fixme Why not use a buffer holder?
+    vk::UniqueDeviceMemory stagingBufferMemory;
 
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
     vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
     createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
                  stagingBufferMemory);
-    m_engine.deviceHolder().debugObjectName(stagingBufferMemory, "image-holder.staging-buffer-memory." + m_name);
+    m_engine.deviceHolder().debugObjectName(stagingBufferMemory.get(), "image-holder.staging-buffer-memory." + m_name);
 
     //----- Copy indeed
 
     void* targetData;
     vk::MemoryMapFlags memoryMapFlags;
-    m_engine.device().mapMemory(stagingBufferMemory, 0, size, memoryMapFlags, &targetData);
+    m_engine.device().mapMemory(stagingBufferMemory.get(), 0, size, memoryMapFlags, &targetData);
     memcpy(targetData, data, size);
-    m_engine.device().unmapMemory(stagingBufferMemory);
+    m_engine.device().unmapMemory(stagingBufferMemory.get());
 
     vk::BufferImageCopy bufferImageCopy;
     bufferImageCopy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -247,7 +241,7 @@ void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffse
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
     changeLayoutQuietly(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
-    commandBuffer.copyBufferToImage(stagingBuffer, m_image, vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
+    commandBuffer.copyBufferToImage(stagingBuffer.get(), m_image.get(), vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
     changeLayoutQuietly(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
@@ -279,7 +273,7 @@ void ImageHolder::copy(vk::Image sourceImage, uint8_t layerOffset, uint8_t mipLe
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
     changeLayoutQuietly(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
-    commandBuffer.copyImage(sourceImage, vk::ImageLayout::eTransferSrcOptimal, m_image, vk::ImageLayout::eTransferDstOptimal, 1,
+    commandBuffer.copyImage(sourceImage, vk::ImageLayout::eTransferSrcOptimal, m_image.get(), vk::ImageLayout::eTransferDstOptimal, 1,
                             &imageCopy);
     changeLayoutQuietly(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
@@ -341,8 +335,8 @@ RenderImage ImageHolder::renderImage(uint32_t uuid) const
 {
     RenderImage renderImage;
     renderImage.impl().uuid(uuid);
-    renderImage.impl().image(m_image);
-    renderImage.impl().view(m_view);
+    renderImage.impl().image(m_image.get());
+    renderImage.impl().view(m_view.get());
     renderImage.impl().layout(m_layout);
     renderImage.impl().channelCount(m_channels);
     return renderImage;
@@ -361,15 +355,15 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     //----- Staging buffer
 
-    Buffer stagingBuffer(m_engine.device());
-    DeviceMemory stagingBufferMemory(m_engine.device());
+    vk::UniqueBuffer stagingBuffer; // @fixme Why not use a BufferHolder?
+    vk::UniqueDeviceMemory stagingBufferMemory;
 
     vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferDst;
     vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
     createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
                  stagingBufferMemory);
-    m_engine.deviceHolder().debugObjectName(stagingBufferMemory, "image-holder.staging-buffer-memory." + m_name + "." + path.string());
+    m_engine.deviceHolder().debugObjectName(stagingBufferMemory.get(), "image-holder.staging-buffer-memory." + m_name + "." + path.string());
 
     //----- Copy from device
 
@@ -382,7 +376,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
     changeLayoutQuietly(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
-    commandBuffer.copyImageToBuffer(m_image, vk::ImageLayout::eTransferSrcOptimal, stagingBuffer, 1, &bufferImageCopy);
+    commandBuffer.copyImageToBuffer(m_image.get(), vk::ImageLayout::eTransferSrcOptimal, stagingBuffer.get(), 1, &bufferImageCopy);
     changeLayoutQuietly(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 
@@ -392,7 +386,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     void* data;
     vk::MemoryMapFlags memoryMapFlags;
-    m_engine.device().mapMemory(stagingBufferMemory, 0, size, memoryMapFlags, &data);
+    m_engine.device().mapMemory(stagingBufferMemory.get(), 0, size, memoryMapFlags, &data);
 
     for (uint64_t j = 0u; j < height; ++j) {
         for (uint64_t i = 0u; i < width; ++i) {
@@ -402,7 +396,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     stbi_write_png(path.string().c_str(), width, height, 4u, pixels.data(), 0u);
 
-    m_engine.device().unmapMemory(stagingBufferMemory);
+    m_engine.device().unmapMemory(stagingBufferMemory.get());
 }
 
 // ----- Internal
@@ -421,7 +415,7 @@ void ImageHolder::changeLayoutQuietly(vk::ImageLayout imageLayout, vk::CommandBu
     vk::ImageMemoryBarrier barrier;
     barrier.oldLayout = m_lastKnownLayout;
     barrier.newLayout = imageLayout;
-    barrier.image = m_image;
+    barrier.image = m_image.get();
     barrier.subresourceRange.levelCount = m_mipLevelsCount;
     barrier.subresourceRange.layerCount = m_layersCount;
     barrier.subresourceRange.aspectMask = m_aspect;

@@ -1,5 +1,5 @@
 local NAME = "Vulkan"
-local VERSION = "1.2.148"
+local VERSION = "1.2.162"
 
 -- Set up
 

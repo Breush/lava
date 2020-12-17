@@ -14,7 +14,6 @@ using namespace lava::magma;
 MaterialAft::MaterialAft(Material& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_descriptorSets(make_array<FRAME_IDS_COUNT, vk::DescriptorSet>(nullptr))
     , m_uboHolders(make_array<FRAME_IDS_COUNT, vulkan::UboHolder>(m_scene.engine().impl()))
 {
 }
@@ -22,10 +21,6 @@ MaterialAft::MaterialAft(Material& fore, Scene& scene)
 MaterialAft::~MaterialAft()
 {
     m_scene.engine().impl().device().waitIdle();
-
-    for (auto& descriptorSet : m_descriptorSets) {
-        m_scene.aft().materialDescriptorHolder().freeSet(descriptorSet);
-    }
 }
 
 void MaterialAft::init()
@@ -34,7 +29,7 @@ void MaterialAft::init()
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = descriptorHolder.allocateSet("material." + std::to_string(i), true);
         m_uboHolders[i].name("material#" + m_fore.hrid());
-        m_uboHolders[i].init(m_descriptorSets[i], descriptorHolder.uniformBufferBindingOffset(), {sizeof(MaterialUbo)});
+        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.uniformBufferBindingOffset(), {sizeof(MaterialUbo)});
     }
 
     m_uboDirty = true;
@@ -58,7 +53,7 @@ void MaterialAft::update()
 void MaterialAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const
 {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1,
-                                     &m_descriptorSets[m_currentFrameId], 0, nullptr);
+                                     &m_descriptorSets[m_currentFrameId].get(), 0, nullptr);
 }
 
 // ----- Updates
@@ -69,7 +64,7 @@ void MaterialAft::updateBindings()
 
     PROFILE_FUNCTION(PROFILER_COLOR_UPDATE);
 
-    auto descriptorSet = m_descriptorSets[m_currentFrameId];
+    auto descriptorSet = m_descriptorSets[m_currentFrameId].get();
 
     // MaterialUbo
     m_uboHolders[m_currentFrameId].copy(0, m_fore.ubo());

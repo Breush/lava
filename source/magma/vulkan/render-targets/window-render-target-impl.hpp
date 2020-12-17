@@ -52,9 +52,9 @@ namespace lava::magma {
 
         // Resources
         Present m_presentStage;
-        vulkan::Semaphore m_renderFinishedSemaphore;
-        vulkan::Fence m_fence;
-        vulkan::SurfaceKHR m_surface;
+        vk::UniqueSemaphore m_renderFinishedSemaphore;
+        vk::UniqueFence m_fence;
+        vk::UniqueSurfaceKHR m_surface;
         vulkan::SwapchainHolder m_swapchainHolder;
         vk::Extent2D m_windowExtent;
         bool m_shouldWaitForFences = true;

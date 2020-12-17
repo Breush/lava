@@ -13,7 +13,6 @@ using namespace lava::chamber;
 
 VrRenderTarget::Impl::Impl(RenderEngine& engine)
     : m_engine(engine)
-    , m_fence(engine.impl().device())
 {
     if (!m_engine.vr().enabled()) {
         logger.error("magma.vulkan.vr-render-target") << "Cannot use VrRenderTarget because "
@@ -58,8 +57,8 @@ bool VrRenderTarget::Impl::prepare()
         PROFILE_BLOCK("VrRenderTarget - waitForFences", PROFILER_COLOR_DRAW);
 
         static const auto MAX = std::numeric_limits<uint64_t>::max();
-        m_engine.impl().device().waitForFences(1u, &m_fence, true, MAX);
-        m_engine.impl().device().resetFences(1u, &m_fence);
+        m_engine.impl().device().waitForFences(1u, &m_fence.get(), true, MAX);
+        m_engine.impl().device().resetFences(1u, &m_fence.get());
     }
 
     return true;
@@ -86,7 +85,7 @@ void VrRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& commandBuf
     submitInfo.commandBufferCount = commandBuffers.size();
     submitInfo.pCommandBuffers = commandBuffers.data();
 
-    if (m_engine.impl().graphicsQueue().submit(1, &submitInfo, m_fence) != vk::Result::eSuccess) {
+    if (m_engine.impl().graphicsQueue().submit(1, &submitInfo, m_fence.get()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.vr-render-target") << "Failed to submit draw command buffer." << std::endl;
     }
 
@@ -155,11 +154,9 @@ void VrRenderTarget::Impl::cleanup()
 
 void VrRenderTarget::Impl::initFence()
 {
-    vk::FenceCreateInfo fenceInfo;
-    fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+    vk::FenceCreateInfo createInfo;
+    createInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-    auto result = m_engine.impl().device().createFence(&fenceInfo, nullptr, m_fence.replace());
-    if (result != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.window-render-target") << "Unable to create fence." << std::endl;
-    }
+    auto result = m_scene->engine().impl().device().createFenceUnique(createInfo);
+    m_fence = vulkan::checkMove(result, "vr-render-target", "Unable to create fence.");
 }

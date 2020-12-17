@@ -23,10 +23,10 @@ namespace lava::magma::vulkan {
         void record(Stage& stage, Args&... args)
         {
             m_bufferIndex = (m_bufferIndex + 1) % m_commandBuffers.size();
-            auto& commandBuffer = m_commandBuffers[m_bufferIndex];
+            auto commandBuffer = m_commandBuffers[m_bufferIndex].get();
 
             // @note We pass args by copy, ensuring that it does not rely on dead reference
-            job([=, &stage, &commandBuffer] {
+            job([=, &stage] {
                 vk::CommandBufferInheritanceInfo inheritanceInfo;
                 inheritanceInfo.renderPass = stage.renderPass();
                 inheritanceInfo.subpass = 0u;
@@ -44,7 +44,7 @@ namespace lava::magma::vulkan {
             });
         }
 
-        vk::CommandBuffer commandBuffer() const { return m_commandBuffers[m_bufferIndex]; }
+        vk::CommandBuffer commandBuffer() const { return m_commandBuffers[m_bufferIndex].get(); }
 
     protected:
         void createCommandPool();
@@ -55,8 +55,8 @@ namespace lava::magma::vulkan {
         RenderEngine::Impl& m_engine;
 
         // Resources
-        vulkan::CommandPool m_commandPool;
-        std::array<vk::CommandBuffer, 2> m_commandBuffers;
+        vk::UniqueCommandPool m_commandPool;
+        std::array<vk::UniqueCommandBuffer, 2> m_commandBuffers;
         uint32_t m_bufferIndex = 0u; //!< Holds which command buffer has been used for last record.
     };
 }

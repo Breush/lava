@@ -33,7 +33,7 @@ namespace lava::magma {
         uint32_t m_currentFrameId = 0u;
 
         // ----- Shader data
-        std::array<vk::DescriptorSet, FRAME_IDS_COUNT> m_descriptorSets;
+        std::array<vk::UniqueDescriptorSet, FRAME_IDS_COUNT> m_descriptorSets;
         std::array<vulkan::UboHolder, FRAME_IDS_COUNT> m_uboHolders;
         bool m_uboDirty = false;
         bool m_globalUboDirty = false;

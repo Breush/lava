@@ -11,7 +11,6 @@ using namespace lava::magma;
 LightAft::LightAft(Light& fore, Scene& scene)
     : m_fore(fore)
     , m_scene(scene)
-    , m_descriptorSets(make_array<FRAME_IDS_COUNT, vk::DescriptorSet>(nullptr))
     , m_uboHolders(make_array<FRAME_IDS_COUNT, vulkan::UboHolder>(m_scene.engine().impl()))
 {
 }
@@ -21,7 +20,7 @@ void LightAft::init()
     auto& descriptorHolder = m_scene.aft().lightsDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = descriptorHolder.allocateSet("light." + std::to_string(i));
-        m_uboHolders[i].init(m_descriptorSets[i], descriptorHolder.uniformBufferBindingOffset(), {sizeof(LightUbo)});
+        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.uniformBufferBindingOffset(), {sizeof(LightUbo)});
     }
 
     m_uboDirty = true;
@@ -40,7 +39,7 @@ void LightAft::update()
 void LightAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t descriptorSetIndex) const
 {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1,
-                                     &m_descriptorSets[m_currentFrameId], 0, nullptr);
+                                     &m_descriptorSets[m_currentFrameId].get(), 0, nullptr);
 }
 
 // ----- Fore

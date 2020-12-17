@@ -19,14 +19,6 @@ Environment::Environment(Scene& scene, RenderEngine& engine)
 {
 }
 
-Environment::~Environment()
-{
-    if (m_initialized) {
-        m_scene.aft().environmentDescriptorHolder().freeSet(m_descriptorSet);
-        m_scene.aft().environmentDescriptorHolder().freeSet(m_basicDescriptorSet);
-    }
-}
-
 void Environment::init()
 {
     m_initialized = true;
@@ -54,7 +46,7 @@ void Environment::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pip
         return;
     }
 
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet, 0,
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1, &m_descriptorSet.get(), 0,
                                      nullptr);
 }
 
@@ -62,7 +54,7 @@ void Environment::renderBasic(vk::CommandBuffer commandBuffer, vk::PipelineLayou
                               uint32_t descriptorSetIndex) const
 {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, descriptorSetIndex, 1,
-                                     &m_basicDescriptorSet, 0, nullptr);
+                                     &m_basicDescriptorSet.get(), 0, nullptr);
 }
 
 void Environment::set(const TexturePtr& texture)
@@ -88,15 +80,15 @@ void Environment::computeRadiance()
     auto& engine = m_scene.engine().impl();
     auto& device = engine.device();
     auto& queue = engine.graphicsQueue();
-    auto& commandPool = engine.commandPool();
+    auto commandPool = engine.commandPool();
 
     vk::CommandBufferAllocateInfo allocInfo;
     allocInfo.level = vk::CommandBufferLevel::ePrimary;
     allocInfo.commandPool = commandPool;
     allocInfo.commandBufferCount = 1;
 
-    vk::CommandBuffer commandBuffer;
-    device.allocateCommandBuffers(&allocInfo, &commandBuffer);
+    auto result = device.allocateCommandBuffersUnique(allocInfo);
+    auto commandBuffer = std::move(vulkan::checkMove(result, "environment", "Unable to create command buffer.")[0]);
 
     // ----- Radiance
 
@@ -104,17 +96,17 @@ void Environment::computeRadiance()
         for (auto faceIndex = 0u; faceIndex < 6u; ++faceIndex) {
             // Record
             vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
-            commandBuffer.begin(&beginInfo);
+            commandBuffer->begin(&beginInfo);
 
-            m_radianceStage.render(commandBuffer, faceIndex, mipLevel);
-            m_radianceStage.imageHolder().changeLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
+            m_radianceStage.render(commandBuffer.get(), faceIndex, mipLevel);
+            m_radianceStage.imageHolder().changeLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer.get());
 
-            commandBuffer.end();
+            commandBuffer->end();
 
             // Execute
             vk::SubmitInfo submitInfo;
             submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &commandBuffer;
+            submitInfo.pCommandBuffers = &commandBuffer.get();
             queue.submit(1, &submitInfo, nullptr);
             queue.waitIdle();
 
@@ -122,8 +114,6 @@ void Environment::computeRadiance()
             m_radianceImageHolder.copy(m_radianceStage.image(), faceIndex, mipLevel);
         }
     }
-
-    device.freeCommandBuffers(commandPool, 1, &commandBuffer);
 
     updateBindings();
 }
@@ -136,40 +126,38 @@ void Environment::computeIrradiance()
     auto& engine = m_scene.engine().impl();
     auto& device = engine.device();
     auto& queue = engine.graphicsQueue();
-    auto& commandPool = engine.commandPool();
+    auto commandPool = engine.commandPool();
 
     vk::CommandBufferAllocateInfo allocInfo;
     allocInfo.level = vk::CommandBufferLevel::ePrimary;
     allocInfo.commandPool = commandPool;
     allocInfo.commandBufferCount = 1;
 
-    vk::CommandBuffer commandBuffer;
-    device.allocateCommandBuffers(&allocInfo, &commandBuffer);
+    auto result = device.allocateCommandBuffersUnique(allocInfo);
+    auto commandBuffer = std::move(vulkan::checkMove(result, "environment", "Unable to create command buffer.")[0]);
 
     // ----- Irradiance
 
     for (auto faceIndex = 0u; faceIndex < 6u; ++faceIndex) {
         // Record
         vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
-        commandBuffer.begin(&beginInfo);
+        commandBuffer->begin(&beginInfo);
 
-        m_irradianceStage.render(commandBuffer, faceIndex);
-        m_irradianceStage.imageHolder().changeLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
+        m_irradianceStage.render(commandBuffer.get(), faceIndex);
+        m_irradianceStage.imageHolder().changeLayout(vk::ImageLayout::eTransferSrcOptimal, commandBuffer.get());
 
-        commandBuffer.end();
+        commandBuffer->end();
 
         // Execute
         vk::SubmitInfo submitInfo;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
+        submitInfo.pCommandBuffers = &commandBuffer.get();
         queue.submit(1, &submitInfo, nullptr);
         queue.waitIdle();
 
         // Copy image to the cube
         m_irradianceImageHolder.copy(m_irradianceStage.image(), faceIndex);
     }
-
-    device.freeCommandBuffers(commandPool, 1, &commandBuffer);
 
     updateBindings();
 }
@@ -209,8 +197,8 @@ void Environment::updateBrdfLutBindings()
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     vk::ImageView imageView = m_brdfLutTexture->aft().imageView();
 
-    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 2u);
-    vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet, imageView, sampler, imageLayout, 2u);
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet.get(), imageView, sampler, imageLayout, 2u);
+    vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet.get(), imageView, sampler, imageLayout, 2u);
 }
 
 void Environment::updateBasicBindings()
@@ -230,8 +218,8 @@ void Environment::updateBasicBindings()
         imageView = m_texture->aft().imageView();
     }
 
-    vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet, imageView, sampler, imageLayout, 0u);
-    vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet, imageView, sampler, imageLayout, 1u);
+    vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet.get(), imageView, sampler, imageLayout, 0u);
+    vulkan::updateDescriptorSet(engine.device(), m_basicDescriptorSet.get(), imageView, sampler, imageLayout, 1u);
 }
 
 void Environment::updateBindings()
@@ -245,8 +233,8 @@ void Environment::updateBindings()
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
     vk::ImageView imageView = m_radianceImageHolder.view();
-    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 0u);
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet.get(), imageView, sampler, imageLayout, 0u);
 
     imageView = m_irradianceImageHolder.view();
-    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet, imageView, sampler, imageLayout, 1u);
+    vulkan::updateDescriptorSet(engine.device(), m_descriptorSet.get(), imageView, sampler, imageLayout, 1u);
 }

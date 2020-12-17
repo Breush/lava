@@ -8,14 +8,13 @@ using namespace lava::chamber;
 
 RenderPassHolder::RenderPassHolder(RenderEngine::Impl& engine)
     : m_engine(engine)
-    , m_renderPass(engine.device())
 {
 }
 
 void RenderPassHolder::add(PipelineHolder& pipelineHolder)
 {
     m_pipelineHolders.emplace_back(&pipelineHolder);
-    pipelineHolder.bindRenderPass(m_renderPass);
+    pipelineHolder.bindRenderPass(m_renderPass.get());
 }
 
 void RenderPassHolder::init()
@@ -158,17 +157,16 @@ void RenderPassHolder::init()
     }
 
     // The render pass indeed
-    vk::RenderPassCreateInfo renderPassInfo;
-    renderPassInfo.attachmentCount = attachmentDescriptions.size();
-    renderPassInfo.pAttachments = attachmentDescriptions.data();
-    renderPassInfo.subpassCount = subpassDescriptions.size();
-    renderPassInfo.pSubpasses = subpassDescriptions.data();
-    renderPassInfo.dependencyCount = subpassDependencies.size();
-    renderPassInfo.pDependencies = subpassDependencies.data();
+    vk::RenderPassCreateInfo createInfo;
+    createInfo.attachmentCount = attachmentDescriptions.size();
+    createInfo.pAttachments = attachmentDescriptions.data();
+    createInfo.subpassCount = subpassDescriptions.size();
+    createInfo.pSubpasses = subpassDescriptions.data();
+    createInfo.dependencyCount = subpassDependencies.size();
+    createInfo.pDependencies = subpassDependencies.data();
 
-    if (m_engine.device().createRenderPass(&renderPassInfo, nullptr, m_renderPass.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.render-stage") << "Failed to create render pass." << std::endl;
-    }
+    auto result = m_engine.device().createRenderPassUnique(createInfo);
+    m_renderPass = vulkan::checkMove(result, "render-pass-holder", "Unable to create render pass.");
 
     // Init pipeline holders
     for (auto i = 0u; i < m_pipelineHolders.size(); ++i) {

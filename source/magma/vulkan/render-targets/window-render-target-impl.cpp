@@ -11,9 +11,6 @@ WindowRenderTarget::Impl::Impl(RenderEngine& engine, WsHandle handle, const Exte
     : m_engine(engine.impl())
     , m_handle(handle)
     , m_presentStage(m_engine)
-    , m_renderFinishedSemaphore(m_engine.device())
-    , m_fence(m_engine.device())
-    , m_surface(m_engine.instance())
     , m_swapchainHolder(m_engine)
 {
     m_windowExtent.width = extent.width;
@@ -43,8 +40,8 @@ bool WindowRenderTarget::Impl::prepare()
 
         // @fixme Are we forced to wait for fence before acquiring next image?
         static const auto MAX = std::numeric_limits<uint64_t>::max();
-        m_engine.device().waitForFences(1u, &m_fence, true, MAX);
-        m_engine.device().resetFences(1u, &m_fence);
+        m_engine.device().waitForFences(1u, &m_fence.get(), true, MAX);
+        m_engine.device().resetFences(1u, &m_fence.get());
 
         m_shouldWaitForFences = false;
     }
@@ -91,11 +88,11 @@ void WindowRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& comman
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore;
+    submitInfo.pSignalSemaphores = &m_renderFinishedSemaphore.get();
     submitInfo.commandBufferCount = commandBuffers.size();
     submitInfo.pCommandBuffers = commandBuffers.data();
 
-    if (m_engine.graphicsQueue().submit(1, &submitInfo, m_fence) != vk::Result::eSuccess) {
+    if (m_engine.graphicsQueue().submit(1, &submitInfo, m_fence.get()) != vk::Result::eSuccess) {
         logger.error("magma.vulkan.window-render-target") << "Failed to submit draw command buffer." << std::endl;
     }
 
@@ -104,7 +101,7 @@ void WindowRenderTarget::Impl::draw(const std::vector<vk::CommandBuffer>& comman
     // Submitting the image back to the swapchain
     vk::PresentInfoKHR presentInfo;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphore;
+    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphore.get();
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &m_swapchainHolder.swapchain();
     presentInfo.pImageIndices = &imageIndex;
@@ -163,20 +160,16 @@ void WindowRenderTarget::Impl::initFence()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_INIT);
 
-    vk::FenceCreateInfo fenceInfo;
-    fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+    vk::FenceCreateInfo createInfo;
+    createInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-    auto result = m_engine.device().createFence(&fenceInfo, nullptr, m_fence.replace());
-    if (result != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.window-render-target") << "Unable to create fence." << std::endl;
-    }
+    auto result = m_engine.device().createFenceUnique(createInfo);
+    m_fence = vulkan::checkMove(result, "window-render-target", "Unable to create fence.");
 }
 
 void WindowRenderTarget::Impl::initSurface()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_INIT);
-
-    vk::Result result;
 
     const auto wsHandle = handle();
 
@@ -185,38 +178,36 @@ void WindowRenderTarget::Impl::initSurface()
     createInfo.connection = wsHandle.xcb.connection;
     createInfo.window = wsHandle.xcb.window;
 
-    result = m_engine.instance().createXcbSurfaceKHR(&createInfo, nullptr, m_surface.replace());
+    auto result = m_engine.instance().createXcbSurfaceKHRUnique(createInfo);
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
     vk::WaylandSurfaceCreateInfoKHR createInfo;
     createInfo.display = wsHandle.wayland.display;
     createInfo.surface = wsHandle.wayland.surface;
 
-    result = m_engine.instance().createWaylandSurfaceKHR(&createInfo, nullptr, m_surface.replace());
+    auto result = m_engine.instance().createWaylandSurfaceKHRUnique(createInfo);
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
     vk::Win32SurfaceCreateInfoKHR createInfo;
     createInfo.hwnd = reinterpret_cast<HWND>(wsHandle.dwm.hwnd);
     createInfo.hinstance = reinterpret_cast<HINSTANCE>(wsHandle.dwm.hinstance);
 
-    result = m_engine.instance().createWin32SurfaceKHR(&createInfo, nullptr, m_surface.replace());
+    auto result = m_engine.instance().createWin32SurfaceKHRUnique(createInfo);
 #endif
 
-    if (result != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.surface") << "Unable to create surface for the platform." << std::endl;
-    }
+    m_surface = vulkan::checkMove(result, "window-render-target", "Unable to create surface for the platform.");
 }
 
 void WindowRenderTarget::Impl::initSwapchain()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_INIT);
 
-    m_swapchainHolder.init(m_surface, m_windowExtent);
+    m_swapchainHolder.init(m_surface.get(), m_windowExtent);
 }
 
 void WindowRenderTarget::Impl::recreateSwapchain()
 {
     PROFILE_FUNCTION();
 
-    m_swapchainHolder.recreate(m_surface, m_windowExtent);
+    m_swapchainHolder.recreate(m_surface.get(), m_windowExtent);
     m_presentStage.update(m_swapchainHolder.extent());
 }
 
@@ -224,13 +215,10 @@ void WindowRenderTarget::Impl::createSemaphore()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
-    logger.info("magma.vulkan.render-engine") << "Creating semaphores." << std::endl;
+    vk::SemaphoreCreateInfo createInfo;
 
-    vk::SemaphoreCreateInfo semaphoreInfo;
+    auto result = m_engine.device().createSemaphoreUnique(createInfo);
+    m_renderFinishedSemaphore = vulkan::checkMove(result, "window-render-target", "Unable to create semaphore.");
 
-    if (m_engine.device().createSemaphore(&semaphoreInfo, nullptr, m_renderFinishedSemaphore.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine") << "Failed to create semaphores." << std::endl;
-    }
-
-    m_engine.deviceHolder().debugObjectName(m_renderFinishedSemaphore, "render-engine.render-finished");
+    m_engine.deviceHolder().debugObjectName(m_renderFinishedSemaphore.get(), "render-engine.render-finished");
 }

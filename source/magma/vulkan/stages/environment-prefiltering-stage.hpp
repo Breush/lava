@@ -61,6 +61,6 @@ namespace lava::magma {
 
         // Resources
         vulkan::ImageHolder m_imageHolder;
-        vulkan::Framebuffer m_framebuffer;
+        vk::UniqueFramebuffer m_framebuffer;
     };
 }

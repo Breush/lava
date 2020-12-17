@@ -71,7 +71,7 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const Modul
             // We were not able to compule GLSL file, we try to use previously existing shader
             // if possible.
             if (iModuleInfo != m_modulesInfos.end()) {
-                return iModuleInfo->second.module->vk();
+                return iModuleInfo->second.module.get();
             }
             else {
                 logger.error("magma.vulkan.shaders-manager") << "No valid shader for " << shaderId << "." << std::endl;
@@ -84,20 +84,20 @@ vk::ShaderModule ShadersManager::module(const std::string& shaderId, const Modul
             m_modulesInfos.erase(iModuleInfo);
         }
 
-        shaderModule = vulkan::createShaderModule(m_device, code);
+        auto newShaderModule = vulkan::createShaderModule(m_device, code);
+        shaderModule = newShaderModule.get();
         implsDependencies = resolvedShader.implsDependencies;
 
         // Adding the module
         auto& newModuleInfo = m_modulesInfos[shaderId];
-        newModuleInfo.module = std::make_unique<vulkan::ShaderModule>(m_device);
-        *newModuleInfo.module = shaderModule;
+        newModuleInfo.module = std::move(newShaderModule);
         newModuleInfo.implsDependencies = implsDependencies;
 
         m_dirtyModules.erase(shaderId);
     }
     // Or just get it
     else {
-        shaderModule = iModuleInfo->second.module->vk();
+        shaderModule = iModuleInfo->second.module.get();
         implsDependencies = iModuleInfo->second.implsDependencies;
     }
 

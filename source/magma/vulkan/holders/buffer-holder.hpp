@@ -5,10 +5,6 @@
 #include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
-    class Device;
-}
-
-namespace lava::magma::vulkan {
     enum class BufferKind {
         Unknown,
         ShaderUniform, // UniformBuffer, staged memory
@@ -37,7 +33,7 @@ namespace lava::magma::vulkan {
         template <class T>
         void copy(const T& data);
 
-
+        const vk::Buffer& buffer() const { return m_buffer.get(); }
         vk::DeviceSize size() const { return m_size; }
 
     private:
@@ -46,10 +42,10 @@ namespace lava::magma::vulkan {
         std::string m_name;
 
         // Resources
-        vulkan::Buffer m_stagingBuffer;
-        vulkan::DeviceMemory m_stagingMemory;
-        $attribute(vulkan::Buffer, buffer);
-        $attribute(vulkan::DeviceMemory, memory);
+        vk::UniqueBuffer m_buffer;
+        vk::UniqueBuffer m_stagingBuffer;
+        vk::UniqueDeviceMemory m_memory;
+        vk::UniqueDeviceMemory m_stagingMemory;
 
         BufferKind m_kind = BufferKind::Unknown;
         vk::DeviceSize m_size = 0u;

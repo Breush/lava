@@ -61,7 +61,7 @@ void SceneAft::init()
     auto& engine = m_engine.impl();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     for (auto i = 0u; i < MATERIAL_SAMPLERS_SIZE; ++i) {
-        vulkan::updateDescriptorSet(engine.device(), m_materialGlobalDescriptorSet, engine.dummyImageView(),
+        vulkan::updateDescriptorSet(engine.device(), m_materialGlobalDescriptorSet.get(), engine.dummyImageView(),
                                     engine.dummySampler(), imageLayout, 0u, i);
     }
 

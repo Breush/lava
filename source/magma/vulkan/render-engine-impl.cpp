@@ -179,7 +179,7 @@ uint32_t RenderEngine::Impl::addView(RenderImage renderImage, IRenderTarget& ren
 
     // @fixme Should be "compositorViewId"...
     renderView.presentViewId =
-        renderTargetBundle.renderTarget->interfaceImpl().addView(imageView, imageLayout, m_dummySampler, viewport, channelCount);
+        renderTargetBundle.renderTarget->interfaceImpl().addView(imageView, imageLayout, m_dummySampler.get(), viewport, channelCount);
 
     return m_renderViews.size() - 1u;
 }
@@ -274,7 +274,7 @@ void RenderEngine::Impl::updateRenderViews(RenderImage renderImage)
         auto imageView = renderImageImpl.view();
         auto imageLayout = renderImageImpl.layout();
         renderTargetBundle.renderTarget->interfaceImpl().updateView(renderView.presentViewId, imageView, imageLayout,
-                                                                    m_dummySampler);
+                                                                    m_dummySampler.get());
     }
 }
 
@@ -304,20 +304,18 @@ void RenderEngine::Impl::createCommandPools(vk::SurfaceKHR* pSurface)
 
     auto queueFamilyIndices = vulkan::findQueueFamilies(physicalDevice(), pSurface);
 
-    vk::CommandPoolCreateInfo poolInfo;
-    poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
-    poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+    vk::CommandPoolCreateInfo createInfo;
+    createInfo.queueFamilyIndex = queueFamilyIndices.graphics;
+    createInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
-    if (device().createCommandPool(&poolInfo, nullptr, m_commandPool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine") << "Failed to create command pool." << std::endl;
-    }
+    auto result = device().createCommandPoolUnique(createInfo);
+    m_commandPool = vulkan::checkMove(result, "render-engine", "Unable to create command pool.");
 
-    poolInfo.queueFamilyIndex = queueFamilyIndices.transfer;
-    poolInfo.flags = vk::CommandPoolCreateFlagBits(0x0);
+    createInfo.queueFamilyIndex = queueFamilyIndices.transfer;
+    createInfo.flags = vk::CommandPoolCreateFlagBits(0x0);
 
-    if (device().createCommandPool(&poolInfo, nullptr, m_transferCommandPool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine") << "Failed to create command pool." << std::endl;
-    }
+    result = device().createCommandPoolUnique(createInfo);
+    m_transferCommandPool = vulkan::checkMove(result, "render-engine", "Unable to create transfer command pool.");
 }
 
 void RenderEngine::Impl::createDummyTextures()
@@ -344,37 +342,35 @@ void RenderEngine::Impl::createDummyTextures()
     m_dummyCubeImageHolder.setup(dummyCubeData, 1, 1, 4, 6);
 
     // Sampler
-    vk::SamplerCreateInfo samplerInfo;
-    samplerInfo.magFilter = vk::Filter::eLinear;
-    samplerInfo.minFilter = vk::Filter::eLinear;
-    samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
-    samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
-    samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
-    samplerInfo.anisotropyEnable = true;
-    samplerInfo.maxAnisotropy = 16; // Over 16 is useless, but lower that for better performances
-    samplerInfo.unnormalizedCoordinates = false;
-    samplerInfo.compareEnable = false;
-    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-    samplerInfo.maxLod = 10;
+    vk::SamplerCreateInfo createInfo;
+    createInfo.magFilter = vk::Filter::eLinear;
+    createInfo.minFilter = vk::Filter::eLinear;
+    createInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+    createInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+    createInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+    createInfo.anisotropyEnable = true;
+    createInfo.maxAnisotropy = 16; // Over 16 is useless, but lower that for better performances
+    createInfo.unnormalizedCoordinates = false;
+    createInfo.compareEnable = false;
+    createInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    createInfo.maxLod = 10;
 
-    if (device().createSampler(&samplerInfo, nullptr, m_dummySampler.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine") << "Failed to create dummy sampler." << std::endl;
-    }
+    auto result = device().createSamplerUnique(createInfo);
+    m_dummySampler = vulkan::checkMove(result, "render-engine", "Unable to create dummy sampler.");
 
     // Shadows sampler
-    samplerInfo.magFilter = vk::Filter::eLinear;
-    samplerInfo.minFilter = vk::Filter::eLinear;
-    samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
-    samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
-    samplerInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
-    samplerInfo.anisotropyEnable = false;
-    samplerInfo.unnormalizedCoordinates = false;
-    samplerInfo.compareEnable = false;
-    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+    createInfo.magFilter = vk::Filter::eLinear;
+    createInfo.minFilter = vk::Filter::eLinear;
+    createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
+    createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
+    createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
+    createInfo.anisotropyEnable = false;
+    createInfo.unnormalizedCoordinates = false;
+    createInfo.compareEnable = false;
+    createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
 
-    if (device().createSampler(&samplerInfo, nullptr, m_shadowsSampler.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine") << "Failed to create shadows sampler." << std::endl;
-    }
+    result = device().createSamplerUnique(createInfo);
+    m_shadowsSampler = vulkan::checkMove(result, "render-engine", "Unable to create shadows sampler.");
 }
 
 std::vector<vk::CommandBuffer> RenderEngine::Impl::recordCommandBuffer(uint32_t renderTargetId, uint32_t bufferIndex)
@@ -402,7 +398,7 @@ std::vector<vk::CommandBuffer> RenderEngine::Impl::recordCommandBuffer(uint32_t 
 
     //----- Render targets' specific rendering
 
-    auto& commandBuffer = renderTargetBundle.commandBuffers[bufferIndex];
+    auto commandBuffer = renderTargetBundle.commandBuffers[bufferIndex].get();
 
     vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eSimultaneousUse};
     commandBuffer.begin(&beginInfo);
@@ -428,22 +424,16 @@ void RenderEngine::Impl::createCommandBuffers(uint32_t renderTargetId)
     auto& renderTargetBundle = m_renderTargetBundles[renderTargetId];
     auto& commandBuffers = renderTargetBundle.commandBuffers;
 
-    // Free previous command buffers if any
-    if (commandBuffers.size() > 0) {
-        device().freeCommandBuffers(m_commandPool, commandBuffers.size(), commandBuffers.data());
-    }
-
-    // Allocate them all
+    // (Re-)allocate them all
     commandBuffers.resize(renderTargetBundle.renderTarget->interfaceImpl().buffersCount());
 
-    vk::CommandBufferAllocateInfo allocateInfo;
-    allocateInfo.commandPool = m_commandPool;
-    allocateInfo.level = vk::CommandBufferLevel::ePrimary;
-    allocateInfo.commandBufferCount = commandBuffers.size();
+    vk::CommandBufferAllocateInfo allocInfo;
+    allocInfo.commandPool = m_commandPool.get();
+    allocInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocInfo.commandBufferCount = commandBuffers.size();
 
-    if (device().allocateCommandBuffers(&allocateInfo, commandBuffers.data()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.render-engine") << "Failed to create command buffers." << std::endl;
-    }
+    auto result = device().allocateCommandBuffersUnique(allocInfo);
+    commandBuffers = vulkan::checkMove(result, "render-engine", "Unable to create command buffers.");
 }
 
 void RenderEngine::Impl::initScenes()

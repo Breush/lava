@@ -27,7 +27,7 @@ namespace lava::magma::vulkan {
 
         // ----- Getters
 
-        const vk::Device& device() const { return m_device; }
+        const vk::Device& device() const { return m_device.get(); }
         const vk::PhysicalDevice& physicalDevice() const { return m_physicalDevice; }
         const vk::Queue& graphicsQueue() const { return m_graphicsQueue; }
         const vk::Queue& transferQueue() const { return m_transferQueue; }
@@ -46,7 +46,7 @@ namespace lava::magma::vulkan {
         void debugObjectName(uint64_t object, vk::ObjectType objectType, const std::string& name) const;
 
     private:
-        vulkan::Device m_device;
+        vk::UniqueDevice m_device;
 
         vk::PhysicalDevice m_physicalDevice = nullptr;
         vk::Queue m_graphicsQueue = nullptr;

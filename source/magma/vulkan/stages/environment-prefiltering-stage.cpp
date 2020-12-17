@@ -14,8 +14,7 @@ EnvironmentPrefilteringStage::EnvironmentPrefilteringStage(Scene& scene, RenderE
     : m_scene(scene)
     , m_renderPassHolder(engine.impl())
     , m_pipelineHolder(engine.impl())
-    , m_imageHolder(engine.impl(), "magma.vulkan.stages.environment-prefiltering-stage.image")
-    , m_framebuffer(engine.impl().device())
+    , m_imageHolder(engine.impl(), "magma.vulkan.stages.environment-prefiltering.image")
 {
 }
 
@@ -23,7 +22,7 @@ void EnvironmentPrefilteringStage::init(Algorithm algorithm)
 {
     m_algorithm = algorithm;
 
-    logger.info("magma.vulkan.stages.environment-prefiltering-stage") << "Initializing." << std::endl;
+    logger.info("magma.vulkan.stages.environment-prefiltering") << "Initializing." << std::endl;
     logger.log().tab(1);
 
     initPass();
@@ -77,7 +76,7 @@ void EnvironmentPrefilteringStage::render(vk::CommandBuffer commandBuffer, uint8
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_renderPassHolder.renderPass();
-    renderPassInfo.framebuffer = m_framebuffer;
+    renderPassInfo.framebuffer = m_framebuffer.get();
     renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
     renderPassInfo.renderArea.extent = m_extent;
     renderPassInfo.clearValueCount = clearValues.size();
@@ -194,16 +193,14 @@ void EnvironmentPrefilteringStage::createFramebuffers()
     // Framebuffer
     std::array<vk::ImageView, 1> attachments = {m_imageHolder.view()};
 
-    vk::FramebufferCreateInfo framebufferInfo;
-    framebufferInfo.renderPass = m_renderPassHolder.renderPass();
-    framebufferInfo.attachmentCount = attachments.size();
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = m_extent.width;
-    framebufferInfo.height = m_extent.height;
-    framebufferInfo.layers = 1;
+    vk::FramebufferCreateInfo createInfo;
+    createInfo.renderPass = m_renderPassHolder.renderPass();
+    createInfo.attachmentCount = attachments.size();
+    createInfo.pAttachments = attachments.data();
+    createInfo.width = m_extent.width;
+    createInfo.height = m_extent.height;
+    createInfo.layers = 1;
 
-    if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, m_framebuffer.replace())
-        != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.stages.environment-prefiltering-stage") << "Failed to create framebuffers." << std::endl;
-    }
+    auto result = m_scene.engine().impl().device().createFramebufferUnique(createInfo);
+    m_framebuffer = vulkan::checkMove(result, "stages.environment-prefiltering", "Unable to create framebuffers.");
 }

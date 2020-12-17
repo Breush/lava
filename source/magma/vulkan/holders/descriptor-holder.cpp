@@ -7,8 +7,6 @@ using namespace lava::chamber;
 
 DescriptorHolder::DescriptorHolder(const RenderEngine::Impl& engine)
     : m_engine(engine)
-    , m_setLayout{engine.device()}
-    , m_pool{engine.device()}
 {
 }
 
@@ -63,13 +61,12 @@ void DescriptorHolder::init(uint32_t maxSetCount, vk::ShaderStageFlags shaderSta
         inputAttachmentDescriptorCount += m_inputAttachmentSizes[i];
     }
 
-    vk::DescriptorSetLayoutCreateInfo layoutInfo;
-    layoutInfo.bindingCount = setLayoutBindings.size();
-    layoutInfo.pBindings = setLayoutBindings.data();
+    vk::DescriptorSetLayoutCreateInfo setLayoutCreateInfo;
+    setLayoutCreateInfo.bindingCount = setLayoutBindings.size();
+    setLayoutCreateInfo.pBindings = setLayoutBindings.data();
 
-    if (m_engine.device().createDescriptorSetLayout(&layoutInfo, nullptr, m_setLayout.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.descriptor-holder") << "Failed to create descriptor set layout." << std::endl;
-    }
+    auto setLayoutResult = m_engine.device().createDescriptorSetLayoutUnique(setLayoutCreateInfo);
+    m_setLayout = vulkan::checkMove(setLayoutResult, "descriptor-holder", "Unable to create descriptor set layout.");
 
     //----- Pool
 
@@ -103,48 +100,39 @@ void DescriptorHolder::init(uint32_t maxSetCount, vk::ShaderStageFlags shaderSta
         poolSizes.emplace_back(poolSize);
     }
 
-    vk::DescriptorPoolCreateInfo poolInfo;
-    poolInfo.poolSizeCount = poolSizes.size();
-    poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = maxSetCount;
-    poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+    vk::DescriptorPoolCreateInfo poolCreateInfo;
+    poolCreateInfo.poolSizeCount = poolSizes.size();
+    poolCreateInfo.pPoolSizes = poolSizes.data();
+    poolCreateInfo.maxSets = maxSetCount;
+    poolCreateInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
 
-    if (m_engine.device().createDescriptorPool(&poolInfo, nullptr, m_pool.replace()) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.descriptor-holder") << "Failed to create descriptor pool." << std::endl;
-    }
+    auto poolResult = m_engine.device().createDescriptorPoolUnique(poolCreateInfo);
+    m_pool = vulkan::checkMove(poolResult, "descriptor-holder", "Unable to create descriptor pool.");
 }
 
-vk::DescriptorSet DescriptorHolder::allocateSet(const std::string& debugName, bool dummyBinding) const
+vk::UniqueDescriptorSet DescriptorHolder::allocateSet(const std::string& debugName, bool dummyBinding) const
 {
-    vk::DescriptorSet set;
+    vk::UniqueDescriptorSet set;
 
-    vk::DescriptorSetAllocateInfo allocateInfo;
-    allocateInfo.descriptorPool = m_pool;
-    allocateInfo.descriptorSetCount = 1;
-    allocateInfo.pSetLayouts = &m_setLayout;
+    vk::DescriptorSetAllocateInfo allocInfo;
+    allocInfo.descriptorPool = m_pool.get();
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &m_setLayout.get();
 
-    if (m_engine.device().allocateDescriptorSets(&allocateInfo, &set) != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.descriptor-holder") << "Failed to create descriptor set." << std::endl;
-    }
+    auto result = m_engine.device().allocateDescriptorSetsUnique(allocInfo);
+    set = std::move(checkMove(result, "descriptor-holder", "Unable to create descriptor set.")[0]);
 
-    m_engine.deviceHolder().debugObjectName(set, debugName);
+    m_engine.deviceHolder().debugObjectName(set.get(), debugName);
 
     if (dummyBinding) {
         // Defaulting all combined image sampler bindings
         for (auto i = 0u; i < m_combinedImageSamplerSizes.size(); ++i) {
-            updateDescriptorSet(m_engine.device(), set, m_engine.dummyImageView(), m_engine.dummySampler(),
+            updateDescriptorSet(m_engine.device(), set.get(), m_engine.dummyImageView(), m_engine.dummySampler(),
                                 vk::ImageLayout::eShaderReadOnlyOptimal, combinedImageSamplerBindingOffset() + i);
         }
     }
 
     return set;
-}
-
-void DescriptorHolder::freeSet(vk::DescriptorSet set) const
-{
-    if (m_pool.vk()) {
-        m_engine.device().freeDescriptorSets(m_pool, 1, &set);
-    }
 }
 
 void DescriptorHolder::updateSet(vk::DescriptorSet set, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t storageBufferIndex)

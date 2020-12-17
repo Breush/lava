@@ -11,10 +11,9 @@
 using namespace lava::magma;
 using namespace lava::chamber;
 
-ShadowsStage::Cascade::Cascade(RenderEngine& engine)
-    : imageHolder(std::make_shared<vulkan::ImageHolder>(engine.impl(), "magma.vulkan.shadows-stage.cascade.image"))
-    , framebuffer(std::make_shared<vulkan::Framebuffer>(engine.impl().device()))
+void ShadowsStage::Cascade::init(RenderEngine& engine)
 {
+    imageHolder = std::make_shared<vulkan::ImageHolder>(engine.impl(), "magma.vulkan.stages.shadows.cascade.image");
 }
 
 ShadowsStage::ShadowsStage(Scene& scene)
@@ -28,7 +27,7 @@ void ShadowsStage::init(const Light& light)
 {
     m_light = &light;
 
-    logger.info("magma.vulkan.stages.shadows-stage") << "Initializing." << std::endl;
+    logger.info("magma.vulkan.stages.shadows") << "Initializing." << std::endl;
     logger.log().tab(1);
 
     initPass();
@@ -74,7 +73,7 @@ void ShadowsStage::record(vk::CommandBuffer commandBuffer, const Camera* camera)
 
         vk::RenderPassBeginInfo renderPassInfo;
         renderPassInfo.renderPass = m_renderPassHolder.renderPass();
-        renderPassInfo.framebuffer = *cascades[i].framebuffer;
+        renderPassInfo.framebuffer = cascades[i].framebuffer.get();
         renderPassInfo.renderArea.offset = vk::Offset2D{0, 0};
         renderPassInfo.renderArea.extent = m_extent;
         renderPassInfo.clearValueCount = clearValues.size();
@@ -185,10 +184,11 @@ void ShadowsStage::ensureResourcesForCamera(const Camera& camera)
     if (m_cascades.find(&camera) != m_cascades.end()) return;
 
     auto& cascades = m_cascades[&camera];
-    cascades.resize(SHADOWS_CASCADES_COUNT, m_scene.engine());
 
     // Image
     for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
+        cascades[i].init(m_scene.engine());
+
         auto depthFormat = vk::Format::eD16Unorm;
         cascades[i].imageHolder->create(vulkan::ImageKind::Depth, depthFormat, m_extent);
     }
@@ -197,17 +197,15 @@ void ShadowsStage::ensureResourcesForCamera(const Camera& camera)
     for (auto i = 0u; i < SHADOWS_CASCADES_COUNT; ++i) {
         std::array<vk::ImageView, 1> attachments = {cascades[i].imageHolder->view()};
 
-        vk::FramebufferCreateInfo framebufferInfo;
-        framebufferInfo.renderPass = m_renderPassHolder.renderPass();
-        framebufferInfo.attachmentCount = attachments.size();
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = m_extent.width;
-        framebufferInfo.height = m_extent.height;
-        framebufferInfo.layers = 1;
+        vk::FramebufferCreateInfo createInfo;
+        createInfo.renderPass = m_renderPassHolder.renderPass();
+        createInfo.attachmentCount = attachments.size();
+        createInfo.pAttachments = attachments.data();
+        createInfo.width = m_extent.width;
+        createInfo.height = m_extent.height;
+        createInfo.layers = 1;
 
-        if (m_scene.engine().impl().device().createFramebuffer(&framebufferInfo, nullptr, cascades[i].framebuffer->replace())
-            != vk::Result::eSuccess) {
-            logger.error("magma.vulkan.stages.shadows-stage") << "Failed to create framebuffers." << std::endl;
-        }
+        auto result = m_scene.engine().impl().device().createFramebufferUnique(createInfo);
+        cascades[i].framebuffer = vulkan::checkMove(result, "stages.shadows", "Unable to create framebuffers.");
     }
 }

@@ -232,15 +232,12 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface, VrEngine& vr)
     createInfo.ppEnabledExtensionNames = enabledExtensions.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    auto result = m_physicalDevice.createDevice(&createInfo, nullptr, m_device.replace());
-    if (result != vk::Result::eSuccess) {
-        logger.error("magma.vulkan.device-holder") << "Unable to create logical device: " <<
-                                                      vk::to_string(result) << "." << std::endl;
-    };
+    auto result = m_physicalDevice.createDeviceUnique(createInfo);
+    m_device = vulkan::checkMove(result, "device-holder", "Unable to create logical device.");
 
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(m_device);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(m_device.get());
 
-    m_graphicsQueue = m_device.vk().getQueue(m_queueFamilyIndices.graphics, 0);
-    m_transferQueue = m_device.vk().getQueue(m_queueFamilyIndices.transfer, 0);
-    m_presentQueue = m_device.vk().getQueue(m_queueFamilyIndices.present, 0);
+    m_graphicsQueue = m_device->getQueue(m_queueFamilyIndices.graphics, 0);
+    m_transferQueue = m_device->getQueue(m_queueFamilyIndices.transfer, 0);
+    m_presentQueue = m_device->getQueue(m_queueFamilyIndices.present, 0);
 }

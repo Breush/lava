@@ -80,6 +80,6 @@ namespace lava::magma {
         vulkan::ImageHolder m_finalImageHolder;
         vulkan::ImageHolder m_finalResolveImageHolder;
         vulkan::ImageHolder m_depthImageHolder;
-        vulkan::Framebuffer m_framebuffer;
+        vk::UniqueFramebuffer m_framebuffer;
     };
 }
