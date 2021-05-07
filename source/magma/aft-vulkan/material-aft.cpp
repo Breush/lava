@@ -29,7 +29,7 @@ void MaterialAft::init()
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = descriptorHolder.allocateSet("material." + std::to_string(i), true);
         m_uboHolders[i].name("material#" + m_fore.hrid());
-        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.uniformBufferBindingOffset(), {sizeof(MaterialUbo)});
+        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.offset(vulkan::DescriptorKind::UniformBuffer), {sizeof(MaterialUbo)});
     }
 
     m_uboDirty = true;
@@ -74,7 +74,7 @@ void MaterialAft::updateBindings()
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     auto& descriptorHolder = m_scene.aft().materialDescriptorHolder();
-    const auto binding = descriptorHolder.combinedImageSamplerBindingOffset();
+    const auto binding = descriptorHolder.offset(vulkan::DescriptorKind::CombinedImageSampler);
     auto imageView = engine.dummyImageView();
 
     // Force all samplers to white image view by default.
@@ -138,7 +138,7 @@ void MaterialAft::updateGlobalBindings()
     const auto& sampler = engine.dummySampler();
     const auto imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     auto& descriptorHolder = m_scene.aft().materialGlobalDescriptorHolder();
-    const auto binding = descriptorHolder.combinedImageSamplerBindingOffset();
+    const auto binding = descriptorHolder.offset(vulkan::DescriptorKind::CombinedImageSampler);
     auto imageView = engine.dummyImageView();
 
     for (const auto& attributePair : m_fore.globalAttributes()) {

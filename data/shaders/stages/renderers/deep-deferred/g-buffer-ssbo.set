@@ -17,6 +17,6 @@ struct GBufferNode {
 };
 
 layout(std430, set = DEEP_DEFERRED_GBUFFER_SSBO_DESCRIPTOR_SET_INDEX, binding = 1) buffer GBufferList {
-    uint counter;
+    uint counter; // @fixme Could probably be way smaller than 32 bits
     GBufferNode nodes[];
 } gBufferList;

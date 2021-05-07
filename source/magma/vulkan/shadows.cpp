@@ -30,7 +30,7 @@ void Shadows::init(const Light& light, const Camera& camera)
     auto& descriptorHolder = m_scene.aft().shadowsDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = descriptorHolder.allocateSet("shadows." + std::to_string(i));
-        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.uniformBufferBindingOffset(), {sizeof(ShadowsUbo)});
+        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.offset(vulkan::DescriptorKind::UniformBuffer), {sizeof(ShadowsUbo)});
     }
 
     updateImagesBindings();
@@ -139,7 +139,7 @@ void Shadows::updateImagesBindings()
 
     // Bind the maps, just once, as these never change
     auto& engine = m_scene.engine().impl();
-    const auto binding = m_scene.aft().shadowsDescriptorHolder().combinedImageSamplerBindingOffset();
+    const auto binding = m_scene.aft().shadowsDescriptorHolder().offset(vulkan::DescriptorKind::CombinedImageSampler);
     const auto& sampler = engine.shadowsSampler();
 
     for (auto cascadeIndex = 0u; cascadeIndex < SHADOWS_CASCADES_COUNT; ++cascadeIndex) {

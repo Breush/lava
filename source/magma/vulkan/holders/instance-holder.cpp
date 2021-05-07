@@ -167,6 +167,10 @@ void InstanceHolder::initRequiredExtensions(vk::InstanceCreateInfo& instanceCrea
         }
     }
 
+    if (true /* @fixme HAVE CONTROL! */) {
+        m_extensions.emplace_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    }
+
     // Validation layers
     if (m_debugEnabled) {
         if (debugUtilsExtensionAvailable) {

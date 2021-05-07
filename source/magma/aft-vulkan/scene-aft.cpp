@@ -11,6 +11,7 @@
 #include "../vulkan/stages/deep-deferred-stage.hpp"
 #include "../vulkan/stages/forward-flat-stage.hpp"
 #include "../vulkan/stages/forward-renderer-stage.hpp"
+#include "../vulkan/stages/ray-tracer-stage.hpp"
 #include "../vulkan/stages/shadows-stage.hpp"
 #include "./camera-aft.hpp"
 #include "./config.hpp"
@@ -43,18 +44,18 @@ void SceneAft::init()
 {
     m_initialized = true;
 
-    m_lightsDescriptorHolder.uniformBufferSizes({1});
+    m_lightsDescriptorHolder.setSizes(vulkan::DescriptorKind::UniformBuffer, {1});
     m_lightsDescriptorHolder.init(64, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
-    m_shadowsDescriptorHolder.uniformBufferSizes({1});
-    m_shadowsDescriptorHolder.combinedImageSamplerSizes({SHADOWS_CASCADES_COUNT});
+    m_shadowsDescriptorHolder.setSizes(vulkan::DescriptorKind::UniformBuffer, {1});
+    m_shadowsDescriptorHolder.setSizes(vulkan::DescriptorKind::CombinedImageSampler, {SHADOWS_CASCADES_COUNT});
     m_shadowsDescriptorHolder.init(256, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
-    m_materialDescriptorHolder.uniformBufferSizes({1});
-    m_materialDescriptorHolder.combinedImageSamplerSizes({MATERIAL_SAMPLERS_SIZE, 1}); // samplers, cubeSampler
+    m_materialDescriptorHolder.setSizes(vulkan::DescriptorKind::UniformBuffer, {1});
+    m_materialDescriptorHolder.setSizes(vulkan::DescriptorKind::CombinedImageSampler, {MATERIAL_SAMPLERS_SIZE, 1}); // samplers, cubeSampler
     m_materialDescriptorHolder.init(1024, vk::ShaderStageFlagBits::eFragment);
 
-    m_materialGlobalDescriptorHolder.combinedImageSamplerSizes({MATERIAL_SAMPLERS_SIZE});
+    m_materialGlobalDescriptorHolder.setSizes(vulkan::DescriptorKind::CombinedImageSampler, {MATERIAL_SAMPLERS_SIZE});
     m_materialGlobalDescriptorHolder.init(1, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 
     m_materialGlobalDescriptorSet = m_materialGlobalDescriptorHolder.allocateSet("engine.material-global");
@@ -66,7 +67,7 @@ void SceneAft::init()
     }
 
     // environmentRadianceMap, environmentIrradianceMap, brdfLut
-    m_environmentDescriptorHolder.combinedImageSamplerSizes({1, 1, 1});
+    m_environmentDescriptorHolder.setSizes(vulkan::DescriptorKind::CombinedImageSampler, {1, 1, 1});
     m_environmentDescriptorHolder.init(2, vk::ShaderStageFlagBits::eFragment);
 
     initStages();
@@ -288,6 +289,9 @@ void SceneAft::foreAdd(Camera& camera)
     }
     else if (m_fore.rendererType() == RendererType::ForwardFlat) {
         cameraBundle.rendererStage = std::make_unique<ForwardFlatStage>(m_fore);
+    }
+    else if (m_fore.rendererType() == RendererType::RayTracer) {
+        cameraBundle.rendererStage = std::make_unique<RayTracerStage>(m_fore);
     }
     else {
         // @note We fallback to a forward renderer if something is not handled.

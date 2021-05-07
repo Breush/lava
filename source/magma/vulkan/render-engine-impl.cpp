@@ -3,6 +3,8 @@
 #include "../aft-vulkan/scene-aft.hpp"
 #include "../shmag-reader.hpp"
 #include "./helpers/queue.hpp"
+#include "./helpers/command-buffer.hpp"
+#include "./holders/acceleration-structure-holder.hpp"
 #include "./holders/swapchain-holder.hpp"
 #include "./render-image-impl.hpp"
 #include "./render-targets/i-render-target-impl.hpp"

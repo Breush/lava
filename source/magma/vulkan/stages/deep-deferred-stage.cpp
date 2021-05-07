@@ -125,7 +125,7 @@ void DeepDeferredStage::record(vk::CommandBuffer commandBuffer, uint32_t frameId
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_geometryPipelineHolder.pipeline());
 
     // Set the camera
-    m_camera->aft().render(commandBuffer, m_geometryPipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
+    m_camera->aft().render(commandBuffer, m_geometryPipelineHolder.kind(), m_geometryPipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
     const auto& cameraFrustum = m_camera->frustum();
 
     // Draw all meshes
@@ -241,11 +241,11 @@ void DeepDeferredStage::initGBuffer()
 {
     std::vector<uint32_t> inputAttachmentSizes(DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT, 1u);
 
-    m_gBufferInputDescriptorHolder.inputAttachmentSizes(inputAttachmentSizes);
+    m_gBufferInputDescriptorHolder.setSizes(vulkan::DescriptorKind::InputAttachment, inputAttachmentSizes);
     m_gBufferInputDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
     m_gBufferInputDescriptorSet = m_gBufferInputDescriptorHolder.allocateSet("deep-deferred.g-buffer-input");
 
-    m_gBufferSsboDescriptorHolder.storageBufferSizes({1, 1});
+    m_gBufferSsboDescriptorHolder.setSizes(vulkan::DescriptorKind::StorageBuffer, {1, 1});
     m_gBufferSsboDescriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
     m_gBufferSsboDescriptorSet = m_gBufferSsboDescriptorHolder.allocateSet("deep-deferred.g-buffer-ssbo");
 }
@@ -526,20 +526,20 @@ void DeepDeferredStage::createResources()
     for (auto i = 0u; i < DEEP_DEFERRED_GBUFFER_RENDER_TARGETS_COUNT; ++i) {
         m_gBufferInputNodeImageHolders.emplace_back(std::make_unique<vulkan::ImageHolder>(m_scene.engine().impl()));
         m_gBufferInputNodeImageHolders[i]->create(vulkan::ImageKind::Input, gBufferHeaderFormat, m_extent);
-        m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet.get(), m_gBufferInputNodeImageHolders[i]->view(),
-                                                 vk::ImageLayout::eShaderReadOnlyOptimal, i);
+        m_gBufferInputDescriptorHolder.updateSet(m_gBufferInputDescriptorSet.get(), vulkan::DescriptorKind::InputAttachment,
+                                                 m_gBufferInputNodeImageHolders[i]->view(), vk::ImageLayout::eShaderReadOnlyOptimal, i);
     }
 
     // GBuffer SSBO
     vk::DeviceSize headerSize = 1u * sizeof(uint32_t) + m_extent.width * m_extent.height * sizeof(uint32_t);
-    m_gBufferSsboHeaderBufferHolder.create(vulkan::BufferKind::ShaderStorage, headerSize);
-    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet.get(), m_gBufferSsboHeaderBufferHolder.buffer(), headerSize, 0);
+    m_gBufferSsboHeaderBufferHolder.create(vulkan::BufferKind::ShaderStorage, vulkan::BufferCpuIo::OnDemandStaging, headerSize);
+    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet.get(), vulkan::DescriptorKind::StorageBuffer, m_gBufferSsboHeaderBufferHolder.buffer(), headerSize, 0);
     m_gBufferSsboHeaderBufferHolder.copy(m_extent.width);
 
     vk::DeviceSize listSize =
         1u * sizeof(uint32_t) + DEEP_DEFERRED_GBUFFER_MAX_NODE_DEPTH * m_extent.width * m_extent.height * sizeof(GBufferNode);
-    m_gBufferSsboListBufferHolder.create(vulkan::BufferKind::ShaderStorage, listSize);
-    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet.get(), m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
+    m_gBufferSsboListBufferHolder.create(vulkan::BufferKind::ShaderStorage, vulkan::BufferCpuIo::None, listSize);
+    m_gBufferSsboDescriptorHolder.updateSet(m_gBufferSsboDescriptorSet.get(), vulkan::DescriptorKind::StorageBuffer, m_gBufferSsboListBufferHolder.buffer(), listSize, 1);
 
     logger.info("magma.vulkan.stages.deep-deferred")
         << "GBuffer sizes | header: " << headerSize / 1000000.f << "Mo | list: " << listSize / 1000000.f << "Mo." << std::endl;

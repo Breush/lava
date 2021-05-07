@@ -13,10 +13,15 @@ CameraAft::CameraAft(Camera& fore, Scene& scene)
 {
 }
 
-void CameraAft::render(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const
+void CameraAft::render(vk::CommandBuffer commandBuffer, PipelineKind pipelineKind, vk::PipelineLayout pipelineLayout, uint32_t pushConstantOffset) const
 {
-    commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-                                pushConstantOffset, sizeof(CameraUbo), &m_fore.ubo());
+    if (pipelineKind == PipelineKind::Graphics) {
+        commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+                                    pushConstantOffset, sizeof(CameraUbo), &m_fore.ubo());
+    } else { // PipelineKind::RayTracing
+        commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eRaygenKHR,
+                                    pushConstantOffset, sizeof(CameraUbo), &m_fore.ubo());
+    }
 }
 
 void CameraAft::changeImageLayout(vk::ImageLayout imageLayout, vk::CommandBuffer commandBuffer)

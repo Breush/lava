@@ -203,7 +203,6 @@ void Window::Impl::initXcbConnection()
     m_connection = xcb_connect(nullptr, &scr);
     if (m_connection == nullptr) {
         logger.error("crater.window") << "Could not find a XCB connection.\n" << std::endl;
-        exit(1);
     }
 
     setup = xcb_get_setup(m_connection);

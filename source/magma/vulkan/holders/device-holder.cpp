@@ -204,6 +204,7 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface, VrEngine& vr)
     // logger.log().tab(-1);
 
     auto enabledExtensions(m_extensions);
+    void* deviceCreateInfoPNext = nullptr;
 
     // Checking VR extensions
     if (vr.enabled()) {
@@ -214,6 +215,52 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface, VrEngine& vr)
 
         for (auto i = 0u; i < needs.vulkan.deviceExtensionCount; ++i) {
             enabledExtensions.emplace_back(needs.vulkan.deviceExtensionsNames[i]);
+        }
+    }
+
+    vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
+    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
+    vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures;
+    vk::PhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures;
+    vk::PhysicalDevice16BitStorageFeatures _16BitStorageFeatures;
+
+    // Checking ray tracing extensions
+    if (true /* @fixme HAVE CONTROL! */) {
+        // Enabling features
+        {
+            // @fixme HAVE SOME "chain()" API
+            bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+            bufferDeviceAddressFeatures.pNext = deviceCreateInfoPNext;
+
+            rayTracingPipelineFeatures.rayTracingPipeline = true;
+            rayTracingPipelineFeatures.pNext = &bufferDeviceAddressFeatures;
+
+            accelerationStructureFeatures.accelerationStructure = true;
+            // accelerationStructureFeatures.accelerationStructureHostCommands = true; @fixme Don't have that!
+            accelerationStructureFeatures.pNext = &rayTracingPipelineFeatures;
+
+            descriptorIndexingFeatures.runtimeDescriptorArray = true;
+            descriptorIndexingFeatures.pNext = &accelerationStructureFeatures;
+
+            _16BitStorageFeatures.storageBuffer16BitAccess = true;
+            _16BitStorageFeatures.pNext = &descriptorIndexingFeatures;
+
+            deviceCreateInfoPNext = &_16BitStorageFeatures;
+        }
+
+        // @fixme rtRenderingNeedsInfo?
+        enabledExtensions.emplace_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+        enabledExtensions.emplace_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+        enabledExtensions.emplace_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+
+        // @fixme -------------------------------
+        enabledExtensions.emplace_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+
+        {
+            auto properties =
+            m_physicalDevice.getProperties2<vk::PhysicalDeviceProperties2,
+                                            vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
+            m_rtPipelineProperties = properties.get<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
         }
     }
 
@@ -231,6 +278,7 @@ void DeviceHolder::createLogicalDevice(vk::SurfaceKHR* pSurface, VrEngine& vr)
     createInfo.enabledExtensionCount = enabledExtensions.size();
     createInfo.ppEnabledExtensionNames = enabledExtensions.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
+    createInfo.pNext = deviceCreateInfoPNext;
 
     auto result = m_physicalDevice.createDeviceUnique(createInfo);
     m_device = vulkan::checkMove(result, "device-holder", "Unable to create logical device.");

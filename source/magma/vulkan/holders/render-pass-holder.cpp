@@ -170,6 +170,6 @@ void RenderPassHolder::init()
 
     // Init pipeline holders
     for (auto i = 0u; i < m_pipelineHolders.size(); ++i) {
-        m_pipelineHolders[i]->init(i);
+        m_pipelineHolders[i]->init(PipelineKind::Graphics, i);
     }
 }

@@ -1,6 +1,5 @@
 #include "./image-holder.hpp"
 
-#include "../helpers/buffer.hpp"
 #include "../helpers/command-buffer.hpp"
 #include "../helpers/device.hpp"
 #include "../render-engine-impl.hpp"
@@ -133,6 +132,10 @@ void ImageHolder::create(ImageKind kind, vk::Format format, const vk::Extent2D& 
             usageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eInputAttachment;
             m_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
         }
+        else if (kind == ImageKind::Storage) {
+            usageFlags = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled; // @fixme eSampled JUST TO ALLOW PRESENT
+            m_layout = vk::ImageLayout::eGeneral;
+        }
     }
 
     //----- Image
@@ -214,23 +217,11 @@ void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffse
 
     //----- Staging buffer
 
-    vk::UniqueBuffer stagingBuffer; // @fixme Why not use a buffer holder?
-    vk::UniqueDeviceMemory stagingBufferMemory;
-
-    vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-    vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-
-    createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
-                 stagingBufferMemory);
-    m_engine.deviceHolder().debugObjectName(stagingBufferMemory.get(), "image-holder.staging-buffer-memory." + m_name);
+    BufferHolder stagingBufferHolder(m_engine, "image-holder.staging-buffer." + m_name);
+    stagingBufferHolder.create(BufferKind::Staging, vulkan::BufferCpuIo::Direct, size);
+    stagingBufferHolder.copy(data, size);
 
     //----- Copy indeed
-
-    void* targetData;
-    vk::MemoryMapFlags memoryMapFlags;
-    m_engine.device().mapMemory(stagingBufferMemory.get(), 0, size, memoryMapFlags, &targetData);
-    memcpy(targetData, data, size);
-    m_engine.device().unmapMemory(stagingBufferMemory.get());
 
     vk::BufferImageCopy bufferImageCopy;
     bufferImageCopy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -241,7 +232,7 @@ void ImageHolder::copy(const void* data, uint8_t layersCount, uint8_t layerOffse
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
     changeLayoutQuietly(vk::ImageLayout::eTransferDstOptimal, commandBuffer);
-    commandBuffer.copyBufferToImage(stagingBuffer.get(), m_image.get(), vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
+    commandBuffer.copyBufferToImage(stagingBufferHolder.buffer(), m_image.get(), vk::ImageLayout::eTransferDstOptimal, 1, &bufferImageCopy);
     changeLayoutQuietly(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 }
@@ -355,15 +346,8 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     //----- Staging buffer
 
-    vk::UniqueBuffer stagingBuffer; // @fixme Why not use a BufferHolder?
-    vk::UniqueDeviceMemory stagingBufferMemory;
-
-    vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eTransferDst;
-    vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-
-    createBuffer(m_engine.device(), m_engine.physicalDevice(), size, usageFlags, propertyFlags, stagingBuffer,
-                 stagingBufferMemory);
-    m_engine.deviceHolder().debugObjectName(stagingBufferMemory.get(), "image-holder.staging-buffer-memory." + m_name + "." + path.string());
+    BufferHolder stagingBufferHolder(m_engine, "image-holder.staging-buffer." + m_name);
+    stagingBufferHolder.create(BufferKind::StagingTarget, vulkan::BufferCpuIo::Direct, size);
 
     //----- Copy from device
 
@@ -376,7 +360,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     auto commandBuffer = beginSingleTimeCommands(m_engine.device(), m_engine.commandPool());
     changeLayoutQuietly(vk::ImageLayout::eTransferSrcOptimal, commandBuffer);
-    commandBuffer.copyImageToBuffer(m_image.get(), vk::ImageLayout::eTransferSrcOptimal, stagingBuffer.get(), 1, &bufferImageCopy);
+    commandBuffer.copyImageToBuffer(m_image.get(), vk::ImageLayout::eTransferSrcOptimal, stagingBufferHolder.buffer(), 1, &bufferImageCopy);
     changeLayoutQuietly(m_layout, commandBuffer);
     endSingleTimeCommands(m_engine.device(), m_engine.graphicsQueue(), m_engine.commandPool(), commandBuffer);
 
@@ -384,9 +368,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     std::vector<uint32_t> pixels(width * height);
 
-    void* data;
-    vk::MemoryMapFlags memoryMapFlags;
-    m_engine.device().mapMemory(stagingBufferMemory.get(), 0, size, memoryMapFlags, &data);
+    void* data = stagingBufferHolder.map(size);
 
     for (uint64_t j = 0u; j < height; ++j) {
         for (uint64_t i = 0u; i < width; ++i) {
@@ -396,7 +378,7 @@ void ImageHolder::savePng(const fs::Path& path, uint8_t layerOffset, uint8_t mip
 
     stbi_write_png(path.string().c_str(), width, height, 4u, pixels.data(), 0u);
 
-    m_engine.device().unmapMemory(stagingBufferMemory.get());
+    stagingBufferHolder.unmap();
 }
 
 // ----- Internal

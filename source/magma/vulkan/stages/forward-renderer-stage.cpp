@@ -133,7 +133,7 @@ void ForwardRendererStage::record(vk::CommandBuffer commandBuffer, uint32_t fram
     }
 
     // Set the camera
-    m_camera->aft().render(commandBuffer, m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
+    m_camera->aft().render(commandBuffer, m_opaquePipelineHolder.kind(), m_opaquePipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
     const auto& cameraFrustum = m_camera->frustum();
 
     // Set the environment

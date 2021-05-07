@@ -89,7 +89,7 @@ void ForwardFlatStage::record(vk::CommandBuffer commandBuffer, uint32_t /* frame
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipelineHolder.pipeline());
 
     // Set the camera
-    m_camera->aft().render(commandBuffer, m_pipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
+    m_camera->aft().render(commandBuffer, m_pipelineHolder.kind(), m_pipelineHolder.pipelineLayout(), CAMERA_PUSH_CONSTANT_OFFSET);
 
     // Draw all flats
     for (auto flat : m_scene.flats()) {

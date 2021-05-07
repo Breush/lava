@@ -10,9 +10,17 @@ PipelineHolder::PipelineHolder(RenderEngine::Impl& engine)
 {
 }
 
-void PipelineHolder::init(uint32_t subpassIndex)
+void PipelineHolder::init(PipelineKind kind, uint32_t subpassIndex)
 {
+    m_kind = kind;
     m_subpassIndex = subpassIndex;
+
+    if (kind == PipelineKind::Graphics) {
+        m_pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+    }
+    else if (kind == PipelineKind::RayTracing) {
+        m_pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eRaygenKHR;
+    }
 
     initPipelineLayout();
 }
@@ -161,6 +169,20 @@ void PipelineHolder::update(const vk::Extent2D& extent, vk::PolygonMode polygonM
     m_pipeline = vulkan::checkMove(result, "pipeline-holder", "Unable to create graphics pipeline.");
 }
 
+void PipelineHolder::updateRaytracing()
+{
+    vk::RayTracingPipelineCreateInfoKHR createInfo;
+    createInfo.stageCount = m_shaderStages.size();
+    createInfo.pStages = m_shaderStages.data();
+    createInfo.groupCount = m_shaderGroups.size();
+    createInfo.pGroups = m_shaderGroups.data();
+    createInfo.maxPipelineRayRecursionDepth = 1;
+    createInfo.layout = m_pipelineLayout.get();
+
+    auto result = m_engine.device().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
+    m_pipeline = vulkan::checkMove(result, "pipeline-holder", "Unable to create raytracing pipeline.");
+}
+
 void PipelineHolder::initPipelineLayout()
 {
     vk::PipelineLayoutCreateInfo createInfo;
@@ -184,6 +206,11 @@ void PipelineHolder::add(const vk::DescriptorSetLayout& descriptorSetLayout)
 void PipelineHolder::add(const vk::PipelineShaderStageCreateInfo& shaderStage)
 {
     m_shaderStages.emplace_back(shaderStage);
+}
+
+void PipelineHolder::add(const vk::RayTracingShaderGroupCreateInfoKHR& shaderGroup)
+{
+    m_shaderGroups.emplace_back(shaderGroup);
 }
 
 void PipelineHolder::add(const ColorAttachment& colorAttachment)

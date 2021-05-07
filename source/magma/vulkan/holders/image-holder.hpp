@@ -12,6 +12,7 @@ namespace lava::magma::vulkan {
         RenderTexture,              // Color | Sampled                  (ShaderReadOnlyOptimal layout)
         Texture,                    // Color | Sampled | TransferDst    (ShaderReadOnlyOptimal layout)
         Input,                      // Color | Input                    (ShaderReadOnlyOptimal layout)
+        Storage,                    // Storage                          (General layout)
         Depth,                      // DepthStencil | Sampled           (DepthStencilReadOnlyOptimal layout)
     };
 

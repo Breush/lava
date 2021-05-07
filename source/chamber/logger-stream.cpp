@@ -2,6 +2,8 @@
 
 #include <lava/chamber/string-tools.hpp>
 
+#include <csignal>
+
 using namespace lava::chamber;
 
 LoggerStream::LoggerStream(std::ostream& stream, const std::string& resetString)
@@ -50,6 +52,7 @@ int LoggerStream::overflow(int c)
             callStack.refresh(4);
             m_stream->put(c);
             stream() << callStack;
+            std::raise(SIGINT);
             exit(1);
         }
     }

@@ -7,6 +7,40 @@
 #include <glm/gtx/string_cast.hpp>
 
 namespace lava::ashe {
+    // @todo Have something similar in lava/core.
+    float random01()
+    {
+        return static_cast<float>(rand()) / RAND_MAX;
+    }
+
+    magma::Mesh& makePlane(magma::Scene& scene, const glm::vec2& dimensions)
+    {
+        auto& mesh = scene.make<magma::Mesh>();
+
+        std::vector<glm::vec3> positions(4);
+        std::vector<uint16_t> indices = {0u, 1u, 2u, 2u, 3u, 0u};
+
+        const auto halfWidth = dimensions.x / 2.f;
+        const auto halfHeight = dimensions.y / 2.f;
+
+        positions[0].x = -halfWidth;
+        positions[0].y = -halfHeight;
+        positions[1].x = halfWidth;
+        positions[1].y = -halfHeight;
+        positions[2].x = halfWidth;
+        positions[2].y = halfHeight;
+        positions[3].x = -halfWidth;
+        positions[3].y = halfHeight;
+
+        mesh.verticesCount(positions.size());
+        mesh.indices(indices);
+        mesh.verticesPositions(positions);
+        mesh.computeFlatNormals();
+        mesh.computeTangents();
+
+        return mesh;
+    }
+
     magma::Mesh& makeCube(magma::Scene& scene, float sideLength)
     {
         auto& mesh = scene.make<magma::Mesh>();
@@ -304,33 +338,7 @@ namespace lava::ashe {
             return mesh;
         }
 
-        magma::Mesh& makePlane(glm::vec2 dimensions)
-        {
-            auto& mesh = m_scene->make<magma::Mesh>();
-
-            std::vector<glm::vec3> positions(4);
-            std::vector<uint16_t> indices = {0u, 1u, 2u, 2u, 3u, 0u};
-
-            const auto halfWidth = dimensions.x / 2.f;
-            const auto halfHeight = dimensions.y / 2.f;
-
-            positions[0].x = -halfWidth;
-            positions[0].y = -halfHeight;
-            positions[1].x = halfWidth;
-            positions[1].y = -halfHeight;
-            positions[2].x = halfWidth;
-            positions[2].y = halfHeight;
-            positions[3].x = -halfWidth;
-            positions[3].y = halfHeight;
-
-            mesh.verticesCount(positions.size());
-            mesh.indices(indices);
-            mesh.verticesPositions(positions);
-            mesh.computeFlatNormals();
-            mesh.computeTangents();
-
-            return mesh;
-        }
+        magma::Mesh& makePlane(glm::vec2 dimensions) { return lava::ashe::makePlane(*m_scene, dimensions); }
 
         magma::Mesh& makeTetrahedron(float size) { return lava::ashe::makeTetrahedron(*m_scene, size); }
 

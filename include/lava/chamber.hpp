@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lava/chamber/alignment-tools.hpp>
 #include <lava/chamber/array.hpp>
 #include <lava/chamber/bucket-allocator.hpp>
 #include <lava/chamber/buffer.hpp>

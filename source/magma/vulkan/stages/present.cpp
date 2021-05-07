@@ -48,8 +48,8 @@ void Present::init()
 
     //----- Descriptors
 
-    m_descriptorHolder.uniformBufferSizes({1, MAX_VIEW_COUNT});
-    m_descriptorHolder.combinedImageSamplerSizes({MAX_VIEW_COUNT});
+    m_descriptorHolder.setSizes(vulkan::DescriptorKind::UniformBuffer, {1, MAX_VIEW_COUNT});
+    m_descriptorHolder.setSizes(vulkan::DescriptorKind::CombinedImageSampler, {MAX_VIEW_COUNT});
     m_descriptorHolder.init(1, vk::ShaderStageFlagBits::eFragment);
     m_pipelineHolder.add(m_descriptorHolder.setLayout());
 
@@ -67,7 +67,7 @@ void Present::init()
 
     //----- Uniform buffers
 
-    m_uboHolder.init(m_descriptorSet.get(), m_descriptorHolder.uniformBufferBindingOffset(),
+    m_uboHolder.init(m_descriptorSet.get(), m_descriptorHolder.offset(vulkan::DescriptorKind::UniformBuffer),
                      {sizeof(ViewUbo), {sizeof(ViewportUbo), MAX_VIEW_COUNT}});
 
     //----- Attachments
@@ -81,8 +81,6 @@ void Present::init()
 
     m_renderPassHolder.add(m_pipelineHolder);
     m_renderPassHolder.init();
-
-    m_pipelineHolder.init(0u);
 
     logger.log().tab(-1);
 }

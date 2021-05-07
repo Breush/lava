@@ -20,7 +20,7 @@ void LightAft::init()
     auto& descriptorHolder = m_scene.aft().lightsDescriptorHolder();
     for (auto i = 0u; i < m_descriptorSets.size(); ++i) {
         m_descriptorSets[i] = descriptorHolder.allocateSet("light." + std::to_string(i));
-        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.uniformBufferBindingOffset(), {sizeof(LightUbo)});
+        m_uboHolders[i].init(m_descriptorSets[i].get(), descriptorHolder.offset(vulkan::DescriptorKind::UniformBuffer), {sizeof(LightUbo)});
     }
 
     m_uboDirty = true;

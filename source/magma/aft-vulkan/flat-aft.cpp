@@ -61,8 +61,9 @@ void FlatAft::createVertexBuffer()
 {
     PROFILE_FUNCTION(PROFILER_COLOR_ALLOCATION);
 
+    // @todo :SlowMeshVertexUpdate By saying OnDemandStaging, we are guessing the data will not evolve too much over time.
     vk::DeviceSize bufferSize = sizeof(FlatVertex) * m_fore.vertices().size();
-    m_vertexBufferHolder.create(vulkan::BufferKind::ShaderVertex, bufferSize);
+    m_vertexBufferHolder.create(vulkan::BufferKind::ShaderVertex, vulkan::BufferCpuIo::OnDemandStaging, bufferSize);
     m_vertexBufferHolder.copy(m_fore.vertices().data(), bufferSize);
 
     m_vertexBufferDirty = false;
@@ -79,6 +80,6 @@ void FlatAft::createIndexBuffer()
 
     vk::DeviceSize bufferSize = sizeof(uint16_t) * m_fore.indices().size();
 
-    m_indexBufferHolder.create(vulkan::BufferKind::ShaderIndex, bufferSize);
+    m_indexBufferHolder.create(vulkan::BufferKind::ShaderIndex, vulkan::BufferCpuIo::OnDemandStaging, bufferSize);
     m_indexBufferHolder.copy(m_fore.indices().data(), bufferSize);
 }

@@ -27,6 +27,12 @@ project "magma-instancing"
     useCrater()
     useMagma()
 
+project "magma-ray-tracer"
+    kind "WindowedApp"
+    files "magma/ray-tracer.cpp"
+    useCrater()
+    useMagma()
+
 project "magma-scenes-and-windows"
     kind "WindowedApp"
     files "magma/scenes-and-windows.cpp"

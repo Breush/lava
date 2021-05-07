@@ -2,6 +2,7 @@
 
 #include <lava/magma/render-engine.hpp>
 
+#include "../../pipeline-kind.hpp"
 #include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
@@ -50,9 +51,11 @@ namespace lava::magma::vulkan {
     public:
         PipelineHolder(RenderEngine::Impl& engine);
 
-        void init(uint32_t subpassIndex);
+        void init(PipelineKind kind, uint32_t subpassIndex);
         void update(const vk::Extent2D& extent, vk::PolygonMode polygonMode = vk::PolygonMode::eFill);
+        void updateRaytracing();
 
+        PipelineKind kind() const { return m_kind; }
         vk::Pipeline pipeline() const { return m_pipeline.get(); }
         vk::PipelineLayout pipelineLayout() const { return m_pipelineLayout.get(); }
 
@@ -62,6 +65,9 @@ namespace lava::magma::vulkan {
         /// Register a shader stage.
         void add(const vk::PipelineShaderStageCreateInfo& shaderStage);
         void removeShaderStages() { m_shaderStages.clear(); }
+
+        /// Register a shader group (for raytracing).
+        void add(const vk::RayTracingShaderGroupCreateInfoKHR& shaderGroup);
 
         /// Register a color attachment.
         void add(const ColorAttachment& colorAttachment);
@@ -104,6 +110,7 @@ namespace lava::magma::vulkan {
         const std::optional<DepthStencilAttachment>& depthStencilAttachment() const { return m_depthStencilAttachment; }
         const std::vector<InputAttachment>& inputAttachments() const { return m_inputAttachments; }
         const std::optional<ResolveAttachment>& resolveAttachment() const { return m_resolveAttachment; }
+        const std::vector<vk::RayTracingShaderGroupCreateInfoKHR>& shaderGroups() const { return m_shaderGroups; }
         void resetResolveAttachment() { m_resolveAttachment = std::nullopt; }
         bool selfDependent() const { return m_selfDependent; }
 
@@ -124,13 +131,15 @@ namespace lava::magma::vulkan {
         vk::UniquePipeline m_pipeline;
 
         // Internals
+        PipelineKind m_kind = PipelineKind::Unknown;
         std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
         std::vector<vk::PipelineShaderStageCreateInfo> m_shaderStages;
+        std::vector<vk::RayTracingShaderGroupCreateInfoKHR> m_shaderGroups;
         std::vector<ColorAttachment> m_colorAttachments;
         std::optional<DepthStencilAttachment> m_depthStencilAttachment;
         std::optional<ResolveAttachment> m_resolveAttachment;
         std::vector<InputAttachment> m_inputAttachments;
-        vk::PushConstantRange m_pushConstantRange = {vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, 0};
+        vk::PushConstantRange m_pushConstantRange = {};
         std::vector<VertexInput> m_vertexInputs;
         vk::CullModeFlags m_cullMode;
         vk::SampleCountFlagBits m_sampleCount = vk::SampleCountFlagBits::e1;

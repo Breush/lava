@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../vulkan/holders/acceleration-structure-holder.hpp"
 #include "../vulkan/holders/buffer-holder.hpp"
 
 namespace lava::magma {
@@ -17,6 +18,13 @@ namespace lava::magma {
                     uint32_t materialDescriptorSetIndex) const;
         void renderUnlit(vk::CommandBuffer commandBuffer) const;
 
+        const vulkan::BufferHolder& indexBufferHolder() const { return m_indexBufferHolder; }
+        const vulkan::BufferHolder& vertexBufferHolder() const { return m_vertexBufferHolder; }
+        const vulkan::BufferHolder& unlitVertexBufferHolder() const { return m_unlitVertexBufferHolder; }
+        const vulkan::BufferHolder& instanceBufferHolder() const { return m_instanceBufferHolder; }
+
+        const vulkan::AccelerationStructureHolder& blasHolder() const { return m_blasHolder; }
+
         // ----- Fore
         void foreVerticesChanged() { m_vertexBufferDirty = true; }
         void foreInstancesCountChanged() { m_instanceBufferDirty = true; }
@@ -27,12 +35,15 @@ namespace lava::magma {
         void createVertexBuffers();
         void createInstanceBuffer();
         void createIndexBuffer();
+        void createBlas();
 
     private:
         Mesh& m_fore;
         Scene& m_scene;
 
         // ----- Geometry
+        vulkan::AccelerationStructureHolder m_blasHolder;
+        vulkan::BufferHolder m_blasTransformBufferHolder;
         vulkan::BufferHolder m_unlitVertexBufferHolder;
         vulkan::BufferHolder m_vertexBufferHolder;
         vulkan::BufferHolder m_instanceBufferHolder;

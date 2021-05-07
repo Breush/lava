@@ -1,0 +1,5 @@
+struct Payload {
+    vec4 color;
+    // vec3 normal;
+    // float dist;
+};

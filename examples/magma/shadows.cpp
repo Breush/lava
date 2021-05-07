@@ -6,12 +6,6 @@
 
 using namespace lava;
 
-// @todo Have something similar in lava/core.
-float random01()
-{
-    return static_cast<float>(rand()) / RAND_MAX;
-}
-
 int main(void)
 {
     ashe::Application app("ashe - magma | Shadows");
@@ -27,9 +21,9 @@ int main(void)
     // Structure
     for (auto i = 0u; i < 5u; ++i) {
         auto& mesh = app.makeCube(1.f);
-        mesh.scale(minScaling + (maxScaling - minScaling) * random01());
-        mesh.translate({random01() - 1.f, 2.f * random01() - 1.f, random01()});
-        mesh.rotate({random01(), random01(), random01()}, 3.14f / 4.f * random01());
+        mesh.scale(minScaling + (maxScaling - minScaling) * ashe::random01());
+        mesh.translate({ashe::random01() - 1.f, 2.f * ashe::random01() - 1.f, ashe::random01()});
+        mesh.rotate({ashe::random01(), ashe::random01(), ashe::random01()}, 3.14f / 4.f * ashe::random01());
     }
 
     // Move the main camera

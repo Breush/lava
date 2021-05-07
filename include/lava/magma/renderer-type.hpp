@@ -33,6 +33,11 @@ $enum_class(lava::magma, RendererType,
             DeepDeferred,
 
             /**
+             * A ray tracer for 3D rendering.
+             */
+            RayTracer,
+
+            /**
              * A forward renderer specialized for rendering 2D elements (named flats).
              *
              * It's a one-pass renderer, everything has to be ordered.

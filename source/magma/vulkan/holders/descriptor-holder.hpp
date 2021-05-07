@@ -6,6 +6,16 @@
 #include "../wrappers.hpp"
 
 namespace lava::magma::vulkan {
+    enum class DescriptorKind {
+        Unknown,
+        AccelerationStructure,
+        StorageImage,
+        StorageBuffer,
+        UniformBuffer,
+        CombinedImageSampler,
+        InputAttachment,
+    };
+
     /**
      * Descriptor holder.
      */
@@ -16,30 +26,24 @@ namespace lava::magma::vulkan {
 
         void init(uint32_t maxSetCount, vk::ShaderStageFlags shaderStageFlags);
 
-        void storageBufferSizes(const std::vector<uint32_t>& storageBufferSizes) { m_storageBufferSizes = storageBufferSizes; }
-        void uniformBufferSizes(const std::vector<uint32_t>& uniformBufferSizes) { m_uniformBufferSizes = uniformBufferSizes; }
-        void combinedImageSamplerSizes(const std::vector<uint32_t>& combinedImageSamplerSizes)
-        {
-            m_combinedImageSamplerSizes = combinedImageSamplerSizes;
-        }
-        void inputAttachmentSizes(const std::vector<uint32_t>& inputAttachmentSizes)
-        {
-            m_inputAttachmentSizes = inputAttachmentSizes;
-        }
+        void setSizes(DescriptorKind kind, const std::vector<uint32_t>& sizes);
 
         /// Allocate a single set from the associated pool.
         vk::UniqueDescriptorSet allocateSet(const std::string& debugName, bool dummyBinding = false) const;
 
-        /// Update the specified storage buffer component.
-        void updateSet(vk::DescriptorSet set, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t storageBufferIndex);
+        /// Update the specified acceleration structure component.
+        void updateSet(vk::DescriptorSet set, vk::AccelerationStructureKHR accelerationStructure, uint32_t accelerationStructureIndex);
+
+        /// Update the specified component (storage buffer or uniform buffer).
+        void updateSet(vk::DescriptorSet set, DescriptorKind kind, vk::Buffer buffer, vk::DeviceSize bufferSize, uint32_t index, uint32_t arrayIndex = 0u);
 
         /// Update the specified combined image sampler component.
         void updateSet(vk::DescriptorSet set, vk::ImageView imageView, vk::Sampler sampler, vk::ImageLayout imageLayout,
                        uint32_t combinedImageSamplerIndex);
 
-        /// Update the specified input attachment component.
-        void updateSet(vk::DescriptorSet set, vk::ImageView imageView, vk::ImageLayout imageLayout,
-                       uint32_t inputAttachmentIndex);
+        /// Update the specified component (storage image or input attachment).
+        void updateSet(vk::DescriptorSet set, DescriptorKind kind, vk::ImageView imageView, vk::ImageLayout imageLayout,
+                       uint32_t index);
 
         /// Get the set layout.
         vk::DescriptorSetLayout setLayout() const { return m_setLayout.get(); }
@@ -48,23 +52,22 @@ namespace lava::magma::vulkan {
         vk::DescriptorPool pool() const { return m_pool.get(); }
 
         /// Binding offsets.
-        uint32_t storageBufferBindingOffset() const { return 0u; }
-        uint32_t uniformBufferBindingOffset() const { return m_storageBufferSizes.size(); }
-        uint32_t combinedImageSamplerBindingOffset() const { return m_storageBufferSizes.size() + m_uniformBufferSizes.size(); }
-        uint32_t inputAttachmentBindingOffset() const
-        {
-            return m_storageBufferSizes.size() + m_uniformBufferSizes.size() + m_combinedImageSamplerSizes.size();
-        }
+        uint32_t offset(DescriptorKind kind) const { return m_bindings.at(kind).offset; }
+
+    protected:
+        struct Binding {
+            uint32_t offset = 0u;
+            uint32_t totalSize = 0u; // Will be computed during init()
+            std::vector<uint32_t> sizes;
+        };
 
     protected:
         // References
         const RenderEngine::Impl& m_engine;
 
         // Configuration
-        std::vector<uint32_t> m_storageBufferSizes;
-        std::vector<uint32_t> m_uniformBufferSizes;
-        std::vector<uint32_t> m_combinedImageSamplerSizes;
-        std::vector<uint32_t> m_inputAttachmentSizes;
+        std::unordered_map<DescriptorKind, Binding> m_bindings;
+        uint32_t m_nextOffset = 0u;
 
         // Resources
         vk::UniqueDescriptorSetLayout m_setLayout;
